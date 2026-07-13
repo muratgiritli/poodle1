@@ -83,6 +83,9 @@ const Demo2Page = lazy(() => import("@/pages/demo2"));
 const DemoAnasayfaPage = lazy(() => import("@/pages/demo-anasayfa"));
 const YourPoodleHomePage = lazy(() => import("@/pages/yourpoodle-home"));
 const YourPoodleRehberPage = lazy(() => import("@/pages/yourpoodle-rehber"));
+const YourPoodleRehberCategoryPage = lazy(() => import("@/pages/yourpoodle-rehber-category"));
+const YourPoodleAraclarPage = lazy(() => import("@/pages/yourpoodle-araclar"));
+const YourPoodleAiPage = lazy(() => import("@/pages/yourpoodle-ai"));
 const YourPoodleBilgiPage = lazy(() => import("@/pages/yourpoodle-bilgi"));
 const DemoKampanyaPage = lazy(() => import("@/pages/demo-kampanya"));
 const DemoKampanyaUrunPage = lazy(() => import("@/pages/demo-kampanya").then(m => ({ default: m.DemoKampanyaUrun })));
@@ -158,6 +161,9 @@ function Router() {
         <Route path="/demo-anasayfa" component={DemoAnasayfaPage as any} />
         <Route path="/yourpoodle" component={YourPoodleHomePage} />
         <Route path="/yourpoodle/rehber" component={YourPoodleRehberPage} />
+        <Route path="/yourpoodle/rehber/:category" component={YourPoodleRehberCategoryPage} />
+        <Route path="/yourpoodle/araclar" component={YourPoodleAraclarPage} />
+        <Route path="/yourpoodle/ai-poodle-asistani" component={YourPoodleAiPage} />
         <Route path="/yourpoodle/bilgi" component={YourPoodleBilgiPage} />
         <Route path="/demo-kampanya" component={DemoKampanyaPage} />
         <Route path="/demo-kampanya/urun/:id" component={DemoKampanyaUrunPage} />

@@ -1,0 +1,551 @@
+YourPoodle.com için tam kapsamlı bir “Toy Poodle Rehberi” ana sayfası oluştur.
+
+Bu sayfa hem mobil hem masaüstü uyumlu olacak. Amaç, kullanıcıların Toy Poodle ile ilgili tüm bilgilere ana kategori ve alt kategori üzerinden kolayca ulaşabilmesi.
+
+Sayfa route:
+ /rehber
+
+Component adı:
+ToyPoodleGuidePage.tsx
+
+Teknoloji:
+- React
+- TypeScript
+- Tailwind CSS
+- Lucide React ikonları
+- React Router
+
+GENEL TASARIM
+
+- YourPoodle.com’un mevcut beyaz, lila, mor ve pembe tasarım dili korunacak.
+- Sayfa sade, premium ve ferah olacak.
+- Arka plan: #FAF7FF
+- İçerik maksimum genişliği: 1400px
+- Masaüstünde ortalanmış container kullanılacak.
+- Mobilde sağ ve solda 16px boşluk bırakılacak.
+- Kartlarda border-radius 20–24px kullanılacak.
+- Kartlar beyaz olacak.
+- İnce border ve hafif mor gölge kullanılacak.
+- Sayfa hızlı açılmalı.
+- Görseller lazy-load olmalı.
+- Tüm kategori ve alt kategori kartları tıklanabilir olmalı.
+- Mevcut header ve footer kullanılacak.
+
+1. HERO BÖLÜMÜ
+
+Sayfanın en üstüne sade bir rehber hero alanı ekle.
+
+Başlık:
+Toy Poodle Rehberi
+
+Alt açıklama:
+Yavru döneminden ileri yaşlara kadar bakım, sağlık, beslenme, eğitim ve yaşam hakkında ihtiyacınız olan her şey.
+
+Butonlar:
+- Rehberlerde Ara
+- AI Poodle Asistanına Sor
+
+Sağ tarafta küçük ve sevimli bir Toy Poodle görseli olabilir.
+Görsel çok büyük olmasın.
+Mobilde görsel başlığın altına geçsin.
+
+Hero içinde arama alanı ekle:
+
+Placeholder:
+Toy Poodle hakkında ne öğrenmek istiyorsunuz?
+
+Arama kutusu:
+- Search ikonu
+- Temiz ve büyük
+- Kullanıcı yazdıkça kategori ve içeriklerde filtreleme yapsın
+- Enter ile arama sonuç sayfasına yönlendirsin
+
+2. POPÜLER REHBERLER
+
+Hero altında yatay veya grid şeklinde “En Çok Okunan Rehberler” bölümü oluştur.
+
+İlk 6 içerik:
+
+- Tuvalet Eğitimi
+- Göz Akıntısı
+- Mama Seçimi
+- Havlama Sorunu
+- İlk Aşılar
+- Tıraş ve Tarama
+
+Mobilde:
+2 sütun
+
+Masaüstünde:
+6 sütun
+
+Her kartta:
+- Küçük ikon
+- Başlık
+- Kısa açıklama
+- “Oku” bağlantısı
+
+3. ANA KATEGORİLER
+
+Aşağıdaki 14 ana kategoriyi oluştur.
+
+Her ana kategori ayrı büyük kart olacak.
+
+Kartta:
+- İkon
+- Kategori adı
+- Kısa açıklama
+- Alt kategori sayısı
+- İlk 5 alt kategori
+- “Tümünü Gör” butonu
+- Chevron-right ikonu
+
+Masaüstünde:
+3 sütun
+
+Tablette:
+2 sütun
+
+Mobilde:
+1 sütun
+
+ANA KATEGORİLER VE ALT KATEGORİLER
+
+1. Yavru Toy Poodle
+
+Açıklama:
+Yavru Toy Poodle’ın eve gelişinden temel bakım ve eğitimine kadar ilk dönem rehberi.
+
+Alt kategoriler:
+- Eve İlk Geliş
+- İlk Gün Yapılması Gerekenler
+- İlk Gece
+- İlk Oyuncak
+- İlk Mama
+- İlk Veteriner
+- İlk Aşılar
+- İlk Tuvalet Eğitimi
+- İlk Banyo
+- İlk Tarama
+- İlk Tıraş
+- Sosyalleştirme
+- Isırma Problemi
+- Havlama
+- Yalnız Kalma
+- Kafes Eğitimi
+
+Route:
+ /rehber/yavru-toy-poodle
+
+2. Beslenme
+
+Açıklama:
+Yaşına, kilosuna ve özel ihtiyaçlarına göre doğru beslenme rehberi.
+
+Alt kategoriler:
+- Mama Seçimi
+- Mama Hesaplama
+- Günlük Mama Miktarı
+- Yavru Mama
+- Yetişkin Mama
+- Senior Mama
+- Kısırlaştırılmış Mama
+- Tahılsız Mama
+- Hassas Sindirim
+- Ödül Mamaları
+- Vitaminler
+- Takviyeler
+- Su Tüketimi
+- Yasak Yiyecekler
+- Ev Yemeği Verilir mi?
+
+Route:
+ /rehber/beslenme
+
+3. Bakım
+
+Açıklama:
+Tüy, göz, kulak, diş ve pati bakımının tüm detayları.
+
+Alt kategoriler:
+- Tarama
+- Tıraş
+- Göz Temizliği
+- Kulak Temizliği
+- Diş Bakımı
+- Tırnak Kesimi
+- Pati Bakımı
+- Gözyaşı Lekesi
+- Şampuan Seçimi
+- Tüy Açıcılar
+- Koku Problemi
+
+Route:
+ /rehber/bakim
+
+4. Sağlık
+
+Açıklama:
+Toy Poodle’larda görülen sağlık sorunları, belirtiler ve koruyucu bakım.
+
+Alt kategoriler:
+- Hastalıklar
+- Aşı Takvimi
+- İç Parazit
+- Dış Parazit
+- Bit
+- Kene
+- Pire
+- Kusma
+- İshal
+- Ateş
+- Göz Hastalıkları
+- Kulak Hastalıkları
+- Diş Hastalıkları
+- Kalça Problemleri
+- Diz Problemleri
+- Solunum Problemleri
+- Acil Durumlar
+
+Route:
+ /rehber/saglik
+
+5. Eğitim
+
+Açıklama:
+Temel komutlardan tuvalet ve sosyalleşme eğitimine kadar uygulamalı rehber.
+
+Alt kategoriler:
+- Tuvalet Eğitimi
+- Havlama Eğitimi
+- Isırma Eğitimi
+- Otur Komutu
+- Bekle Komutu
+- Gel Komutu
+- Tasma Eğitimi
+- Kafes Eğitimi
+- Sosyalleşme
+- Ev Kuralları
+- Çocuklarla İletişim
+- Diğer Köpeklerle İletişim
+
+Route:
+ /rehber/egitim
+
+6. Davranış
+
+Açıklama:
+Toy Poodle davranışlarını anlama ve sorunlara doğru yaklaşım rehberi.
+
+Alt kategoriler:
+- Çok Havlıyor
+- Çok Isırıyor
+- Sürekli Ağlıyor
+- Sürekli Uyuyor
+- Sürekli Kaşınıyor
+- Eşyaları Kemiriyor
+- Tuvalet Kaçırıyor
+- Yalnız Kalamıyor
+- Sahibine Bağlılık
+- Kıskançlık
+- Korkular
+- Stres
+
+Route:
+ /rehber/davranis
+
+7. Seyahat
+
+Açıklama:
+Toy Poodle ile güvenli ve konforlu yolculuk için gereken bilgiler.
+
+Alt kategoriler:
+- Arabayla Yolculuk
+- Uçak Yolculuğu
+- Otobüs Yolculuğu
+- Tren Yolculuğu
+- Otel Seçimi
+- Pet Friendly Yerler
+- Seyahat Çantası
+- Seyahat Listesi
+
+Route:
+ /rehber/seyahat
+
+8. Mevsim Bakımı
+
+Açıklama:
+Yaz, kış ve mevsim geçişlerinde Toy Poodle bakımı.
+
+Alt kategoriler:
+- Yaz Bakımı
+- Kış Bakımı
+- İlkbahar Bakımı
+- Sonbahar Bakımı
+- Sıcak Çarpması
+- Karlı Hava
+- Yağmurlu Günler
+
+Route:
+ /rehber/mevsim-bakimi
+
+9. Yaşam
+
+Açıklama:
+Toy Poodle ile ev, apartman, çocuk ve diğer hayvanlarla yaşam rehberi.
+
+Alt kategoriler:
+- Evde Yaşam
+- Bahçede Yaşam
+- Apartmanda Bakım
+- Çocuklu Ev
+- Yaşlılarla Yaşam
+- İkinci Köpek
+- Kedi ile Yaşam
+
+Route:
+ /rehber/yasam
+
+10. Ürün Rehberi
+
+Açıklama:
+Toy Poodle için doğru ürünleri seçmeye yardımcı olan alışveriş rehberi.
+
+Alt kategoriler:
+- Mama
+- Tasma
+- Göğüs Tasması
+- Yatak
+- Taşıma Çantası
+- Tarak
+- Şampuan
+- Diş Fırçası
+- Eğitim Pedi
+- Oyuncak
+- Mama Kabı
+
+Route:
+ /rehber/urun-rehberi
+
+11. Yaşa Göre Rehber
+
+Açıklama:
+Her yaş dönemine özel bakım, beslenme ve sağlık önerileri.
+
+Alt kategoriler:
+- 2 Aylık Toy Poodle
+- 3 Aylık Toy Poodle
+- 4 Aylık Toy Poodle
+- 5 Aylık Toy Poodle
+- 6 Aylık Toy Poodle
+- 7–12 Aylık Toy Poodle
+- 1 Yaş
+- 2 Yaş
+- 3 Yaş
+- 5 Yaş
+- 7+ Yaş
+- 10+ Yaş
+
+Route:
+ /rehber/yasa-gore
+
+12. Sık Sorulan Sorular
+
+Açıklama:
+Toy Poodle sahiplerinin en sık sorduğu soruların kısa ve net cevapları.
+
+Alt kategoriler:
+- Toy Poodle kaç yıl yaşar?
+- Ne kadar mama yer?
+- Ne zaman tıraş olur?
+- Çok havlıyor, ne yapmalıyım?
+- Ne zaman çiftleşir?
+- Tuvalet eğitimi kaç günde olur?
+- Hangi mama daha iyi?
+- Günde kaç kez yürüyüş yapılmalı?
+
+Route:
+ /rehber/sik-sorulan-sorular
+
+13. Hesaplama Araçları
+
+Açıklama:
+Günlük bakım ve sağlık ihtiyaçlarını hesaplayan ücretsiz araçlar.
+
+Alt kategoriler:
+- Mama Hesaplama
+- Su Hesaplama
+- Kalori Hesaplama
+- Yaş Hesaplama
+- İdeal Kilo Hesaplama
+- Tüy Bakım Takvimi
+- Aşı Takvimi
+- Doğum Günü Hesaplama
+
+Route:
+ /araclar
+
+14. AI Rehber
+
+Açıklama:
+Toy Poodle hakkında kişiselleştirilmiş öneriler sunan yapay zekâ araçları.
+
+Alt kategoriler:
+- AI Mama Danışmanı
+- AI Veteriner Ön Değerlendirme
+- AI Eğitim Koçu
+- AI Bakım Uzmanı
+- AI Ürün Önerisi
+
+Route:
+ /ai-poodle-asistani
+
+4. YAŞA GÖRE HIZLI SEÇİM
+
+Ana kategori kartlarından sonra yatay bölüm oluştur.
+
+Başlık:
+Poodle’ınız Kaç Yaşında?
+
+Seçenekler:
+- 2–3 Ay
+- 4–6 Ay
+- 7–12 Ay
+- 1–3 Yaş
+- 4–6 Yaş
+- 7+ Yaş
+- 10+ Yaş
+
+Kullanıcı bir yaş grubuna tıklayınca ilgili yaş rehberine gitsin.
+
+Mobilde yatay kaydırılabilir chip yapısı kullanılabilir.
+
+5. HIZLI ARAÇLAR
+
+Küçük bir araçlar bölümü ekle.
+
+Araçlar:
+- Mama Hesaplama
+- Su Hesaplama
+- Yaş Hesaplama
+- İdeal Kilo
+- Aşı Takvimi
+- Tıraş Zamanı
+
+Mobilde:
+3 sütun
+
+Masaüstünde:
+6 sütun
+
+6. BUGÜN EN ÇOK OKUNANLAR VE SIK SORULAN SORULAR
+
+İki ayrı kart oluştur.
+
+Masaüstünde yan yana.
+Mobilde alt alta.
+
+Bugün En Çok Okunanlar:
+- Tuvalet Eğitimi
+- Havlama Sorunu
+- Göz Akıntısı
+- Mama Seçimi
+- Yaz Bakımı
+- Kış Bakımı
+
+Sık Sorulan Sorular:
+Accordion yapısı kullan.
+
+Sorular:
+- Poodle’ım kaç aylıkken aşıları tamamlanır?
+- Ne sıklıkla tıraş edilmeli?
+- Günde ne kadar mama yemeli?
+- Göz akıntısı normal mi?
+- Yalnız kalabilir mi?
+
+Accordion gerçekten çalışsın.
+
+7. AI POODLE ASİSTANI KARTI
+
+Sayfanın alt bölümünde küçük ve etkili bir AI kartı oluştur.
+
+Başlık:
+Aradığınız Cevabı Bulamadınız mı?
+
+Alt metin:
+Poodle Asistanına sorun, size uygun rehberleri ve önerileri saniyeler içinde bulun.
+
+Buton:
+AI Poodle Asistanına Sor
+
+Sağ tarafta küçük bir kadın veteriner görseli kullanılabilir.
+
+8. REHBER KARTLARI İÇİN VERİ YAPISI
+
+Kategori verilerini ayrı bir TypeScript array içinde tut.
+
+Örnek yapı:
+
+{
+  id: "beslenme",
+  title: "Beslenme",
+  description: "...",
+  icon: "Utensils",
+  route: "/rehber/beslenme",
+  subcategories: [...]
+}
+
+Kartları map ile üret.
+
+9. SEO
+
+Sayfa title:
+Toy Poodle Rehberi | Bakım, Sağlık, Eğitim ve Beslenme
+
+Meta description:
+Toy Poodle bakımı, sağlığı, beslenmesi, eğitimi ve yaşamı hakkında kapsamlı rehber. Yavru döneminden ileri yaşlara kadar ihtiyacınız olan tüm bilgiler.
+
+H1:
+Toy Poodle Rehberi
+
+- Sadece bir H1 kullan.
+- Kategori başlıklarını H2 yap.
+- Alt kategori başlıklarını H3 yap.
+- Breadcrumb ekle:
+  Ana Sayfa > Rehber
+- Yapısal veri için BreadcrumbList ve ItemList schema ekle.
+- Linklerde Türkçe SEO uyumlu slug kullan.
+- Her kategori sayfasına iç bağlantı ver.
+- Sayfa performansını bozacak büyük görseller kullanma.
+
+10. MOBİL TASARIM
+
+- 360px, 390px ve 430px ekranlarda düzgün görünmeli.
+- Yatay taşma olmamalı.
+- Kategori kartları tek sütun olmalı.
+- Alt kategori linkleri kart içinde kompakt görünmeli.
+- İlk 5 alt kategori gösterilsin.
+- “Tümünü Gör” ile kategori detayına gidilsin.
+- Arama kutusu tam genişlikte olsun.
+- Butonlar minimum 44px dokunma alanına sahip olsun.
+- Alt sabit mobil menü ile çakışmaması için sayfanın sonunda 100px boşluk bırak.
+
+11. MASAÜSTÜ TASARIM
+
+- Kategori kartları 3 sütun.
+- Hero iki sütun.
+- Popüler rehberler 6 sütun.
+- Hızlı araçlar 6 sütun.
+- İçerikler dengeli ve ferah olsun.
+
+12. İŞLEVSELLİK
+
+- Arama çalışsın.
+- Kategori filtreleme çalışsın.
+- Kartlar doğru route’lara gitsin.
+- Accordion çalışsın.
+- AI butonu doğru sayfaya gitsin.
+- Sayfa yalnızca statik görsel olmasın.
+- Gerçek çalışan React bileşenleri oluştur.
+- Mevcut header, footer ve mobil alt menüyü bozma.
+- Kod modüler ve tekrar kullanılabilir olsun.

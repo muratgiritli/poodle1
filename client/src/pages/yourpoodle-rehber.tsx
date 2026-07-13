@@ -1,225 +1,296 @@
-import { useEffect } from "react";
+import { useState } from "react";
 import { Link } from "wouter";
 import {
-  Search, ShoppingCart, Menu, Star, BookOpen, Clock,
-  Home, Users, ShoppingBag, User, ChevronRight, Utensils, Scissors
+  Search, Star, BookOpen, ChevronRight, ChevronDown, Sparkles, Clock,
 } from "lucide-react";
+import YourPoodleShell from "@/components/yourpoodle/YourPoodleShell";
+import {
+  GUIDE_CATEGORIES, CATEGORY_COLORS, POPULAR_GUIDES, QUICK_TOOLS, AGE_GROUPS, FAQ_ITEMS,
+} from "@/lib/yourpoodle-data";
 
 export default function YourPoodleRehberPage() {
-  useEffect(() => {
-    const link = document.createElement("link");
-    link.href = "https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Nunito:wght@400;600;700;800&display=swap";
-    link.rel = "stylesheet";
-    document.head.appendChild(link);
-    const style = document.createElement("style");
-    style.textContent = `.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}`;
-    document.head.appendChild(style);
-    return () => { document.head.removeChild(link); document.head.removeChild(style); };
-  }, []);
+  const [search, setSearch] = useState("");
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  const filtered = GUIDE_CATEGORIES.filter((c) =>
+    search === "" ||
+    c.title.toLowerCase().includes(search.toLowerCase()) ||
+    c.subcategories.some((s) => s.toLowerCase().includes(search.toLowerCase()))
+  );
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 flex justify-center" style={{ fontFamily: "'Nunito', sans-serif" }}>
-      <div className="w-full max-w-[430px] min-h-screen bg-gray-50 relative pb-24 shadow-2xl">
-
-        {/* HEADER */}
-        <header className="sticky top-0 z-40 bg-white shadow-sm">
-          <div className="flex items-center justify-between px-4 h-14 border-b border-gray-100">
-            <div style={{ fontFamily: "'Dancing Script', cursive" }} className="text-2xl font-bold text-gray-900">YourPoodle</div>
-            <div className="flex items-center gap-3 text-gray-700">
-              <Search size={20} /><ShoppingCart size={20} />
-              <span className="text-sm font-bold">🇬🇧 EN</span>
-              <Menu size={24} />
+    <YourPoodleShell activeTab="guide">
+      {/* ── HERO ─────────────────────────────────── */}
+      <section className="bg-gradient-to-br from-[#6D28D9] via-[#7C3AED] to-[#A855F7] p-5 pb-8 rounded-b-[2rem] shadow-md">
+        <div className="flex justify-between items-start mb-5 pt-1">
+          <div className="flex-1 pr-4">
+            <div className="bg-white/20 text-white text-[11px] font-bold px-3 py-1.5 rounded-full inline-flex items-center backdrop-blur-sm mb-3">
+              📚 50+ Rehber
             </div>
+            <h1 className="text-[27px] font-black text-white leading-tight mb-2">
+              Toy Poodle Rehberi
+            </h1>
+            <p className="text-white/85 text-[13px] leading-relaxed font-medium">
+              Yavru döneminden ileri yaşlara kadar bakım, sağlık, beslenme, eğitim ve yaşam hakkında ihtiyacınız olan her şey.
+            </p>
           </div>
-          {/* NAV TABS */}
-          <div className="flex px-4 overflow-x-auto no-scrollbar border-b border-gray-100">
-            <div className="flex whitespace-nowrap">
-              <Link href="/yourpoodle"><div className="px-4 py-3.5 text-sm text-gray-500 font-bold cursor-pointer">Home</div></Link>
-              <div className="px-4 py-3.5 text-sm text-purple-600 font-extrabold border-b-[3px] border-purple-600">Guide</div>
-              <Link href="/yourpoodle/bilgi"><div className="px-4 py-3.5 text-sm text-gray-500 font-bold cursor-pointer">Knowledge Base</div></Link>
-              <div className="px-4 py-3.5 text-sm text-gray-500 font-bold">Shop</div>
-            </div>
-          </div>
-        </header>
-
-        {/* HERO */}
-        <section className="bg-gradient-to-r from-[#7C3AED] to-[#E040FB] p-5 pb-8 relative rounded-b-[2rem] shadow-md">
-          <div className="flex justify-between items-start mb-6 pt-2">
-            <div className="w-[65%]">
-              <div className="bg-white/25 text-white text-[11px] font-bold px-3 py-1.5 rounded-full inline-flex items-center backdrop-blur-md mb-4 shadow-sm">
-                📚 50+ Rehber
-              </div>
-              <h1 className="text-[28px] font-extrabold text-white leading-tight mb-3">Toy Poodle Rehberi</h1>
-              <p className="text-white/90 text-[13px] leading-relaxed font-medium">
-                Bakım, eğitim, beslenme ve günlük yaşam için adım adım hazırlanmış rehberler.
-              </p>
-            </div>
-            <div className="bg-white p-3 rounded-2xl shadow-xl mt-3 mr-1 rotate-3 flex-shrink-0 border-4 border-white/40">
-              <div className="text-6xl" role="img" aria-label="poodle">🐩</div>
-            </div>
-          </div>
-
-          <div className="relative mb-5 z-10 shadow-lg rounded-full">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              className="block w-full pl-11 pr-4 py-3.5 bg-white rounded-full text-[14px] font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Hangi konuda yardıma ihtiyacınız var?"
+          <div className="bg-white p-2.5 rounded-2xl shadow-xl rotate-3 flex-shrink-0 border-4 border-white/30">
+            <img
+              src="/images/poodle-hero.png"
+              alt="Toy Poodle"
+              className="w-16 h-16 object-cover rounded-xl"
+              loading="eager"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; (e.target as HTMLImageElement).parentElement!.textContent = "🐩"; }}
             />
           </div>
+        </div>
 
-          <div className="flex overflow-x-auto no-scrollbar gap-2.5 pb-1">
-            {["Yavru", "Beslenme", "Bakım", "Eğitim", "Davranış", "Seyahat", "Mevsim Bakımı"].map((chip, i) => (
-              <div key={chip} className={`whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-bold shadow-sm cursor-pointer ${i === 0 ? "bg-white text-purple-700 border-2 border-purple-200" : "bg-white/95 text-gray-700"}`}>
-                {chip}
-              </div>
-            ))}
+        {/* SEARCH */}
+        <div className="relative mb-4 shadow-lg rounded-full">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
           </div>
-        </section>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="block w-full pl-11 pr-4 py-3.5 bg-white rounded-full text-[14px] font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="Toy Poodle hakkında ne öğrenmek istiyorsunuz?"
+          />
+        </div>
 
-        {/* EN ÇOK OKUNAN */}
-        <section className="mt-8">
-          <div className="flex items-center px-5 mb-4">
-            <Star className="h-5 w-5 text-yellow-400 fill-yellow-400 mr-2.5" />
-            <h2 className="text-[19px] font-extrabold text-gray-900">En Çok Okunan Rehberler</h2>
-          </div>
-          <div className="flex overflow-x-auto no-scrollbar gap-4 px-5 pb-6">
-            {[
-              { icon: "🚽", title: "Tuvalet Eğitimi", desc: "Adım adım eğitim rehberi" },
-              { icon: "👁️", title: "Göz Akıntısı", desc: "Temizlik ve bakım" },
-              { icon: "🍖", title: "Mama Seçimi", desc: "Doğru mama nasıl seçilir?" },
-              { icon: "🔊", title: "Havlama Sorunu", desc: "Kontrol etme yöntemleri" },
-              { icon: "💉", title: "İlk Aşılar", desc: "Aşı takvimi ve önemi" },
-              { icon: "✂️", title: "Tıraş ve Tarama", desc: "Bakım ipuçları" },
-            ].map((item, i) => (
-              <div key={i} className="min-w-[144px] w-36 bg-white rounded-[20px] border border-gray-100 shadow-sm p-4 flex flex-col flex-shrink-0 cursor-pointer">
-                <div className="text-4xl text-center mb-3.5">{item.icon}</div>
-                <h3 className="font-extrabold text-[14px] text-gray-900 leading-tight mb-1.5">{item.title}</h3>
-                <p className="text-[12px] text-gray-500 leading-snug mb-3 flex-grow font-medium">{item.desc}</p>
-                <div className="text-[12px] font-bold text-purple-600 mt-auto flex items-center">
+        {/* FILTER CHIPS */}
+        <div className="flex overflow-x-auto yp-no-scrollbar gap-2 pb-1">
+          {["Yavru", "Beslenme", "Bakım", "Eğitim", "Davranış", "Seyahat", "Sağlık"].map((chip, i) => (
+            <button
+              key={chip}
+              onClick={() => setSearch(search === chip ? "" : chip)}
+              className={`whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-bold shadow-sm flex-shrink-0 transition-all ${search === chip ? "bg-purple-800 text-white border-2 border-purple-300" : "bg-white/95 text-gray-700 border border-white/60"}`}
+            >
+              {chip}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* ── BREADCRUMB ───────────────────────────── */}
+      <nav className="flex items-center gap-1.5 px-5 pt-4 pb-0 text-[12px] text-gray-400 font-semibold">
+        <Link href="/yourpoodle"><span className="text-purple-600 cursor-pointer hover:underline">Ana Sayfa</span></Link>
+        <ChevronRight className="h-3 w-3" />
+        <span className="text-gray-600">Rehber</span>
+      </nav>
+
+      {/* ── EN ÇOK OKUNAN ────────────────────────── */}
+      <section className="mt-5">
+        <div className="flex items-center px-5 mb-3.5">
+          <Star className="h-5 w-5 text-yellow-400 fill-yellow-400 mr-2" />
+          <h2 className="text-[18px] font-black text-gray-900">En Çok Okunan Rehberler</h2>
+        </div>
+        <div className="flex overflow-x-auto yp-no-scrollbar gap-3.5 px-5 pb-5">
+          {POPULAR_GUIDES.map((item, i) => (
+            <Link key={i} href={item.route}>
+              <div className="min-w-[138px] w-[138px] bg-white rounded-[20px] border border-gray-100 shadow-sm p-4 flex flex-col flex-shrink-0 cursor-pointer hover:shadow-md transition-shadow">
+                <div className="text-4xl text-center mb-3">{item.icon}</div>
+                <h3 className="font-black text-[13.5px] text-gray-900 leading-tight mb-1">{item.title}</h3>
+                <p className="text-[11.5px] text-gray-500 leading-snug mb-3 flex-grow font-semibold">{item.desc}</p>
+                <div className="text-[12px] font-black text-purple-600 flex items-center">
                   Oku <ChevronRight className="h-3.5 w-3.5 ml-0.5" />
                 </div>
               </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ── ANA KATEGORİLER ──────────────────────── */}
+      <section className="px-5 mb-4">
+        <div className="flex items-center mb-4">
+          <BookOpen className="h-5 w-5 text-gray-800 mr-2" />
+          <h2 className="text-[18px] font-black text-gray-900">Tüm Rehber Kategorileri</h2>
+          {search && (
+            <span className="ml-auto text-[12px] text-gray-400 font-bold">{filtered.length} kategori</span>
+          )}
+        </div>
+
+        {filtered.length === 0 && (
+          <div className="text-center py-12 text-gray-400">
+            <div className="text-4xl mb-3">🔍</div>
+            <p className="font-bold text-[15px]">Sonuç bulunamadı</p>
+            <button onClick={() => setSearch("")} className="mt-3 text-purple-600 font-bold text-[13px]">Aramayı Temizle</button>
+          </div>
+        )}
+
+        <div className="flex flex-col gap-4">
+          {filtered.map((cat) => {
+            const c = CATEGORY_COLORS[cat.color];
+            const isExpanded = expanded[cat.id];
+            const shown = isExpanded ? cat.subcategories : cat.subcategories.slice(0, 5);
+            const extra = cat.subcategories.length - 5;
+            return (
+              <div key={cat.id} className={`bg-white border-l-[5px] ${c.border} border border-gray-100 rounded-2xl p-5 shadow-sm`}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`${c.badge} p-2.5 rounded-full text-xl w-10 h-10 flex items-center justify-center`}>
+                      {cat.icon}
+                    </div>
+                    <div>
+                      <h2 className="font-black text-gray-900 text-[16.5px] leading-tight">{cat.title}</h2>
+                      <div className={`flex items-center ${c.text} text-[11px] font-bold mt-0.5`}>
+                        <Clock className="h-3 w-3 mr-1" /> {cat.subcategories.length} rehber
+                      </div>
+                    </div>
+                  </div>
+                  {cat.badge && (
+                    <div className={`${c.badge} text-[10.5px] font-black px-2.5 py-1.5 rounded-full uppercase tracking-wide`}>
+                      {cat.badge}
+                    </div>
+                  )}
+                </div>
+
+                <p className="text-[13px] text-gray-600 mb-3.5 font-semibold leading-relaxed">{cat.description}</p>
+
+                <div className="border-t border-gray-100 mb-3.5" />
+
+                <ul className="space-y-2.5 mb-3">
+                  {shown.map((sub, i) => (
+                    <li key={i} className="flex items-center text-[13px] text-gray-700 font-semibold cursor-pointer hover:text-purple-600 transition-colors">
+                      <div className={`w-1.5 h-1.5 ${c.dot} rounded-full mr-3 flex-shrink-0`} />
+                      {sub}
+                    </li>
+                  ))}
+                </ul>
+
+                {extra > 0 && (
+                  <button
+                    onClick={() => setExpanded((prev) => ({ ...prev, [cat.id]: !isExpanded }))}
+                    className={`text-[12.5px] ${c.text} font-black mb-4 flex items-center gap-1 cursor-pointer`}
+                  >
+                    {isExpanded ? "Daha az göster" : `+${extra} daha göster`}
+                    <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                  </button>
+                )}
+
+                <Link href={cat.route}>
+                  <button className={`w-full ${c.bg} ${c.text} font-black py-3.5 rounded-xl flex items-center justify-center text-[13.5px] hover:opacity-90 transition-opacity`}>
+                    Tümünü Gör <ChevronRight className="h-4 w-4 ml-1.5" />
+                  </button>
+                </Link>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── YAŞA GÖRE HIZLI SEÇİM ────────────────── */}
+      {!search && (
+        <section className="px-5 mb-6">
+          <div className="bg-white rounded-2xl border border-purple-100 shadow-sm p-5">
+            <h2 className="text-[17px] font-black text-gray-900 mb-1.5">🎂 Poodle'ınız Kaç Yaşında?</h2>
+            <p className="text-[12.5px] text-gray-500 font-semibold mb-4">Yaşına özel rehberlere ulaşın.</p>
+            <div className="flex flex-wrap gap-2">
+              {AGE_GROUPS.map((ag) => (
+                <Link key={ag.label} href={ag.route}>
+                  <div className="bg-purple-50 border border-purple-200 text-purple-700 text-[13px] font-black px-4 py-2.5 rounded-full cursor-pointer hover:bg-purple-100 transition-colors">
+                    {ag.label}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── HIZLI ARAÇLAR ────────────────────────── */}
+      {!search && (
+        <section className="px-5 mb-6">
+          <h2 className="text-[17px] font-black text-gray-900 mb-3.5">🧮 Hızlı Araçlar</h2>
+          <div className="grid grid-cols-3 gap-3">
+            {QUICK_TOOLS.map((tool) => (
+              <Link key={tool.title} href={tool.route}>
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3.5 flex flex-col items-center text-center cursor-pointer hover:shadow-md transition-shadow">
+                  <div className="text-3xl mb-2">{tool.icon}</div>
+                  <span className="text-[11.5px] font-black text-gray-800 leading-tight">{tool.title}</span>
+                </div>
+              </Link>
             ))}
           </div>
         </section>
+      )}
 
-        {/* KATEGORİLER */}
-        <section className="mt-2 px-5 mb-10">
-          <div className="flex items-center mb-5">
-            <BookOpen className="h-5 w-5 text-gray-800 mr-2.5" />
-            <h2 className="text-[19px] font-extrabold text-gray-900">Tüm Rehber Kategorileri</h2>
+      {/* ── BUGÜN EN ÇOK OKUNANLAR + SSS ─────────── */}
+      {!search && (
+        <section className="px-5 mb-6 flex flex-col gap-4">
+          {/* Bugün En Çok Okunanlar */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <h2 className="text-[16px] font-black text-gray-900 mb-4 flex items-center gap-2">
+              🔥 Bugün En Çok Okunanlar
+            </h2>
+            <ul className="space-y-3">
+              {["Tuvalet Eğitimi", "Havlama Sorunu", "Göz Akıntısı", "Mama Seçimi", "Yaz Bakımı", "Kış Bakımı"].map((item, i) => (
+                <li key={i} className="flex items-center gap-3 cursor-pointer group">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black flex-shrink-0 ${i === 0 ? "bg-yellow-400 text-white" : i === 1 ? "bg-gray-300 text-gray-700" : i === 2 ? "bg-amber-600 text-white" : "bg-purple-100 text-purple-700"}`}>
+                    {i + 1}
+                  </div>
+                  <span className="text-[13.5px] font-bold text-gray-800 group-hover:text-purple-600 transition-colors">{item}</span>
+                  <ChevronRight className="h-3.5 w-3.5 text-gray-300 ml-auto group-hover:text-purple-400 transition-colors" />
+                </li>
+              ))}
+            </ul>
           </div>
 
-          <div className="flex flex-col gap-5">
-            {/* Yavru */}
-            <div className="bg-white border-l-[5px] border-l-orange-400 border border-orange-100 rounded-2xl p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-3.5">
-                <div className="flex items-center gap-3">
-                  <div className="bg-orange-100 p-2.5 rounded-full text-orange-600"><Home className="h-5 w-5" /></div>
-                  <h3 className="font-extrabold text-gray-900 text-[17px]">Yavru Toy Poodle</h3>
+          {/* Sık Sorulan Sorular */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <h2 className="text-[16px] font-black text-gray-900 mb-4">❓ Sık Sorulan Sorular</h2>
+            <div className="space-y-2">
+              {FAQ_ITEMS.map((faq, i) => (
+                <div key={i} className="border border-gray-100 rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    className="w-full flex items-start justify-between p-4 text-left gap-3 hover:bg-purple-50 transition-colors"
+                  >
+                    <span className="text-[13px] font-black text-gray-800 leading-snug flex-1">{faq.q}</span>
+                    <ChevronDown className={`h-4 w-4 text-gray-400 flex-shrink-0 mt-0.5 transition-transform ${openFaq === i ? "rotate-180" : ""}`} />
+                  </button>
+                  {openFaq === i && (
+                    <div className="px-4 pb-4 text-[12.5px] text-gray-600 font-semibold leading-relaxed border-t border-gray-100 pt-3">
+                      {faq.a}
+                    </div>
+                  )}
                 </div>
-                <div className="bg-orange-100 text-orange-600 text-[11px] font-extrabold px-3 py-1.5 rounded-full uppercase">Başlangıç</div>
-              </div>
-              <p className="text-[13.5px] text-gray-600 mb-4 font-medium leading-relaxed">Yavru Toy Poodle'ın eve gelişinden temel bakım ve eğitimine kadar ilk dönem rehberi.</p>
-              <div className="flex items-center text-gray-500 text-[12px] font-bold mb-4"><Clock className="h-3.5 w-3.5 mr-1.5" /> 15 rehber</div>
-              <div className="border-t border-gray-100 my-4" />
-              <ul className="space-y-2.5 mb-5">
-                {["Eve İlk Geliş", "İlk Gün Yapılması Gerekenler", "İlk Gece", "İlk Mama", "İlk Veteriner"].map((item, i) => (
-                  <li key={i} className="flex items-center text-[13.5px] text-gray-700 font-semibold">
-                    <div className="w-1.5 h-1.5 bg-orange-400 rounded-full mr-3" />{item}
-                  </li>
-                ))}
-              </ul>
-              <div className="text-[13px] text-purple-600 font-extrabold mb-5 cursor-pointer">+9 daha göster →</div>
-              <button className="w-full bg-orange-50 text-orange-600 font-extrabold py-3.5 rounded-xl flex items-center justify-center">
-                Tümünü Gör <ChevronRight className="h-4 w-4 ml-1.5" />
-              </button>
-            </div>
-
-            {/* Beslenme */}
-            <div className="bg-white border-l-[5px] border-l-green-500 border border-green-100 rounded-2xl p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-3.5">
-                <div className="flex items-center gap-3">
-                  <div className="bg-green-100 p-2.5 rounded-full text-green-600"><Utensils className="h-5 w-5" /></div>
-                  <h3 className="font-extrabold text-gray-900 text-[17px]">Beslenme</h3>
-                </div>
-                <div className="bg-green-100 text-green-700 text-[11px] font-extrabold px-3 py-1.5 rounded-full uppercase">Orta</div>
-              </div>
-              <p className="text-[13.5px] text-gray-600 mb-4 font-medium leading-relaxed">Yaşına, kilosuna ve özel ihtiyaçlarına göre doğru beslenme rehberi.</p>
-              <div className="flex items-center text-gray-500 text-[12px] font-bold mb-4"><Clock className="h-3.5 w-3.5 mr-1.5" /> 8 rehber</div>
-              <div className="border-t border-gray-100 my-4" />
-              <ul className="space-y-2.5 mb-5">
-                {["Mama Seçimi", "Mama Hesaplama", "Günlük Mama Miktarı", "Yavru Mama", "Ödül Mamaları"].map((item, i) => (
-                  <li key={i} className="flex items-center text-[13.5px] text-gray-700 font-semibold">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-3" />{item}
-                  </li>
-                ))}
-              </ul>
-              <div className="text-[13px] text-purple-600 font-extrabold mb-5 cursor-pointer">+3 daha göster →</div>
-              <button className="w-full bg-green-50 text-green-700 font-extrabold py-3.5 rounded-xl flex items-center justify-center">
-                Tümünü Gör <ChevronRight className="h-4 w-4 ml-1.5" />
-              </button>
-            </div>
-
-            {/* Bakım */}
-            <div className="bg-white border-l-[5px] border-l-purple-500 border border-purple-100 rounded-2xl p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-3.5">
-                <div className="flex items-center gap-3">
-                  <div className="bg-purple-100 p-2.5 rounded-full text-purple-600"><Scissors className="h-5 w-5" /></div>
-                  <h3 className="font-extrabold text-gray-900 text-[17px]">Bakım</h3>
-                </div>
-                <div className="bg-purple-100 text-purple-700 text-[11px] font-extrabold px-3 py-1.5 rounded-full uppercase">Orta</div>
-              </div>
-              <p className="text-[13.5px] text-gray-600 mb-4 font-medium leading-relaxed">Tüy, göz, kulak, diş ve pati bakımının tüm detayları.</p>
-              <div className="flex items-center text-gray-500 text-[12px] font-bold mb-4"><Clock className="h-3.5 w-3.5 mr-1.5" /> 9 rehber</div>
-              <div className="border-t border-gray-100 my-4" />
-              <ul className="space-y-2.5 mb-5">
-                {["Tarama", "Tıraş", "Göz Temizliği", "Kulak Bakımı", "Diş Bakımı"].map((item, i) => (
-                  <li key={i} className="flex items-center text-[13.5px] text-gray-700 font-semibold">
-                    <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mr-3" />{item}
-                  </li>
-                ))}
-              </ul>
-              <div className="text-[13px] text-purple-600 font-extrabold mb-5 cursor-pointer">+4 daha göster →</div>
-              <button className="w-full bg-purple-50 text-purple-700 font-extrabold py-3.5 rounded-xl flex items-center justify-center">
-                Tümünü Gör <ChevronRight className="h-4 w-4 ml-1.5" />
-              </button>
+              ))}
             </div>
           </div>
         </section>
+      )}
 
-        {/* BOTTOM NAV */}
-        <div className="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.08)] z-50">
-          <div className="flex justify-around items-center h-20 px-2 pb-2">
-            <Link href="/yourpoodle">
-              <div className="flex flex-col items-center justify-center w-16 text-gray-400 cursor-pointer">
-                <Home className="h-[22px] w-[22px] mb-1.5" strokeWidth={2.5} />
-                <span className="text-[10px] font-bold">Home</span>
+      {/* ── AI POODLE ASİSTANI CTA ───────────────── */}
+      {!search && (
+        <section className="px-5 mb-6">
+          <div className="bg-gradient-to-r from-[#7C3AED] to-[#EC4899] rounded-2xl p-5 shadow-lg">
+            <div className="flex items-start gap-4">
+              <div className="flex-1">
+                <div className="bg-white/20 text-white text-[11px] font-bold px-3 py-1 rounded-full inline-flex items-center mb-3">
+                  <Sparkles className="h-3 w-3 mr-1" /> Yapay Zekâ
+                </div>
+                <h2 className="text-[17px] font-black text-white mb-1.5 leading-tight">
+                  Aradığınız Cevabı Bulamadınız mı?
+                </h2>
+                <p className="text-white/85 text-[12.5px] font-semibold leading-relaxed mb-4">
+                  Poodle Asistanına sorun, size uygun rehberleri saniyeler içinde bulun.
+                </p>
+                <Link href="/yourpoodle/ai-poodle-asistani">
+                  <button className="bg-white text-purple-700 font-black text-[13px] px-5 py-3 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    AI Poodle Asistanına Sor
+                  </button>
+                </Link>
               </div>
-            </Link>
-            <div className="flex flex-col items-center justify-center w-16 text-gray-400">
-              <Users className="h-[22px] w-[22px] mb-1.5" strokeWidth={2.5} />
-              <span className="text-[10px] font-bold">Club</span>
-            </div>
-            <div className="flex flex-col items-center justify-center w-16 -mt-8">
-              <div className="bg-purple-600 text-white p-4 rounded-full shadow-[0_8px_20px_rgba(124,58,237,0.4)]">
-                <ShoppingCart className="h-6 w-6" strokeWidth={2.5} />
-              </div>
-            </div>
-            <div className="flex flex-col items-center justify-center w-16 text-gray-400">
-              <ShoppingBag className="h-[22px] w-[22px] mb-1.5" strokeWidth={2.5} />
-              <span className="text-[10px] font-bold">Shop</span>
-            </div>
-            <div className="flex flex-col items-center justify-center w-16 text-gray-400">
-              <User className="h-[22px] w-[22px] mb-1.5" strokeWidth={2.5} />
-              <span className="text-[10px] font-bold">Profile</span>
+              <div className="text-5xl mt-1">🤖</div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </section>
+      )}
+    </YourPoodleShell>
   );
 }
