@@ -130,7 +130,7 @@ function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Switch>
-        <Route path="/">{() => <Landing />}</Route>
+        <Route path="/">{() => <YourPoodleHomePage />}</Route>
         <Route path="/petshop">{() => <Landing />}</Route>
         <Route path="/en-yakin-petshop" component={AdLanding} />
         <Route path="/en-yakin-petshoplar" component={AdLanding} />
@@ -208,7 +208,7 @@ const LANDING_LIKE_ROUTES = new Set([
 function AppShell() {
   const [location] = useLocation();
   const isAdmin = location.startsWith("/admin");
-  const isDemo = location === "/demo" || location.startsWith("/demo-kampanya") || location === "/demo1" || location === "/demo2" || location === "/demo-anasayfa" || location.startsWith("/yourpoodle");
+  const isDemo = location === "/" || location === "/demo" || location.startsWith("/demo-kampanya") || location === "/demo1" || location === "/demo2" || location === "/demo-anasayfa" || location.startsWith("/yourpoodle");
   const isLandingLike = LANDING_LIKE_ROUTES.has(location);
 
   useEffect(() => {
