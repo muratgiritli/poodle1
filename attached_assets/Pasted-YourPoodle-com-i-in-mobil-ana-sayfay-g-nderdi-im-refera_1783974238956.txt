@@ -1,0 +1,493 @@
+YourPoodle.com için mobil ana sayfayı, gönderdiğim referans görseldeki düzen ve görsel hiyerarşiye göre yeniden tasarla.
+
+ÖNEMLİ:
+- Referans görseli tek parça resim olarak sayfaya koyma.
+- Gerçek React, TypeScript ve Tailwind bileşenleri oluştur.
+- Mevcut route, header, footer, ürün verileri ve kullanıcı sistemini bozma.
+- Tasarım mobil öncelikli olsun.
+- 360px, 390px ve 430px ekranlarda düzgün çalışsın.
+- Yatay taşma kesinlikle olmasın.
+- Beyaz, lila, mor ve pastel pembe tasarım dili korunmalı.
+- Sayfa sade, premium, sıcak ve güven veren görünmeli.
+
+SAYFA ROUTE
+
+/
+
+veya mevcut ana sayfa route’u.
+
+ANA COMPONENT
+
+HomePage.tsx
+
+TEKNOLOJİ
+
+- React
+- TypeScript
+- Tailwind CSS
+- React Router
+- Lucide React ikonları
+
+GENEL TASARIM
+
+- Arka plan: #FCFBFF
+- Ana içerik sağ ve sol boşluğu mobilde 14–16px.
+- Bölümler arasında 16–20px boşluk.
+- Kartlarda 18–24px border-radius.
+- Hafif mor gölgeler.
+- Border rengi: #EEE9F7.
+- Sayfa sonunda alt sabit menü kadar boşluk bırak.
+- Büyük ve gereksiz boşluk kullanma.
+- Sayfa hızlı açılmalı.
+- Tüm görseller lazy-load olmalı.
+
+--------------------------------------------------
+1. MOBİL ÜST HEADER
+--------------------------------------------------
+
+Header yüksekliği:
+64–72px.
+
+Sol:
+- Hamburger menü
+
+Orta:
+- Mevcut siyah el yazısı YourPoodle logosu
+- Logo yeniden oluşturulmayacak.
+- Mevcut gerçek logo dosyası kullanılacak.
+- Genişlik yaklaşık 170–190px.
+- object-fit: contain.
+
+Sağ:
+- Arama ikonu
+- Bildirim ikonu
+- Bildirim üzerinde küçük badge
+
+Header:
+- Beyaz arka plan
+- Hafif alt border
+- Sticky olabilir
+- z-index yüksek
+
+--------------------------------------------------
+2. HERO BANNER
+--------------------------------------------------
+
+Header altında geniş hero kartı oluştur.
+
+Başlık:
+
+Poodle için
+en iyisi burada!
+
+“en iyisi burada!” kısmı mor gradient olabilir.
+
+Alt metin:
+
+Sevgiyle bakım, doğru bilgi
+ve mutlu bir yaşam.
+
+Butonlar:
+
+1. Alışverişe Başla
+2. Topluluğa Katıl
+
+Buton tasarımı:
+
+Alışverişe Başla:
+- Mor gradient
+- Beyaz yazı
+- ShoppingBag ikonu
+
+Topluluğa Katıl:
+- Beyaz arka plan
+- Mor border
+- Mor yazı
+- Users ikonu
+
+Sağ tarafta:
+- Büyük, sevimli Toy Poodle görseli
+- Mor bandana olabilir
+- Görsel kırpılmadan tam görünmeli
+- object-fit: contain
+- Köpeğin başı ve gövdesi görünmeli
+
+Hero:
+- Açık lila gradient arka plan
+- Border radius: 24px
+- Yükseklik mobilde yaklaşık 300–340px
+- Metin sol tarafta
+- Görsel sağ tarafta
+- Küçük dekoratif pati ve kalp ikonları olabilir
+- Alt orta bölümde slider noktaları gösterilebilir
+
+Route’lar:
+
+Alışverişe Başla:
+/magaza
+
+Topluluğa Katıl:
+/club
+
+--------------------------------------------------
+3. HIZLI ANA MENÜ
+--------------------------------------------------
+
+Hero’nun altında tek kart içinde 5 ikonlu hızlı menü oluştur.
+
+Menüler:
+
+- Mağaza
+- Rehber
+- Topluluk
+- Bilgi Bankası
+- Benim Poodle’ım
+
+Her öğede:
+- Açık lila yuvarlak ikon alanı
+- Mor outline ikon
+- Altında kısa başlık
+- Tüm alan tıklanabilir
+
+Mobilde:
+5 öğe aynı satırda.
+
+İkonlar:
+- ShoppingBag
+- BookOpen
+- Users
+- LibraryBig
+- HeartPaw veya PawPrint
+
+Route’lar:
+
+/magaza
+/rehber
+/club
+/bilgi
+/profilim
+
+--------------------------------------------------
+4. ÜYELİK KANCA KARTI
+--------------------------------------------------
+
+Hızlı menünün altında küçük yatay kart oluştur.
+
+Sol:
+- Hediye ikonu
+
+Başlık:
+Yeni üye ol, 100 TL bonus kazan! 🎉
+
+Alt metin:
+Kampanyaları kaçırma, hemen üye ol.
+
+Sağ:
+Üye Ol butonu
+
+Buton:
+- Mor gradient
+- Beyaz yazı
+- Route: /giris?tab=register
+
+Kart:
+- Açık lila arka plan
+- Border-radius: 18px
+- Kompakt görünüm
+
+--------------------------------------------------
+5. BUGÜN EN ÇOK OKUNANLAR
+--------------------------------------------------
+
+Başlık:
+
+Bugün En Çok Okunanlar
+
+Sağda:
+Tümünü Gör >
+
+Bu bölüm yatay kaydırılabilir kartlardan oluşsun.
+
+İlk içerikler:
+
+- Tuvalet Eğitimi Nasıl Verilir?
+- Tüy Bakımı Rehberi
+- Poodle Mama Seçimi
+- Seyahat Rehberi: Uçak Yolculuğu
+
+Her kartta:
+- Üstte görsel
+- Altında başlık
+- Küçük kategori etiketi
+- Border-radius: 16px
+- Hafif gölge
+- Kart genişliği mobilde yaklaşık 160–180px
+
+Kategori etiketleri:
+- Eğitim
+- Bakım
+- Beslenme
+- Seyahat
+
+Yatay scroll:
+- Scroll bar gizli
+- Dokunmatik kaydırma düzgün
+
+Route örnekleri:
+
+/rehber/tuvalet-egitimi
+/rehber/tuy-bakimi
+/rehber/mama-secimi
+/rehber/ucak-yolculugu
+
+--------------------------------------------------
+6. SİZİN İÇİN SEÇTİKLERİMİZ
+--------------------------------------------------
+
+Başlık:
+
+Sizin İçin Seçtiklerimiz
+
+Altında ürünler yatay kaydırılabilir veya 4 kart tek sıra görünümünde olsun.
+
+Ürün örnekleri:
+
+- Royal Canin Poodle Adult 1.5 kg
+- Progold Soft Ödül Maması 150 g
+- Viscopaw Visco Yatak M
+- Air-Mesh Göğüs Tasması M
+
+Her ürün kartında:
+- Ürün görseli
+- Favori kalp ikonu
+- Ürün adı
+- Fiyat
+- Sağ altta küçük yuvarlak sepete ekle butonu
+
+Kart tasarımı:
+- Beyaz
+- Border: 1px solid #EEE9F7
+- Border-radius: 16px
+- Hafif gölge
+- object-fit: contain
+- Ürün görseli kırpılmayacak
+
+Ürünler mevcut ürün datasından gelsin.
+Hardcoded sahte ürünler kullanma.
+
+--------------------------------------------------
+7. AI POODLE ASİSTANI KARTI
+--------------------------------------------------
+
+Ürünlerin altında küçük ve etkili bir AI kartı oluştur.
+
+Sol:
+- Sevimli mor robot ikonu
+
+Başlık:
+Poodle Asistanı
+
+Küçük etiket:
+YENİ
+
+Alt metin:
+Poodle bakımında aklına takılan her şeyi sor!
+
+Sağ:
+Asistana Sor butonu
+
+Buton:
+- Mor gradient
+- Beyaz yazı
+- MessageCircle ikonu
+- Route: /ai-poodle-asistani
+
+Kart:
+- Açık lila gradient
+- Border-radius: 18px
+- Kompakt
+- Poodle görseli ekleme
+- Sadece robot ve metin kullan
+
+--------------------------------------------------
+8. SIK SORULAN SORULAR
+--------------------------------------------------
+
+Başlık:
+Sık Sorulan Sorular
+
+Sağ:
+Tümünü Gör >
+
+Accordion yapısı oluştur.
+
+İlk sorular:
+
+- Poodle tüy döker mi?
+- Poodle günde ne kadar mama yemeli?
+- Toy Poodle ne sıklıkla tıraş edilmeli?
+- Göz akıntısı normal mi?
+
+İlk soru açık veya tümü kapalı olabilir.
+
+Accordion:
+- Beyaz arka plan
+- İnce ayırıcı çizgiler
+- Sağda chevron-down/up
+- Yumuşak açılma animasyonu
+
+Tümünü Gör route:
+/rehber/sik-sorulan-sorular
+
+--------------------------------------------------
+9. MOBİL ALT NAVİGASYON
+--------------------------------------------------
+
+Alt menü sabit olsun.
+
+Menüler:
+
+- Ana Sayfa
+- Mağaza
+- Ortada büyük pati butonu
+- Topluluk
+- Profilim
+
+Aktif:
+Ana Sayfa
+
+Ortadaki pati butonu:
+- Büyük mor yuvarlak
+- Hafif glow
+- Route: /club veya ana aksiyon sayfası
+
+Alt menü:
+- Beyaz arka plan
+- Üst border
+- Hafif gölge
+- Safe-area-inset-bottom desteği
+- İçeriğin üstüne binmemesi için sayfa sonunda boşluk bırak
+
+--------------------------------------------------
+10. RESPONSIVE
+--------------------------------------------------
+
+360px:
+- Hero metinleri küçülsün
+- Butonlar yan yana sığmazsa alt alta geçebilir
+- Hızlı menü 5 öğeyi kompakt gösterir
+- Ürün ve rehber kartları yatay scroll olur
+
+390px:
+- Referans görsele yakın düzen
+
+430px:
+- Daha ferah spacing
+
+Tablet:
+- İçerik maksimum 760px
+- Kartlar daha geniş
+
+Masaüstü:
+- İçerik maksimum 1100px
+- Mobil uygulama hissi korunabilir
+- Hero iki sütunlu olabilir
+- Alt sabit menü gizlenebilir
+
+--------------------------------------------------
+11. VERİ VE COMPONENT YAPISI
+--------------------------------------------------
+
+Bileşenler:
+
+- MobileHeader.tsx
+- HomeHero.tsx
+- QuickNavigation.tsx
+- MembershipBonusCard.tsx
+- PopularGuidesSection.tsx
+- SelectedProductsSection.tsx
+- AIAssistantCard.tsx
+- FAQSection.tsx
+- MobileBottomNav.tsx
+
+Verileri array ile yönet.
+
+Örnek:
+
+quickLinks
+popularGuides
+selectedProducts
+faqItems
+
+Map kullan.
+Tekrarlanan HTML yazma.
+
+--------------------------------------------------
+12. İŞLEVSELLİK
+--------------------------------------------------
+
+- Hamburger menü açılıp kapanmalı
+- Arama butonu çalışmalı
+- Bildirim butonu çalışmalı
+- Hero butonları doğru route’a gitmeli
+- Üye Ol butonu doğru sekmeyle giriş sayfasını açmalı
+- Rehber kartları doğru içeriklere gitmeli
+- Ürün favori butonu çalışmalı
+- Sepete ekle butonu cart state’e ürün eklemeli
+- AI butonu doğru sayfaya gitmeli
+- FAQ accordion çalışmalı
+- Alt menü route’ları çalışmalı
+
+--------------------------------------------------
+13. RENKLER
+--------------------------------------------------
+
+Primary:
+#7C3AED
+
+Secondary:
+#A855F7
+
+Pink:
+#EC4899
+
+Text:
+#111827
+
+Muted:
+#6B7280
+
+Border:
+#EEE9F7
+
+Background:
+#FCFBFF
+
+Card:
+#FFFFFF
+
+Light Purple:
+#F5F0FF
+
+--------------------------------------------------
+14. SON KONTROL
+--------------------------------------------------
+
+Tamamladıktan sonra şunları kontrol et:
+
+- Ana sayfa referans görsele benziyor mu?
+- Header sade ve mobil uyumlu mu?
+- Hero alanı çok yüksek değil mi?
+- Poodle görseli kesiliyor mu?
+- Hızlı menü 5 öğe olarak görünüyor mu?
+- Üyelik bonus kartı var mı?
+- Bugün En Çok Okunanlar yatay kayıyor mu?
+- Ürün kartları mevcut ürün datasına bağlı mı?
+- AI kartı küçük ve etkili mi?
+- FAQ accordion çalışıyor mu?
+- Alt menü içeriklerin üstüne biniyor mu?
+- 360px ekranda yatay taşma var mı?
+- Görseller yavaş yükleniyor mu?
+- Sayfa mobilde hızlı açılıyor mu?
+
+Gönderdiğim referans görseldeki sade, modern, sevimli ve premium mobil YourPoodle ana sayfasını mümkün olduğunca birebir uygula.
