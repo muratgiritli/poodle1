@@ -6,5 +6,6 @@ export const modules: ModuleMap = {
   "./components/mockups/atakum-home/Vitrin.tsx": () => import("../components/mockups/atakum-home/Vitrin.tsx"),
   "./components/mockups/homepage-2026/Modern.tsx": () => import("../components/mockups/homepage-2026/Modern.tsx"),
   "./components/mockups/jetgo-landing/Landing.tsx": () => import("../components/mockups/jetgo-landing/Landing.tsx"),
-  "./components/mockups/jetgo-landing/Variant2.tsx": () => import("../components/mockups/jetgo-landing/Variant2.tsx")
+  "./components/mockups/jetgo-landing/Variant2.tsx": () => import("../components/mockups/jetgo-landing/Variant2.tsx"),
+  "./components/mockups/yourpoodle/Homepage.tsx": () => import("../components/mockups/yourpoodle/Homepage.tsx")
 };
