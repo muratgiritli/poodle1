@@ -81,6 +81,9 @@ const DemoLanding = lazy(() => import("@/pages/demo-landing"));
 const Demo1Page = lazy(() => import("@/pages/demo1"));
 const Demo2Page = lazy(() => import("@/pages/demo2"));
 const DemoAnasayfaPage = lazy(() => import("@/pages/demo-anasayfa"));
+const YourPoodleHomePage = lazy(() => import("@/pages/yourpoodle-home"));
+const YourPoodleRehberPage = lazy(() => import("@/pages/yourpoodle-rehber"));
+const YourPoodleBilgiPage = lazy(() => import("@/pages/yourpoodle-bilgi"));
 const DemoKampanyaPage = lazy(() => import("@/pages/demo-kampanya"));
 const DemoKampanyaUrunPage = lazy(() => import("@/pages/demo-kampanya").then(m => ({ default: m.DemoKampanyaUrun })));
 const SeoPage = lazy(() => import("@/pages/seo-pages"));
@@ -153,6 +156,9 @@ function Router() {
         <Route path="/demo1" component={Demo1Page} />
         <Route path="/demo2" component={Demo2Page} />
         <Route path="/demo-anasayfa" component={DemoAnasayfaPage as any} />
+        <Route path="/yourpoodle" component={YourPoodleHomePage} />
+        <Route path="/yourpoodle/rehber" component={YourPoodleRehberPage} />
+        <Route path="/yourpoodle/bilgi" component={YourPoodleBilgiPage} />
         <Route path="/demo-kampanya" component={DemoKampanyaPage} />
         <Route path="/demo-kampanya/urun/:id" component={DemoKampanyaUrunPage} />
         <Route path="/kampanya" component={CampaignPage} />
@@ -196,7 +202,7 @@ const LANDING_LIKE_ROUTES = new Set([
 function AppShell() {
   const [location] = useLocation();
   const isAdmin = location.startsWith("/admin");
-  const isDemo = location === "/demo" || location.startsWith("/demo-kampanya") || location === "/demo1" || location === "/demo2" || location === "/demo-anasayfa";
+  const isDemo = location === "/demo" || location.startsWith("/demo-kampanya") || location === "/demo1" || location === "/demo2" || location === "/demo-anasayfa" || location.startsWith("/yourpoodle");
   const isLandingLike = LANDING_LIKE_ROUTES.has(location);
 
   useEffect(() => {
