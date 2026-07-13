@@ -171,11 +171,8 @@ export default function Footer() {
               { label: "Atakum Pet Shop", href: "/atakum-petshop" },
               { label: "İlkadım Pet Shop", href: "/ilkadim-petshop" },
               { label: "Canik Pet Shop", href: "/canik-petshop" },
-              { label: "Kedi Maması", href: "/kedi-mamasi" },
               { label: "Köpek Maması", href: "/kopek-mamasi" },
-              { label: "Kedi Kumu", href: "/kedi-kumu" },
               { label: "Pet Aksesuar", href: "/pet-aksesuar" },
-              { label: "En İyi Kedi Maması", href: "/kedi-mamasi-en-iyi-markalar" },
               { label: "Köpek Maması Fiyatları", href: "/kopek-mamasi-fiyatlari" },
             ].map((l) => (
               <Link key={l.href} href={l.href} className="text-xs text-gray-500 hover:text-white transition-colors" data-testid={`footer-seo-${l.href.slice(1)}`}>

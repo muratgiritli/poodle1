@@ -6,11 +6,7 @@ import SearchBar from "@/components/SearchBar";
 import { CURRENT_STORE } from "@/lib/store";
 
 const NAV_ITEMS = [
-  { name: "Kedi", href: "/kategori/kedi" },
   { name: "Köpek", href: "/kategori/kopek" },
-  { name: "Kuş", href: "/kategori/kus" },
-  { name: "Kemirgen", href: "/kategori/kemirgen" },
-  { name: "Akvaryum", href: "/kategori/akvaryum" },
   { name: "Veteriner", href: "/kategori/veteriner" },
 ];
 

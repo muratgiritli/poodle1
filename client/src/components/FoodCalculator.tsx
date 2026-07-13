@@ -56,7 +56,7 @@ interface FoodCalculatorProps {
 }
 
 export default function FoodCalculator({ productName, productPrice, defaultAnimal }: FoodCalculatorProps) {
-  const animalType = defaultAnimal || "kedi";
+  const animalType = defaultAnimal || "kopek";
   const isKedi = animalType === "kedi";
   const maxWeight = isKedi ? 15 : 60;
   const defaultWeight = isKedi ? 4 : 15;

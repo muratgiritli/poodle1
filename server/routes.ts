@@ -781,9 +781,6 @@ export async function registerRoutes(
         { url: "/", priority: "1.0", changefreq: "daily" },
         { url: "/kategori", priority: "0.9", changefreq: "weekly" },
         { url: "/kategori/kopek", priority: "0.8", changefreq: "weekly" },
-        { url: "/kategori/kedi", priority: "0.8", changefreq: "weekly" },
-        { url: "/kategori/kus", priority: "0.7", changefreq: "weekly" },
-        { url: "/kategori/kemirgen", priority: "0.7", changefreq: "weekly" },
         { url: "/kampanya", priority: "0.8", changefreq: "daily" },
         { url: "/magaza", priority: "0.9", changefreq: "monthly" },
         { url: "/sss", priority: "0.5", changefreq: "monthly" },
@@ -887,11 +884,8 @@ export async function registerRoutes(
       const cargo = isCargoStore(store);
       const blogSlugs = [
         { url: "/blog", priority: "0.8", changefreq: "weekly" },
-        { url: "/blog/kedi-mamasi-nasil-secilir", priority: "0.7", changefreq: "monthly" },
         { url: "/blog/kopek-mamasi-secim-rehberi", priority: "0.7", changefreq: "monthly" },
-        { url: "/blog/kedi-kumu-secim-rehberi", priority: "0.7", changefreq: "monthly" },
         { url: "/blog/evcil-hayvan-beslenme-hatalari", priority: "0.7", changefreq: "monthly" },
-        { url: "/blog/kedi-bakim-ipuclari", priority: "0.7", changefreq: "monthly" },
         { url: "/blog/samsun-evcil-hayvan-gezilecek-yerler", priority: "0.6", changefreq: "monthly" },
       ].filter((b) => !(cargo && /samsun|atakum|ilkadim|canik/i.test(b.url)));
 
@@ -915,7 +909,7 @@ export async function registerRoutes(
     try {
       const ExcelJS = (await import("exceljs")).default;
       const SITE = storeById(adminStoreId(req)).domain;
-      const ANIMAL_MAP: Record<string, string> = { kedi: "Kedi", kopek: "Köpek", kus: "Kuş", kemirgen: "Kemirgen" };
+      const ANIMAL_MAP: Record<string, string> = { kopek: "Köpek" };
 
       const { rows } = await sharedPool.query(`
         SELECT p.id, p.name, p.price, p.original_price, p.skt, p.img, p.stock,
@@ -973,7 +967,7 @@ export async function registerRoutes(
   app.get("/api/admin/export/products-xlsx", requireAdmin, async (req, res) => {
     try {
       const ExcelJS = (await import("exceljs")).default;
-      const ANIMAL_MAP: Record<string, string> = { kedi: "Kedi", kopek: "Köpek", kus: "Kuş", kemirgen: "Kemirgen", akvaryum: "Akvaryum" };
+      const ANIMAL_MAP: Record<string, string> = { kopek: "Köpek" };
       const type = String(req.query.type || "all");
 
       let where = "1=1";
@@ -1052,12 +1046,11 @@ export async function registerRoutes(
   });
 
   const MAMA_SUBCATS: Record<string, string[]> = {
-    kedi: ["kedi-mamasi", "acik-mama", "yas-mama"],
     kopek: ["mama-markalari", "kopek-kuru-mama", "acik-mama", "uygun-cuval", "yas-mama"],
   };
 
   async function getMamaStockData() {
-    const allSubcats = Array.from(new Set([...MAMA_SUBCATS.kedi, ...MAMA_SUBCATS.kopek]));
+    const allSubcats = Array.from(new Set([...MAMA_SUBCATS.kopek]));
     const { rows } = await sharedPool.query(
       `SELECT p.id, p.name, p.price, p.stock, p.skt, p.barcode,
               bc.brand_name, bc.animal, s.display_name as subcategory_name, s.slug as subcategory_slug
@@ -1066,7 +1059,7 @@ export async function registerRoutes(
        LEFT JOIN subcategories s ON bc.subcategory = s.slug AND bc.animal = s.animal
        WHERE p.is_active = true
          AND p.stock > 0
-         AND bc.animal IN ('kedi','kopek')
+         AND bc.animal = 'kopek'
          AND s.slug = ANY($1::text[])
        ORDER BY bc.animal, bc.brand_name, p.name`,
       [allSubcats]
@@ -1074,7 +1067,6 @@ export async function registerRoutes(
     const filtered = (rows as any[]).filter(r => MAMA_SUBCATS[r.animal]?.includes(r.subcategory_slug));
 
     const brandSummary: Record<string, { animal: string; brand: string; itemCount: number; totalStock: number; totalValue: number }> = {};
-    let kediStock = 0, kediValue = 0, kediItems = 0;
     let kopekStock = 0, kopekValue = 0, kopekItems = 0;
 
     for (const r of filtered) {
@@ -1086,17 +1078,15 @@ export async function registerRoutes(
       brandSummary[key].itemCount += 1;
       brandSummary[key].totalStock += stock;
       brandSummary[key].totalValue += value;
-      if (r.animal === "kedi") { kediStock += stock; kediValue += value; kediItems += 1; }
-      else { kopekStock += stock; kopekValue += value; kopekItems += 1; }
+      kopekStock += stock; kopekValue += value; kopekItems += 1;
     }
 
     return {
       details: filtered,
       brandSummary: Object.values(brandSummary).sort((a, b) => a.animal.localeCompare(b.animal) || b.totalValue - a.totalValue),
       totals: {
-        kedi: { itemCount: kediItems, totalStock: kediStock, totalValue: kediValue },
         kopek: { itemCount: kopekItems, totalStock: kopekStock, totalValue: kopekValue },
-        grand: { itemCount: kediItems + kopekItems, totalStock: kediStock + kopekStock, totalValue: kediValue + kopekValue },
+        grand: { itemCount: kopekItems, totalStock: kopekStock, totalValue: kopekValue },
       },
     };
   }
@@ -1115,7 +1105,7 @@ export async function registerRoutes(
     try {
       const ExcelJS = (await import("exceljs")).default;
       const data = await getMamaStockData();
-      const ANIMAL_LABEL: Record<string, string> = { kedi: "Kedi", kopek: "Köpek" };
+      const ANIMAL_LABEL: Record<string, string> = { kopek: "Köpek" };
 
       const wb = new ExcelJS.Workbook();
       const PURPLE = "FF6B3480";
@@ -1129,7 +1119,6 @@ export async function registerRoutes(
       ];
       wsSummary.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
       wsSummary.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: PURPLE } };
-      wsSummary.addRow({ label: "Kedi Maması", items: data.totals.kedi.itemCount, stock: data.totals.kedi.totalStock, value: Math.round(data.totals.kedi.totalValue * 100) / 100 });
       wsSummary.addRow({ label: "Köpek Maması", items: data.totals.kopek.itemCount, stock: data.totals.kopek.totalStock, value: Math.round(data.totals.kopek.totalValue * 100) / 100 });
       const totalRow = wsSummary.addRow({ label: "GENEL TOPLAM", items: data.totals.grand.itemCount, stock: data.totals.grand.totalStock, value: Math.round(data.totals.grand.totalValue * 100) / 100 });
       totalRow.font = { bold: true };
@@ -1405,9 +1394,6 @@ export async function registerRoutes(
   });
 
   const SUBCATEGORY_SLUG_MAP: Record<string, string> = {
-    "kedi-odulu": "odul",
-    "kedi-bakim-saglik": "bakim-saglik",
-    "kedi-konserve": "kedi-konserve",
     "malt-macun": "malt-macun",
     "malt-vitamin": "malt-vitamin",
     "kopek-mamasi": "mama-markalari",
@@ -1500,15 +1486,10 @@ export async function registerRoutes(
       const stCfg = reqStore(req);
       const SITE = stCfg.domain;
       const ANIMAL_LABEL: Record<string, string> = {
-        kedi: "Kedi", kopek: "Köpek", kus: "Kuş",
-        kemirgen: "Kemirgen", akvaryum: "Akvaryum", balik: "Balık",
+        kopek: "Köpek",
       };
       const GOOGLE_CATEGORY: Record<string, string> = {
-        kedi: "Animals & Pet Supplies > Pet Supplies > Cat Supplies > Cat Food",
         kopek: "Animals & Pet Supplies > Pet Supplies > Dog Supplies > Dog Food",
-        kus: "Animals & Pet Supplies > Pet Supplies > Bird Supplies > Bird Food",
-        kemirgen: "Animals & Pet Supplies > Pet Supplies > Small Animal Supplies > Small Animal Food",
-        akvaryum: "Animals & Pet Supplies > Pet Supplies > Fish Supplies",
       };
 
       const { rows } = await sharedPool.query(`
@@ -1566,8 +1547,8 @@ export async function registerRoutes(
         ? "Türkiye geneli hızlı kargo ile teslimat."
         : "Aynı gün kapıda teslimat ve kapıda ödeme imkanı.";
       const channelDesc = isCargo
-        ? `${stCfg.name} — Türkiye geneli hızlı kargo. Kedi maması, köpek maması, kedi kumu ve tüm pet ürünleri.`
-        : `${stCfg.name} — aynı gün kapıda teslimat ve kapıda ödeme. Kedi maması, köpek maması, kedi kumu ve tüm pet ürünleri.`;
+        ? `${stCfg.name} — Türkiye geneli hızlı kargo. Köpek maması ve tüm köpek ürünleri.`
+        : `${stCfg.name} — aynı gün kapıda teslimat ve kapıda ödeme. Köpek maması ve tüm köpek ürünleri.`;
       const mpnPrefix = (stCfg.brandWord || "PET").replace(/[^A-Za-z0-9]+/g, "").toUpperCase() || "PET";
 
       let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
@@ -1822,7 +1803,7 @@ export async function registerRoutes(
   app.get("/llms.txt", (req, res) => {
     res.type("text/plain").send(brandifyFor(reqStore(req), `# JETGO Pet Shop Samsun
 
-> Samsun'un (Atakum, İlkadım, Canik) en hızlı pet shop'u. Kedi maması, köpek maması, kedi kumu, ödül maması, kuş yemi, kemirgen yemi, akvaryum ve pet aksesuarlarında **aynı gün teslimat** ve **kapıda ödeme** sunan online evcil hayvan mağazası.
+> Samsun'un (Atakum, İlkadım, Canik) en hızlı köpek pet shop'u. Köpek maması, ödül maması ve köpek aksesuarlarında **aynı gün teslimat** ve **kapıda ödeme** sunan online köpek ürünleri mağazası.
 
 ## Hakkımızda
 - **Marka:** JETGO Pet Shop
@@ -1846,9 +1827,7 @@ export async function registerRoutes(
 
 ## Ana Sayfalar
 - Anasayfa: https://www.jetgomarket.com/
-- Kedi Maması: https://www.jetgomarket.com/kedi-mamasi
 - Köpek Maması: https://www.jetgomarket.com/kopek-mamasi
-- Kedi Kumu: https://www.jetgomarket.com/kedi-kumu
 - Pet Aksesuar: https://www.jetgomarket.com/pet-aksesuar
 - Atakum Pet Shop: https://www.jetgomarket.com/atakum-petshop
 - İlkadım Pet Shop: https://www.jetgomarket.com/ilkadim-petshop

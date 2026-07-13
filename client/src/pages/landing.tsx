@@ -27,10 +27,6 @@ import SEO, { LOCAL_BUSINESS_JSONLD, WEBSITE_JSONLD, SITE_DOMAIN } from "@/compo
 import TopBanner from "@/components/TopBanner";
 import ContactDialog from "@/components/ContactDialog";
 import catDog from "@/assets/images/cat-dog.webp";
-import catCat from "@/assets/images/cat-cat.webp";
-import catBird from "@/assets/images/cat-bird.webp";
-import catRabbit from "@/assets/images/cat-rabbit.webp";
-import catFish from "@assets/cat-fish.png";
 import desktopHeroBanner from "@assets/B1_1776879216390.png";
 import brandRoyalCanin from "@/assets/images/brands/royal-canin.webp";
 import brandHills from "@/assets/images/brands/hills.webp";
@@ -70,10 +66,6 @@ const HERO_SLIDES = [
 
 const CATEGORIES = [
   { name: "Köpek", img: catDog, href: "/kategori/kopek", color: "from-amber-400 to-orange-500", emoji: "🐕" },
-  { name: "Kedi", img: catCat, href: "/kategori/kedi", color: "from-pink-400 to-rose-500", emoji: "🐱" },
-  { name: "Kuş", img: catBird, href: "/kategori/kus", color: "from-sky-400 to-blue-500", emoji: "🐦" },
-  { name: "Kemirgen", img: catRabbit, href: "/kategori/kemirgen", color: "from-lime-400 to-green-500", emoji: "🐹" },
-  { name: "Akvaryum", img: catFish, href: "/kategori/akvaryum", color: "from-cyan-400 to-blue-500", emoji: "🐠" },
 ];
 
 const QUICK_ACTIONS = [
@@ -756,9 +748,9 @@ function BlogPreview() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-5">
         {[
-          { title: "Kedi Maması Nasıl Seçilir?", slug: "kedi-mamasi-nasil-secilir", category: "Kedi Bakımı", color: "bg-purple-100 text-purple-700", desc: "Yaşına, cinsine ve sağlık durumuna göre en doğru mama seçimi rehberi." },
           { title: "Köpek Maması Seçim Rehberi", slug: "kopek-mamasi-secim-rehberi", category: "Köpek Bakımı", color: "bg-amber-100 text-amber-700", desc: "Köpeğinizin yaşına ve boyutuna uygun mama seçimi için kapsamlı rehber." },
-          { title: "Kedi Kumu Seçim Rehberi", slug: "kedi-kumu-secim-rehberi", category: "Kedi Bakımı", color: "bg-purple-100 text-purple-700", desc: "Topaklaşan, silika ve doğal kum çeşitleri arasında doğru seçim yapın." },
+          { title: "Köpek Bakım Rehberi", slug: "kopek-bakimi-rehberi", category: "Köpek Bakımı", color: "bg-orange-100 text-orange-700", desc: "Köpeğinizin sağlıklı ve mutlu yaşaması için temel bakım önerileri." },
+          { title: "Köpek Eğitimi İpuçları", slug: "kopek-egitimi-ipuclari", category: "Köpek Eğitimi", color: "bg-yellow-100 text-yellow-700", desc: "Temel komutlar ve olumlu pekiştirme teknikleriyle etkili köpek eğitimi." },
         ].map((post) => (
           <Link key={post.slug} href={`/blog/${post.slug}`}>
             <div className="bg-white rounded-xl md:rounded-2xl border border-gray-100 p-3 md:p-6 hover:shadow-lg transition-shadow cursor-pointer group h-full" data-testid={`blog-preview-${post.slug}`}>
@@ -785,9 +777,9 @@ function RegionLinks() {
     { name: "Canik Pet Shop", href: "/canik-petshop", desc: "Aynı gün teslimat" },
   ];
   const categories = [
-    { name: "Kedi Maması", href: "/kedi-mamasi" },
     { name: "Köpek Maması", href: "/kopek-mamasi" },
-    { name: "Kedi Kumu", href: "/kedi-kumu" },
+    { name: "Köpek Ödülü", href: "/kopek-odulu" },
+    { name: "Köpek Aksesuar", href: "/kopek-aksesuari" },
     { name: "Pet Aksesuar", href: "/pet-aksesuar" },
   ];
   return (
@@ -995,8 +987,8 @@ export default function Landing({ seoOverride }: { seoOverride?: LandingSeoOverr
   ) : (
     <SEO
       title="1 Saat içinde Kapında"
-      description="Atakum, Samsun, İlkadım, Canik, Tekkeköy'e aynı gün petshop teslimatı. Kedi maması, köpek maması, kedi kumu, ödül maması kapıda ödeme. JETGO Pet Shop Samsun: 09:00-21:00 hizmet, +90 850 840 39 59. Mahalleye en yakın petshop."
-      keywords="atakum petshop, samsun petshop, samsun pet shop, atakum pet shop, samsun kedi maması, samsun köpek maması, samsun kedi kumu, atakum aynı gün petshop teslimatı, samsun acil kedi kumu, ilkadım petshop, canik petshop, tekkeköy petshop, kapıda ödeme petshop samsun, denizevleri petshop, güzelyalı petshop, kurupelit petshop, atakent petshop, mimar sinan petshop"
+      description="Atakum, Samsun, İlkadım, Canik, Tekkeköy'e aynı gün petshop teslimatı. Köpek maması, köpek ödülü, aksesuar ve bakım ürünleri kapıda ödeme. JETGO Pet Shop Samsun: 09:00-21:00 hizmet, +90 850 840 39 59. Mahalleye en yakın petshop."
+      keywords="atakum petshop, samsun petshop, samsun pet shop, atakum pet shop, samsun köpek maması, atakum aynı gün petshop teslimatı, ilkadım petshop, canik petshop, tekkeköy petshop, kapıda ödeme petshop samsun, denizevleri petshop, güzelyalı petshop, kurupelit petshop, atakent petshop, mimar sinan petshop"
       canonical={`${SITE_DOMAIN}/`}
       jsonLd={[LOCAL_BUSINESS_JSONLD, WEBSITE_JSONLD]}
     />

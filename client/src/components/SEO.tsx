@@ -161,12 +161,7 @@ export const LOCAL_BUSINESS_JSONLD = {
     "@type": "OfferCatalog",
     "name": "Samsun Pet Shop Ürün Kategorileri",
     "itemListElement": [
-      { "@type": "OfferCatalog", "name": "Kedi Maması", "url": `${SITE_DOMAIN}/kedi-mamasi` },
       { "@type": "OfferCatalog", "name": "Köpek Maması", "url": `${SITE_DOMAIN}/kopek-mamasi` },
-      { "@type": "OfferCatalog", "name": "Kedi Kumu", "url": `${SITE_DOMAIN}/kedi-kumu` },
-      { "@type": "OfferCatalog", "name": "Kuş Yemi", "url": `${SITE_DOMAIN}/kategori/kus` },
-      { "@type": "OfferCatalog", "name": "Kemirgen Yemi", "url": `${SITE_DOMAIN}/kategori/kemirgen` },
-      { "@type": "OfferCatalog", "name": "Akvaryum Ürünleri", "url": `${SITE_DOMAIN}/kategori/akvaryum` },
       { "@type": "OfferCatalog", "name": "Pet Aksesuarları", "url": `${SITE_DOMAIN}/pet-aksesuar` },
     ],
   },
@@ -177,7 +172,7 @@ export const LOCAL_BUSINESS_JSONLD = {
     "bestRating": "5",
     "worstRating": "1",
   },
-  "knowsAbout": ["Kedi maması", "Köpek maması", "Kedi kumu", "Pet shop", "Evcil hayvan bakımı", "Veteriner ürünleri", "Atakum pet shop", "Samsun pet shop"],
+  "knowsAbout": ["Köpek maması", "Köpek bakımı", "Pet shop", "Evcil hayvan bakımı", "Veteriner ürünleri", "Atakum pet shop", "Samsun pet shop"],
   "makesOffer": [
     { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Aynı Gün Teslimat" }, "areaServed": "Samsun" },
     { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Kapıda Ödeme" }, "areaServed": "Samsun" },

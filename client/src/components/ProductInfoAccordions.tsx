@@ -80,7 +80,6 @@ export default function ProductInfoAccordions({
       "samsun pet shop",
       brandify("jetgo pet shop"),
     ];
-    if (animal === "kedi") base.push("kedi maması", "kedi bakım ürünleri");
     if (animal === "kopek") base.push("köpek maması", "köpek bakım ürünleri");
     return base;
   }, [productName, animal, brandName]);

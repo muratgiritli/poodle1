@@ -39,24 +39,6 @@ const ANIMAL_META: Record<string, {
     gradient: "from-amber-500 to-orange-600",
     bgGradient: "from-amber-50 to-orange-50",
   },
-  kedi: {
-    title: "Kedi",
-    emoji: "🐈",
-    gradient: "from-purple-500 to-indigo-600",
-    bgGradient: "from-purple-50 to-indigo-50",
-  },
-  kus: {
-    title: "Kuş",
-    emoji: "🦜",
-    gradient: "from-emerald-500 to-teal-600",
-    bgGradient: "from-emerald-50 to-teal-50",
-  },
-  kemirgen: {
-    title: "Kemirgen",
-    emoji: "🐹",
-    gradient: "from-pink-500 to-rose-600",
-    bgGradient: "from-pink-50 to-rose-50",
-  },
   akvaryum: {
     title: "Akvaryum",
     emoji: "🐠",

@@ -4,9 +4,6 @@ import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import SEO, { SITE_DOMAIN, BREADCRUMB_JSONLD } from "@/components/SEO";
 import catDog from "@/assets/images/cat-dog.webp";
-import catCat from "@/assets/images/cat-cat.webp";
-import catBird from "@/assets/images/cat-bird.webp";
-import catRabbit from "@/assets/images/cat-rabbit.webp";
 
 const CATEGORIES = [
   {
@@ -17,38 +14,14 @@ const CATEGORIES = [
     gradient: "from-amber-500 to-orange-600",
     emoji: "🐕",
   },
-  {
-    name: "Kedi",
-    subtitle: "Mama, kum ve oyuncak",
-    image: catCat,
-    href: "/kategori/kedi",
-    gradient: "from-purple-500 to-indigo-600",
-    emoji: "🐈",
-  },
-  {
-    name: "Kuş",
-    subtitle: "Yem, kafes ve vitamin",
-    image: catBird,
-    href: "/kategori/kus",
-    gradient: "from-emerald-500 to-teal-600",
-    emoji: "🦜",
-  },
-  {
-    name: "Kemirgen",
-    subtitle: "Yem, kafes ve aksesuar",
-    image: catRabbit,
-    href: "/kategori/kemirgen",
-    gradient: "from-pink-500 to-rose-600",
-    emoji: "🐹",
-  },
 ];
 
 export default function CategoriesOverview() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pb-20 md:pb-8">
       <SEO
-        title="Evcil Hayvan Kategorileri | JETGO Pet Shop Samsun"
-        description="Kedi, köpek, kuş ve kemirgen için mama, aksesuar, bakım ürünleri. Samsun'da aynı gün teslimat ile evcil hayvan ürünleri online sipariş."
+        title="Köpek Ürünleri | JETGO Pet Shop Samsun"
+        description="Köpek mama, aksesuar ve bakım ürünleri. Samsun'da aynı gün teslimat ile köpek ürünleri online sipariş."
         canonical={`${SITE_DOMAIN}/kategori`}
         jsonLd={BREADCRUMB_JSONLD([
           { name: "Ana Sayfa", url: SITE_DOMAIN },

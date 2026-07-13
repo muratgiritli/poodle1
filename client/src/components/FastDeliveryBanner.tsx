@@ -5,8 +5,6 @@ const MAMA_SUBCATEGORIES = [
   "mama-markalari",
   "acik-mama",
   "yas-mama",
-  "kedi-mamasi",
-  "kedi-konserve",
 ];
 
 function getTurkeyTime(): Date {
@@ -36,7 +34,7 @@ function getTimeRemaining(): { hours: number; minutes: number; seconds: number }
 }
 
 export function shouldShowFastDelivery(animal: string, subcategory: string): boolean {
-  if (animal !== "kedi" && animal !== "kopek") return false;
+  if (animal !== "kopek") return false;
   if (!MAMA_SUBCATEGORIES.includes(subcategory)) return false;
   return getDeliveryDeadline() !== null;
 }

@@ -304,12 +304,12 @@ export default function DemoAnasayfa({ embedded = false, hideFooter = false }: {
                 </span>
               </div>
             </Link>
-            <Link href="/kategori/kedi" className="flex-1 rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 p-6 relative shadow-xl shadow-teal-200/50 hover:scale-[1.02] transition-transform block" data-testid="link-demo-side-kedi">
-              <div className="absolute -right-6 -top-6 text-[120px] opacity-90 select-none">🐱</div>
+            <Link href="/kategori/kopek" className="flex-1 rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 p-6 relative shadow-xl shadow-teal-200/50 hover:scale-[1.02] transition-transform block" data-testid="link-demo-side-kopek-aksesuar">
+              <div className="absolute -right-6 -top-6 text-[120px] opacity-90 select-none">🐾</div>
               <div className="relative z-10">
                 <span className="inline-block bg-white/25 backdrop-blur text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full">EN ÇOK SATAN</span>
-                <div className="mt-2 text-white font-black text-2xl leading-tight">Kedi<br />Kumları</div>
-                <div className="text-white/90 text-[12px] mt-1">{kediDeliverySub}</div>
+                <div className="mt-2 text-white font-black text-2xl leading-tight">Köpek<br />Aksesuarı</div>
+                <div className="text-white/90 text-[12px] mt-1">Aynı gün teslim</div>
                 <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-white bg-black/20 px-3 py-1.5 rounded-full">
                   İncele <ChevronRight className="w-3 h-3" />
                 </span>
