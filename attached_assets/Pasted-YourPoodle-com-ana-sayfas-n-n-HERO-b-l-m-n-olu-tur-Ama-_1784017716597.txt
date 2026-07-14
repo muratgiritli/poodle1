@@ -1,0 +1,328 @@
+YourPoodle.com ana sayfasının HERO bölümünü oluştur.
+
+Amaç:
+Premium, modern, duygusal ve güven veren bir ilk ekran oluştur.
+Bu bölüm mobil cihazlar için tasarlanacak.
+
+Tasarım dili:
+Apple + Airbnb + Stripe kalitesi.
+
+Arka plan:
+#FFF9F6 tonlarında çok açık krem.
+Arka planda hafif blur efekti.
+Sağ üstte flu yeşil bitki efekti olabilir.
+Alt kısım yumuşak krem halı dokusu hissi verebilir.
+
+Sayfa yüksekliği:
+Mobil ekranın tamamını kaplasın.
+(min-height:100vh)
+
+İçerik iki sütun mantığında olacak.
+
+------------------------------------------------
+
+SOL TARAF (%45)
+
+En üstte küçük slogan
+
+🐾 ikon
+
+"Poodle'nuz için
+en iyisi burada"
+
+İnce el yazısı font.
+
+Altında büyük başlık.
+
+Dünyanın
+En Büyük
+
+Toy Poodle
+
+Rehberi
+
+Başlık özellikleri
+
+• Font çok premium olsun.
+
+• Font ağırlığı 900
+
+• Satırlar sıkışık
+
+• Dünyanın
+En Büyük
+Rehberi
+
+siyah
+
+Toy Poodle
+
+pastel pembe
+(#F58BAE)
+
+Başlık yaklaşık 58-64px.
+
+Altında açıklama
+
+"Köpeğiniz için ihtiyacınız olan
+her şey tek yerde."
+
+Renk
+
+#555
+
+Satır yüksekliği 1.5
+
+------------------------------------------------
+
+BUTONLAR
+
+Alt alta 3 adet büyük CTA.
+
+Yükseklik
+
+64px
+
+Radius
+
+18px
+
+İç boşluk
+
+24px
+
+İkon solda
+
+Yazı ortada
+
+Sağ tarafta >
+
+hover animasyonu olsun.
+
+1)
+
+Pembe gradient
+
+#FF7FA7
+↓
+
+#F5678D
+
+İkon
+
+Mama kabı
+
+Yazı
+
+Mama Bul
+
+2)
+
+Mor gradient
+
+#A77BFF
+
+↓
+
+#8B6CF0
+
+İkon
+
+Kitap
+
+Yazı
+
+Rehbere Git
+
+3)
+
+Mavi gradient
+
+#78BEFF
+
+↓
+
+#60A9F6
+
+İkon
+
+Robot
+
+Yazı
+
+AI Asistan
+
+Butonlara hover:
+
+translateY(-2px)
+
+shadow-lg
+
+transition 300ms
+
+------------------------------------------------
+
+EN ALT
+
+Beyaz cam efekti kart.
+
+Radius
+
+40px
+
+Blur
+
+İçinde
+
+3 yuvarlak Toy Poodle avatarı.
+
+Yanında
+
+❤ ikon
+
+10.000+
+
+mutlu poodle ailesi
+
+------------------------------------------------
+
+SAĞ TARAF (%55)
+
+Büyük mutlu Toy Poodle.
+
+Özellikler
+
+Apricot Toy Poodle
+
+Gerçek fotoğraf görünümü.
+
+Objektife bakıyor.
+
+Ağzı açık.
+
+Dili dışarıda.
+
+Mutlu.
+
+Kulaklar kabarık.
+
+Tüyler çok kaliteli.
+
+Hiçbir yeri kesilmeyecek.
+
+Köpek ekranın altına oturuyor.
+
+Arka planla uyumlu.
+
+Alt kısmı krem halının üzerine oturuyor.
+
+Köpek ekranın yaklaşık %80 yüksekliğini kaplasın.
+
+------------------------------------------------
+
+GENEL TASARIM
+
+Bol beyaz boşluk.
+
+Minimal.
+
+Luxury.
+
+Apple hissi.
+
+Stripe renk paleti.
+
+Pastel tonlar.
+
+Hiç sert renk kullanma.
+
+------------------------------------------------
+
+ANİMASYON
+
+Sayfa açılırken
+
+Başlık soldan fade gelsin.
+
+Butonlar sırayla gelsin.
+
+Köpek sağdan gelsin.
+
+------------------------------------------------
+
+MOBİL
+
+390px genişliğe göre tasarla.
+
+Tüm içerik tek ekranda görünsün.
+
+Köpek sağ tarafta.
+
+Yazılar solda.
+
+Butonlar büyük.
+
+Dokunması kolay.
+
+------------------------------------------------
+
+KULLANILACAK FONTLAR
+
+Başlık:
+Playfair Display
+veya DM Serif Display
+
+Diğer yazılar:
+Inter
+
+------------------------------------------------
+
+RENKLER
+
+Arka plan
+
+#FFF9F6
+
+Pembe
+
+#F58BAE
+
+Siyah
+
+#222222
+
+Gri
+
+#666666
+
+Pembe Buton
+
+#FF7FA7
+
+Mor
+
+#9E7BFF
+
+Mavi
+
+#79BFFF
+
+------------------------------------------------
+
+ÇIKTI
+
+React + TypeScript + Tailwind CSS kullan.
+
+Hero.tsx isminde component oluştur.
+
+Kod tamamen responsive olsun.
+
+Hiç placeholder kullanma.
+
+Tüm butonlar çalışır olsun.
+
+Lucide React ikonlarını kullan.
+
+Kod production seviyesinde olsun.
+
+Referans görseldeki düzen, boşluklar, tipografi ve premium hissi mümkün olduğunca birebir yakalansın.
