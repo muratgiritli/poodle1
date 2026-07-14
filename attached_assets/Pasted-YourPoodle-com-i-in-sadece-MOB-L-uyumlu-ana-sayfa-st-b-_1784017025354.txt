@@ -1,0 +1,236 @@
+YourPoodle.com için sadece MOBİL uyumlu ana sayfa üst bölümünü oluştur.
+
+Amaç:
+Ekteki referans görsele çok yakın, modern, sade, premium ve pastel renkli bir mobil header tasarımı yap. Tasarım petshop gibi değil, Toy Poodle sahiplerine özel bir dijital platform gibi görünmeli.
+
+TEKNOLOJİ:
+- React
+- TypeScript
+- Tailwind CSS
+- Lucide React ikonları
+- Mobil öncelikli responsive yapı
+- Kod temiz, bileşenlere ayrılmış ve çalışır durumda olsun
+
+GENEL TASARIM:
+- Sayfa arka planı beyaz
+- Maksimum mobil genişlik: 430px
+- Masaüstünde içerik ortada mobil telefon genişliğinde gözüksün
+- Yumuşak gölgeler
+- Yuvarlatılmış köşeler
+- Pastel stripe renkleri
+- Kalın ve ağır tasarım kullanma
+- Tüm alanlar tıklanabilir ve fonksiyonel olsun
+
+1. ÜST HEADER
+
+Header sayfa yukarı kaydırıldığında sabit kalsın.
+
+Yerleşim:
+- Sol: hamburger menü ikonu
+- Orta: YourPoodle logosu
+- Sağ: AI Asistan butonu
+- En sağ: kullanıcı/profil ikonu
+
+LOGO:
+- Yüklediğim YourPoodle logo görselini kullan
+- Logo değiştirilmemeli
+- Logo yatay, ortalanmış ve yaklaşık 145–165px genişliğinde olsun
+- Beyaz arka planı varsa tasarımla bütünleşsin
+- Logo bozulmasın ve kırpılmasın
+- object-fit: contain kullan
+
+Header yüksekliği yaklaşık 82px olsun.
+
+Hamburger:
+- 42x42px tıklama alanı
+- Tıklanınca soldan mobil menü açılsın
+- Menüde şu bağlantılar olsun:
+  Ana Sayfa
+  Mama
+  Eğitim
+  Sağlık
+  Bakım
+  Tuvalet
+  Ödül Mamaları
+  Ürünler
+  Hizmetler
+  Rehber
+  Poodle Club
+
+AI Asistan butonu:
+- Açık pembe ince çerçeve
+- Robot ikonu
+- Metin: “AI Asistan”
+- Mobilde kompakt görünüm
+- Tıklanınca /ai-asistan sayfasına yönlendir
+
+Profil:
+- Açık gri daire içinde kullanıcı ikonu
+- Tıklanınca /giris sayfasına yönlendir
+
+2. ARAMA ALANI
+
+Header altında geniş bir arama kutusu oluştur.
+
+Özellikler:
+- Sol tarafta arama ikonu
+- Placeholder:
+  “Mama, eğitim, sağlık ara...”
+- Sağda pembe gradient “Ara” butonu
+- Kutunun yüksekliği yaklaşık 58px
+- Kenarlar yuvarlak
+- Çok hafif gölge
+- Kullanıcı yazıp Ara butonuna bastığında /arama?q=aranan-kelime adresine yönlendir
+- Enter tuşu da çalışsın
+
+3. DİL SEÇİM ALANI
+
+Arama kutusunun altında yatay dil seçici oluştur.
+
+Diller:
+- TR
+- EN
+- DE
+- FR
+- RU
+- AR
+- ES
+- IT
+
+Her dil seçeneğinde:
+- Küçük dairesel bayrak
+- Dil kodu
+- Aktif dilin altında pembe çizgi
+
+Davranış:
+- Dil alanı yatay kaydırılabilir olsun
+- Scrollbar görünmesin
+- Dil seçildiğinde aktif durum değişsin
+- Seçim localStorage içine kaydedilsin
+- Dil seçimi gerçek route mantığına uygun hazırlanmalı:
+  /tr
+  /en
+  /de
+  /fr
+  /ru
+  /ar
+  /es
+  /it
+- Arapça seçildiğinde sayfa dir="rtl" desteğine hazır olsun
+- En sağda aşağı ok ikonu olsun
+- Aşağı oka basınca tüm dilleri gösteren küçük dropdown açılsın
+
+4. PASTEL STRIPE KATEGORİ MENÜSÜ
+
+Dil alanının hemen altında yatay kategori menüsü oluştur.
+
+Menü ekranda yan yana kutular şeklinde gözüksün.
+Alan mobilde yatay kaydırılabilir olsun.
+Scrollbar görünmesin.
+
+Kategoriler:
+1. Mama
+2. Eğitim
+3. Sağlık
+4. Bakım
+5. Tuvalet
+6. Ödül
+7. Ürünler
+8. Hizmetler
+
+Her kategori:
+- Dikey kart yapısında olsun
+- Üstte line icon
+- Altta kategori adı
+- Minimum genişlik yaklaşık 92px
+- Yükseklik yaklaşık 108px
+- Kartlar arasında boşluk olmasın veya çok az olsun
+- Her kart farklı pastel stripe rengine sahip olsun
+
+Renkler:
+- Mama: pastel pembe
+- Eğitim: pastel şeftali
+- Sağlık: pastel mint
+- Bakım: pastel lila
+- Tuvalet: pastel sarı
+- Ödül: pastel mavi
+- Ürünler: pastel pudra pembe
+- Hizmetler: pastel açık yeşil
+
+İkonlar:
+- Mama: mama kabı
+- Eğitim: mezuniyet kepi
+- Sağlık: kalp ve sağlık artısı
+- Bakım: makas veya tarak
+- Tuvalet: pet tuvaleti
+- Ödül: madalya veya rozet
+- Ürünler: alışveriş çantası
+- Hizmetler: konum pini
+
+Davranış:
+- Kartlara hover/tap efekti ver
+- Basıldığında hafif küçülsün
+- Kategori linkleri çalışsın:
+  /mama
+  /egitim
+  /saglik
+  /bakim
+  /tuvalet
+  /odul-mamasi
+  /urunler
+  /hizmetler
+
+5. SABİT HEADER DAVRANIŞI
+
+- Header, arama, dil seçimi ve kategori alanı tek büyük sticky blok olmasın
+- Sadece en üst logo/header satırı sticky kalsın
+- Arama, dil ve kategori alanları normal sayfa akışında kalsın
+- Sticky header altında içerik kapanmasın
+- z-index doğru ayarlansın
+
+6. MOBİL ÖLÇÜLER
+
+320px, 360px, 390px, 414px ve 430px ekranlarda düzgün çalışmalı.
+
+Özellikle 360px genişlikte:
+- Logo taşmamalı
+- AI Asistan butonu taşmamalı
+- Profil ikonu görünmeli
+- Header elemanları üst üste binmemeli
+- Gerekirse AI butonunda yalnız robot ikonu göster, 390px üzerindeyse metni de göster
+
+7. ERİŞİLEBİLİRLİK
+
+- Tüm butonlarda aria-label olsun
+- Dokunma alanları minimum 44px
+- Görsellere alt etiketi ekle
+- Kontrast okunabilir olsun
+- Klavye ile kullanılabilir olsun
+
+8. DOSYA YAPISI
+
+Şu bileşenleri oluştur:
+- MobileHeader.tsx
+- SearchBar.tsx
+- LanguageSelector.tsx
+- CategoryStrip.tsx
+- MobileDrawer.tsx
+
+Verileri ayrı dosyada tut:
+- navigationData.ts
+
+Ana sayfada kullan:
+- Home.tsx
+
+9. ÖNEMLİ
+
+- Referans görsele yakın görünüm oluştur
+- Masaüstü navbar yapma
+- Büyük hero banner ekleme
+- Header altına başka içerik ekleme
+- Sadece mobil header, arama, dil ve kategori stripe alanını hazırla
+- Emoji kullanma
+- İkonları Lucide React ile yap
+- Bayraklarda bozuk emoji görünümü kullanma; CSS daire veya güvenilir flag görselleri kullan
+- Tasarım gerçek çalışan web arayüzü olsun, sadece tek parça görsel olmasın
+- Tüm buton ve bağlantılar işlevsel olsun
