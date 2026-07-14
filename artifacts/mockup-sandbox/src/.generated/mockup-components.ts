@@ -9,5 +9,6 @@ export const modules: ModuleMap = {
   "./components/mockups/jetgo-landing/Variant2.tsx": () => import("../components/mockups/jetgo-landing/Variant2.tsx"),
   "./components/mockups/yourpoodle/Bilgi.tsx": () => import("../components/mockups/yourpoodle/Bilgi.tsx"),
   "./components/mockups/yourpoodle/Homepage.tsx": () => import("../components/mockups/yourpoodle/Homepage.tsx"),
+  "./components/mockups/yourpoodle/PoodleHomepage.tsx": () => import("../components/mockups/yourpoodle/PoodleHomepage.tsx"),
   "./components/mockups/yourpoodle/Rehber.tsx": () => import("../components/mockups/yourpoodle/Rehber.tsx")
 };
