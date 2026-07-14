@@ -1,0 +1,767 @@
+YOURPOODLE.COM PROJESİ İÇİN PROFESYONEL SEO SİSTEMİ KUR
+
+Bu projede sadece birkaç meta etiketi ekleme. Tüm site genelinde çalışan, ölçeklenebilir, çok dilli ve teknik olarak doğru bir SEO altyapısı oluştur.
+
+ÖNEMLİ KURAL:
+Mevcut tasarımı, sayfa düzenini, çalışan fonksiyonları, mobil görünümü, renkleri ve bileşenleri bozma. Önce projeyi analiz et, kullanılan framework ve routing yapısını tespit et. Daha sonra SEO sistemini mevcut teknolojiye uygun şekilde uygula.
+
+PROJE:
+Site adı: YourPoodle
+Domain: https://yourpoodle.com
+Konu: Toy Poodle sahipleri için rehber, bilgi bankası, mama seçimi, bakım, eğitim, sağlık, hizmetler, ürünler, topluluk ve AI asistan platformu.
+
+1. MERKEZİ SEO YAPISI OLUŞTUR
+
+Tek tek her sayfaya dağınık kod yazma.
+
+Merkezi ve tekrar kullanılabilir bir SEO sistemi oluştur.
+
+Her sayfa için şu alanlar desteklensin:
+
+* title
+* description
+* canonical URL
+* robots
+* Open Graph title
+* Open Graph description
+* Open Graph image
+* Twitter Card
+* sayfa dili
+* alternatif dil bağlantıları
+* JSON-LD schema
+* breadcrumb schema
+
+SEO ayarları ortak bir component, utility veya config dosyası üzerinden yönetilsin.
+
+Örnek dosya yapısı:
+
+* seo.config
+* SEO component
+* schema helpers
+* sitemap generator
+* robots generator
+* page metadata config
+
+Kullanılan framework Next.js ise Metadata API kullan.
+React/Vite ise react-helmet-async veya uygun bir sistem kur.
+Projede kullanılan teknolojiye göre en doğru yöntemi seç.
+
+2. HER SAYFAYA ÖZEL SEO EKLE
+
+Tüm sayfalar aynı title ve description değerlerini kullanmasın.
+
+Her sayfaya içeriğine özel:
+
+* benzersiz title
+* benzersiz meta description
+* doğru canonical URL
+* doğru H1
+* içerikle uyumlu Open Graph bilgileri
+
+ekle.
+
+Title uzunluğu mümkün olduğunca 50–60 karakter aralığında olsun.
+
+Meta description yaklaşık 140–160 karakter olsun.
+
+Ana sayfa örneği:
+
+Title:
+Toy Poodle Rehberi, Bakımı ve Mama Seçimi | YourPoodle
+
+Description:
+Toy Poodle bakımı, eğitimi, mama seçimi, sağlık rehberleri, ürünler ve uzman önerileri YourPoodle’da. Poodle’ınız için her şey tek yerde.
+
+Ana sayfada yalnızca bir adet H1 kullan:
+
+Dünyanın En Kapsamlı Toy Poodle Rehberi
+
+3. SEO UYUMLU URL YAPISI
+
+URL’ler kısa, anlaşılır ve Türkçe karakter içermeyecek şekilde oluşturulsun.
+
+Doğru örnekler:
+
+/rehber
+/rehber/tuvalet-egitimi
+/rehber/mama-secimi
+/rehber/goz-bakimi
+/rehber/kulak-bakimi
+/rehber/dis-bakimi
+/rehber/tuy-bakimi
+/rehber/yavru-poodle-bakimi
+/rehber/poodle-hastaliklari
+/rehber/ucak-yolculugu
+/mama
+/mama/yavru
+/mama/yetiskin
+/mama/yasli
+/mama/hipoalerjenik
+/mama/tahilsiz
+/mama/somonlu
+/hizmetler
+/hizmetler/veteriner
+/hizmetler/kuafor
+/hizmetler/pet-otel
+/hizmetler/egitim
+/ai-asistan
+/bilgi-bankasi
+
+URL içinde:
+
+* büyük harf kullanma
+* boşluk kullanma
+* gereksiz parametre kullanma
+* Türkçe karakter kullanma
+* anlamsız sayı ve kod kullanma
+
+4. CANONICAL SİSTEMİ
+
+Her indexlenebilir sayfada kendisini gösteren doğru canonical URL olsun.
+
+Filtre, sıralama, arama, kampanya parametresi ve tracking parametresi içeren sayfalarda duplicate content oluşmasını önle.
+
+Örnek:
+
+https://yourpoodle.com/mama?yas=yavru&utm_source=instagram
+
+Canonical:
+
+https://yourpoodle.com/mama/yavru
+
+utm_source, gclid, fbclid ve benzeri takip parametreleri canonical URL’ye dahil edilmesin.
+
+5. ROBOTS.TXT OLUŞTUR
+
+Domain kökünde çalışan robots.txt oluştur.
+
+Indexlenmesi gereken içerikleri engelleme.
+
+Şu tür alanları index dışı bırak:
+
+* admin
+* panel
+* hesap
+* giriş
+* kayıt
+* sepet
+* ödeme
+* siparişler
+* kullanıcı profili
+* test sayfaları
+* API yolları
+* arama sonuçları
+* geçici preview sayfaları
+
+Örnek mantık:
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /panel
+Disallow: /hesabim
+Disallow: /giris
+Disallow: /kayit
+Disallow: /sepet
+Disallow: /odeme
+Disallow: /siparisler
+Disallow: /api
+Disallow: /arama
+
+Sitemap: https://yourpoodle.com/sitemap.xml
+
+6. XML SITEMAP OLUŞTUR
+
+Otomatik güncellenen sitemap.xml oluştur.
+
+Sitemap içine yalnızca:
+
+* çalışan
+* indexlenebilir
+* canonical
+* 200 durum kodu döndüren
+
+sayfaları ekle.
+
+Admin, panel, hesap, ödeme, sepet, filtre parametreleri ve noindex sayfalarını sitemap’e ekleme.
+
+Sitemap şu içerikleri desteklesin:
+
+* statik sayfalar
+* rehber yazıları
+* bilgi bankası içerikleri
+* mama kategori sayfaları
+* ürün sayfaları
+* hizmet sayfaları
+* çok dilli sayfalar
+
+İçerik güncellendiğinde lastmod değeri otomatik değişsin.
+
+Çok fazla URL oluşursa sitemap index sistemi kur.
+
+7. SCHEMA MARKUP EKLE
+
+Schema.org uyumlu JSON-LD sistemi oluştur.
+
+Ana sayfada:
+
+* Organization
+* WebSite
+* SearchAction
+
+schema kullan.
+
+Site bilgileri:
+
+Name: YourPoodle
+URL: https://yourpoodle.com
+Logo: sitenin gerçek logo URL’si
+Description: Toy Poodle rehberi, bakım, eğitim, sağlık, mama seçimi ve ürün platformu.
+
+Rehber yazılarında:
+
+* Article veya BlogPosting
+* BreadcrumbList
+
+Mama ve ürün sayfalarında:
+
+* Product
+* Offer
+* AggregateRating yalnızca gerçek yorum varsa
+* Review yalnızca gerçek yorum varsa
+* BreadcrumbList
+
+SSS bulunan sayfalarda:
+
+* FAQPage
+
+Yerel hizmet sayfalarında uygun durumlarda:
+
+* LocalBusiness
+* VeterinaryCare
+* PetStore
+* AnimalShelter
+
+kullan.
+
+Gerçek olmayan puan, yorum, fiyat, stok veya yazar bilgisi üretme.
+
+8. BREADCRUMB SİSTEMİ
+
+Tüm alt sayfalarda kullanıcıya görünen breadcrumb ekle.
+
+Örnek:
+
+Ana Sayfa > Rehber > Eğitim > Tuvalet Eğitimi
+
+Breadcrumb hem ekranda görünmeli hem de BreadcrumbList schema ile desteklenmeli.
+
+Mobilde tek satıra sıkışırsa yatay kaydırılabilir veya sadeleştirilebilir.
+
+9. HEADING DÜZENİ
+
+Her sayfada yalnızca bir adet H1 olsun.
+
+Başlık hiyerarşisi şu şekilde ilerlesin:
+
+* H1: Sayfanın ana başlığı
+* H2: Ana bölümler
+* H3: Alt bölümler
+
+Başlık sırası atlanmasın.
+
+Sadece görsel görünüm için H etiketi kullanma. CSS ile stil ver.
+
+10. GÖRSEL SEO
+
+Tüm görselleri kontrol et.
+
+* Her anlamlı görsele açıklayıcı alt etiketi ekle.
+* Dekoratif görsellerde alt="" kullan.
+* Dosya isimlerini açıklayıcı yap.
+* width ve height değerleri ekle.
+* lazy loading uygula.
+* İlk ekrandaki önemli hero görselini gereksiz şekilde lazy load yapma.
+* WebP veya AVIF formatını destekle.
+* Responsive image sistemi kullan.
+* Görsellerin sayfa kaymasına neden olmasını önle.
+
+Örnek alt metin:
+
+Yanlış:
+alt="image"
+
+Doğru:
+alt="Beyaz Toy Poodle yavrusu mama kabının yanında"
+
+Anahtar kelimeleri yapay ve tekrar eden şekilde alt metinlere doldurma.
+
+11. İÇ LİNKLEME SİSTEMİ
+
+İçerikler arasında anlamlı iç bağlantılar kur.
+
+Örnek:
+
+Tuvalet eğitimi yazısından:
+
+* çiş eğitim ürünlerine
+* yavru poodle bakım rehberine
+* yalnız kalma eğitimine
+* ödül maması sayfasına
+
+bağlantı ver.
+
+Mama seçimi yazısından:
+
+* mama hesaplama
+* yavru mamaları
+* hipoalerjenik mamalar
+* tahılsız mamalar
+* günlük beslenme miktarı
+
+sayfalarına bağlantı ver.
+
+Link metinleri “buraya tıklayın” olmasın.
+
+Açıklayıcı anchor text kullan.
+
+12. ÇOK DİLLİ SEO
+
+Site 7–10 dili destekleyecek şekilde hazırlanacak.
+
+Her dil için ayrı URL yapısı kullan:
+
+/tr/
+/en/
+/de/
+/fr/
+/es/
+/it/
+/ar/
+
+veya projenin mevcut yapısına uygun tutarlı bir dil sistemi kullan.
+
+Her sayfada:
+
+* doğru lang etiketi
+* doğru hreflang
+* kendisini gösteren hreflang
+* x-default
+* dile özel canonical
+* dile özel title ve description
+
+olsun.
+
+Bir Türkçe sayfanın canonical etiketi İngilizce sayfaya gitmesin.
+
+Örnek:
+
+<link rel="alternate" hreflang="tr" href="https://yourpoodle.com/tr/rehber/mama-secimi">
+<link rel="alternate" hreflang="en" href="https://yourpoodle.com/en/guide/dog-food-selection">
+<link rel="alternate" hreflang="x-default" href="https://yourpoodle.com/">
+
+Arapça için:
+
+* html dir="rtl"
+* doğru lang="ar"
+* RTL uyumlu tasarım
+
+kullan.
+
+13. SAYFA HIZI VE CORE WEB VITALS
+
+SEO çalışması kapsamında performansı da düzelt.
+
+Hedefler:
+
+* LCP mümkün olduğunca 2.5 saniyenin altında
+* CLS mümkün olduğunca 0.1 altında
+* INP mümkün olduğunca 200 ms altında
+
+Şunları uygula:
+
+* kullanılmayan JavaScript’i azalt
+* gereksiz paketleri kaldır
+* code splitting kullan
+* route bazlı lazy loading uygula
+* kritik olmayan bileşenleri sonradan yükle
+* fontları optimize et
+* font-display: swap kullan
+* gereksiz animasyonları azalt
+* büyük görselleri sıkıştır
+* layout shift sorunlarını düzelt
+* mobil performansı önceliklendir
+
+Sadece masaüstünde değil, özellikle mobil cihazlarda test et.
+
+14. 404 VE YÖNLENDİRME SİSTEMİ
+
+Profesyonel 404 sayfası oluştur.
+
+404 sayfasında:
+
+* ana sayfaya dön
+* rehbere git
+* mama seç
+* AI asistana sor
+* popüler içerikler
+
+bağlantıları bulunsun.
+
+Eski veya değişen URL’ler için 301 yönlendirme sistemi kur.
+
+Geçici yönlendirmelerde 302 kullan.
+
+Silinen önemli içeriklerin uygun yeni karşılığı varsa 301 ile yönlendir.
+
+Tüm 404 sayfalarında noindex kullan.
+
+15. INDEXLEME KURALLARI
+
+Indexlenmesi gereken sayfalar:
+
+* ana sayfa
+* rehber içerikleri
+* bilgi bankası içerikleri
+* mama kategori sayfaları
+* ürün sayfaları
+* hizmet sayfaları
+* hakkımızda
+* iletişim
+
+Noindex olması gereken sayfalar:
+
+* giriş
+* kayıt
+* kullanıcı hesabı
+* sepet
+* ödeme
+* sipariş
+* arama sonuçları
+* boş filtre sayfaları
+* yönetim paneli
+* taslak içerikler
+* test sayfaları
+* kullanıcıya özel sayfalar
+
+Noindex sayfaları sitemap’e ekleme.
+
+16. ÜRÜN VE MAMA SAYFALARI SEO
+
+Her mama veya ürün sayfasında şunlar olsun:
+
+* benzersiz ürün adı
+* benzersiz title
+* benzersiz description
+* açıklayıcı H1
+* kısa ürün özeti
+* ürün özellikleri
+* uygun yaş grubu
+* protein türü
+* özel ihtiyaç bilgisi
+* kullanım veya beslenme bilgisi
+* gerçek fiyat
+* gerçek stok bilgisi
+* gerçek kullanıcı yorumları
+* benzer ürünler
+* ilgili rehber bağlantıları
+* Product schema
+* Breadcrumb schema
+
+Ürün açıklamalarını başka sitelerden birebir kopyalama.
+
+Filtre sayfalarının tamamını otomatik indexleme.
+
+Sadece arama talebi olan ve içerik değeri bulunan kategori sayfalarını indexle:
+
+* yavru poodle maması
+* yetişkin poodle maması
+* yaşlı poodle maması
+* hipoalerjenik poodle maması
+* somonlu poodle maması
+* tahılsız poodle maması
+* hassas sindirim poodle maması
+
+Boş veya çok az ürün içeren filtre kombinasyonlarını noindex yap.
+
+17. REHBER SAYFALARI SEO ŞABLONU
+
+Her rehber yazısında:
+
+* açıklayıcı H1
+* kısa giriş
+* içindekiler
+* H2 ve H3 yapısı
+* uzman uyarısı gereken yerlerde uyarı kutusu
+* ilgili ürünler
+* ilgili rehberler
+* SSS
+* yazar veya editör bilgisi
+* yayın tarihi
+* güncelleme tarihi
+* Article schema
+* FAQ schema yalnızca gerçek SSS varsa
+* Breadcrumb schema
+
+bulunsun.
+
+Rehber içerikleri yapay şekilde anahtar kelime tekrarına boğma.
+
+Öncelik kullanıcıya gerçekten yardımcı olmak olsun.
+
+18. E-E-A-T VE GÜVEN SAYFALARI
+
+Siteye uygun güven alanlarını oluştur veya eksikse ekle:
+
+* Hakkımızda
+* İletişim
+* Editoryal politika
+* İçerik doğrulama politikası
+* Reklam ve iş birliği politikası
+* Gizlilik politikası
+* KVKK
+* Çerez politikası
+* Kullanım şartları
+* İade ve teslimat koşulları
+* Sağlık içerikleri için sorumluluk reddi
+
+Sağlık içeriklerinde şu mantık açıkça belirtilsin:
+
+“Bu içerik bilgilendirme amaçlıdır. Tanı ve tedavi için veteriner hekime başvurulmalıdır.”
+
+Veteriner sağlık içerikleri gerçek veteriner kontrolü olmadan “uzman onaylı” olarak işaretlenmesin.
+
+19. SOSYAL MEDYA PAYLAŞIM ÖNİZLEMESİ
+
+Her sayfada doğru paylaşım önizlemesi oluştur.
+
+Open Graph alanları:
+
+* og:title
+* og:description
+* og:url
+* og:type
+* og:image
+* og:site_name
+* og:locale
+
+Twitter alanları:
+
+* twitter:card
+* twitter:title
+* twitter:description
+* twitter:image
+
+Her önemli sayfa için 1200x630 oranında paylaşım görseli destekle.
+
+Görsel yoksa marka logolu varsayılan paylaşım görseli kullan.
+
+20. ARAMA MOTORU DOĞRULAMA ALTYAPISI
+
+Projeye Google Search Console ve Bing Webmaster Tools doğrulama kodlarının environment variable ile eklenebileceği bir yapı kur.
+
+Örnek değişkenler:
+
+GOOGLE_SITE_VERIFICATION
+BING_SITE_VERIFICATION
+
+Kod bulunmuyorsa sahte doğrulama kodu yazma.
+
+Sadece sistem altyapısını hazırla.
+
+Ayrıca Google Analytics veya başka analiz sistemi varsa:
+
+* çerez izni olmadan zorunlu olmayan tracking başlatma
+* performansı bozmayacak şekilde yükle
+* çift analytics kodu çalıştırma
+
+21. SEO KONTROL PANELİ
+
+Mümkünse yönetim paneline basit bir SEO kontrol alanı ekle.
+
+Her içerik için şu alanlar düzenlenebilsin:
+
+* SEO title
+* meta description
+* slug
+* canonical
+* index/noindex
+* Open Graph image
+* schema tipi
+* yayın tarihi
+* güncelleme tarihi
+
+Ayrıca uyarılar göster:
+
+* title eksik
+* description eksik
+* birden fazla H1
+* canonical eksik
+* alt etiketi eksik
+* içerik çok kısa
+* aynı title başka sayfada kullanılmış
+* slug hatalı
+* noindex sayfa sitemap içinde
+
+22. OTOMATİK SEO TESTLERİ
+
+SEO için otomatik kontrol scripti oluştur.
+
+Kontrol et:
+
+* kırık iç bağlantılar
+* 404 veren sayfalar
+* aynı title kullanılan sayfalar
+* aynı meta description kullanılan sayfalar
+* canonical eksikleri
+* H1 eksikleri
+* birden fazla H1
+* alt etiketi olmayan görseller
+* sitemap içinde noindex sayfalar
+* robots tarafından yanlış engellenen sayfalar
+* hatalı hreflang
+* boş ürün veya kategori sayfaları
+* çok uzun title
+* çok kısa description
+
+Çıktıyı anlaşılır bir rapor halinde göster.
+
+Mümkünse npm script ekle:
+
+npm run seo-check
+
+23. SEO İÇERİK KATEGORİLERİ
+
+Aşağıdaki ana konu kümelerine göre kategori ve iç link yapısı kur:
+
+YAVRU POODLE:
+
+* eve ilk geliş
+* ilk mama
+* ilk aşılar
+* tuvalet eğitimi
+* ısırma
+* yalnız kalma
+* uyku düzeni
+* sosyalleşme
+
+BAKIM:
+
+* tüy bakımı
+* tarama
+* tıraş
+* göz temizliği
+* göz yaşı lekesi
+* kulak bakımı
+* diş bakımı
+* tırnak kesimi
+* yaz bakımı
+* kış bakımı
+
+BESLENME:
+
+* mama seçimi
+* mama hesaplama
+* yavru maması
+* yetişkin maması
+* yaşlı maması
+* kısırlaştırılmış poodle maması
+* hipoalerjenik mama
+* tahılsız mama
+* yasak yiyecekler
+* ödül mamaları
+
+EĞİTİM:
+
+* havlama
+* ısırma
+* tuvalet problemi
+* yalnız kalma
+* temel komutlar
+* ödülle eğitim
+
+SAĞLIK:
+
+* poodle hastalıkları
+* parazit
+* pire ve kene
+* aşı takvimi
+* veteriner kontrolü
+* yaşa göre sağlık
+* acil belirtiler
+
+SEYAHAT:
+
+* uçak yolculuğu
+* araba yolculuğu
+* pet otel
+* seyahat çantası
+* pasaport ve mikroçip
+* yaz tatili
+* kış seyahati
+
+Bu konu kümeleri arasında güçlü fakat doğal iç linkleme yap.
+
+24. MOBİL SEO
+
+Mobil görünümü öncelikli kabul et.
+
+Kontrol et:
+
+* metinler çok küçük olmasın
+* butonlar birbirine çok yakın olmasın
+* yatay taşma olmasın
+* sabit header içeriği kapatmasın
+* popup ekranı tamamen örtmesin
+* filtre alanları kullanılabilir olsun
+* breadcrumb mobilde bozulmasın
+* CLS oluşmasın
+* görseller gereksiz büyük yüklenmesin
+* menüler Googlebot tarafından erişilebilir olsun
+
+İçerikleri yalnızca hover ile erişilebilir yapma.
+
+25. TAMAMLAMA VE RAPOR
+
+Önce projeyi analiz et.
+
+Daha sonra SEO sistemini uygula.
+
+Uygulama sonunda şu raporu ver:
+
+1. Düzeltilen SEO hataları
+2. Oluşturulan yeni dosyalar
+3. Değiştirilen dosyalar
+4. Eklenen metadata sistemi
+5. Sitemap adresi
+6. Robots.txt adresi
+7. Eklenen schema tipleri
+8. Noindex yapılan sayfalar
+9. Yapılan yönlendirmeler
+10. Performans iyileştirmeleri
+11. Kalan eksikler
+12. Manuel olarak eklenmesi gereken doğrulama kodları
+13. Search Console’a gönderilecek sitemap adresi
+14. SEO test komutları
+15. Build ve test sonucu
+
+SON KONTROL:
+
+* npm run build çalıştır
+* lint kontrolü yap
+* SEO testini çalıştır
+* kırık bağlantıları kontrol et
+* mobil görünümü kontrol et
+* sitemap.xml açılıyor mu kontrol et
+* robots.txt açılıyor mu kontrol et
+* canonical URL’leri kontrol et
+* schema kodlarında hata olmadığını kontrol et
+* tasarımın bozulmadığını kontrol et
+
+Build hatası, TypeScript hatası, import hatası veya bozuk link bırakma.
+
+Sahte veri üretme.
+
+Mevcut çalışan sistemi bozma.
+
+Tüm değişiklikleri production kullanıma hazır biçimde tamamla.

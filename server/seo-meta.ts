@@ -407,34 +407,232 @@ function injectHomeMeta(html: string, urlPath: string, store: StoreConfig): stri
 
 const PRODUCT_PATH_RE = /^\/urun\/(\d+)(?:\/[^/?#]*)?\/?$/;
 
-// ── YourPoodle sub-app: per-route meta ────────────────────────────────────────
-const YP_ROUTE_META: Record<string, { title: string; description: string }> = {
-  "/yourpoodle":             { title: "YourPoodle — Poodle Platformu",                         description: "Türkiye'nin poodle topluluğu. Rehber, bakım araçları, etkinlikler ve poodle severler için özel platform." },
-  "/yourpoodle/rehber":      { title: "Poodle Rehberi — YourPoodle",                           description: "Toy, Minyatür ve Standart Poodle için kapsamlı bakım, eğitim ve sağlık rehberi." },
-  "/yourpoodle/bilgi":       { title: "Bilgi Bankası — YourPoodle",                            description: "Poodle sağlık araçları: mama hesaplama, belirti kontrolü, aşı takvimi ve daha fazlası." },
-  "/yourpoodle/club":        { title: "Poodle Club — YourPoodle",                              description: "YourPoodle topluluğuna katılın. Poodle sahipleriyle buluşun, deneyim ve fotoğraf paylaşın." },
-  "/yourpoodle/magaza":      { title: "Mağaza — YourPoodle Pet Shop Samsun",                   description: "Samsun Atakum YourPoodle Pet Shop. Poodle mamaları, oyuncaklar ve aksesuar. Aynı gün teslimat." },
-  "/yourpoodle/mama":        { title: "Mama Rehberi — YourPoodle",                             description: "Poodle için doğru mama seçimi, porsiyon hesaplama ve beslenme ipuçları." },
-  "/yourpoodle/egitim":      { title: "Eğitim Rehberi — YourPoodle",                          description: "Poodle eğitimi: temel komutlar, yaşa göre eğitim yöntemleri ve ipuçları." },
-  "/yourpoodle/saglik":      { title: "Sağlık Rehberi — YourPoodle",                          description: "Poodle sağlığı: belirtiler, acil durumlar, veteriner ipuçları ve önleyici bakım." },
-  "/yourpoodle/bakim":       { title: "Bakım Rehberi — YourPoodle",                           description: "Poodle tıraş, tüy bakımı, banyo ve günlük bakım kontrol listesi." },
-  "/yourpoodle/etkinlikler": { title: "Etkinlikler — YourPoodle",                             description: "Poodle buluşmaları, online webinarlar, yarışmalar ve sosyal etkinlikler." },
-  "/yourpoodle/poodle-ekle": { title: "Poodle'ımı Ekle — YourPoodle",                        description: "Poodle'ınızın profilini oluşturun, topluluğa katılın." },
-  "/yourpoodle/topluluk":    { title: "Topluluk — YourPoodle",                                description: "Poodle severlerle bağlantı kurun, fotoğraf ve deneyim paylaşın." },
+// ── YourPoodle SEO infrastructure ─────────────────────────────────────────────
+
+const YP_BASE = "https://www.yourpoodle.com";
+const YP_OG_IMAGE = `${YP_BASE}/og-image.webp`;
+
+interface YPMeta {
+  title: string;       // target 50-60 chars
+  description: string; // target 140-160 chars
+  keywords: string;
+  noindex?: boolean;
+  schemaType: "home" | "guide" | "tool" | "community" | "app" | "event";
+  breadcrumb: Array<{ name: string; href: string }>;
+}
+
+const YP_ROUTE_META: Record<string, YPMeta> = {
+  "/yourpoodle": {
+    title: "Toy Poodle Rehberi, Bakımı ve Mama Seçimi | YourPoodle",
+    description: "Toy Poodle bakımı, eğitimi, mama seçimi, sağlık rehberleri, ürünler ve uzman önerileri YourPoodle'da. Poodle'ınız için her şey tek yerde.",
+    keywords: "toy poodle, poodle bakım, poodle mama, poodle eğitim, poodle sağlık, miniature poodle, poodle rehber",
+    schemaType: "home",
+    breadcrumb: [{ name: "Ana Sayfa", href: "/" }],
+  },
+  "/yourpoodle/rehber": {
+    title: "Toy Poodle Bakım, Eğitim ve Sağlık Rehberleri | YourPoodle",
+    description: "Toy Poodle için yavru bakımı, tüy bakımı, tıraş rehberi, tuvalet eğitimi, sağlık belirtileri ve bakım ipuçları. Poodle sahipleri için kapsamlı rehber kaynağı.",
+    keywords: "toy poodle bakım, poodle eğitim, poodle sağlık, poodle tıraş, yavru poodle, poodle rehber",
+    schemaType: "guide",
+    breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "Rehber", href: "/yourpoodle/rehber" }],
+  },
+  "/yourpoodle/mama": {
+    title: "Toy Poodle Mama Seçimi ve Beslenme Rehberi | YourPoodle",
+    description: "Poodle için doğru mama seçimi, günlük porsiyon hesaplama, yaşa göre mama tavsiyeleri. Tahılsız ve hipoalerjenik mama karşılaştırması YourPoodle'da.",
+    keywords: "toy poodle mama, poodle beslenme, poodle mama seçimi, tahılsız poodle mama, hipoalerjenik poodle mama",
+    schemaType: "guide",
+    breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "Mama Rehberi", href: "/yourpoodle/mama" }],
+  },
+  "/yourpoodle/mama-bul": {
+    title: "Poodle İçin Doğru Mamayı Bul — Kişisel Öneri | YourPoodle",
+    description: "11 soruluk sihirbazla Poodle'ınıza özel mama önerisi alın. Yaş, kilo, alerji ve bütçenize göre size en uygun 3 mama markasını keşfedin.",
+    keywords: "poodle mama önerisi, hangi mama, poodle mama seç, mama hesaplama, poodle beslenme",
+    schemaType: "tool",
+    breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "Mama Bul", href: "/yourpoodle/mama-bul" }],
+  },
+  "/yourpoodle/egitim": {
+    title: "Toy Poodle Eğitimi: Komutlar ve Davranış | YourPoodle",
+    description: "Poodle tuvalet eğitimi, temel komutlar, havlama ve yalnız kalma sorunları için adım adım rehberler. Ödül bazlı eğitim yöntemleriyle hızlı sonuçlar.",
+    keywords: "toy poodle eğitim, poodle tuvalet eğitimi, poodle komutlar, poodle havlama, poodle yalnız kalma",
+    schemaType: "guide",
+    breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "Eğitim Rehberi", href: "/yourpoodle/egitim" }],
+  },
+  "/yourpoodle/saglik": {
+    title: "Toy Poodle Sağlığı: Belirtiler ve Koruma | YourPoodle",
+    description: "Poodle sağlık belirtilerini tanıyın, aşı takvimini öğrenin ve önleyici bakım ipuçları edinin. Acil durum belirtileri ve veteriner tavsiyeleri.",
+    keywords: "toy poodle sağlık, poodle aşı takvimi, poodle hastalıkları, poodle acil durum, poodle veteriner",
+    schemaType: "guide",
+    breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "Sağlık Rehberi", href: "/yourpoodle/saglik" }],
+  },
+  "/yourpoodle/bakim": {
+    title: "Toy Poodle Bakımı: Tıraş, Tüy ve Günlük Bakım | YourPoodle",
+    description: "Poodle tüy bakımı, tıraş modelleri, kulak temizliği ve göz altı leke bakımı rehberleri. Evde ve kuaförde poodle bakımı için pratik ipuçları.",
+    keywords: "toy poodle tıraş, poodle tüy bakımı, poodle kulak bakımı, poodle göz lekesi, poodle bakım",
+    schemaType: "guide",
+    breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "Bakım Rehberi", href: "/yourpoodle/bakim" }],
+  },
+  "/yourpoodle/bilgi": {
+    title: "Poodle Araçları: Mama, Yaş ve Kilo Hesaplama | YourPoodle",
+    description: "Poodle için mama miktarı hesaplama, yaş dönüşümü, ideal kilo takibi, su ihtiyacı ve aşı takvimi araçları. Poodle sahiplerine özel ücretsiz hesaplama platformu.",
+    keywords: "poodle mama hesaplama, poodle yaş hesaplama, poodle kilo hesaplama, poodle araçları",
+    schemaType: "tool",
+    breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "Bilgi Bankası", href: "/yourpoodle/bilgi" }],
+  },
+  "/yourpoodle/ai-asistan": {
+    title: "AI Poodle Asistanı: Anlık Poodle Uzman Desteği | YourPoodle",
+    description: "Poodle'ınız hakkında merak ettiklerinizi AI asistana sorun. Mama, bakım, eğitim, sağlık ve davranış sorularına kişiselleştirilmiş yanıtlar alın.",
+    keywords: "poodle yapay zeka, poodle asistan, poodle soru cevap, AI poodle, poodle chatbot",
+    schemaType: "app",
+    breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "AI Asistan", href: "/yourpoodle/ai-asistan" }],
+  },
+  "/yourpoodle/club": {
+    title: "Poodle Club: Topluluk ve Etkinlikler | YourPoodle",
+    description: "YourPoodle Club'a katılın, poodle sahipleriyle bağlantı kurun. Fotoğraf paylaşımı, aylık yarışmalar ve poodle buluşmaları için Türkiye'nin poodle topluluğu.",
+    keywords: "poodle club, poodle topluluğu, poodle sahipleri, poodle yarışması, poodle buluşma",
+    schemaType: "community",
+    breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "Poodle Club", href: "/yourpoodle/club" }],
+  },
+  "/yourpoodle/magaza": {
+    title: "Poodle Ürünleri: Mama, Aksesuar ve Oyuncaklar | YourPoodle",
+    description: "Toy Poodle için mama, ödül, tasma, yatak, oyuncak ve bakım ürünleri. Poodle sahiplerinin tercih ettiği ürünler, uygun fiyat ve hızlı teslimat.",
+    keywords: "poodle ürünleri, poodle mama satın al, poodle aksesuar, poodle oyuncak, poodle bakım ürünleri",
+    schemaType: "tool",
+    breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "Mağaza", href: "/yourpoodle/magaza" }],
+  },
+  "/yourpoodle/topluluk": {
+    title: "Poodle Topluluğu: Paylaşım ve Buluşmalar | YourPoodle",
+    description: "Türkiye'nin poodle sahipleri ile buluşun, deneyim ve fotoğraf paylaşın. Poodle topluluğu etkinlikleri, anketler ve özel içerikler YourPoodle'da.",
+    keywords: "poodle topluluğu, poodle sahipleri, poodle paylaşım, poodle forum, poodle sosyal",
+    schemaType: "community",
+    breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "Topluluk", href: "/yourpoodle/topluluk" }],
+  },
+  "/yourpoodle/etkinlikler": {
+    title: "Poodle Etkinlikleri: Buluşmalar ve Yarışmalar | YourPoodle",
+    description: "Yaklaşan poodle buluşmaları, online webinarlar, fotoğraf yarışmaları ve sosyal etkinlikler. Poodle sahipleri için Türkiye genelinde etkinlik takvimi.",
+    keywords: "poodle etkinlikleri, poodle buluşma, poodle yarışması, poodle webinar, poodle takvimi",
+    schemaType: "event",
+    breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "Etkinlikler", href: "/yourpoodle/etkinlikler" }],
+  },
+  "/yourpoodle/poodle-ekle": {
+    title: "Poodle Profilim: Poodle'ımı Platforma Ekle | YourPoodle",
+    description: "Poodle'ınızın profilini oluşturun; adı, yaşı, kilosu ve fotoğrafını ekleyin. Kişiselleştirilmiş mama ve bakım önerileri alın, topluluğa katılın.",
+    keywords: "poodle profil, poodle ekle, poodle kayıt, poodle sahipleri",
+    schemaType: "app",
+    breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "Poodle'ım", href: "/yourpoodle/poodle-ekle" }],
+  },
+  "/yourpoodle/giris": {
+    title: "Giriş Yap | YourPoodle",
+    description: "YourPoodle hesabınıza giriş yapın veya ücretsiz üye olun.",
+    keywords: "",
+    noindex: true,
+    schemaType: "app",
+    breadcrumb: [],
+  },
 };
 
-function injectYPMeta(html: string, urlPath: string, store: StoreConfig): string {
+/** Build JSON-LD schema blocks for the given YP route */
+function buildYPSchema(meta: YPMeta, canonical: string): string {
+  const schemas: object[] = [];
+
+  const breadcrumbListEl = meta.breadcrumb.length
+    ? meta.breadcrumb.map((b, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: b.name,
+        item: `${YP_BASE}${b.href}`,
+      }))
+    : null;
+
+  if (meta.schemaType === "home") {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: [
+        { "@type": "Question", name: "Toy Poodle ile Minyatür Poodle arasındaki fark nedir?", acceptedAnswer: { "@type": "Answer", text: "Toy Poodle genellikle 2-4 kg, Minyatür Poodle ise 4-9 kg ağırlığındadır. İkisi de zeki, eğitilebilir ve az dökülen tüylere sahiptir." } },
+        { "@type": "Question", name: "Poodle'lar için en iyi mama hangisi?", acceptedAnswer: { "@type": "Answer", text: "Royal Canin Poodle, Pro Plan ve Hill's Science Plan poodle sahiplerinin en çok tercih ettiği markalardandır. YourPoodle mama bulma sihirbazı ile poodle'ınıza özel öneri alabilirsiniz." } },
+        { "@type": "Question", name: "Poodle'lar ne sıklıkla tıraş yaptırılmalı?", acceptedAnswer: { "@type": "Answer", text: "Toy ve Minyatür Poodle'lar ortalama 6-8 haftada bir tıraş gerektirir. Tüyleri sürekli uzadığından düzenli bakım şarttır." } },
+        { "@type": "Question", name: "Poodle'ımı evde yalnız bırakabilir miyim?", acceptedAnswer: { "@type": "Answer", text: "Poodle'lar sosyal köpeklerdir. Uzun süre yalnız kaldıklarında anksiyete yaşayabilirler. Günde 4-6 saatten fazla yalnız bırakmamaya çalışın." } },
+        { "@type": "Question", name: "AI asistan gerçek veteriner yerine geçer mi?", acceptedAnswer: { "@type": "Answer", text: "Hayır. AI asistanımız genel bilgilendirme sağlar. Sağlık sorunları için mutlaka veteriner hekiminize başvurun." } },
+      ],
+    });
+  }
+
+  if (breadcrumbListEl && breadcrumbListEl.length > 1) {
+    schemas.push({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: breadcrumbListEl });
+  }
+
+  if (["guide", "tool", "app"].includes(meta.schemaType) && meta.schemaType !== "home") {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": meta.schemaType === "guide" ? "Article" : "WebApplication",
+      "@id": canonical,
+      url: canonical,
+      name: meta.title,
+      description: meta.description,
+      publisher: { "@type": "Organization", name: "YourPoodle", url: YP_BASE },
+      inLanguage: "tr-TR",
+    });
+  }
+
+  return schemas.map(s => `<script type="application/ld+json">${JSON.stringify(s)}</script>`).join("\n  ");
+}
+
+function injectYPMeta(html: string, urlPath: string, _store: StoreConfig): string {
   const meta = YP_ROUTE_META[urlPath] ?? YP_ROUTE_META["/yourpoodle"];
-  const canonical = `${store.domain}${urlPath}`;
+  const canonical = `${YP_BASE}${urlPath}`;
   const title = escapeHtml(meta.title);
   const description = escapeHtml(meta.description);
+
   let out = html;
+
+  // ── Replace existing standard meta tags ───────────────────────────────────
   out = out.replace(/<title>[\s\S]*?<\/title>/i, `<title>${title}</title>`);
   out = replaceTag(out, /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i, `<meta name="description" content="${description}" />`);
+  if (meta.keywords) {
+    out = replaceTag(out, /<meta\s+name=["']keywords["']\s+content="[^"]*"\s*\/?>/i, `<meta name="keywords" content="${escapeHtml(meta.keywords)}" />`);
+  }
   out = replaceTag(out, /<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:title" content="${title}" />`);
   out = replaceTag(out, /<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:description" content="${description}" />`);
   out = replaceTag(out, /<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:url" content="${canonical}" />`);
+  out = replaceTag(out, /<meta\s+property="og:image"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:image" content="${YP_OG_IMAGE}" />`);
+  out = replaceTag(out, /<meta\s+property="og:type"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:type" content="${urlPath === "/yourpoodle" ? "website" : "article"}" />`);
   out = replaceTag(out, /<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/i, `<link rel="canonical" href="${canonical}" />`);
+  // Robots — replaceTag guarantees noindex/nofollow for private pages
+  out = replaceTag(
+    out,
+    /<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/i,
+    meta.noindex
+      ? `<meta name="robots" content="noindex, nofollow" />`
+      : `<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />`
+  );
+
+  // ── Remove previous YP extended block (idempotent) ──────────────────────
+  out = out.replace(/\n?\s*<!-- yp-seo-ext-start -->[\s\S]*?<!-- yp-seo-ext-end -->/g, "");
+
+  // ── Build extended block injected once before </head> ───────────────────
+  const schemaHtml = buildYPSchema(meta, canonical);
+  const googleVerif = process.env.GOOGLE_SITE_VERIFICATION ? `<meta name="google-site-verification" content="${escapeHtml(process.env.GOOGLE_SITE_VERIFICATION)}" />` : "";
+  const bingVerif = process.env.BING_SITE_VERIFICATION ? `<meta name="msvalidate.01" content="${escapeHtml(process.env.BING_SITE_VERIFICATION)}" />` : "";
+
+  const extTags = [
+    `<meta property="og:locale" content="tr_TR" />`,
+    `<meta property="og:site_name" content="YourPoodle" />`,
+    `<meta property="og:image:width" content="1200" />`,
+    `<meta property="og:image:height" content="630" />`,
+    `<meta name="twitter:card" content="summary_large_image" />`,
+    `<meta name="twitter:title" content="${title}" />`,
+    `<meta name="twitter:description" content="${description}" />`,
+    `<meta name="twitter:image" content="${YP_OG_IMAGE}" />`,
+    // hreflang — tr only for now; expand when /en/ /de/ etc. routes exist
+    `<link rel="alternate" hreflang="tr" href="${canonical}" />`,
+    `<link rel="alternate" hreflang="x-default" href="${YP_BASE}/" />`,
+    googleVerif,
+    bingVerif,
+    schemaHtml,
+  ].filter(Boolean).join("\n  ");
+
+  out = out.replace(/<\/head>/i, `  <!-- yp-seo-ext-start -->\n  ${extTags}\n  <!-- yp-seo-ext-end -->\n</head>`);
+
   return out;
 }
 

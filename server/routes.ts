@@ -764,6 +764,7 @@ export async function registerRoutes(
       xml += `  <sitemap>\n    <loc>${SITE}/sitemap-main.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>\n`;
       xml += `  <sitemap>\n    <loc>${SITE}/sitemap-products.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>\n`;
       xml += `  <sitemap>\n    <loc>${SITE}/sitemap-seo.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>\n`;
+      xml += `  <sitemap>\n    <loc>${SITE}/sitemap-yp.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>\n`;
 
       xml += `</sitemapindex>`;
 
@@ -848,6 +849,47 @@ export async function registerRoutes(
     }
   });
 
+
+  // ── YourPoodle static pages sitemap ─────────────────────────────────────────
+  app.get("/sitemap-yp.xml", async (_req, res) => {
+    try {
+      const SITE = "https://www.yourpoodle.com";
+      const today = new Date().toISOString().split("T")[0];
+      const ypPages = [
+        { url: "/yourpoodle",             priority: "1.0", changefreq: "daily" },
+        { url: "/yourpoodle/rehber",      priority: "0.9", changefreq: "weekly" },
+        { url: "/yourpoodle/mama",        priority: "0.9", changefreq: "weekly" },
+        { url: "/yourpoodle/mama-bul",    priority: "0.9", changefreq: "weekly" },
+        { url: "/yourpoodle/egitim",      priority: "0.8", changefreq: "weekly" },
+        { url: "/yourpoodle/saglik",      priority: "0.8", changefreq: "weekly" },
+        { url: "/yourpoodle/bakim",       priority: "0.8", changefreq: "weekly" },
+        { url: "/yourpoodle/bilgi",       priority: "0.8", changefreq: "weekly" },
+        { url: "/yourpoodle/ai-asistan",  priority: "0.8", changefreq: "weekly" },
+        { url: "/yourpoodle/magaza",      priority: "0.7", changefreq: "daily" },
+        { url: "/yourpoodle/club",        priority: "0.7", changefreq: "weekly" },
+        { url: "/yourpoodle/topluluk",    priority: "0.7", changefreq: "weekly" },
+        { url: "/yourpoodle/etkinlikler", priority: "0.6", changefreq: "weekly" },
+        // /yourpoodle/giris is noindex — excluded
+      ];
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n`;
+      for (const p of ypPages) {
+        xml += `  <url>\n`;
+        xml += `    <loc>${SITE}${p.url}</loc>\n`;
+        xml += `    <lastmod>${today}</lastmod>\n`;
+        xml += `    <changefreq>${p.changefreq}</changefreq>\n`;
+        xml += `    <priority>${p.priority}</priority>\n`;
+        xml += `    <xhtml:link rel="alternate" hreflang="tr" href="${SITE}${p.url}" />\n`;
+        xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}/" />\n`;
+        xml += `  </url>\n`;
+      }
+      xml += `</urlset>`;
+      res.set("Content-Type", "application/xml");
+      res.set("Cache-Control", "public, max-age=3600");
+      res.send(xml);
+    } catch (err) {
+      res.status(500).send("Sitemap YP error");
+    }
+  });
 
   app.get("/sitemap-seo.xml", async (req, res) => {
     try {
@@ -1748,9 +1790,14 @@ export async function registerRoutes(
       "Disallow: /admin",
       "Disallow: /odeme",
       "Disallow: /giris",
+      "Disallow: /kayit",
       "Disallow: /hesabim",
       "Disallow: /siparis-takip",
+      "Disallow: /siparis-sonuc",
       "Disallow: /sepet",
+      "Disallow: /api",
+      "Disallow: /arama",
+      "Disallow: /yourpoodle/giris",
       "",
       "# AI Search Crawlers (explicitly allowed)",
       "User-agent: GPTBot",
@@ -6225,10 +6272,10 @@ Kurallar:
         model: "gpt-4o-mini",
         messages: [
           { role: "system", content: typeof systemPrompt === "string" ? systemPrompt : defaultSystem },
-          ...messages.slice(-10).map((m: any) => ({
-            role: m.role === "user" ? "user" : "assistant",
+          ...(messages.slice(-10).map((m: any) => ({
+            role: (m.role === "user" ? "user" : "assistant") as "user" | "assistant",
             content: String(m.content).slice(0, 1000),
-          })),
+          }))),
         ],
         max_tokens: 400,
         temperature: 0.7,
