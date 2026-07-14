@@ -165,9 +165,93 @@ export default function YourPoodleHome() {
             </div>
           </header>
 
-          {/* ── CONTENT PLACEHOLDER ───────────────────── */}
-          <div style={{ margin:"20px 16px", height:400, borderRadius:18, background:"linear-gradient(135deg,#F5F0FF,#FFF0F6)", display:"flex", alignItems:"center", justifyContent:"center", border:"1.5px dashed #ddd" }}>
-            <p style={{ color:"#bbb", fontSize:13, fontWeight:600, textAlign:"center" }}>Sonraki bölümler<br />sırayla eklenecek ↓</p>
+          {/* ── HERO ──────────────────────────────────── */}
+          <section style={{
+            background:"linear-gradient(135deg,#B39DFF 0%,#C8B8FF 40%,#D4C4FF 100%)",
+            display:"flex", alignItems:"stretch",
+            minHeight:340, position:"relative", overflow:"hidden",
+            padding:"28px 20px 0 20px",
+          }}>
+            {/* LEFT */}
+            <div style={{ flex:"0 0 55%", display:"flex", flexDirection:"column", justifyContent:"flex-start", zIndex:2, paddingBottom:24 }}>
+              {/* tag */}
+              <div style={{ display:"inline-flex", alignItems:"center", background:"rgba(0,0,0,0.25)", borderRadius:6, padding:"3px 10px", marginBottom:12, alignSelf:"flex-start" }}>
+                <span style={{ fontSize:11, fontWeight:800, color:"#fff", letterSpacing:"0.08em" }}>DÜNYANIN EN BÜYÜK</span>
+              </div>
+
+              {/* big title */}
+              <div style={{ marginBottom:4 }}>
+                <div style={{ fontSize:48, fontWeight:900, color:"#fff", lineHeight:0.95, letterSpacing:"-1px", fontFamily:"'Inter',sans-serif" }}>POODLE</div>
+                <div style={{ fontSize:48, fontWeight:900, color:"#fff", lineHeight:0.95, letterSpacing:"-1px", fontFamily:"'Inter',sans-serif" }}>AİLESİNE</div>
+              </div>
+
+              {/* script */}
+              <div style={{ display:"flex", alignItems:"center", gap:8, margin:"10px 0 10px" }}>
+                <span style={{ fontFamily:"'Dancing Script','Pacifico',cursive", fontSize:28, fontWeight:700, color:"#fff" }}>Hoş Geldiniz!</span>
+                <span style={{ fontSize:22 }}>💜</span>
+              </div>
+
+              {/* desc */}
+              <p style={{ fontSize:13, color:"rgba(255,255,255,0.9)", lineHeight:1.5, marginBottom:18, fontFamily:"'Inter',sans-serif" }}>
+                Toy Poodle'ınıza dair her şey burada! Sağlık, topluluk, özel ayrıcalıklar...
+              </p>
+
+              {/* buttons */}
+              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                <a href="/club" style={{
+                  display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+                  height:50, borderRadius:14,
+                  background:"#7C3AFF",
+                  textDecoration:"none", cursor:"pointer",
+                  boxShadow:"0 4px 16px rgba(100,50,200,0.35)",
+                }}>
+                  <span style={{ fontSize:14, fontWeight:800, color:"#fff", letterSpacing:"0.05em", fontFamily:"'Inter',sans-serif" }}>CLUB'A KATIL</span>
+                  <span style={{ fontSize:16 }}>🐾</span>
+                </a>
+                <a href="/poodle-ekle" style={{
+                  display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+                  height:50, borderRadius:14,
+                  background:"rgba(255,255,255,0.92)",
+                  textDecoration:"none", cursor:"pointer",
+                  border:"2px solid rgba(255,255,255,0.6)",
+                }}>
+                  <span style={{ fontSize:14, fontWeight:800, color:"#5B21B6", letterSpacing:"0.05em", fontFamily:"'Inter',sans-serif" }}>POODLE'İMİ EKLE</span>
+                  <span style={{ fontSize:18, color:"#5B21B6", fontWeight:700 }}>+</span>
+                </a>
+              </div>
+
+              {/* avatars */}
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:16 }}>
+                <div style={{ display:"flex" }}>
+                  {[1,2,3,4].map(i => (
+                    <img key={i} src={`/__mockup/images/poodle-avatar-${i}.jpg`} alt=""
+                      style={{ width:28, height:28, borderRadius:"50%", border:"2px solid #fff", marginLeft:i===1?0:-8, objectFit:"cover" }} />
+                  ))}
+                </div>
+                <div style={{ fontFamily:"'Inter',sans-serif" }}>
+                  <span style={{ fontSize:14, fontWeight:900, color:"#fff" }}>10.000+</span>
+                  <span style={{ fontSize:12, color:"rgba(255,255,255,0.85)", marginLeft:5 }}>mutlu poodle ailesi 💜</span>
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT — poodle */}
+            <div style={{ flex:"0 0 45%", position:"relative" }}>
+              <img
+                src="/__mockup/images/poodle-hero.png"
+                alt="Toy Poodle"
+                style={{
+                  position:"absolute", bottom:0, right:-20,
+                  width:"130%", maxWidth:260,
+                  objectFit:"contain", objectPosition:"bottom",
+                }}
+              />
+            </div>
+          </section>
+
+          {/* ── PLACEHOLDER ───────────────────────────── */}
+          <div style={{ margin:"20px 16px", height:200, borderRadius:18, background:"#F9F9F9", display:"flex", alignItems:"center", justifyContent:"center", border:"1.5px dashed #e0e0e0" }}>
+            <p style={{ color:"#ccc", fontSize:13, fontWeight:600, textAlign:"center" }}>Sonraki bölümler sırayla eklenecek ↓</p>
           </div>
 
         </div>
