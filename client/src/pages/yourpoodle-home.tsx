@@ -1,45 +1,128 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { Menu, X, Search, ShoppingCart, ChevronDown, ChevronUp } from "lucide-react";
 import { useCustomer } from "@/contexts/CustomerContext";
 import { useQuery } from "@tanstack/react-query";
+import YPBottomNav from "@/components/YPBottomNav";
 
 const LANGUAGES = [
   { code: "TR", flag: "🇹🇷" },
   { code: "EN", flag: "🇺🇸" },
   { code: "DE", flag: "🇩🇪" },
   { code: "FR", flag: "🇫🇷" },
-  { code: "RU", flag: "🇷🇺" },
-  { code: "AR", flag: "🇸🇦" },
   { code: "ES", flag: "🇪🇸" },
   { code: "IT", flag: "🇮🇹" },
+  { code: "AR", flag: "🇸🇦" },
 ];
 
-const NAV_TABS = [
-  { label: "Ana Sayfa",    href: "/" },
-  { label: "Rehber",       href: "/yourpoodle/rehber" },
-  { label: "Bilgi Bankası",href: "/yourpoodle/bilgi" },
-  { label: "Mağaza",       href: "/yourpoodle/magaza" },
+const CAT_NAV = [
+  { label: "Rehber",      href: "/yourpoodle/rehber",       emoji: "📖" },
+  { label: "Mama Bul",   href: "/yourpoodle/mama-bul",     emoji: "🔍" },
+  { label: "Sağlık",     href: "/yourpoodle/saglik",       emoji: "🏥" },
+  { label: "Bakım",      href: "/yourpoodle/bakim",        emoji: "✂️" },
+  { label: "Eğitim",     href: "/yourpoodle/egitim",       emoji: "🎓" },
+  { label: "AI Asistan", href: "/yourpoodle/ai-asistan",   emoji: "🤖" },
+  { label: "Topluluk",   href: "/yourpoodle/topluluk",     emoji: "👥" },
+  { label: "Market",     href: "/yourpoodle/magaza",       emoji: "🛒" },
 ];
 
 const DRAWER_LINKS = [
-  { label: "Ana Sayfa",     href: "/" },
-  { label: "Rehber",        href: "/yourpoodle/rehber" },
-  { label: "Bilgi Bankası", href: "/yourpoodle/bilgi" },
-  { label: "Mağaza",        href: "/yourpoodle/magaza" },
-  { label: "Mama",          href: "/yourpoodle/mama" },
-  { label: "Eğitim",        href: "/yourpoodle/egitim" },
-  { label: "Sağlık",        href: "/yourpoodle/saglik" },
-  { label: "Bakım",         href: "/yourpoodle/bakim" },
-  { label: "Poodle Club",   href: "/yourpoodle/club" },
-  { label: "Etkinlikler",   href: "/yourpoodle/etkinlikler" },
+  { label: "Ana Sayfa",       href: "/yourpoodle" },
+  { label: "Rehber",          href: "/yourpoodle/rehber" },
+  { label: "Mama Bul",        href: "/yourpoodle/mama-bul" },
+  { label: "Hızlı Araçlar",   href: "/yourpoodle/bilgi" },
+  { label: "AI Asistan",      href: "/yourpoodle/ai-asistan" },
+  { label: "Topluluk",        href: "/yourpoodle/topluluk" },
+  { label: "Market",          href: "/yourpoodle/magaza" },
+  { label: "Poodle'ım",       href: "/yourpoodle/poodle-ekle" },
+  { label: "Hakkımızda",      href: "/hakkimizda" },
+  { label: "İletişim",        href: "/iletisim" },
 ];
+
+const NEED_CARDS = [
+  { emoji: "🍖", label: "Doğru mamayı bul",   href: "/yourpoodle/mama-bul",    bg: "#FFF0E0", color: "#E07820" },
+  { emoji: "🚽", label: "Tuvalet eğitimi",     href: "/yourpoodle/egitim",      bg: "#D6F5E8", color: "#059669" },
+  { emoji: "👁️", label: "Göz yaşı problemi",  href: "/yourpoodle/saglik",      bg: "#FFF0F5", color: "#E75480" },
+  { emoji: "🪮", label: "Tüy ve tarama",       href: "/yourpoodle/bakim",       bg: "#EDE8FF", color: "#7C3AFF" },
+  { emoji: "🔊", label: "Havlama sorunu",      href: "/yourpoodle/egitim",      bg: "#FFFBEB", color: "#D97706" },
+  { emoji: "🏠", label: "Yalnız kalma",        href: "/yourpoodle/egitim",      bg: "#DBEAFE", color: "#2563EB" },
+  { emoji: "🍼", label: "Yavru bakımı",        href: "/yourpoodle/rehber",      bg: "#D6F5F5", color: "#0891B2" },
+  { emoji: "🩺", label: "Sağlık belirtileri",  href: "/yourpoodle/saglik",      bg: "#FFE4EC", color: "#DB2777" },
+];
+
+const AI_EXAMPLES = [
+  "4 aylık Poodle'ım ne kadar mama yemeli?",
+  "Göz altı neden kızarıyor?",
+  "Evde yalnız kalınca neden havlıyor?",
+  "Hangi tarak kullanılmalı?",
+  "Tuvalet eğitimine nasıl başlamalıyım?",
+];
+
+const TOOLS = [
+  { emoji: "🍽️", label: "Mama Hesaplama",    href: "/yourpoodle/bilgi", desc: "Günlük gram hesapla" },
+  { emoji: "🐾", label: "Yaş Hesaplama",      href: "/yourpoodle/bilgi", desc: "Köpek yaşını hesapla" },
+  { emoji: "⚖️", label: "İdeal Kilo",         href: "/yourpoodle/bilgi", desc: "Kilo kontrolü" },
+  { emoji: "💧", label: "Su İhtiyacı",        href: "/yourpoodle/bilgi", desc: "Günlük su miktarı" },
+  { emoji: "🚫", label: "Yasak Yiyecekler",   href: "/yourpoodle/bilgi", desc: "Tehlikeli besinler" },
+  { emoji: "✂️", label: "Bakım Takvimi",      href: "/yourpoodle/bilgi", desc: "Tıraş zamanı" },
+  { emoji: "💊", label: "Belirti Rehberi",    href: "/yourpoodle/saglik", desc: "Semptom kontrolü" },
+  { emoji: "💉", label: "Aşı Takvimi",        href: "/yourpoodle/bilgi", desc: "Aşı hatırlatma" },
+];
+
+const AGE_GUIDES: Record<string, { emoji: string; title: string; tag: string; min: string }[]> = {
+  yavru: [
+    { emoji: "🍼", tag: "Yavru", title: "Eve İlk Geldiğinde Ne Yapmalısınız?", min: "5 dk" },
+    { emoji: "💉", tag: "Sağlık", title: "İlk Aşılar: Ne Zaman, Nasıl?", min: "4 dk" },
+    { emoji: "🚽", tag: "Eğitim", title: "Tuvalet Eğitimine Başlama Kılavuzu", min: "7 dk" },
+  ],
+  yetiskin: [
+    { emoji: "🍖", tag: "Beslenme", title: "Yetişkin Poodle İçin En İyi Mama Markaları", min: "5 dk" },
+    { emoji: "✂️", tag: "Bakım",    title: "Evde Tıraş: Adım Adım Rehber", min: "8 dk" },
+    { emoji: "🏃", tag: "Aktivite", title: "Günlük Egzersiz ve Oyun Rehberi", min: "4 dk" },
+  ],
+  yasli: [
+    { emoji: "🫀", tag: "Sağlık",   title: "Yaşlı Poodle'da Dikkat Edilmesi Gerekenler", min: "6 dk" },
+    { emoji: "🦷", tag: "Bakım",    title: "Diş ve Ağız Sağlığı Yaşlı Köpeklerde", min: "4 dk" },
+    { emoji: "🍽️", tag: "Beslenme", title: "Yaşlı Poodle İçin Beslenme Değişikliği", min: "5 dk" },
+  ],
+};
+
+const FAQ_ITEMS = [
+  { q: "Toy Poodle ile Minyatür Poodle arasındaki fark nedir?", a: "Toy Poodle genellikle 2-4 kg, Minyatür Poodle ise 4-9 kg ağırlığındadır. İkisi de zeki, eğitilebilir ve az dökülen tüylere sahiptir." },
+  { q: "Poodle'lar için en iyi mama hangisi?", a: "Royal Canin, Pro Plan ve Hill's Science Plan poodle sahiplerinin en çok tercih ettiği markalar arasındadır. Mama Bul sihirbazımız poodle'ınıza özel öneri sunar." },
+  { q: "Poodle'lar ne sıklıkla tıraş yaptırılmalı?", a: "Toy ve Minyatür Poodle'lar ortalama 6-8 haftada bir tıraş gerektirir. Tüyleri sürekli uzadığından düzenli bakım şarttır." },
+  { q: "Poodle'ımı evde yalnız bırakabilir miyim?", a: "Poodle'lar sosyal köpeklerdir. Uzun süre yalnız kaldıklarında anksiyete yaşayabilirler. Günde 4-6 saatten fazla yalnız bırakmamaya çalışın." },
+  { q: "AI asistan gerçek veteriner yerine geçer mi?", a: "Hayır. AI asistanımız genel bilgilendirme sağlar. Sağlık sorunları için mutlaka veteriner hekiminize başvurun." },
+];
+
+const CSS = `
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #fff; }
+.yp-icon-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 8px; }
+.yp-icon-btn:active { background: #f5f5f5; }
+.yp-drawer { position: fixed; top: 0; left: 0; height: 100%; width: 72%; max-width: 290px; background: #fff; z-index: 200; transform: translateX(-100%); transition: transform 0.24s ease; box-shadow: 4px 0 28px rgba(0,0,0,0.15); }
+.yp-drawer.open { transform: translateX(0); }
+.yp-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 199; backdrop-filter: blur(2px); }
+.need-card { display: flex; flex-direction: column; align-items: center; gap: 8px; background: none; border: none; cursor: pointer; padding: 0; text-align: center; }
+.tool-card { display: flex; align-items: center; gap: 12px; background: #fff; border: 1.5px solid #f0f0f0; border-radius: 14px; padding: 14px 14px; cursor: pointer; }
+.tool-card:active { background: #F8F7FF; }
+.guide-row { display: flex; gap: 12px; align-items: center; padding: 13px; background: #FAFAFA; border-radius: 14px; cursor: pointer; }
+.guide-row:active { background: #F0ECFF; }
+.faq-item { border-bottom: 1px solid #F0F0F0; }
+.faq-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 16px 0; background: none; border: none; cursor: pointer; font-family: 'Inter', sans-serif; text-align: left; gap: 12px; }
+.age-tab { flex: 1; padding: 9px 4px; background: none; border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; border-bottom: 2.5px solid transparent; transition: all 0.15s; }
+.age-tab.active { color: #7C3AFF; border-bottom-color: #7C3AFF; font-weight: 800; }
+`;
 
 export default function YourPoodleHomePage() {
   const [location, navigate] = useLocation();
   const [activeLang, setActiveLang] = useState(LANGUAGES[0]);
-  const [langOpen,   setLangOpen]   = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [ageTab, setAgeTab] = useState<"yavru" | "yetiskin" | "yasli">("yetiskin");
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [email, setEmail] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
   const { isLoggedIn } = useCustomer();
 
   const { data: products = [] } = useQuery<any[]>({
@@ -52,436 +135,547 @@ export default function YourPoodleHomePage() {
     staleTime: 2 * 60 * 1000,
   });
 
-  const activeTab = NAV_TABS.find(t => t.href === location)?.label ?? "Ana Sayfa";
-
   return (
     <>
-      <style>{[
-        "*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }",
-        "body { background: #fff; }",
-        ".yp-icon-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 8px; }",
-        ".yp-icon-btn:active { background: #f5f5f5; }",
-        ".yp-tab-btn { background: none; border: none; cursor: pointer; font-family: Inter, sans-serif; }",
-        ".yp-drawer { position: fixed; top: 0; left: 0; height: 100%; width: 72%; max-width: 280px; background: #fff; z-index: 200; transform: translateX(-100%); transition: transform 0.24s ease; box-shadow: 4px 0 24px rgba(0,0,0,0.13); }",
-        ".yp-drawer.open { transform: translateX(0); }",
-        ".yp-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 199; }",
-      ].join("\n")}</style>
+      <style>{CSS}</style>
 
-      <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"'Inter',sans-serif", position:"relative", paddingBottom:72 }}>
+      <div style={{ minHeight: "100vh", background: "#fff", fontFamily: "'Inter',sans-serif", position: "relative" }}>
 
-        {/* ── DRAWER ────────────────────────────────── */}
+        {/* ── DRAWER ─────────────────────────────────────────────── */}
         {drawerOpen && <div className="yp-overlay" onClick={() => setDrawerOpen(false)} />}
-        <div className={`yp-drawer ${drawerOpen ? "open" : ""}`}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"20px 18px 14px", borderBottom:"1px solid #f2f2f2" }}>
-            <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height:32, objectFit:"contain" }} />
-            <button className="yp-icon-btn" aria-label="Kapat" onClick={() => setDrawerOpen(false)}>
+        <nav className={`yp-drawer ${drawerOpen ? "open" : ""}`} aria-label="Yan menü">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 18px 14px", borderBottom: "1px solid #f2f2f2" }}>
+            <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 30, objectFit: "contain" }} />
+            <button className="yp-icon-btn" aria-label="Menüyü kapat" onClick={() => setDrawerOpen(false)}>
               <X size={20} color="#444" />
             </button>
           </div>
-          <nav>
+          <div style={{ padding: "8px 0" }}>
             {DRAWER_LINKS.map(l => (
-              <a key={l.href} href={l.href} onClick={() => setDrawerOpen(false)}
-                style={{ display:"block", padding:"14px 20px", fontSize:15, fontWeight:600, color:"#222", textDecoration:"none", borderBottom:"1px solid #fafafa" }}>
+              <a key={l.href} href={l.href}
+                onClick={e => { e.preventDefault(); navigate(l.href); setDrawerOpen(false); }}
+                style={{ display: "block", padding: "13px 20px", fontSize: 15, fontWeight: 600, color: location.startsWith(l.href) ? "#7C3AFF" : "#222", textDecoration: "none", background: location.startsWith(l.href) ? "#F5F0FF" : "transparent" }}>
                 {l.label}
               </a>
             ))}
-          </nav>
-        </div>
+          </div>
+          <div style={{ padding: "20px 18px", borderTop: "1px solid #f2f2f2", marginTop: "auto" }}>
+            <button
+              onClick={() => { navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris"); setDrawerOpen(false); }}
+              style={{ width: "100%", height: 46, borderRadius: 12, background: "#7C3AFF", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Inter',sans-serif" }}>
+              {isLoggedIn ? "👤 Hesabım" : "Üye Girişi / Kayıt"}
+            </button>
+          </div>
+        </nav>
 
-        {/* ── HEADER ────────────────────────────────── */}
-        <header style={{ position:"sticky", top:0, zIndex:100, background:"#fff", borderBottom:"1px solid #f0f0f0" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px" }}>
-            {/* Sol: Hamburger + Logo */}
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <button className="yp-icon-btn" aria-label="Menü" onClick={() => setDrawerOpen(true)}>
-                <Menu size={22} color="#333" strokeWidth={2} />
+        {/* ── 1. HEADER ──────────────────────────────────────────── */}
+        <header style={{ position: "sticky", top: 0, zIndex: 100, background: "#fff", borderBottom: "1px solid #f0f0f0" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px" }}>
+            {/* Left: logo */}
+            <button className="yp-icon-btn" onClick={() => navigate("/yourpoodle")} style={{ padding: 0 }} aria-label="Ana sayfa">
+              <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle"
+                style={{ height: 30, width: 120, objectFit: "contain", objectPosition: "left center" }} />
+            </button>
+            {/* Right: search, cart, lang, menu */}
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <button className="yp-icon-btn" aria-label="Ara" onClick={() => navigate("/yourpoodle/bilgi")}>
+                <Search size={20} color="#444" />
               </button>
-              <button className="yp-icon-btn" onClick={() => navigate("/")} style={{ padding:0 }}>
-                <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle"
-                  style={{ height:30, width:120, objectFit:"contain", objectPosition:"left center" }} />
+              <button className="yp-icon-btn" aria-label="Sepet" onClick={() => navigate("/yourpoodle/magaza")}>
+                <ShoppingCart size={20} color="#444" />
               </button>
-            </div>
-            {/* Sağ: Üye Girişi + Dil */}
-            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-              <button className="yp-icon-btn" onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
-                style={{ padding:"6px 13px", borderRadius:20, border:"2px solid", borderColor:isLoggedIn?"#22C55E":"#7C3AFF", background:isLoggedIn?"#F0FDF4":"#F5F0FF", color:isLoggedIn?"#16A34A":"#7C3AFF", fontSize:12, fontWeight:800, whiteSpace:"nowrap" }}>
-                {isLoggedIn ? "Hesabım 👤" : "Üye Girişi"}
-              </button>
-              <div style={{ position:"relative" }}>
-                <button className="yp-icon-btn" aria-label="Dil seç"
+              {/* Lang selector */}
+              <div style={{ position: "relative" }}>
+                <button className="yp-icon-btn" aria-label="Dil seç" aria-haspopup="listbox"
                   onClick={() => setLangOpen(!langOpen)}
-                  style={{ gap:3, padding:"5px 6px" }}>
-                  <span style={{ fontSize:14 }}>{activeLang.flag}</span>
-                  <span style={{ fontSize:12, fontWeight:700, color:"#6C47FF" }}>{activeLang.code}</span>
-                  <ChevronDown size={12} color="#6C47FF" strokeWidth={2.5}
-                    style={{ transform: langOpen ? "rotate(180deg)" : "none", transition:"transform 0.18s" }} />
+                  style={{ gap: 3, padding: "5px 7px" }}>
+                  <span style={{ fontSize: 15 }}>{activeLang.flag}</span>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: "#6C47FF" }}>{activeLang.code}</span>
+                  <ChevronDown size={11} color="#6C47FF" strokeWidth={2.5}
+                    style={{ transform: langOpen ? "rotate(180deg)" : "none", transition: "0.18s" }} />
                 </button>
                 {langOpen && (
-                  <div style={{ position:"absolute", right:0, top:36, background:"#fff", borderRadius:12, border:"1px solid #eee", boxShadow:"0 8px 28px rgba(0,0,0,0.12)", zIndex:150, minWidth:110, padding:"4px 0" }}>
+                  <div role="listbox" aria-label="Dil seçenekleri"
+                    style={{ position: "absolute", right: 0, top: 38, background: "#fff", borderRadius: 12, border: "1px solid #eee", boxShadow: "0 8px 28px rgba(0,0,0,0.12)", zIndex: 150, minWidth: 110, padding: "4px 0" }}>
                     {LANGUAGES.map(l => (
-                      <button key={l.code} onClick={() => { setActiveLang(l); setLangOpen(false); }}
-                        style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:"9px 14px", border:"none", cursor:"pointer", background: activeLang.code === l.code ? "#F5F0FF" : "transparent", fontSize:13, fontWeight:700, color: activeLang.code === l.code ? "#6C47FF" : "#333", fontFamily:"'Inter',sans-serif" }}>
-                        <span style={{ fontSize:16 }}>{l.flag}</span>{l.code}
+                      <button key={l.code} role="option" aria-selected={activeLang.code === l.code}
+                        onClick={() => { setActiveLang(l); setLangOpen(false); }}
+                        style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "9px 14px", border: "none", cursor: "pointer", background: activeLang.code === l.code ? "#F5F0FF" : "transparent", fontSize: 13, fontWeight: 700, color: activeLang.code === l.code ? "#6C47FF" : "#333", fontFamily: "'Inter',sans-serif" }}>
+                        <span style={{ fontSize: 16 }}>{l.flag}</span>{l.code}
                       </button>
                     ))}
                   </div>
                 )}
               </div>
+              <button className="yp-icon-btn" aria-label="Menüyü aç" onClick={() => setDrawerOpen(true)}>
+                <Menu size={22} color="#333" strokeWidth={2} />
+              </button>
             </div>
           </div>
 
-          <div style={{ display:"flex", borderTop:"1px solid #f0f0f0" }}>
-            {NAV_TABS.map(tab => (
-              <button key={tab.label} className="yp-tab-btn"
-                onClick={() => navigate(tab.href)}
-                style={{ flex:1, padding:"11px 4px", fontSize:13.5, fontWeight: activeTab === tab.label ? 700 : 500, color: activeTab === tab.label ? "#6C47FF" : "#555", borderBottom: activeTab === tab.label ? "2.5px solid #6C47FF" : "2.5px solid transparent", transition:"color 0.15s" }}>
-                {tab.label}
-              </button>
-            ))}
+          {/* ── 2. YATAY KATEGORİ MENÜSÜ ─────────────────── */}
+          <div style={{ overflowX: "auto", display: "flex", padding: "6px 10px 8px", gap: 6, scrollbarWidth: "none", borderTop: "1px solid #f5f5f5" }}>
+            {CAT_NAV.map(c => {
+              const active = location.startsWith(c.href);
+              return (
+                <button key={c.href}
+                  onClick={() => navigate(c.href)}
+                  aria-current={active ? "page" : undefined}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap",
+                    padding: "7px 13px", borderRadius: 20, border: "1.5px solid",
+                    borderColor: active ? "#7C3AFF" : "#ebebeb",
+                    background: active ? "#7C3AFF" : "#fff",
+                    color: active ? "#fff" : "#444",
+                    fontSize: 12.5, fontWeight: 700, cursor: "pointer", flexShrink: 0,
+                    fontFamily: "'Inter',sans-serif", transition: "all 0.15s",
+                  }}>
+                  <span style={{ fontSize: 14 }}>{c.emoji}</span>
+                  {c.label}
+                </button>
+              );
+            })}
           </div>
         </header>
 
-        {/* ── HERO ──────────────────────────────────── */}
-        <section style={{ background:"linear-gradient(135deg,#B39DFF 0%,#C8B8FF 40%,#D4C4FF 100%)", display:"flex", alignItems:"stretch", minHeight:340, position:"relative", overflow:"hidden", padding:"28px 20px 24px 20px" }}>
-          <div style={{ flex:"0 0 55%", display:"flex", flexDirection:"column", justifyContent:"flex-start", zIndex:2, paddingBottom:24 }}>
-            <div style={{ display:"inline-flex", alignItems:"center", background:"rgba(0,0,0,0.25)", borderRadius:6, padding:"3px 10px", marginBottom:12, alignSelf:"flex-start" }}>
-              <span style={{ fontSize:11, fontWeight:800, color:"#fff", letterSpacing:"0.08em" }}>DÜNYANIN EN BÜYÜK</span>
+        {/* ── 3. HERO ────────────────────────────────────────────── */}
+        <section aria-label="Giriş" style={{ background: "linear-gradient(135deg,#5B21B6 0%,#7C3AFF 50%,#A855F7 100%)", padding: "32px 20px 28px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: -40, right: -40, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
+          <div style={{ position: "absolute", bottom: -30, left: -30, width: 140, height: 140, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
+
+          <div style={{ position: "relative", zIndex: 2 }}>
+            {/* Hero image and text: side by side on wider screens */}
+            <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.75)", letterSpacing: "0.1em", marginBottom: 8, textTransform: "uppercase" }}>
+                  Dünyanın En Büyük
+                </div>
+                <h1 style={{ fontSize: 34, fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 8, letterSpacing: "-0.5px" }}>
+                  Toy Poodle<br />Rehberi
+                </h1>
+                <p style={{ fontSize: 14, color: "rgba(255,255,255,0.85)", lineHeight: 1.6, marginBottom: 0 }}>
+                  Köpeğiniz için ihtiyacınız olan her şey tek yerde.
+                </p>
+              </div>
+              <div style={{ flexShrink: 0, width: 120, height: 120 }}>
+                <img src="/images/poodle-hero.png" alt="Toy Poodle"
+                  style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                  onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+              </div>
             </div>
-            <div style={{ marginBottom:4 }}>
-              <div style={{ fontSize:48, fontWeight:900, color:"#fff", lineHeight:0.95, letterSpacing:"-1px" }}>POODLE</div>
-              <div style={{ fontSize:48, fontWeight:900, color:"#fff", lineHeight:0.95, letterSpacing:"-1px" }}>AİLESİNE</div>
+
+            {/* 3 CTA buttons */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <button
+                onClick={() => navigate("/yourpoodle/mama-bul")}
+                aria-label="Poodle'ınıza uygun mamayı bul"
+                style={{ height: 50, borderRadius: 14, background: "#fff", border: "none", fontSize: 15, fontWeight: 800, color: "#7C3AFF", cursor: "pointer", fontFamily: "'Inter',sans-serif" }}>
+                🔍 Mama Bul
+              </button>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  onClick={() => navigate("/yourpoodle/rehber")}
+                  style={{ flex: 1, height: 46, borderRadius: 14, background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.4)", fontSize: 14, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "'Inter',sans-serif", backdropFilter: "blur(4px)" }}>
+                  📖 Rehbere Git
+                </button>
+                <button
+                  onClick={() => navigate("/yourpoodle/ai-asistan")}
+                  style={{ flex: 1, height: 46, borderRadius: 14, background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.4)", fontSize: 14, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "'Inter',sans-serif", backdropFilter: "blur(4px)" }}>
+                  🤖 AI'ya Sor
+                </button>
+              </div>
             </div>
-            <div style={{ display:"flex", alignItems:"center", gap:8, margin:"10px 0 10px" }}>
-              <span style={{ fontFamily:"'Dancing Script',cursive", fontSize:28, fontWeight:700, color:"#fff" }}>Hoş Geldiniz!</span>
-              <span style={{ fontSize:22 }}>💜</span>
+
+            {/* Trust badges - NO fake numbers */}
+            <div style={{ display: "flex", gap: 12, marginTop: 20, justifyContent: "center", flexWrap: "wrap" }}>
+              {["🐩 Poodle'a özel içerikler", "🎯 Kişiselleştirilmiş öneriler", "🆓 Ücretsiz araçlar"].map(t => (
+                <span key={t} style={{ fontSize: 12, color: "rgba(255,255,255,0.9)", fontWeight: 600, background: "rgba(255,255,255,0.1)", borderRadius: 20, padding: "5px 12px" }}>
+                  {t}
+                </span>
+              ))}
             </div>
-            <p style={{ fontSize:13, color:"rgba(255,255,255,0.9)", lineHeight:1.5, marginBottom:18 }}>
-              Toy Poodle'ınıza dair her şey burada! Sağlık, topluluk, özel ayrıcalıklar...
+          </div>
+        </section>
+
+        {/* ── 4. BUGÜN NE ARIYORSUNUZ? ───────────────────────────── */}
+        <section aria-labelledby="need-heading" style={{ padding: "24px 16px" }}>
+          <h2 id="need-heading" style={{ fontSize: 18, fontWeight: 900, color: "#1a1a1a", marginBottom: 4 }}>
+            Poodle'ınız için bugün ne arıyorsunuz?
+          </h2>
+          <p style={{ fontSize: 13, color: "#888", marginBottom: 18 }}>Aşağıdaki konulardan birini seçin</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            {NEED_CARDS.map(c => (
+              <button
+                key={c.label}
+                className="need-card"
+                onClick={() => navigate(c.href)}
+                aria-label={c.label}
+                style={{ background: c.bg, borderRadius: 16, padding: "16px 10px", border: "none", cursor: "pointer", fontFamily: "'Inter',sans-serif" }}>
+                <span style={{ fontSize: 28 }}>{c.emoji}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: c.color, lineHeight: 1.3 }}>{c.label}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* ── 5. AI POODLE ASISTANI ────────────────────────────────── */}
+        <section aria-labelledby="ai-heading" style={{ margin: "0 16px 24px" }}>
+          <div style={{ background: "linear-gradient(135deg,#1E1155,#3D1D8C)", borderRadius: 24, padding: "22px 20px", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", top: -20, right: -20, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 16 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: "rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>
+                🤖
+              </div>
+              <div>
+                <h2 id="ai-heading" style={{ fontSize: 16, fontWeight: 900, color: "#fff", marginBottom: 4 }}>
+                  Poodle'ınızla ilgili aklınıza takılanı sorun
+                </h2>
+                <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.5, margin: 0 }}>
+                  Yaşını, kilosunu ve ihtiyacını belirtin. Poodle'ınıza özel öneriler alın.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+              {AI_EXAMPLES.slice(0, 3).map(q => (
+                <button
+                  key={q}
+                  onClick={() => navigate("/yourpoodle/ai-asistan")}
+                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 14px", textAlign: "left", fontSize: 12.5, color: "rgba(255,255,255,0.85)", cursor: "pointer", fontFamily: "'Inter',sans-serif", lineHeight: 1.4 }}>
+                  💬 {q}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => navigate("/yourpoodle/ai-asistan")}
+              style={{ width: "100%", height: 50, borderRadius: 14, background: "#7C3AFF", border: "none", fontSize: 15, fontWeight: 800, color: "#fff", cursor: "pointer", fontFamily: "'Inter',sans-serif" }}>
+              AI Asistana Sor →
+            </button>
+
+            <p style={{ marginTop: 12, fontSize: 11, color: "rgba(255,255,255,0.45)", textAlign: "center", lineHeight: 1.4 }}>
+              Bu asistan genel bilgilendirme sağlar. Acil sağlık durumlarında veteriner hekime başvurun.
             </p>
-            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-              <button onClick={() => navigate("/yourpoodle/club")} style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, height:50, borderRadius:14, background:"#7C3AFF", cursor:"pointer", boxShadow:"0 4px 16px rgba(100,50,200,0.35)", border:"none" }}>
-                <span style={{ fontSize:14, fontWeight:800, color:"#fff", letterSpacing:"0.05em" }}>CLUB'A KATIL</span>
-                <span style={{ fontSize:16 }}>🐾</span>
-              </button>
-              <button onClick={() => navigate("/yourpoodle/poodle-ekle")} style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, height:50, borderRadius:14, background:"rgba(255,255,255,0.92)", cursor:"pointer", border:"2px solid rgba(255,255,255,0.6)" }}>
-                <span style={{ fontSize:14, fontWeight:800, color:"#5B21B6", letterSpacing:"0.05em" }}>POODLE'İMİ EKLE</span>
-                <span style={{ fontSize:18, color:"#5B21B6", fontWeight:700 }}>+</span>
-              </button>
-            </div>
-            <div style={{ display:"flex", alignItems:"center", gap:10, marginTop:18, background:"rgba(0,0,0,0.15)", borderRadius:12, padding:"8px 12px", alignSelf:"flex-start" }}>
-              <div style={{ display:"flex" }}>
-                {[1,2,3,4].map(i => (
-                  <img key={i} src={`/images/poodle-avatar-${i}.jpg`} alt=""
-                    style={{ width:26, height:26, borderRadius:"50%", border:"2px solid rgba(255,255,255,0.9)", marginLeft:i===1?0:-8, objectFit:"cover", flexShrink:0 }} />
-                ))}
-              </div>
-              <div style={{ display:"flex", alignItems:"baseline", gap:4 }}>
-                <span style={{ fontSize:13, fontWeight:900, color:"#fff" }}>10.000+</span>
-                <span style={{ fontSize:11, color:"rgba(255,255,255,0.9)", fontWeight:600 }}>mutlu poodle ailesi 💜</span>
-              </div>
-            </div>
-          </div>
-          <div style={{ flex:"0 0 45%", position:"relative" }}>
-            <img src="/images/poodle-hero.png" alt="Toy Poodle"
-              style={{ position:"absolute", top:-30, bottom:"auto", right:-20, width:"130%", maxWidth:260, objectFit:"contain", objectPosition:"top center" }} />
           </div>
         </section>
 
-        {/* ── ICON NAV BAR ──────────────────────────── */}
-        <div style={{ padding:"14px 16px" }}>
-          <div style={{ background:"#fff", borderRadius:20, boxShadow:"0 2px 16px rgba(0,0,0,0.08)", padding:"14px 8px", display:"flex", justifyContent:"space-around", alignItems:"flex-start", overflowX:"auto" }}>
-            {[
-              { label:"AKIŞ",       bg:"#EDE8FF", color:"#7C3AFF", active:true,
-                icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
-              { label:"TOPLULUK",   bg:"#FFE4EC", color:"#E75480", active:false,
-                icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
-              { label:"REHBER",     bg:"#D6F5E8", color:"#059669", active:false,
-                icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> },
-              { label:"MAĞAZA",     bg:"#FFF0D6", color:"#D97706", active:false,
-                icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg> },
-            ].map(({ label, bg, color, active, icon }) => (
-              <button key={label} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6, background:"none", border:"none", cursor:"pointer", minWidth:52, padding:"0 4px" }}>
-                <div style={{ width:48, height:48, borderRadius:"50%", background:bg, display:"flex", alignItems:"center", justifyContent:"center", color }}>{icon}</div>
-                <span style={{ fontSize:10, fontWeight:800, color: active ? color : "#444", letterSpacing:"0.04em", fontFamily:"'Inter',sans-serif", lineHeight:1 }}>{label}</span>
-                {active && <div style={{ width:24, height:3, borderRadius:2, background:color, marginTop:1 }} />}
+        {/* ── 6. PROFİL OLUŞTURUN ──────────────────────────────────── */}
+        <section aria-labelledby="profile-heading" style={{ margin: "0 16px 24px" }}>
+          <div style={{ background: "linear-gradient(135deg,#FFF0F5,#FFE4EC)", borderRadius: 24, padding: "22px 20px", display: "flex", gap: 16, alignItems: "center" }}>
+            <div style={{ fontSize: 52, flexShrink: 0, lineHeight: 1 }}>🐩</div>
+            <div style={{ flex: 1 }}>
+              <h2 id="profile-heading" style={{ fontSize: 16, fontWeight: 900, color: "#1a1a1a", marginBottom: 6 }}>
+                Poodle profilinizi oluşturun
+              </h2>
+              <p style={{ fontSize: 12.5, color: "#666", lineHeight: 1.5, marginBottom: 14 }}>
+                Yaşına, kilosuna ve ihtiyaçlarına özel öneriler alın.
+              </p>
+              <button
+                onClick={() => navigate("/yourpoodle/poodle-ekle")}
+                style={{ height: 42, padding: "0 18px", borderRadius: 12, background: "#E75480", border: "none", fontSize: 13, fontWeight: 800, color: "#fff", cursor: "pointer", fontFamily: "'Inter',sans-serif" }}>
+                Ücretsiz Profil Oluştur
               </button>
-            ))}
+            </div>
           </div>
-        </div>
+        </section>
 
-        {/* ── BİLGİ BANKASI ─────────────────────────── */}
-        <section style={{ padding:"20px 16px 24px", background:"#fff" }}>
-          <div style={{ marginBottom:4, display:"flex", alignItems:"center", gap:8 }}>
-            <span style={{ fontSize:20 }}>⚡</span>
-            <span style={{ fontSize:18, fontWeight:800, color:"#1a1a1a" }}>Bilgi Bankası</span>
+        {/* ── 7. HIZLI ARAÇLAR ─────────────────────────────────────── */}
+        <section aria-labelledby="tools-heading" style={{ padding: "4px 16px 24px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            <h2 id="tools-heading" style={{ fontSize: 18, fontWeight: 900, color: "#1a1a1a" }}>⚡ Hızlı Araçlar</h2>
+            <button onClick={() => navigate("/yourpoodle/bilgi")} style={{ fontSize: 12, fontWeight: 700, color: "#7C3AFF", background: "none", border: "none", cursor: "pointer", fontFamily: "'Inter',sans-serif" }}>
+              Tümü →
+            </button>
           </div>
-          <p style={{ fontSize:13, color:"#888", marginBottom:18 }}>Poodle'ınız için en çok kullanılan araçlar.</p>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"20px 8px" }}>
-            {[
-              { label:"Mama Hesaplama",   desc:"Günlük mama miktarını hesapla",    bg:"#FFF0E0", color:"#E07820",
-                icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> },
-              { label:"Aşı Takvimi",      desc:"Aşılarını düzenli takip et",       bg:"#FFE4EC", color:"#E75480",
-                icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 2 4 4-14 14H4v-4Z"/><path d="m14.5 5.5 4 4"/></svg> },
-              { label:"Yaş Hesaplama",    desc:"Köpek yaşını insan yaşına çevir",  bg:"#F0E8FF", color:"#7C3AFF",
-                icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
-              { label:"İdeal Kilo",       desc:"İdeal kilosunu öğren",             bg:"#D6F5E8", color:"#059669",
-                icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a9 9 0 1 0 0 18A9 9 0 0 0 12 3z"/><path d="M8 12h8"/></svg> },
-              { label:"Hastalık Kontrolü",desc:"Belirtileri kontrol et",           bg:"#EDE8FF", color:"#7C3AFF",
-                icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg> },
-              { label:"Diş Kontrolü",     desc:"Ağız ve diş sağlığı listesi",      bg:"#D6F5F5", color:"#0891B2",
-                icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg> },
-              { label:"Dışkı Rehberi",    desc:"Rengine göre kontrol et",          bg:"#FEFCE8", color:"#CA8A04",
-                icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> },
-              { label:"Su Hesaplama",     desc:"Günlük su ihtiyacını hesapla",     bg:"#DBEAFE", color:"#2563EB",
-                icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg> },
-              { label:"Tıraş Zamanı",     desc:"Son tıraş tarihine göre hesapla", bg:"#FFE4EC", color:"#E75480",
-                icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><line x1="20.49" y1="3.51" x2="3.51" y2="20.49"/></svg> },
-              { label:"Ödül Hesabı",      desc:"Ödül mamasının kalorini hesapla", bg:"#FFF9C4", color:"#CA8A04",
-                icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 10c.7-.7 1.69 0 2.5 1a2.02 2.02 0 0 1 0 2.5c-.71.7-1.73.2-2.25-.25"/><path d="M10 17c-.7.7 0 1.69 1 2.5a2.02 2.02 0 0 0 2.5 0c.7-.71.2-1.73-.25-2.25"/></svg> },
-              { label:"Aktivite Hesabı",  desc:"Günlük egzersiz ihtiyacını öğren",bg:"#CCFBF1", color:"#0D9488",
-                icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg> },
-              { label:"İnsan Yaşı",       desc:"Karşılaştırmalı yaş tablosu",     bg:"#FFF0E0", color:"#E07820",
-                icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.469 2.344-2.5"/><path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.96-1.469-2.344-2.5"/><path d="M8 14v.5"/><path d="M16 14v.5"/><path d="M11.25 16.25h1.5L12 17l-.75-.75Z"/></svg> },
-            ].map(({ label, desc, bg, color, icon }) => (
-              <button key={label} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8, background:"none", border:"none", cursor:"pointer", padding:0, textAlign:"center" }}>
-                <div style={{ width:52, height:52, borderRadius:"50%", background:bg, display:"flex", alignItems:"center", justifyContent:"center", color }}>{icon}</div>
-                <div>
-                  <div style={{ fontSize:11.5, fontWeight:800, color:"#1a1a1a", lineHeight:1.3, marginBottom:3 }}>{label}</div>
-                  <div style={{ fontSize:10, color:"#888", lineHeight:1.35 }}>{desc}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            {TOOLS.map(t => (
+              <button key={t.label} className="tool-card"
+                onClick={() => navigate(t.href)}
+                aria-label={`${t.label}: ${t.desc}`}
+                style={{ display: "flex", alignItems: "center", gap: 12, background: "#fff", border: "1.5px solid #f0f0f0", borderRadius: 14, padding: "14px", cursor: "pointer", fontFamily: "'Inter',sans-serif" }}>
+                <span style={{ fontSize: 24, flexShrink: 0 }}>{t.emoji}</span>
+                <div style={{ textAlign: "left" }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 800, color: "#1a1a1a", lineHeight: 1.3 }}>{t.label}</div>
+                  <div style={{ fontSize: 11, color: "#999" }}>{t.desc}</div>
                 </div>
               </button>
             ))}
           </div>
         </section>
 
-        {/* ── GÜNÜN İPUCU ───────────────────────────── */}
-        <div style={{ margin:"0 16px", background:"linear-gradient(135deg,#EDE8FF,#F5F0FF)", borderRadius:16, padding:"14px 16px", display:"flex", alignItems:"center", gap:12 }}>
-          <span style={{ fontSize:24, flexShrink:0 }}>💡</span>
-          <div>
-            <div style={{ fontSize:11, fontWeight:800, color:"#7C3AFF", letterSpacing:"0.06em", marginBottom:3 }}>GÜNÜN İPUCU</div>
-            <div style={{ fontSize:13, color:"#333", lineHeight:1.5 }}>
-              {settings?.yp_daily_tip || "Toy Poodle'ların tüyleri sürekli uzar, 6-8 haftada bir tıraş rutini oluşturun."}
-            </div>
+        {/* ── 8. BUGÜN EN ÇOK OKUNAN REHBERLER ────────────────────── */}
+        <section aria-labelledby="guides-heading" style={{ padding: "4px 16px 24px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            <h2 id="guides-heading" style={{ fontSize: 18, fontWeight: 900, color: "#1a1a1a" }}>📖 Bugün En Çok Okunan</h2>
+            <button onClick={() => navigate("/yourpoodle/rehber")} style={{ fontSize: 12, fontWeight: 700, color: "#7C3AFF", background: "none", border: "none", cursor: "pointer", fontFamily: "'Inter',sans-serif" }}>
+              Tümü →
+            </button>
           </div>
-        </div>
-
-        {/* ── SON REHBER YAZILARI ────────────────────── */}
-        <section style={{ padding:"24px 16px 8px" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <span style={{ fontSize:18 }}>📖</span>
-              <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a" }}>Son Rehber Yazıları</span>
-            </div>
-            <button onClick={() => navigate("/yourpoodle/rehber")} style={{ fontSize:12, fontWeight:700, color:"#7C3AFF", background:"none", border:"none", cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>Tümü →</button>
-          </div>
-          <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {[
-              { emoji:"🍖", tag:"Beslenme", title:"Toy Poodle İçin En İyi Mama Markaları 2024", min:"5 dk" },
-              { emoji:"🛁", tag:"Bakım",    title:"Evde Poodle Tıraşı: Adım Adım Rehber",       min:"8 dk" },
-              { emoji:"💊", tag:"Sağlık",   title:"Poodle'larda Görülen 10 Yaygın Sağlık Sorunu",min:"6 dk" },
-            ].map(({ emoji, tag, title, min }) => (
-              <div key={title} style={{ display:"flex", gap:12, alignItems:"center", padding:"12px", background:"#FAFAFA", borderRadius:14, cursor:"pointer" }}>
-                <div style={{ width:48, height:48, borderRadius:12, background:"#EDE8FF", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>{emoji}</div>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:10, fontWeight:700, color:"#7C3AFF", marginBottom:4 }}>{tag}</div>
-                  <div style={{ fontSize:13, fontWeight:700, color:"#1a1a1a", lineHeight:1.4 }}>{title}</div>
+              { emoji: "🍖", tag: "Beslenme", title: "Toy Poodle İçin En İyi Mama Markaları 2025", min: "5 dk", href: "/yourpoodle/mama" },
+              { emoji: "🛁", tag: "Bakım",    title: "Evde Poodle Tıraşı: Adım Adım Rehber",       min: "8 dk", href: "/yourpoodle/bakim" },
+              { emoji: "💊", tag: "Sağlık",   title: "Göz Yaşı Lekesi: Neden Olur, Nasıl Geçer?",  min: "4 dk", href: "/yourpoodle/saglik" },
+            ].map(({ emoji, tag, title, min, href }) => (
+              <button key={title} className="guide-row"
+                onClick={() => navigate(href)}
+                style={{ display: "flex", gap: 12, alignItems: "center", padding: "13px", background: "#FAFAFA", borderRadius: 14, cursor: "pointer", border: "none", textAlign: "left", fontFamily: "'Inter',sans-serif", width: "100%" }}>
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: "#EDE8FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{emoji}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#7C3AFF", marginBottom: 3 }}>{tag}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.4 }}>{title}</div>
                 </div>
-                <div style={{ fontSize:11, color:"#aaa", flexShrink:0 }}>{min}</div>
-              </div>
+                <div style={{ fontSize: 11, color: "#aaa", flexShrink: 0 }}>{min}</div>
+              </button>
             ))}
           </div>
         </section>
 
-        {/* ── ÖNERILEN ÜRÜNLER ──────────────────────── */}
-        <section style={{ padding:"24px 16px 8px" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <span style={{ fontSize:18 }}>🛍️</span>
-              <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a" }}>Öne Çıkan Ürünler</span>
-            </div>
-            <button onClick={() => navigate("/yourpoodle/magaza")} style={{ fontSize:12, fontWeight:700, color:"#7C3AFF", background:"none", border:"none", cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>Tümü →</button>
+        {/* ── 9. YAŞA GÖRE REHBER ──────────────────────────────────── */}
+        <section aria-labelledby="age-heading" style={{ padding: "4px 16px 24px" }}>
+          <h2 id="age-heading" style={{ fontSize: 18, fontWeight: 900, color: "#1a1a1a", marginBottom: 14 }}>🐾 Yaşa Göre Rehber</h2>
+          <div style={{ display: "flex", borderBottom: "1px solid #f0f0f0", marginBottom: 16 }}>
+            {(["yavru", "yetiskin", "yasli"] as const).map(tab => (
+              <button key={tab} className={`age-tab ${ageTab === tab ? "active" : ""}`}
+                onClick={() => setAgeTab(tab)}
+                aria-selected={ageTab === tab}>
+                {tab === "yavru" ? "🍼 Yavru" : tab === "yetiskin" ? "🐩 Yetişkin" : "💜 Yaşlı"}
+              </button>
+            ))}
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {AGE_GUIDES[ageTab].map(({ emoji, tag, title, min }) => (
+              <button key={title} className="guide-row"
+                onClick={() => navigate("/yourpoodle/rehber")}
+                style={{ display: "flex", gap: 12, alignItems: "center", padding: "13px", background: "#FAFAFA", borderRadius: 14, cursor: "pointer", border: "none", textAlign: "left", fontFamily: "'Inter',sans-serif", width: "100%" }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: "#EDE8FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{emoji}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#7C3AFF", marginBottom: 3 }}>{tag}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.4 }}>{title}</div>
+                </div>
+                <div style={{ fontSize: 11, color: "#aaa" }}>{min}</div>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* ── 10. MAMA BULMA TANITIM ───────────────────────────────── */}
+        <section aria-labelledby="mama-heading" style={{ margin: "0 16px 24px" }}>
+          <div style={{ background: "linear-gradient(135deg,#FFF9ED,#FEF3C7)", borderRadius: 24, padding: "22px 20px", border: "1.5px solid #FDE68A" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+              <span style={{ fontSize: 40 }}>🔍</span>
+              <div>
+                <h2 id="mama-heading" style={{ fontSize: 16, fontWeight: 900, color: "#1a1a1a", marginBottom: 4 }}>
+                  Poodle'ınıza özel mama bul
+                </h2>
+                <p style={{ fontSize: 12.5, color: "#666", margin: 0, lineHeight: 1.5 }}>
+                  11 soruluk sihirbazla en uygun 3 mamayı bulun.
+                </p>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+              {["Yaşa göre", "Kiloya göre", "Alerjisiz", "Bütçeye göre"].map(t => (
+                <span key={t} style={{ fontSize: 12, fontWeight: 700, color: "#92400E", background: "#FDE68A", borderRadius: 20, padding: "4px 10px" }}>{t}</span>
+              ))}
+            </div>
+            <button
+              onClick={() => navigate("/yourpoodle/mama-bul")}
+              style={{ width: "100%", height: 50, borderRadius: 14, background: "#D97706", border: "none", fontSize: 15, fontWeight: 800, color: "#fff", cursor: "pointer", fontFamily: "'Inter',sans-serif" }}>
+              Mama Bul Sihirbazını Başlat →
+            </button>
+          </div>
+        </section>
+
+        {/* ── 11. POODLE SAHİPLERİNİN TERCİH ETTİĞİ ÜRÜNLER ─────── */}
+        <section aria-labelledby="products-heading" style={{ padding: "4px 16px 24px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            <h2 id="products-heading" style={{ fontSize: 18, fontWeight: 900, color: "#1a1a1a" }}>🛍️ Poodle Sahiplerinin Tercihleri</h2>
+            <button onClick={() => navigate("/yourpoodle/magaza")} style={{ fontSize: 12, fontWeight: 700, color: "#7C3AFF", background: "none", border: "none", cursor: "pointer", fontFamily: "'Inter',sans-serif" }}>
+              Tümü →
+            </button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
             {products.slice(0, 9).map((p: any) => (
-              <div key={p.id} onClick={() => navigate(`/urun/${p.id}`)}
-                style={{ background:"#FAFAFA", borderRadius:14, overflow:"hidden", cursor:"pointer", display:"flex", flexDirection:"column", transition:"transform 0.12s", WebkitTapHighlightColor:"transparent" }}
-                onMouseEnter={e => (e.currentTarget.style.transform="scale(1.02)")}
-                onMouseLeave={e => (e.currentTarget.style.transform="scale(1)")}>
-                <div style={{ background:"#F0ECFF", height:90, display:"flex", alignItems:"center", justifyContent:"center", position:"relative", overflow:"hidden" }}>
+              <button key={p.id} onClick={() => navigate(`/urun/${p.id}`)}
+                style={{ background: "#FAFAFA", borderRadius: 14, overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column", border: "none", padding: 0, fontFamily: "'Inter',sans-serif", WebkitTapHighlightColor: "transparent", textAlign: "left" }}>
+                <div style={{ background: "#F0ECFF", height: 90, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
                   {p.img
-                    ? <img src={p.img} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                    : <span style={{ fontSize:34 }}>🐾</span>
-                  }
+                    ? <img src={p.img} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    : <span style={{ fontSize: 34 }}>🐾</span>}
                   {p.originalPrice && p.originalPrice > p.price && (
-                    <div style={{ position:"absolute", top:5, left:5, background:"#EF4444", borderRadius:6, padding:"2px 6px" }}>
-                      <span style={{ fontSize:8, fontWeight:800, color:"#fff" }}>İNDİRİM</span>
+                    <div style={{ position: "absolute", top: 5, left: 5, background: "#EF4444", borderRadius: 6, padding: "2px 6px" }}>
+                      <span style={{ fontSize: 8, fontWeight: 800, color: "#fff" }}>İND.</span>
                     </div>
                   )}
                 </div>
-                <div style={{ padding:"8px 8px 10px", flex:1, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
-                  <div style={{ fontSize:10, fontWeight:700, color:"#1a1a1a", lineHeight:1.35, marginBottom:5, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" as any, overflow:"hidden" }}>{p.name}</div>
-                  <div style={{ display:"flex", alignItems:"baseline", gap:4, flexWrap:"wrap" }}>
-                    <span style={{ fontSize:12, fontWeight:900, color:"#7C3AFF" }}>₺{Number(p.price).toLocaleString("tr-TR", { minimumFractionDigits:0, maximumFractionDigits:0 })}</span>
-                    {p.originalPrice && p.originalPrice > p.price && (
-                      <span style={{ fontSize:9, color:"#bbb", textDecoration:"line-through" }}>₺{Number(p.originalPrice).toLocaleString("tr-TR", { minimumFractionDigits:0, maximumFractionDigits:0 })}</span>
-                    )}
-                  </div>
+                <div style={{ padding: "8px 8px 10px" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.35, marginBottom: 4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as any, overflow: "hidden" }}>{p.name}</div>
+                  <div style={{ fontSize: 12, fontWeight: 900, color: "#7C3AFF" }}>₺{Number(p.price).toLocaleString("tr-TR", { minimumFractionDigits: 0 })}</div>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </section>
 
-        {/* ── TOPLULUK PAYLAŞIMLARI ─────────────────── */}
-        <section style={{ padding:"24px 16px 8px" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <span style={{ fontSize:18 }}>👥</span>
-              <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a" }}>Topluluk Paylaşımları</span>
-            </div>
-            <button onClick={() => navigate("/yourpoodle/topluluk")} style={{ fontSize:12, fontWeight:700, color:"#7C3AFF", background:"none", border:"none", cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>Tümü →</button>
+        {/* ── 12. TOPLULUK PAYLAŞIMLARI ────────────────────────────── */}
+        <section aria-labelledby="community-heading" style={{ padding: "4px 16px 24px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            <h2 id="community-heading" style={{ fontSize: 18, fontWeight: 900, color: "#1a1a1a" }}>👥 Topluluk Paylaşımları</h2>
+            <button onClick={() => navigate("/yourpoodle/topluluk")} style={{ fontSize: 12, fontWeight: 700, color: "#7C3AFF", background: "none", border: "none", cursor: "pointer", fontFamily: "'Inter',sans-serif" }}>
+              Tümü →
+            </button>
           </div>
-          <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {[
-              { avatar:"🐩", user:"poodlemom_ayse",  time:"2 saat önce", text:"Bugün Mocha'nın ilk tıraşını yaptırdık! Muhteşem oldu 🎀", likes:48 },
-              { avatar:"🐾", user:"toypoodle_club",  time:"5 saat önce", text:"Yeni mama geçişimizde hiçbir sorun yaşamadık, ipuçları için teşekkürler!", likes:32 },
-              { avatar:"🤍", user:"poodle_istanbul", time:"1 gün önce",  text:"Bebek Poodle'mın 6. ayında aşıları tamam, sağlıklı büyüyor 💜", likes:91 },
-            ].map(({ avatar, user, time, text, likes }) => (
-              <div key={user} style={{ background:"#FAFAFA", borderRadius:14, padding:"12px 14px" }}>
-                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
-                  <div style={{ width:36, height:36, borderRadius:"50%", background:"#EDE8FF", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>{avatar}</div>
+              { avatar: "🐩", user: "poodlemom_ayse",  time: "2 saat önce", text: "Bugün Mocha'nın ilk tıraşını yaptırdık! Muhteşem oldu 🎀" },
+              { avatar: "🐾", user: "toypoodle_club",  time: "5 saat önce", text: "Yeni mama geçişimizde hiçbir sorun yaşamadık, ipuçları için teşekkürler!" },
+              { avatar: "🤍", user: "poodle_istanbul", time: "1 gün önce",  text: "Bebek poodle'mın 6. ayında aşıları tamam, sağlıklı büyüyor 💜" },
+            ].map(({ avatar, user, time, text }) => (
+              <article key={user} style={{ background: "#FAFAFA", borderRadius: 14, padding: "12px 14px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#EDE8FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{avatar}</div>
                   <div>
-                    <div style={{ fontSize:12, fontWeight:800, color:"#1a1a1a" }}>@{user}</div>
-                    <div style={{ fontSize:10, color:"#aaa" }}>{time}</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: "#1a1a1a" }}>@{user}</div>
+                    <div style={{ fontSize: 10, color: "#aaa" }}><time>{time}</time></div>
                   </div>
                 </div>
-                <p style={{ fontSize:13, color:"#333", lineHeight:1.5, margin:"0 0 8px" }}>{text}</p>
-                <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-                  <span style={{ fontSize:14 }}>💜</span>
-                  <span style={{ fontSize:11, color:"#888" }}>{likes} beğeni</span>
-                </div>
-              </div>
+                <p style={{ fontSize: 13, color: "#333", lineHeight: 1.5, margin: 0 }}>{text}</p>
+              </article>
             ))}
           </div>
+          <button
+            onClick={() => navigate("/yourpoodle/topluluk")}
+            style={{ width: "100%", height: 46, borderRadius: 12, background: "#F5F0FF", border: "none", fontSize: 14, fontWeight: 700, color: "#7C3AFF", cursor: "pointer", fontFamily: "'Inter',sans-serif", marginTop: 14 }}>
+            Topluluğa Katıl →
+          </button>
         </section>
 
-        {/* ── HAFTANIN POODLE'I ─────────────────────── */}
-        <section style={{ padding:"24px 16px 8px" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
-            <span style={{ fontSize:18 }}>⭐</span>
-            <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a" }}>Haftanın Poodle'ı</span>
-          </div>
-          {(() => {
-            const name = settings?.yp_poodle_name  || "Mocha";
-            const city = settings?.yp_poodle_city  || "İstanbul";
-            const desc = settings?.yp_poodle_desc  || "Topluluğun en sevilen poodlelerinden!";
-            const img  = settings?.yp_poodle_img   || "";
-            return (
-              <div style={{ background:"linear-gradient(135deg,#B39DFF,#D4C4FF)", borderRadius:20, padding:"20px", display:"flex", gap:16, alignItems:"center" }}>
-                <div style={{ width:80, height:80, borderRadius:20, background:"rgba(255,255,255,0.3)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:42, flexShrink:0, overflow:"hidden" }}>
-                  {img ? <img src={img} alt={name} style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : "🐩"}
-                </div>
-                <div>
-                  <div style={{ fontSize:11, fontWeight:800, color:"rgba(255,255,255,0.8)", letterSpacing:"0.06em", marginBottom:4 }}>BU HAFTANIN YILDIZI</div>
-                  <div style={{ fontSize:18, fontWeight:900, color:"#fff", marginBottom:4 }}>{name} ✨</div>
-                  <div style={{ fontSize:12, color:"rgba(255,255,255,0.9)", lineHeight:1.4 }}>{city}'dan.<br />{desc}</div>
-                  <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:8 }}>
-                    <span style={{ fontSize:14 }}>💜</span>
-                    <span style={{ fontSize:12, color:"#fff", fontWeight:700 }}>Topluluğun favorisi</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
-        </section>
-
-        {/* ── YAKLAŞAN ETKİNLİKLER ─────────────────── */}
-        <section style={{ padding:"24px 16px 8px" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <span style={{ fontSize:18 }}>📅</span>
-              <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a" }}>Yaklaşan Etkinlikler</span>
-            </div>
-            <button onClick={() => navigate("/yourpoodle/etkinlikler")} style={{ fontSize:12, fontWeight:700, color:"#7C3AFF", background:"none", border:"none", cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>Tümü →</button>
-          </div>
-          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+        {/* ── 13. KULLANICI YORUMLARI ───────────────────────────────── */}
+        <section aria-labelledby="reviews-heading" style={{ padding: "4px 16px 24px", background: "#F8F7FF" }}>
+          <h2 id="reviews-heading" style={{ fontSize: 18, fontWeight: 900, color: "#1a1a1a", marginBottom: 16 }}>💬 Üye Yorumları</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {[
-              { day:"18", month:"OCA", title:"Poodle Buluşması — Kadıköy",       loc:"İstanbul", color:"#FF7FA7" },
-              { day:"25", month:"OCA", title:"Online: Tıraş Teknikleri Webinarı", loc:"Zoom",     color:"#A77BFF" },
-              { day:"03", month:"ŞUB", title:"Poodle Agility Yarışması",          loc:"Ankara",   color:"#78BEFF" },
-            ].map(({ day, month, title, loc, color }) => (
-              <div key={title} style={{ display:"flex", gap:12, alignItems:"center", padding:"12px 14px", background:"#FAFAFA", borderRadius:14, cursor:"pointer" }}>
-                <div style={{ width:44, height:44, borderRadius:12, background:color+"22", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                  <div style={{ fontSize:16, fontWeight:900, color, lineHeight:1 }}>{day}</div>
-                  <div style={{ fontSize:9, fontWeight:800, color }}>{month}</div>
-                </div>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:13, fontWeight:700, color:"#1a1a1a", lineHeight:1.3, marginBottom:3 }}>{title}</div>
-                  <div style={{ fontSize:11, color:"#888" }}>📍 {loc}</div>
-                </div>
-                <div style={{ fontSize:18 }}>›</div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── ÜYE YORUMLARI ────────────────────────── */}
-        <section style={{ padding:"24px 16px 32px" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
-            <span style={{ fontSize:18 }}>💬</span>
-            <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a" }}>Üye Yorumları</span>
-          </div>
-          <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-            {[
-              { emoji:"🌸", name:"Zeynep K.", stars:5, text:"YourPoodle sayesinde poodle'ım için doğru mamayı bulduk. Harika bir platform!" },
-              { emoji:"🐶", name:"Mert A.",   stars:5, text:"Bilgi bankası inanılmaz kapsamlı. Her sorunun cevabı burada." },
-              { emoji:"💜", name:"Selin T.",  stars:5, text:"Club üyeliği çok değerli, topluluktaki insanlar gerçekten yardımsever." },
+              { emoji: "🌸", name: "Zeynep K.", stars: 5, text: "YourPoodle sayesinde poodle'ım için doğru mamayı bulduk. Harika bir platform!" },
+              { emoji: "🐾", name: "Ahmet R.", stars: 5, text: "Mama hesaplama aracı çok işe yaradı. Ölçülü besleme ile kilosunu korudu." },
+              { emoji: "💜", name: "Merve A.", stars: 5, text: "Tuvalet eğitimi rehberi sayesinde 2 haftada hallettik. Süper detaylı." },
             ].map(({ emoji, name, stars, text }) => (
-              <div key={name} style={{ background:"#FAFAFA", borderRadius:16, padding:"14px 16px" }}>
-                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                  <div style={{ width:36, height:36, borderRadius:"50%", background:"#EDE8FF", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>{emoji}</div>
+              <article key={name} style={{ background: "#fff", borderRadius: 16, padding: "15px 16px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#EDE8FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{emoji}</div>
                   <div>
-                    <div style={{ fontSize:13, fontWeight:800, color:"#1a1a1a" }}>{name}</div>
-                    <div style={{ fontSize:12, color:"#F59E0B" }}>{"★".repeat(stars)}</div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "#1a1a1a" }}>{name}</div>
+                    <div style={{ display: "flex", gap: 2 }}>
+                      {Array.from({ length: stars }).map((_, i) => <span key={i} style={{ color: "#FBBF24", fontSize: 13 }}>★</span>)}
+                    </div>
                   </div>
                 </div>
-                <p style={{ fontSize:13, color:"#444", lineHeight:1.55, margin:0 }}>{text}</p>
+                <p style={{ fontSize: 13, color: "#444", lineHeight: 1.6, margin: 0 }}>{text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* ── 14. SIK SORULAN SORULAR ──────────────────────────────── */}
+        <section aria-labelledby="faq-heading" style={{ padding: "24px 16px" }}>
+          <h2 id="faq-heading" style={{ fontSize: 18, fontWeight: 900, color: "#1a1a1a", marginBottom: 16 }}>❓ Sık Sorulan Sorular</h2>
+          <div>
+            {FAQ_ITEMS.map((item, i) => (
+              <div key={i} className="faq-item">
+                <button
+                  className="faq-btn"
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  aria-expanded={openFaq === i}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.4 }}>{item.q}</span>
+                  {openFaq === i
+                    ? <ChevronUp size={18} color="#7C3AFF" style={{ flexShrink: 0 }} />
+                    : <ChevronDown size={18} color="#aaa" style={{ flexShrink: 0 }} />}
+                </button>
+                {openFaq === i && (
+                  <div style={{ fontSize: 13, color: "#555", lineHeight: 1.6, paddingBottom: 16 }}>
+                    {item.a}
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </section>
 
-        {/* ── SABİT ALT NAV ─────────────────────────── */}
-        <nav style={{ position:"fixed", bottom:0, left:0, right:0, background:"#fff", borderTop:"1px solid #f0f0f0", boxShadow:"0 -4px 20px rgba(0,0,0,0.08)", height:64, display:"flex", alignItems:"center", justifyContent:"space-around", zIndex:200, padding:"0 8px" }}>
-          <button onClick={() => navigate("/")} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"none", border:"none", cursor:"pointer", flex:1 }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C3AFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            <span style={{ fontSize:10, fontWeight:800, color:"#7C3AFF", fontFamily:"'Inter',sans-serif" }}>Ana Sayfa</span>
-            <div style={{ width:20, height:2.5, borderRadius:2, background:"#7C3AFF" }} />
-          </button>
+        {/* ── 15. E-POSTA ÜYELİĞİ ─────────────────────────────────── */}
+        <section aria-labelledby="email-heading" style={{ margin: "0 16px 24px" }}>
+          <div style={{ background: "linear-gradient(135deg,#EDE8FF,#F5F0FF)", borderRadius: 24, padding: "24px 20px", textAlign: "center" }}>
+            <div style={{ fontSize: 36, marginBottom: 10 }}>💜</div>
+            <h2 id="email-heading" style={{ fontSize: 17, fontWeight: 900, color: "#1a1a1a", marginBottom: 8 }}>
+              Poodle bakım ipuçları al
+            </h2>
+            <p style={{ fontSize: 13, color: "#666", lineHeight: 1.5, marginBottom: 18 }}>
+              Haftalık rehberler, yeni araçlar ve poodle topluluğundan haberler.
+            </p>
+            {emailSent ? (
+              <div style={{ background: "#D1FAE5", borderRadius: 12, padding: "14px", fontSize: 14, fontWeight: 700, color: "#065F46" }}>
+                ✓ Teşekkürler! Sizi ekledik.
+              </div>
+            ) : (
+              <div style={{ display: "flex", gap: 8, maxWidth: 340, margin: "0 auto" }}>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="E-posta adresiniz"
+                  aria-label="E-posta adresiniz"
+                  style={{ flex: 1, height: 48, borderRadius: 12, border: "1.5px solid #DDD5FF", padding: "0 14px", fontSize: 14, outline: "none", fontFamily: "'Inter',sans-serif", background: "#fff" }}
+                />
+                <button
+                  onClick={() => { if (email.includes("@")) setEmailSent(true); }}
+                  style={{ height: 48, padding: "0 18px", borderRadius: 12, background: "#7C3AFF", border: "none", fontSize: 13, fontWeight: 800, color: "#fff", cursor: "pointer", fontFamily: "'Inter',sans-serif", whiteSpace: "nowrap" }}>
+                  Abone Ol
+                </button>
+              </div>
+            )}
+            <p style={{ marginTop: 10, fontSize: 11, color: "#aaa" }}>İstediğiniz zaman abonelikten çıkabilirsiniz.</p>
+          </div>
+        </section>
 
-          <button onClick={() => navigate("/yourpoodle/club")} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"none", border:"none", cursor:"pointer", flex:1 }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            <span style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:"'Inter',sans-serif" }}>Club</span>
-          </button>
+        {/* ── 16. FOOTER ───────────────────────────────────────────── */}
+        <footer aria-label="Site haritası" style={{ background: "#1a1a2e", padding: "32px 20px 24px" }}>
+          <div style={{ marginBottom: 24 }}>
+            <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 28, objectFit: "contain", opacity: 0.9 }}
+              onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, marginTop: 10, maxWidth: 280 }}>
+              Toy Poodle sahipleri için bakım, beslenme, sağlık, eğitim ve topluluk platformu.
+            </p>
+          </div>
 
-          <button onClick={() => navigate("/yourpoodle/magaza")} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"none", border:"none", cursor:"pointer", flex:1, position:"relative" }}>
-            <div style={{ width:54, height:54, borderRadius:"50%", background:"linear-gradient(135deg,#9B59FF,#7C3AFF)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 6px 20px rgba(124,58,255,0.4)", position:"absolute", top:-24 }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-            </div>
-            <span style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:"'Inter',sans-serif", marginTop:32 }}>Mağaza</span>
-          </button>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
+            {[
+              { title: "Rehber", links: [["Yavru Poodle", "/yourpoodle/rehber"], ["Beslenme", "/yourpoodle/mama"], ["Eğitim", "/yourpoodle/egitim"], ["Bakım", "/yourpoodle/bakim"], ["Sağlık", "/yourpoodle/saglik"]] },
+              { title: "Market", links: [["Mama", "/yourpoodle/magaza"], ["Ödül", "/yourpoodle/magaza"], ["Bakım", "/yourpoodle/magaza"], ["Aksesuar", "/yourpoodle/magaza"], ["Kişiye özel", "/yourpoodle/magaza"]] },
+              { title: "Destek", links: [["Sık Sorulan Sorular", "/sss"], ["Sipariş Takibi", "/siparis-takip"], ["İade", "/teslimat-iade"], ["Yardım Merkezi", "/iletisim"]] },
+              { title: "Yasal", links: [["Kullanım Koşulları", "/kullanim-kosullari"], ["Gizlilik", "/gizlilik"], ["KVKK", "/kvkk"], ["Çerez Politikası", "/cerez-politikasi"], ["Topluluk Kuralları", "/yourpoodle/club"]] },
+            ].map(({ title, links }) => (
+              <div key={title}>
+                <div style={{ fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>{title}</div>
+                {links.map(([label, href]) => (
+                  <a key={label} href={href}
+                    onClick={e => { e.preventDefault(); navigate(href); }}
+                    style={{ display: "block", fontSize: 13, color: "rgba(255,255,255,0.65)", textDecoration: "none", marginBottom: 7, lineHeight: 1.4 }}>
+                    {label}
+                  </a>
+                ))}
+              </div>
+            ))}
+          </div>
 
-          <button onClick={() => navigate("/yourpoodle/rehber")} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"none", border:"none", cursor:"pointer", flex:1 }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-            <span style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:"'Inter',sans-serif" }}>Rehber</span>
-          </button>
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 16 }}>
+            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", lineHeight: 1.6 }}>
+              © 2025 Sizpa İnternet Tic. Ltd. Şti. · <a href="mailto:info@sizpa.com" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>info@sizpa.com</a>
+            </p>
+          </div>
+        </footer>
 
-          <button onClick={() => navigate("/yourpoodle/bilgi")} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"none", border:"none", cursor:"pointer", flex:1 }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-            <span style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:"'Inter',sans-serif" }}>Bilgi Bankası</span>
-          </button>
-        </nav>
-
+        {/* ── 17. BOTTOM NAV ───────────────────────────────────────── */}
+        <YPBottomNav />
       </div>
     </>
   );

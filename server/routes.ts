@@ -6193,6 +6193,55 @@ Bu site içeriği, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini, Bin
     baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
   });
 
+  // ── YourPoodle AI Chat ─────────────────────────────────────────────────────
+  app.post("/api/yp-chat", async (req: Request, res: Response) => {
+    const ip = req.ip || "unknown";
+    if (rateLimit(`ypchat:${ip}`, 12, 60 * 1000)) {
+      return res.status(429).json({ error: "Çok fazla mesaj. Lütfen biraz bekleyin." });
+    }
+    if (rateLimit(`ypchat:global`, 300, 60 * 60 * 1000)) {
+      return res.status(429).json({ error: "Sistem yoğun. Lütfen daha sonra tekrar deneyin." });
+    }
+    try {
+      const { messages, systemPrompt } = req.body;
+      if (!Array.isArray(messages) || messages.length === 0) {
+        return res.status(400).json({ error: "Geçersiz mesaj." });
+      }
+      const lastMsg = messages[messages.length - 1];
+      if (!lastMsg?.content || typeof lastMsg.content !== "string" || lastMsg.content.trim().length > 1000) {
+        return res.status(400).json({ error: "Mesaj 1-1000 karakter arasında olmalıdır." });
+      }
+
+      const defaultSystem = `Sen YourPoodle'ın AI asistanısın. Yalnızca Toy Poodle ve Miniature Poodle sahiplerine yardımcı oluyorsun.
+
+Kurallar:
+- Samimi, sıcak ve anlaşılır dil kullan.
+- Sadece poodle bakımı, beslenmesi, eğitimi, sağlığı ve davranışı hakkında bilgi ver.
+- Kesin tıbbi teşhis koyma. Ciddi sağlık sorunlarında veterinere yönlendir.
+- Kısa ve net cevaplar ver (max 4-5 cümle). Gerektiğinde madde madde açıkla.
+- Türkçe cevap ver.`;
+
+      const completion = await petAI.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: typeof systemPrompt === "string" ? systemPrompt : defaultSystem },
+          ...messages.slice(-10).map((m: any) => ({
+            role: m.role === "user" ? "user" : "assistant",
+            content: String(m.content).slice(0, 1000),
+          })),
+        ],
+        max_tokens: 400,
+        temperature: 0.7,
+      });
+
+      const reply = completion.choices[0]?.message?.content || "Üzgünüm, şu an cevap veremiyorum.";
+      res.json({ reply });
+    } catch (error: any) {
+      console.error("[yp-chat] error:", error?.message);
+      res.status(500).json({ error: "Yapay zeka şu an meşgul, lütfen tekrar deneyin." });
+    }
+  });
+
   app.post("/api/pet-ask", async (req: Request, res: Response) => {
     const ip = req.ip || "unknown";
     if (rateLimit(`petask:${ip}`, 5, 60 * 1000)) {

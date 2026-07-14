@@ -94,6 +94,8 @@ const YPEgitimPage        = lazy(() => import("@/pages/yp-egitim"));
 const YPSaglikPage        = lazy(() => import("@/pages/yp-saglik"));
 const YPBakimPage         = lazy(() => import("@/pages/yp-bakim"));
 const YPEtkinliklerPage   = lazy(() => import("@/pages/yp-etkinlikler"));
+const YPAiAsistanPage     = lazy(() => import("@/pages/yp-ai-asistan"));
+const YPMamaBulPage       = lazy(() => import("@/pages/yp-mama-bul"));
 const DemoKampanyaPage = lazy(() => import("@/pages/demo-kampanya"));
 const DemoKampanyaUrunPage = lazy(() => import("@/pages/demo-kampanya").then(m => ({ default: m.DemoKampanyaUrun })));
 const SeoPage = lazy(() => import("@/pages/seo-pages"));
@@ -179,6 +181,8 @@ function Router() {
         <Route path="/yourpoodle/saglik"         component={YPSaglikPage} />
         <Route path="/yourpoodle/bakim"          component={YPBakimPage} />
         <Route path="/yourpoodle/etkinlikler"    component={YPEtkinliklerPage} />
+        <Route path="/yourpoodle/ai-asistan"     component={YPAiAsistanPage} />
+        <Route path="/yourpoodle/mama-bul"       component={YPMamaBulPage} />
         <Route path="/demo-kampanya" component={DemoKampanyaPage} />
         <Route path="/demo-kampanya/urun/:id" component={DemoKampanyaUrunPage} />
         <Route path="/kampanya" component={CampaignPage} />
@@ -219,10 +223,13 @@ const LANDING_LIKE_ROUTES = new Set([
   "/getir-petshop",
 ]);
 
+const YPCookieBanner = lazy(() => import("@/components/YPCookieBanner").then(m => ({ default: m.default })));
+
 function AppShell() {
   const [location] = useLocation();
   const isAdmin = location.startsWith("/admin");
   const isDemo = location === "/" || location === "/demo" || location.startsWith("/demo-kampanya") || location === "/demo1" || location === "/demo2" || location === "/demo-anasayfa" || location.startsWith("/yourpoodle");
+  const isYP = location === "/" || location.startsWith("/yourpoodle");
   const isLandingLike = LANDING_LIKE_ROUTES.has(location);
 
   useEffect(() => {
@@ -253,6 +260,7 @@ function AppShell() {
       )}
       {!isAdmin && !isDemo && <FloatingCartBar />}
       {!isAdmin && !isDemo && <BottomTabBar />}
+      {isYP && <Suspense fallback={null}><YPCookieBanner /></Suspense>}
     </>
   );
 }
