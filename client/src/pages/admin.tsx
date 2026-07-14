@@ -5,7 +5,6 @@ import { exportSktPdf } from "@/lib/exportSktPdf";
 import { printOrderReceipt } from "@/lib/printReceipt";
 import { STORES, type StoreGoogle } from "@shared/stores";
 import { brandify } from "@/lib/store";
-import enuygunStoreBanner from "@assets/enuygunpet_magaza_1783254122911.webp";
 import { isSharedRowInStoreView, confirmSharedEdit, storeCtxParam, STORE_SCOPED_SETTING_KEYS, confirmSharedSettingsSave } from "@/lib/storeScope";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7912,7 +7911,7 @@ function TopPromoBannerAdmin() {
                 </div>
               ) : (
                 <div className="mt-2 border rounded overflow-hidden bg-black">
-                  <img src={enuygunStoreBanner} alt="varsayılan mağaza görseli" className="w-full h-auto max-h-32 object-contain" />
+                  <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle varsayılan mağaza görseli" className="w-full h-auto max-h-32 object-contain" />
                   <div className="text-[10px] text-muted-foreground px-2 py-1">Şu an varsayılan mağaza görseli gösteriliyor</div>
                 </div>
               )}

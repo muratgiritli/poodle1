@@ -130,11 +130,11 @@ export interface StoreConfig {
 
 const jetgo: StoreConfig = {
   id: "jetgo",
-  hostnames: ["yourpoodle.com", "www.yourpoodle.com", "enuygunpet.com", "www.enuygunpet.com"],
-  name: "YourPoodle Pet Shop Samsun",
+  hostnames: ["yourpoodle.com", "www.yourpoodle.com"],
+  name: "YourPoodle",
   shortName: "YourPoodle",
   brandWord: "YourPoodle",
-  alternateNames: ["YourPoodle Samsun Pet Shop", "YourPoodle Pet", "YourPoodle Atakum Pet Shop"],
+  alternateNames: ["YourPoodle Platform", "YourPoodle Poodle Rehberi", "YourPoodle Toy Poodle"],
   domain: "https://www.yourpoodle.com",
   logo: "/images/yourpoodle-logo.jpg",
   favicon: "/favicon-192.png",
@@ -144,8 +144,8 @@ const jetgo: StoreConfig = {
   address: "Yenimahalle Atatürk 3. Kısım Blv. No:113/A, Atakum, Samsun",
   companyName: "Sizpa İnternet Tic. Ltd. Şti.",
   businessDescription:
-    "Samsun'un en hızlı pet shop'u YourPoodle. Kedi maması, köpek maması, kedi kumu, ödül maması ve evcil hayvan ürünlerinde Atakum, İlkadım, Canik içi aynı gün teslimat ve kapıda ödeme imkanı.",
-  slogan: "Samsun'un Hızlı Pet Shop'u — Aynı Gün Teslimat",
+    "Toy Poodle sahipleri için Türkiye'nin en kapsamlı bakım, beslenme, eğitim, sağlık ve topluluk platformu. AI asistan, kişiselleştirilmiş mama önerileri, hesaplama araçları ve poodle sahipleri topluluğu.",
+  slogan: "Dünyanın En Kapsamlı Toy Poodle Platformu",
   social: [],
   theme: {
     primary: "203 89% 53%",
@@ -153,11 +153,11 @@ const jetgo: StoreConfig = {
     navBar: "#7c4dff",
   },
   seo: {
-    title: "Atakum Petshop & Samsun Pet Shop - Aynı Gün Teslimat | YourPoodle",
+    title: "Toy Poodle Rehberi, Bakımı ve Mama Seçimi | YourPoodle",
     description:
-      "Atakum içinde 1 saatte, Samsun geneline aynı gün petshop teslimatı. Denizevleri, Atakent, Mimar Sinan ve tüm Atakum mahallelerine kedi maması, köpek maması, kedi kumu kapıda ödeme. 0850 840 39 59.",
+      "Toy Poodle bakımı, eğitimi, mama seçimi, sağlık rehberleri ve uzman önerileri YourPoodle'da. AI asistan, mama bul sihirbazı ve Türkiye'nin poodle topluluğu.",
     keywords:
-      "atakum petshop, atakum pet shop, atakum kedi maması, atakum köpek maması, atakum kedi kumu, atakum aynı gün teslimat, atakum 1 saatte teslimat, denizevleri petshop, atakent petshop, mimar sinan petshop, yenimahalle petshop, kurupelit petshop, samsun petshop, kapıda ödeme petshop atakum",
+      "toy poodle, poodle bakım, poodle mama, poodle eğitim, poodle sağlık, miniature poodle, poodle rehber, poodle tıraş, poodle topluluk",
     ogImage: "/og-image.webp",
   },
   google: {

@@ -807,6 +807,8 @@ export async function registerRoutes(
       const categories = await storage.getAllBrandCategories();
       const seenCategories = new Set<string>();
       for (const cat of categories) {
+        // YourPoodle is poodle/dog focused — exclude kedi/kemirgen categories
+        if (cat.animal !== "kopek") continue;
         const catKey = `${cat.animal}/${cat.subcategory}`;
         if (!seenCategories.has(catKey)) {
           seenCategories.add(catKey);
@@ -869,6 +871,7 @@ export async function registerRoutes(
         { url: "/yourpoodle/club",        priority: "0.7", changefreq: "weekly" },
         { url: "/yourpoodle/topluluk",    priority: "0.7", changefreq: "weekly" },
         { url: "/yourpoodle/etkinlikler", priority: "0.6", changefreq: "weekly" },
+        { url: "/yourpoodle/hakkinda",    priority: "0.5", changefreq: "monthly" },
         // /yourpoodle/giris is noindex — excluded
       ];
       let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n`;
@@ -1848,57 +1851,58 @@ export async function registerRoutes(
   });
 
   // llms.txt — AI agent / LLM-friendly site summary (emerging standard)
-  app.get("/llms.txt", (req, res) => {
-    res.type("text/plain").send(brandifyFor(reqStore(req), `# JETGO Pet Shop Samsun
+  app.get("/llms.txt", (_req, res) => {
+    res.type("text/plain").send(`# YourPoodle — Toy Poodle Platformu
 
-> Samsun'un (Atakum, İlkadım, Canik) en hızlı köpek pet shop'u. Köpek maması, ödül maması ve köpek aksesuarlarında **aynı gün teslimat** ve **kapıda ödeme** sunan online köpek ürünleri mağazası.
+> Toy Poodle sahipleri için Türkiye'nin en kapsamlı bakım, beslenme, eğitim, sağlık ve topluluk platformu. AI asistan, kişiselleştirilmiş mama önerileri, hesaplama araçları ve poodle sahipleri topluluğu.
 
 ## Hakkımızda
-- **Marka:** JETGO Pet Shop
+- **Platform:** YourPoodle
 - **Şirket:** Sizpa İnternet Tic. Ltd. Şti.
-- **Şehir:** Samsun, Türkiye
-- **Hizmet bölgeleri:** Atakum, İlkadım, Canik (tüm mahalleler)
-- **Mağaza adresi:** Yenimahalle Atatürk 3. Kısım Bulvarı No:113/A, Atakum, Samsun (55200)
-- **Domain:** https://www.jetgomarket.com
-- **Telefon:** +90 850 840 39 59
+- **Domain:** https://www.yourpoodle.com
 - **E-posta:** info@sizpa.com
-- **Çalışma saatleri:** Pazartesi-Cumartesi 09:00-22:00, Pazar 10:00-22:00 (online sipariş 7/24)
+- **Odak:** Toy, Minyatür ve Standart Poodle sahipleri
 
-## Ana Hizmetler
-- Aynı gün teslimat (Samsun içi 20 km yarıçap)
-- Kapıda nakit / kart ödeme
-- AI destekli pet bakım danışmanı (chatbot)
-- Akıllı mama hesaplama
-- Reçeteli mama tekrar siparişi hatırlatma
-- Sahiplendirme & kayıp ilan tahtası
-- Sokak hayvanlarına askıda mama bağışı
+## Ana Özellikler
+- AI destekli Poodle asistanı — kişiselleştirilmiş bakım, beslenme ve eğitim önerileri
+- 11 soruluk kişiselleştirilmiş mama bul sihirbazı
+- Bilgi bankası — mama hesaplama, yaş dönüşümü, su ihtiyacı, aşı takvimi araçları
+- Kapsamlı rehberler — bakım, eğitim, sağlık, beslenme
+- Poodle sahipleri topluluğu ve etkinlikler
+- Poodle ürünleri mağazası — mama, aksesuar, oyuncak
 
 ## Ana Sayfalar
-- Anasayfa: https://www.jetgomarket.com/
-- Köpek Maması: https://www.jetgomarket.com/kopek-mamasi
-- Pet Aksesuar: https://www.jetgomarket.com/pet-aksesuar
-- Atakum Pet Shop: https://www.jetgomarket.com/atakum-petshop
-- İlkadım Pet Shop: https://www.jetgomarket.com/ilkadim-petshop
-- Canik Pet Shop: https://www.jetgomarket.com/canik-petshop
-- Kampanyalar: https://www.jetgomarket.com/kampanya
-- Blog: https://www.jetgomarket.com/blog
-- İletişim: https://www.jetgomarket.com/iletisim
-- Sitemap: https://www.jetgomarket.com/sitemap.xml
+- Anasayfa: https://www.yourpoodle.com/yourpoodle
+- Rehber: https://www.yourpoodle.com/yourpoodle/rehber
+- AI Asistan: https://www.yourpoodle.com/yourpoodle/ai-asistan
+- Mama Rehberi: https://www.yourpoodle.com/yourpoodle/mama
+- Mama Bul Sihirbazı: https://www.yourpoodle.com/yourpoodle/mama-bul
+- Bilgi Bankası: https://www.yourpoodle.com/yourpoodle/bilgi
+- Eğitim Rehberi: https://www.yourpoodle.com/yourpoodle/egitim
+- Sağlık Rehberi: https://www.yourpoodle.com/yourpoodle/saglik
+- Bakım Rehberi: https://www.yourpoodle.com/yourpoodle/bakim
+- Poodle Club: https://www.yourpoodle.com/yourpoodle/club
+- Topluluk: https://www.yourpoodle.com/yourpoodle/topluluk
+- Etkinlikler: https://www.yourpoodle.com/yourpoodle/etkinlikler
+- Mağaza: https://www.yourpoodle.com/yourpoodle/magaza
+- Hakkımızda: https://www.yourpoodle.com/yourpoodle/hakkinda
+- Sitemap: https://www.yourpoodle.com/sitemap.xml
 
 ## Sıkça Sorulan Sorular
-- **Samsun'da pet shop ürünleri kaç saatte teslim edilir?** Atakum, İlkadım, Canik içi siparişler aynı gün, çoğu zaman 1-3 saat içinde teslim edilir.
-- **Kapıda ödeme var mı?** Evet, nakit ve kredi kartıyla kapıda ödeme yapabilirsiniz.
-- **Minimum sipariş tutarı nedir?** Bölgeye göre değişir; çoğu mahallede 200 TL üzeri siparişlerde teslimat ücretsizdir.
-- **İade politikanız nedir?** Açılmamış mama ürünlerinde 14 gün iade hakkı vardır.
+- **Toy Poodle bakımı nasıl yapılır?** Toy Poodle'lar 6-8 haftada bir tıraş, haftada 2-3 kez tarama, ayda bir banyo gerektirir. Günlük diş fırçalama ve haftalık kulak temizliği de bakım rutininin parçasıdır.
+- **Poodle için en iyi mama hangisi?** Poodle'ın yaşına, kilosuna, alerji durumuna ve aktivite seviyesine göre değişir. YourPoodle'un 11 soruluk mama sihirbazı kişiselleştirilmiş öneri sunar.
+- **Poodle'lar ne kadar zekidir?** Poodle'lar köpek zekası sıralamalarında ikinci sıradadır ve çok hızlı öğrenen bir ırktır.
+- **Toy Poodle ömrü ne kadardır?** Toy Poodle'lar ortalama 14-16 yıl yaşar; düzgün bakım ve beslemeyle bu süre uzayabilir.
+- **Poodle tüyleri dökülür mü?** Poodle'ların tüyleri çok az dökülür; bu nedenle alerjisi olan sahipler için uygun bir ırktır. Ancak düzenli tıraş ve tarama gerektirir.
 
 ## İçerik Politikası
-Bu site içeriği, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini, Bing AI, vb.) tarafından **kullanıcılara yanıt verirken kaynak gösterilerek** kullanılabilir.
-`));
+YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini, Bing AI, vb.) tarafından kullanıcılara yanıt verirken **kaynak gösterilerek** kullanılabilir. İçerikler veteriner uzmanları danışmanlığında hazırlanmakta olup tıbbi tavsiye yerine geçmez.
+`);
   });
 
   // IndexNow key file (Bing/Yandex instant indexing)
-  app.get("/jetgo-indexnow-2026.txt", (_req, res) => {
-    res.type("text/plain").send("jetgo-indexnow-2026");
+  app.get("/yourpoodle-indexnow-2026.txt", (_req, res) => {
+    res.type("text/plain").send("yourpoodle-indexnow-2026");
   });
 
   app.get("/api/social-proof/recent", async (_req, res) => {
@@ -6286,6 +6290,31 @@ Kurallar:
     } catch (error: any) {
       console.error("[yp-chat] error:", error?.message);
       res.status(500).json({ error: "Yapay zeka şu an meşgul, lütfen tekrar deneyin." });
+    }
+  });
+
+  // ── YourPoodle email subscription ────────────────────────────────────────
+  app.post("/api/yp/email-subscribe", async (req: Request, res: Response) => {
+    const { email } = req.body || {};
+    if (!email || typeof email !== "string" || !email.includes("@") || email.length > 200) {
+      return res.status(400).json({ error: "Geçersiz e-posta adresi." });
+    }
+    try {
+      await sharedPool.query(`
+        CREATE TABLE IF NOT EXISTS yp_email_subscribers (
+          id SERIAL PRIMARY KEY,
+          email TEXT UNIQUE NOT NULL,
+          created_at TIMESTAMPTZ DEFAULT now()
+        )
+      `);
+      await sharedPool.query(
+        `INSERT INTO yp_email_subscribers (email) VALUES ($1) ON CONFLICT (email) DO NOTHING`,
+        [email.toLowerCase().trim()]
+      );
+      res.json({ success: true });
+    } catch (err) {
+      console.error("[yp-email-subscribe] error:", err);
+      res.status(500).json({ error: "Sunucu hatası." });
     }
   });
 

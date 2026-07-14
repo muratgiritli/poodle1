@@ -1,55 +1,61 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Phone, Mail, MapPin, HelpCircle, FileText, Shield, Cookie, BookOpen, Info, Truck, Lock, ShieldCheck, ScrollText, Gift, ChevronRight, MessageSquare, Store } from "lucide-react";
+import { Mail, HelpCircle, Truck, Lock, Cookie, Shield, ScrollText, MessageSquare, ShieldCheck, Brain, BookOpen, Users, ShoppingBag, Sparkles } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import kartLogoPath from "@assets/kart_1775765432584.png";
 import ContactDialog from "@/components/ContactDialog";
 import { useStore } from "@/lib/store";
-import { DEFAULT_STORE } from "@shared/stores";
 
-const FOOTER_LINKS = [
-  { label: "Sıkça Sorulan Sorular", href: "/sss", icon: HelpCircle, mobileHidden: false },
-  { label: "İşlem Rehberi", href: "/islem-rehberi", icon: Info, mobileHidden: false },
-  { label: "Mağaza & Konum", href: "/magaza", icon: MapPin, mobileHidden: true },
-  { label: "Teslimat ve İade Şartları", href: "/teslimat-iade", icon: Truck, mobileHidden: false },
-  { label: "Mesafeli Satış Sözleşmesi", href: "/mesafeli-satis", icon: ScrollText, mobileHidden: true },
+const YP_PLATFORM_LINKS = [
+  { label: "Rehber", href: "/yourpoodle/rehber", icon: BookOpen },
+  { label: "Bilgi Bankası", href: "/yourpoodle/bilgi", icon: Sparkles },
+  { label: "AI Asistan", href: "/yourpoodle/ai-asistan", icon: Brain },
+  { label: "Mama Bul", href: "/yourpoodle/mama-bul", icon: Sparkles },
+  { label: "Mağaza", href: "/yourpoodle/magaza", icon: ShoppingBag },
+];
+
+const YP_COMMUNITY_LINKS = [
+  { label: "Poodle Club", href: "/yourpoodle/club", icon: Users },
+  { label: "Etkinlikler", href: "/yourpoodle/etkinlikler", icon: Users },
+  { label: "Topluluk", href: "/yourpoodle/topluluk", icon: Users },
+  { label: "Profil Oluştur", href: "/yourpoodle/poodle-ekle", icon: Users },
+];
+
+const SUPPORT_LINKS = [
+  { label: "Sıkça Sorulan Sorular", href: "/sss", icon: HelpCircle },
+  { label: "Sipariş Takibi", href: "/siparis-takip", icon: Truck },
+  { label: "Teslimat ve İade", href: "/teslimat-iade", icon: Truck },
+  { label: "İletişim", href: "/iletisim", icon: Mail },
+  { label: "Hakkımızda", href: "/yourpoodle/hakkinda", icon: BookOpen },
 ];
 
 const LEGAL_LINKS = [
-  { label: "Gizlilik Politikası", href: "/gizlilik", icon: Shield, mobileHidden: true },
-  { label: "Çerez Politikası", href: "/cerez-politikasi", icon: Cookie, mobileHidden: true },
-  { label: "KVKK Sözleşmesi", href: "/kvkk", icon: Lock, mobileHidden: true },
-  { label: "Hakkımızda", href: "/hakkimizda", icon: BookOpen, mobileHidden: true },
-  { label: "İletişim", href: "/iletisim", icon: Mail, mobileHidden: false },
-];
-
-const JETGO_DISCOVER_LINKS = [
-  { label: "Markalar", href: "/kategori" },
-  { label: "Veteriner Maması", href: "/kategori/veteriner" },
-  { label: "Kampanyalar", href: "/kampanya" },
-  { label: "Sokak Canlıları", href: "/sokak-canlari" },
-  { label: "Blog", href: "/blog" },
+  { label: "Gizlilik Politikası", href: "/gizlilik", icon: Shield },
+  { label: "Çerez Politikası", href: "/cerez-politikasi", icon: Cookie },
+  { label: "KVKK Sözleşmesi", href: "/kvkk", icon: Lock },
+  { label: "Mesafeli Satış Sözleşmesi", href: "/mesafeli-satis", icon: ScrollText },
 ];
 
 export default function Footer() {
   const [contactOpen, setContactOpen] = useState(false);
   const store = useStore();
-  const showStoreContact = store.id !== DEFAULT_STORE.id;
-  const isJetgo = store.id === DEFAULT_STORE.id;
   const whatsappDigits = store.phone.replace(/\D/g, "");
+
   return (
     <footer className="block bg-gray-900 text-gray-300 mt-8 pb-20 md:pb-0" data-testid="footer-desktop">
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-10">
+
+          {/* Platform */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-1">Müşteri Hizmetleri</h3>
-            <p className="text-gray-400 text-sm mb-4">Sorularınız için bize ulaşın</p>
+            <h3 className="text-white font-bold text-lg mb-1">Platform</h3>
+            <p className="text-gray-400 text-sm mb-4">Poodle'ınız için araçlar</p>
             <ul className="space-y-2">
-              {FOOTER_LINKS.map((link) => {
+              {YP_PLATFORM_LINKS.map((link) => {
                 const Icon = link.icon;
                 return (
-                  <li key={link.href} className={link.mobileHidden && !isJetgo ? "hidden md:block" : ""}>
-                    <Link href={link.href} className="flex items-center gap-2 text-sm hover:text-white transition-colors" data-testid={`footer-link-${link.href.slice(1)}`}>
+                  <li key={link.href}>
+                    <Link href={link.href} className="flex items-center gap-2 text-sm hover:text-white transition-colors" data-testid={`footer-link-${link.href.slice(1).replace(/\//g, "-")}`}>
                       <Icon className="w-4 h-4 flex-shrink-0" />
                       {link.label}
                     </Link>
@@ -59,14 +65,30 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div className={isJetgo ? "" : "hidden md:block"}>
-            <h3 className="text-white font-bold text-lg mb-4">Kurumsal</h3>
+          {/* Topluluk */}
+          <div>
+            <h3 className="text-white font-bold text-lg mb-4">Topluluk</h3>
             <ul className="space-y-2">
-              {LEGAL_LINKS.map((link) => {
+              {YP_COMMUNITY_LINKS.map((link) => {
                 const Icon = link.icon;
                 return (
-                  <li key={link.href} className={link.mobileHidden && !isJetgo ? "hidden md:block" : ""}>
-                    <Link href={link.href} className="flex items-center gap-2 text-sm hover:text-white transition-colors" data-testid={`footer-link-${link.href.slice(1)}`}>
+                  <li key={link.href}>
+                    <Link href={link.href} className="flex items-center gap-2 text-sm hover:text-white transition-colors" data-testid={`footer-link-${link.href.slice(1).replace(/\//g, "-")}`}>
+                      <Icon className="w-4 h-4 flex-shrink-0" />
+                      {link.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+
+            <h3 className="text-white font-bold text-base mt-6 mb-3">Destek</h3>
+            <ul className="space-y-2">
+              {SUPPORT_LINKS.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <li key={link.href}>
+                    <Link href={link.href} className="flex items-center gap-2 text-sm hover:text-white transition-colors" data-testid={`footer-link-${link.href.slice(1).replace(/\//g, "-")}`}>
                       <Icon className="w-4 h-4 flex-shrink-0" />
                       {link.label}
                     </Link>
@@ -76,43 +98,22 @@ export default function Footer() {
             </ul>
           </div>
 
+          {/* İletişim */}
           <div>
             <h3 className="text-white font-bold text-lg mb-4">İletişim</h3>
-            <div className="flex flex-wrap gap-2 mb-4" data-testid="footer-store-buttons">
-              <a
-                href="https://www.enuygun.pet"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-600 hover:bg-green-700 text-white text-sm font-bold shadow-sm transition-colors whitespace-nowrap"
-                data-testid="btn-footer-physical-store"
-              >
-                <Store className="w-4 h-4 shrink-0" />
-                <span>Fiziki Mağaza</span>
-              </a>
+            <div className="flex flex-col gap-2 mb-4">
               <a
                 href={`https://wa.me/${whatsappDigits}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-300 hover:border-green-500 hover:bg-green-50 text-gray-800 text-sm font-bold shadow-sm transition-colors whitespace-nowrap"
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-300 hover:border-green-500 hover:bg-green-50 text-gray-800 text-sm font-bold shadow-sm transition-colors whitespace-nowrap w-fit"
                 data-testid="btn-footer-whatsapp"
               >
                 <SiWhatsapp className="w-4 h-4 text-green-600 shrink-0" />
-                <span>WhatsApp: {store.phoneDisplay}</span>
+                <span>WhatsApp Destek</span>
               </a>
             </div>
             <ul className="space-y-3">
-              {showStoreContact && (
-                <>
-                  <li className="flex items-start gap-2.5 text-sm text-gray-300" data-testid="footer-contact-address">
-                    <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-emerald-400" />
-                    <span>{store.address}</span>
-                  </li>
-                  <li className="flex items-start gap-2.5 text-sm text-gray-300" data-testid="footer-contact-company">
-                    <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" />
-                    <span>Şirket: {store.companyName}</span>
-                  </li>
-                </>
-              )}
               <li>
                 <button
                   type="button"
@@ -124,67 +125,65 @@ export default function Footer() {
                   İletişime Geç →
                 </button>
               </li>
+              <li className="text-xs text-gray-500 mt-2">
+                <a href={`mailto:${store.email}`} className="hover:text-white transition-colors">{store.email}</a>
+              </li>
             </ul>
           </div>
 
-          <div className="hidden md:block">
-            <h3 className="text-white font-bold text-lg mb-4">Kampanya</h3>
-            <Link href="/kampanya">
-              <div className="bg-gradient-to-br from-[#6B3480] to-[#9b59b6] rounded-xl p-4 hover:shadow-lg transition-shadow cursor-pointer group" data-testid="footer-campaign-link">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                    <Gift className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm font-bold">Kampanyalı Ürünler</p>
-                    <p className="text-white/60 text-xs mt-0.5">Ana mama + ek ürün fırsatları</p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-white/50 group-hover:text-white transition-colors" />
-                </div>
-              </div>
-            </Link>
+          {/* Yasal */}
+          <div>
+            <h3 className="text-white font-bold text-lg mb-4">Yasal</h3>
+            <ul className="space-y-2">
+              {LEGAL_LINKS.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <li key={link.href}>
+                    <Link href={link.href} className="flex items-center gap-2 text-sm hover:text-white transition-colors" data-testid={`footer-link-${link.href.slice(1).replace(/\//g, "-")}`}>
+                      <Icon className="w-4 h-4 flex-shrink-0" />
+                      {link.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </div>
 
-        {isJetgo && (
-          <div className="border-t border-gray-700 mt-8 pt-6" data-testid="footer-discover">
-            <h3 className="text-white font-bold text-lg mb-3">Keşfet</h3>
-            <div className="flex flex-wrap gap-x-5 gap-y-2">
-              {JETGO_DISCOVER_LINKS.map((l) => (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  className="text-sm text-gray-300 hover:text-white transition-colors"
-                  data-testid={`footer-discover-${l.href.slice(1).replace(/\//g, "-")}`}
-                >
-                  {l.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="border-t border-gray-700 mt-8 pt-6 pb-4">
-          <div className="flex flex-wrap gap-x-4 gap-y-1.5 mb-4">
+        {/* SEO linkler — poodle odaklı */}
+        <div className="border-t border-gray-700 mt-8 pt-6">
+          <div className="flex flex-wrap gap-x-5 gap-y-2">
             {[
-              { label: "Samsun Pet Shop", href: "/samsun-petshop" },
-              { label: "Atakum Pet Shop", href: "/atakum-petshop" },
-              { label: "İlkadım Pet Shop", href: "/ilkadim-petshop" },
-              { label: "Canik Pet Shop", href: "/canik-petshop" },
+              { label: "Toy Poodle Bakımı", href: "/yourpoodle/bakim" },
+              { label: "Poodle Mama Seçimi", href: "/yourpoodle/mama" },
+              { label: "Poodle Eğitimi", href: "/yourpoodle/egitim" },
+              { label: "Poodle Sağlığı", href: "/yourpoodle/saglik" },
+              { label: "Poodle Hesaplama Araçları", href: "/yourpoodle/bilgi" },
               { label: "Köpek Maması", href: "/kopek-mamasi" },
-              { label: "Pet Aksesuar", href: "/pet-aksesuar" },
-              { label: "Köpek Maması Fiyatları", href: "/kopek-mamasi-fiyatlari" },
             ].map((l) => (
-              <Link key={l.href} href={l.href} className="text-xs text-gray-500 hover:text-white transition-colors" data-testid={`footer-seo-${l.href.slice(1)}`}>
+              <Link
+                key={l.href}
+                href={l.href}
+                className="text-sm text-gray-400 hover:text-white transition-colors"
+                data-testid={`footer-seo-${l.href.slice(1).replace(/\//g, "-")}`}
+              >
                 {l.label}
               </Link>
             ))}
           </div>
         </div>
 
-        <div className="border-t border-gray-700 pt-6">
+        {/* Alt bar */}
+        <div className="border-t border-gray-700 mt-6 pt-6">
           <div className="flex items-center justify-between flex-wrap gap-4">
-            <p className="hidden text-xs text-gray-500">© {new Date().getFullYear()} Sizpa İnternet Tic. Ltd. Şti. Tüm hakları saklıdır.</p>
+            <div className="flex items-center gap-2">
+              <img
+                src="/images/yourpoodle-logo.jpg"
+                alt="YourPoodle"
+                className="h-6 object-contain opacity-80"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+            </div>
 
             <div className="flex items-center gap-4" data-testid="footer-badges">
               <div className="flex items-center gap-1.5 bg-gray-800 rounded px-2.5 py-1.5" data-testid="footer-ssl-badge">
@@ -192,7 +191,6 @@ export default function Footer() {
                 <span className="text-[10px] text-green-400 font-semibold">SSL</span>
                 <span className="text-[10px] text-gray-400">Güvenli Bağlantı</span>
               </div>
-
               <img
                 src={kartLogoPath}
                 alt="Mastercard, Visa, American Express, Troy"
@@ -200,12 +198,10 @@ export default function Footer() {
                 data-testid="footer-card-logos"
               />
             </div>
-
-            <p className="hidden text-xs text-gray-500">JETGO - Samsun Pet Shop</p>
           </div>
 
           <p className="mt-4 text-center text-xs text-gray-500" data-testid="footer-sizpa-credit">
-            Bu site{" "}
+            © {new Date().getFullYear()}{" "}
             <a
               href="https://www.sizpa.com"
               target="_blank"
@@ -215,7 +211,7 @@ export default function Footer() {
             >
               Sizpa İnternet Tic. Ltd. Şti.
             </a>{" "}
-            tarafından yapılmıştır.
+            · Tüm hakları saklıdır.
           </p>
         </div>
       </div>

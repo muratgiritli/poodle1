@@ -39,6 +39,7 @@ const YP_PAGES = [
   { path: "/yourpoodle/club",        expectNoindex: false },
   { path: "/yourpoodle/topluluk",    expectNoindex: false },
   { path: "/yourpoodle/etkinlikler", expectNoindex: false },
+  { path: "/yourpoodle/hakkinda",    expectNoindex: false },
   { path: "/yourpoodle/giris",       expectNoindex: true  },
 ];
 

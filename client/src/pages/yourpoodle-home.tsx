@@ -626,7 +626,17 @@ export default function YourPoodleHomePage() {
                   style={{ flex: 1, height: 48, borderRadius: 12, border: "1.5px solid #DDD5FF", padding: "0 14px", fontSize: 14, outline: "none", fontFamily: "'Inter',sans-serif", background: "#fff" }}
                 />
                 <button
-                  onClick={() => { if (email.includes("@")) setEmailSent(true); }}
+                  onClick={async () => {
+                    if (!email.includes("@")) return;
+                    try {
+                      await fetch("/api/yp/email-subscribe", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email }),
+                      });
+                    } catch {}
+                    setEmailSent(true);
+                  }}
                   style={{ height: 48, padding: "0 18px", borderRadius: 12, background: "#7C3AFF", border: "none", fontSize: 13, fontWeight: 800, color: "#fff", cursor: "pointer", fontFamily: "'Inter',sans-serif", whiteSpace: "nowrap" }}>
                   Abone Ol
                 </button>
