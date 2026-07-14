@@ -52,6 +52,7 @@ export default function Magaza() {
   const cats = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const p of allProducts) {
+      if (p.animal !== "kopek") continue;
       const sub = p.subcategory || p.mamaType || "";
       if (sub) counts[sub] = (counts[sub] || 0) + 1;
     }
@@ -65,9 +66,10 @@ export default function Magaza() {
 
   const filtered = useMemo(() => {
     let list = allProducts.filter((p: any) => {
+      const matchAnimal = p.animal === "kopek";
       const matchCat = activeCat === "Tümü" || (p.subcategory || p.mamaType || "") === activeCat;
       const matchQ   = search === "" || p.name.toLowerCase().includes(search.toLowerCase());
-      return matchCat && matchQ;
+      return matchAnimal && matchCat && matchQ;
     });
     if (sort === "Fiyat ↑") list = [...list].sort((a, b) => Number(a.price) - Number(b.price));
     if (sort === "Fiyat ↓") list = [...list].sort((a, b) => Number(b.price) - Number(a.price));

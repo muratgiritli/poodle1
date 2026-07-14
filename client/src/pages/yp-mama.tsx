@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, Menu, X, Home, Users, BookOpen, Monitor, ShoppingBag, ChevronRight, Clock } from "lucide-react";
 import { useCustomer } from "@/contexts/CustomerContext";
 
@@ -44,6 +45,14 @@ export default function MamaRehberi() {
   const [, navigate] = useLocation();
   const { isLoggedIn } = useCustomer();
   const [activeLang, setActiveLang] = useState(LANGUAGES[0]);
+  const { data: allProducts = [] } = useQuery<any[]>({
+    queryKey: ["/api/products"],
+    staleTime: 5 * 60 * 1000,
+  });
+  const featuredMama = allProducts
+    .filter((p: any) => p.animal === "kopek" && p.isActive !== false)
+    .sort((a: any, b: any) => b.id - a.id)
+    .slice(0, 4);
   const [langOpen, setLangOpen]   = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selected, setSelected]   = useState<typeof ARTICLES[0]|null>(null);
@@ -162,6 +171,26 @@ export default function MamaRehberi() {
             ))}
           </div>
         </div>
+
+        {/* Öne Çıkan Ürünler */}
+        {featuredMama.length > 0 && (
+          <div style={{ margin:"8px 16px 24px" }}>
+            <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12 }}>
+              <div style={{ fontSize:15,fontWeight:900,color:"#1a1a1a" }}>🛍️ Öne Çıkan Mamalar</div>
+              <button onClick={()=>navigate("/yourpoodle/magaza")} style={{ fontSize:12,fontWeight:700,color:"#E07820",background:"none",border:"none",cursor:"pointer",fontFamily:"Inter,sans-serif" }}>Tümü →</button>
+            </div>
+            <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
+              {featuredMama.map((p: any) => (
+                <button key={p.id} onClick={()=>navigate(`/urun/${p.id}/${p.slug || ""}`)}
+                  style={{ background:"#fff",borderRadius:14,padding:"12px",boxShadow:"0 2px 8px rgba(0,0,0,0.07)",border:"none",cursor:"pointer",textAlign:"left",fontFamily:"Inter,sans-serif" }}>
+                  {p.img && <img src={p.img} alt={p.name} style={{ width:"100%",height:80,objectFit:"contain",borderRadius:8,marginBottom:8,background:"#f9f9f9" }}/>}
+                  <div style={{ fontSize:11,fontWeight:700,color:"#1a1a1a",lineHeight:1.4,marginBottom:4,overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical" as const }}>{p.name}</div>
+                  <div style={{ fontSize:13,fontWeight:900,color:"#E07820" }}>{Number(p.price).toLocaleString("tr-TR")} ₺</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Mama CTA */}
         <div style={{ margin:"24px 16px",background:"linear-gradient(135deg,#FFF0E0,#FFF9C4)",borderRadius:18,padding:"20px",display:"flex",gap:14,alignItems:"center" }}>

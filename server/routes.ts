@@ -6293,6 +6293,79 @@ Kurallar:
     }
   });
 
+  // ── YourPoodle Poodle profiles ───────────────────────────────────────────
+  const ENSURE_YP_POODLES = `
+    CREATE TABLE IF NOT EXISTS yp_poodles (
+      id SERIAL PRIMARY KEY,
+      customer_id INT NOT NULL UNIQUE,
+      name TEXT NOT NULL DEFAULT '',
+      breed TEXT DEFAULT 'toy',
+      age TEXT,
+      color TEXT,
+      gender TEXT,
+      photo TEXT,
+      about TEXT,
+      created_at TIMESTAMPTZ DEFAULT now(),
+      updated_at TIMESTAMPTZ DEFAULT now()
+    )`;
+
+  app.get("/api/yp/poodle", async (req, res) => {
+    const customerId = (req.session as any)?.customerId;
+    if (!customerId) return res.status(401).json({ error: "Giriş gerekli" });
+    try {
+      await sharedPool.query(ENSURE_YP_POODLES);
+      const result = await sharedPool.query(
+        `SELECT * FROM yp_poodles WHERE customer_id = $1`, [customerId]
+      );
+      res.json(result.rows[0] || null);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.post("/api/yp/poodle", async (req, res) => {
+    const customerId = (req.session as any)?.customerId;
+    if (!customerId) return res.status(401).json({ error: "Giriş gerekli" });
+    const { name, breed, age, color, gender, photo, about } = req.body;
+    if (!name || !String(name).trim()) return res.status(400).json({ error: "Poodle adı gerekli" });
+    try {
+      await sharedPool.query(ENSURE_YP_POODLES);
+      const result = await sharedPool.query(
+        `INSERT INTO yp_poodles (customer_id, name, breed, age, color, gender, photo, about)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+         ON CONFLICT (customer_id) DO UPDATE SET
+           name=EXCLUDED.name, breed=EXCLUDED.breed, age=EXCLUDED.age,
+           color=EXCLUDED.color, gender=EXCLUDED.gender, photo=EXCLUDED.photo,
+           about=EXCLUDED.about, updated_at=now()
+         RETURNING *`,
+        [customerId, String(name).trim(), breed||'toy', age||null, color||null, gender||null, photo||null, about||null]
+      );
+      res.json(result.rows[0]);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  // ── YourPoodle admin: email subscribers ──────────────────────────────────
+  app.get("/api/admin/yp-email-subscribers", requireAdmin, async (_req, res) => {
+    try {
+      const result = await sharedPool.query(
+        `SELECT id, email, created_at FROM yp_email_subscribers ORDER BY created_at DESC`
+      );
+      res.json(result.rows);
+    } catch { res.json([]); }
+  });
+
+  app.get("/api/admin/yp-email-subscribers/export", requireAdmin, async (_req, res) => {
+    try {
+      const result = await sharedPool.query(
+        `SELECT email, created_at FROM yp_email_subscribers ORDER BY created_at DESC`
+      );
+      const csv = ["email,tarih",
+        ...result.rows.map(r => `${r.email},${new Date(r.created_at).toISOString().slice(0,10)}`)
+      ].join("\n");
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename="yp-email-aboneleri-${Date.now()}.csv"`);
+      res.send(csv);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
   // ── YourPoodle email subscription ────────────────────────────────────────
   app.post("/api/yp/email-subscribe", async (req: Request, res: Response) => {
     const { email } = req.body || {};
@@ -7485,13 +7558,19 @@ Kurallar:
   // Public: list all events (sorted by date)
   app.get("/api/yp-events", async (_req, res) => {
     try {
+      await sharedPool.query(`
+        CREATE TABLE IF NOT EXISTS yp_events (
+          id SERIAL PRIMARY KEY, title TEXT NOT NULL, description TEXT,
+          location TEXT, event_date DATE, day TEXT, month TEXT, year TEXT,
+          type TEXT DEFAULT 'Etkinlik', free BOOLEAN DEFAULT true,
+          color TEXT DEFAULT '#7C3AFF', sort_order INT DEFAULT 0, is_active BOOLEAN DEFAULT true
+        )`);
       const result = await sharedPool.query(
         `SELECT id, title, description, location, event_date, day, month, year, type, free, color
          FROM yp_events WHERE is_active = true ORDER BY sort_order ASC, id ASC`
       );
       res.json(result.rows);
     } catch {
-      // table may not exist yet — return empty so frontend falls back to hardcoded
       res.json([]);
     }
   });
@@ -7546,6 +7625,12 @@ Kurallar:
   // Public: list all articles
   app.get("/api/yp-articles", async (_req, res) => {
     try {
+      await sharedPool.query(`
+        CREATE TABLE IF NOT EXISTS yp_articles (
+          id SERIAL PRIMARY KEY, title TEXT NOT NULL, body TEXT,
+          tag TEXT, emoji TEXT, min_read INT DEFAULT 5,
+          featured BOOLEAN DEFAULT false, sort_order INT DEFAULT 0, is_active BOOLEAN DEFAULT true
+        )`);
       const result = await sharedPool.query(
         `SELECT id, title, body, tag, emoji, min_read, featured, sort_order
          FROM yp_articles WHERE is_active = true ORDER BY featured DESC, sort_order ASC, id ASC`

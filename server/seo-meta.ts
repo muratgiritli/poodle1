@@ -520,6 +520,13 @@ const YP_ROUTE_META: Record<string, YPMeta> = {
     schemaType: "app",
     breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "Poodle'ım", href: "/yourpoodle/poodle-ekle" }],
   },
+  "/yourpoodle/profil": {
+    title: "Poodle Profilim | YourPoodle",
+    description: "Poodle'ınızın bilgilerini kaydedin, kişiselleştirilmiş bakım önerileri alın. YourPoodle profil sayfası.",
+    keywords: "poodle profil, poodle bilgileri, poodle kaydı, yourpoodle hesap",
+    schemaType: "guide",
+    breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "Profilim", href: "/yourpoodle/profil" }],
+  },
   "/yourpoodle/hakkinda": {
     title: "YourPoodle Hakkında: Platform, Ekip ve Metodoloji",
     description: "YourPoodle'un kuruluş hikayesi, içerik metodolojisi, veteriner danışman ekibi ve editöryal politikası. Toy Poodle rehberlerini nasıl hazırlıyoruz.",

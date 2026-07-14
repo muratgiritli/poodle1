@@ -97,6 +97,7 @@ const YPEtkinliklerPage   = lazy(() => import("@/pages/yp-etkinlikler"));
 const YPAiAsistanPage     = lazy(() => import("@/pages/yp-ai-asistan"));
 const YPMamaBulPage       = lazy(() => import("@/pages/yp-mama-bul"));
 const YPHakkindaPage      = lazy(() => import("@/pages/yp-hakkinda"));
+const YPProfilPage        = lazy(() => import("@/pages/yp-profil"));
 const DemoKampanyaPage = lazy(() => import("@/pages/demo-kampanya"));
 const DemoKampanyaUrunPage = lazy(() => import("@/pages/demo-kampanya").then(m => ({ default: m.DemoKampanyaUrun })));
 const SeoPage = lazy(() => import("@/pages/seo-pages"));
@@ -185,6 +186,7 @@ function Router() {
         <Route path="/yourpoodle/ai-asistan"     component={YPAiAsistanPage} />
         <Route path="/yourpoodle/mama-bul"       component={YPMamaBulPage} />
         <Route path="/yourpoodle/hakkinda"       component={YPHakkindaPage} />
+        <Route path="/yourpoodle/profil"         component={YPProfilPage} />
         <Route path="/demo-kampanya" component={DemoKampanyaPage} />
         <Route path="/demo-kampanya/urun/:id" component={DemoKampanyaUrunPage} />
         <Route path="/kampanya" component={CampaignPage} />

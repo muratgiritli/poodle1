@@ -7232,6 +7232,61 @@ function YPEventsCard() {
   );
 }
 
+function YPEmailSubscribersCard() {
+  const { data: subscribers = [], isLoading, refetch } = useQuery<any[]>({
+    queryKey: ["/api/admin/yp-email-subscribers"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/yp-email-subscribers", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    staleTime: 0,
+  });
+
+  return (
+    <Card className="border-violet-300">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">📧 YP Email Aboneleri</CardTitle>
+      </CardHeader>
+      <CardContent className="p-3">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs text-muted-foreground">
+            {isLoading ? "Yükleniyor…" : `${subscribers.length} abone kayıtlı`}
+          </span>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => refetch()}>Yenile</Button>
+            <Button
+              size="sm" className="h-7 text-xs"
+              onClick={() => window.open("/api/admin/yp-email-subscribers/export", "_blank")}
+              disabled={subscribers.length === 0}
+            >CSV İndir</Button>
+          </div>
+        </div>
+        {subscribers.length > 0 && (
+          <div className="max-h-48 overflow-y-auto space-y-1">
+            {subscribers.slice(0, 60).map((s: any) => (
+              <div key={s.id} className="flex items-center justify-between text-xs px-2 py-1.5 rounded bg-muted/40">
+                <span className="font-mono truncate mr-2">{s.email}</span>
+                <span className="text-muted-foreground whitespace-nowrap">
+                  {new Date(s.created_at).toLocaleDateString("tr-TR")}
+                </span>
+              </div>
+            ))}
+            {subscribers.length > 60 && (
+              <p className="text-[10px] text-muted-foreground text-center pt-1">
+                +{subscribers.length - 60} daha — CSV ile tam liste
+              </p>
+            )}
+          </div>
+        )}
+        {!isLoading && subscribers.length === 0 && (
+          <p className="text-xs text-muted-foreground text-center py-4">Henüz e-posta abonesi yok.</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function YourPoodleSettingsCard() {
   const { toast } = useToast();
   const { store: adminStore } = useAdminStore();
@@ -9555,6 +9610,7 @@ function SettingsSection() {
     <div className="space-y-4" data-testid="section-ayarlar">
       <h2 className="text-lg font-bold">Puan & Besleme Ayarları</h2>
 
+      <YPEmailSubscribersCard />
       <YourPoodleSettingsCard />
       <YPArticlesCard />
       <YPEventsCard />

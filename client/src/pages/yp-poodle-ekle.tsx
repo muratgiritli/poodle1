@@ -41,8 +41,18 @@ export default function PoodleEkle() {
   const F = (k: string) => (e: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>) =>
     setForm((f: any) => ({ ...f, [k]: e.target.value }));
 
-  const handleSave = () => {
+  const handleSave = async () => {
     localStorage.setItem("yp_poodle", JSON.stringify(form));
+    if (isLoggedIn && form.name?.trim()) {
+      try {
+        await fetch("/api/yp/poodle", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(form),
+        });
+      } catch {}
+    }
     setSaved(true);
     setTimeout(() => setStep("done"), 600);
   };
