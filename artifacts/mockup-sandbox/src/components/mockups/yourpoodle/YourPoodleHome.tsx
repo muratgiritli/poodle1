@@ -51,9 +51,8 @@ export default function YourPoodleHome() {
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 199; }
       `}</style>
 
-      {/* phone frame */}
-      <div style={{ display:"flex", justifyContent:"center", alignItems:"flex-start", minHeight:"100vh", background:"#e5e7eb", padding:"24px 0 40px" }}>
-        <div style={{ width:390, background:"#fff", borderRadius:36, overflow:"hidden", boxShadow:"0 24px 64px rgba(0,0,0,0.18)", fontFamily:"'Inter',sans-serif", position:"relative", minHeight:760 }}>
+      <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"'Inter',sans-serif", position:"relative" }}>
+        <div>
 
           {/* ── DRAWER ────────────────────────────────── */}
           {drawerOpen && <div className="overlay" onClick={() => setDrawerOpen(false)} />}
