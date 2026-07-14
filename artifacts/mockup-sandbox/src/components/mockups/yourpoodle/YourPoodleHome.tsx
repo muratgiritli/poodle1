@@ -51,7 +51,7 @@ export default function YourPoodleHome() {
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 199; }
       `}</style>
 
-      <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"'Inter',sans-serif", position:"relative" }}>
+      <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"'Inter',sans-serif", position:"relative", paddingBottom:72 }}>
         <div>
 
           {/* ── DRAWER ────────────────────────────────── */}
@@ -543,6 +543,57 @@ export default function YourPoodleHome() {
           </section>
 
         </div>
+
+          {/* ── SABİT ALT NAV ─────────────────────────── */}
+          <nav style={{
+            position:"fixed", bottom:0, left:0, right:0,
+            background:"#fff",
+            borderTop:"1px solid #f0f0f0",
+            boxShadow:"0 -4px 20px rgba(0,0,0,0.08)",
+            height:64, display:"flex", alignItems:"center",
+            justifyContent:"space-around",
+            zIndex:200, padding:"0 8px",
+          }}>
+            {/* Ana Sayfa */}
+            <button style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"none", border:"none", cursor:"pointer", flex:1 }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C3AFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              <span style={{ fontSize:10, fontWeight:800, color:"#7C3AFF", fontFamily:"'Inter',sans-serif" }}>Ana Sayfa</span>
+              <div style={{ width:20, height:2.5, borderRadius:2, background:"#7C3AFF" }} />
+            </button>
+
+            {/* Club */}
+            <button style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"none", border:"none", cursor:"pointer", flex:1 }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:"'Inter',sans-serif" }}>Club</span>
+            </button>
+
+            {/* Sepet — ortada yükseltilmiş */}
+            <button style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"none", border:"none", cursor:"pointer", flex:1, position:"relative" }}>
+              <div style={{
+                width:54, height:54, borderRadius:"50%",
+                background:"linear-gradient(135deg,#9B59FF,#7C3AFF)",
+                display:"flex", alignItems:"center", justifyContent:"center",
+                boxShadow:"0 6px 20px rgba(124,58,255,0.4)",
+                position:"absolute", top:-24,
+              }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              </div>
+              <span style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:"'Inter',sans-serif", marginTop:32 }}>Sepet</span>
+            </button>
+
+            {/* Rehber */}
+            <button style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"none", border:"none", cursor:"pointer", flex:1 }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+              <span style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:"'Inter',sans-serif" }}>Rehber</span>
+            </button>
+
+            {/* Bilgi Bankası */}
+            <button style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"none", border:"none", cursor:"pointer", flex:1 }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              <span style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:"'Inter',sans-serif" }}>Bilgi Bankası</span>
+            </button>
+          </nav>
+
       </div>
     </>
   );
