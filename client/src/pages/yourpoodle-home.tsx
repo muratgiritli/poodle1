@@ -171,7 +171,7 @@ export default function YourPoodleHomePage() {
           </div>
           <div style={{ flex:"0 0 45%", position:"relative" }}>
             <img src="/images/poodle-hero.png" alt="Toy Poodle"
-              style={{ position:"absolute", bottom:0, right:-20, width:"130%", maxWidth:260, objectFit:"contain", objectPosition:"bottom" }} />
+              style={{ position:"absolute", top:-30, bottom:"auto", right:-20, width:"130%", maxWidth:260, objectFit:"contain", objectPosition:"top center" }} />
           </div>
         </section>
 
