@@ -300,8 +300,64 @@ export default function YourPoodleHome() {
             </div>
           </div>
 
+          {/* ── BİLGİ BANKASI ─────────────────────────── */}
+          <section style={{ padding:"20px 16px 24px", background:"#fff" }}>
+            {/* header */}
+            <div style={{ marginBottom:4, display:"flex", alignItems:"center", gap:8 }}>
+              <span style={{ fontSize:20 }}>⚡</span>
+              <span style={{ fontSize:18, fontWeight:800, color:"#1a1a1a", fontFamily:"'Inter',sans-serif" }}>Bilgi Bankası</span>
+            </div>
+            <p style={{ fontSize:13, color:"#888", fontFamily:"'Inter',sans-serif", marginBottom:18 }}>
+              Poodle'iniz için en çok kullanılan araçlar.
+            </p>
+
+            {/* 3-col grid */}
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"20px 8px" }}>
+              {[
+                { label:"Mama Hesaplama",  desc:"Günlük mama miktarını hesapla",      bg:"#FFF0E0", color:"#E07820",
+                  icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> },
+                { label:"Aşı Takvimi",     desc:"Aşılarını düzenli takip et",         bg:"#FFE4EC", color:"#E75480",
+                  icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 2 4 4-14 14H4v-4Z"/><path d="m14.5 5.5 4 4"/></svg> },
+                { label:"Yaş Hesaplama",   desc:"Köpek yaşını insan yaşına çevir",    bg:"#F0E8FF", color:"#7C3AFF",
+                  icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
+                { label:"İdeal Kilo",      desc:"İdeal kilosunu öğren",               bg:"#D6F5E8", color:"#059669",
+                  icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a9 9 0 1 0 0 18A9 9 0 0 0 12 3z"/><path d="M8 12h8"/><path d="M6 17 12 3l6 14"/></svg> },
+                { label:"Hastalık Kontrolü",desc:"Belirtileri kontrol et",            bg:"#EDE8FF", color:"#7C3AFF",
+                  icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg> },
+                { label:"Diş Kontrolü",    desc:"Ağız ve diş sağlığı listesi",        bg:"#D6F5F5", color:"#0891B2",
+                  icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg> },
+                { label:"Dışkı Rehberi",   desc:"Rengine göre kontrol et",            bg:"#FEFCE8", color:"#CA8A04",
+                  icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> },
+                { label:"Su Hesaplama",    desc:"Günlük su ihtiyacını hesapla",       bg:"#DBEAFE", color:"#2563EB",
+                  icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg> },
+                { label:"Tıraş Zamanı",    desc:"Son tıraş tarihine göre hesapla",   bg:"#FFE4EC", color:"#E75480",
+                  icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><line x1="20.49" y1="3.51" x2="3.51" y2="20.49"/></svg> },
+                { label:"Ödül Hesabı",     desc:"Ödül mamasının kalorini hesapla",   bg:"#FFF9C4", color:"#CA8A04",
+                  icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 10c.7-.7 1.69 0 2.5 1a2.02 2.02 0 0 1 0 2.5c-.71.7-1.73.2-2.25-.25"/><path d="M10 17c-.7.7 0 1.69 1 2.5a2.02 2.02 0 0 0 2.5 0c.7-.71.2-1.73-.25-2.25"/><path d="M6.08 14c.5-.5.56-2.68 1.92-4.08S11.5 8.58 12 8"/><path d="M9 21c-2.8-.47-5.58-2.26-6.41-5.59a6 6 0 0 1 3.41-6.93"/><path d="M15 3c2.8.47 5.58 2.26 6.41 5.59a6 6 0 0 1-3.41 6.93"/></svg> },
+                { label:"Aktivite Hesabı", desc:"Günlük egzersiz ihtiyacını öğren",  bg:"#CCFBF1", color:"#0D9488",
+                  icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3c0 2.2-1.2 3-2 3H5"/><path d="M4.6 13c.5.7 1.4 1 2.4 1h.5c1.1 0 2-.9 2-2V11"/><circle cx="12" cy="12" r="1"/><path d="m18.5 5-3.5 3"/><path d="m15.5 5 3.5 3"/><path d="M12 19a7 7 0 1 0 0-14 7 7 0 0 0 0 14z"/></svg> },
+                { label:"İnsan Yaşı",      desc:"Karşılaştırmalı yaş tablosu",       bg:"#FFF0E0", color:"#E07820",
+                  icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.469 2.344-2.5"/><path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.96-1.469-2.344-2.5"/><path d="M8 14v.5"/><path d="M16 14v.5"/><path d="M11.25 16.25h1.5L12 17l-.75-.75Z"/><path d="M4.42 11.247A13.152 13.152 0 0 0 4 14.556C4 18.728 7.582 21 12 21s8-2.272 8-6.444c0-1.061-.162-2.2-.493-3.309m-9.243-6.082A8.801 8.801 0 0 1 12 5c.78 0 1.5.108 2.161.306"/></svg> },
+              ].map(({ label, desc, bg, color, icon }) => (
+                <button key={label} style={{
+                  display:"flex", flexDirection:"column", alignItems:"center",
+                  gap:8, background:"none", border:"none", cursor:"pointer",
+                  padding:0, textAlign:"center",
+                }}>
+                  <div style={{ width:52, height:52, borderRadius:"50%", background:bg, display:"flex", alignItems:"center", justifyContent:"center", color }}>
+                    {icon}
+                  </div>
+                  <div>
+                    <div style={{ fontSize:11.5, fontWeight:800, color:"#1a1a1a", fontFamily:"'Inter',sans-serif", lineHeight:1.3, marginBottom:3 }}>{label}</div>
+                    <div style={{ fontSize:10, color:"#888", fontFamily:"'Inter',sans-serif", lineHeight:1.35 }}>{desc}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+
           {/* ── PLACEHOLDER ───────────────────────────── */}
-          <div style={{ margin:"8px 16px 24px", height:160, borderRadius:18, background:"#F9F9F9", display:"flex", alignItems:"center", justifyContent:"center", border:"1.5px dashed #e0e0e0" }}>
+          <div style={{ margin:"8px 16px 24px", height:120, borderRadius:18, background:"#F9F9F9", display:"flex", alignItems:"center", justifyContent:"center", border:"1.5px dashed #e0e0e0" }}>
             <p style={{ color:"#ccc", fontSize:13, fontWeight:600, textAlign:"center" }}>Sonraki bölümler sırayla eklenecek ↓</p>
           </div>
 
