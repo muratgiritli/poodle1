@@ -6989,6 +6989,105 @@ function BannersSection() {
   );
 }
 
+function YourPoodleSettingsCard() {
+  const { toast } = useToast();
+  const { store: adminStore } = useAdminStore();
+  const { data } = useQuery<Record<string, string>>({
+    queryKey: ["/api/admin/settings", adminStore],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/settings?store=${adminStore}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Ayarlar yüklenemedi");
+      return res.json();
+    },
+  });
+  const [dailyTip,    setDailyTip]    = useState("");
+  const [poodleName,  setPoodleName]  = useState("");
+  const [poodleCity,  setPoodleCity]  = useState("");
+  const [poodleDesc,  setPoodleDesc]  = useState("");
+  const [poodleImg,   setPoodleImg]   = useState("");
+
+  useEffect(() => {
+    if (data) {
+      setDailyTip(data.yp_daily_tip || "");
+      setPoodleName(data.yp_poodle_name || "");
+      setPoodleCity(data.yp_poodle_city || "");
+      setPoodleDesc(data.yp_poodle_desc || "");
+      setPoodleImg(data.yp_poodle_img || "");
+    }
+  }, [data]);
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("PATCH", "/api/admin/settings", {
+        store: adminStore,
+        yp_daily_tip: dailyTip,
+        yp_poodle_name: poodleName,
+        yp_poodle_city: poodleCity,
+        yp_poodle_desc: poodleDesc,
+        yp_poodle_img: poodleImg,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/public-settings"] });
+      toast({ title: "YourPoodle ayarları kaydedildi" });
+    },
+    onError: () => toast({ title: "Kayıt hatası", variant: "destructive" }),
+  });
+
+  return (
+    <Card className="border-violet-300">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          🐩 YourPoodle Uygulama Ayarları
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-3 space-y-4">
+        {/* Günün İpucu */}
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold flex items-center gap-1.5">💡 Günün İpucu</Label>
+          <p className="text-[10px] text-muted-foreground">YourPoodle ana sayfasında gösterilecek günlük bakım/beslenme ipucu.</p>
+          <textarea
+            value={dailyTip}
+            onChange={e => setDailyTip(e.target.value.slice(0, 200))}
+            placeholder="Toy Poodle'ların tüyleri sürekli uzar, 6-8 haftada bir tıraş rutini oluşturun."
+            rows={3}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none"
+          />
+          <p className="text-[10px] text-muted-foreground text-right">{dailyTip.length}/200</p>
+        </div>
+
+        <div className="border-t pt-3 space-y-2">
+          <Label className="text-xs font-bold flex items-center gap-1.5">⭐ Haftanın Poodle'ı</Label>
+          <p className="text-[10px] text-muted-foreground">Ana sayfada "Haftanın Poodle'ı" kartında gösterilir.</p>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-[11px] font-medium">İsim</Label>
+              <Input value={poodleName} onChange={e => setPoodleName(e.target.value.slice(0,40))} placeholder="Mocha" className="h-8 text-sm" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[11px] font-medium">Şehir</Label>
+              <Input value={poodleCity} onChange={e => setPoodleCity(e.target.value.slice(0,40))} placeholder="İstanbul" className="h-8 text-sm" />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-[11px] font-medium">Açıklama</Label>
+            <Input value={poodleDesc} onChange={e => setPoodleDesc(e.target.value.slice(0,120))} placeholder="3 yaşında. Topluluğun en sevilen poodlelerinden!" className="h-8 text-sm" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-[11px] font-medium">Fotoğraf URL (opsiyonel)</Label>
+            <Input value={poodleImg} onChange={e => setPoodleImg(e.target.value.slice(0,300))} placeholder="https://..." className="h-8 text-sm font-mono" />
+          </div>
+        </div>
+
+        <Button size="sm" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="w-full">
+          {saveMutation.isPending ? "Kaydediliyor…" : "YourPoodle Ayarlarını Kaydet"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 function SimpleBannerVisibilityAdmin() {
   const { toast } = useToast();
   const { store: adminStore } = useAdminStore();
@@ -9212,6 +9311,8 @@ function SettingsSection() {
   return (
     <div className="space-y-4" data-testid="section-ayarlar">
       <h2 className="text-lg font-bold">Puan & Besleme Ayarları</h2>
+
+      <YourPoodleSettingsCard />
 
       {(adminStore === "all" || STORES.find(s => s.id === adminStore)?.commerce?.fulfillment === "cargo") && (
         <Card className="border-purple-300">

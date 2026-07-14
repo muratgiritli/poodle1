@@ -46,6 +46,11 @@ export default function YourPoodleHomePage() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: settings } = useQuery<Record<string, string>>({
+    queryKey: ["/api/public-settings"],
+    staleTime: 2 * 60 * 1000,
+  });
+
   const activeTab = NAV_TABS.find(t => t.href === location)?.label ?? "Ana Sayfa";
 
   return (
@@ -253,7 +258,9 @@ export default function YourPoodleHomePage() {
           <span style={{ fontSize:24, flexShrink:0 }}>💡</span>
           <div>
             <div style={{ fontSize:11, fontWeight:800, color:"#7C3AFF", letterSpacing:"0.06em", marginBottom:3 }}>GÜNÜN İPUCU</div>
-            <div style={{ fontSize:13, color:"#333", lineHeight:1.5 }}>Toy Poodle'ların tüyleri sürekli uzar, 6-8 haftada bir tıraş rutini oluşturun.</div>
+            <div style={{ fontSize:13, color:"#333", lineHeight:1.5 }}>
+              {settings?.yp_daily_tip || "Toy Poodle'ların tüyleri sürekli uzar, 6-8 haftada bir tıraş rutini oluşturun."}
+            </div>
           </div>
         </div>
 
@@ -363,18 +370,28 @@ export default function YourPoodleHomePage() {
             <span style={{ fontSize:18 }}>⭐</span>
             <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a" }}>Haftanın Poodle'ı</span>
           </div>
-          <div style={{ background:"linear-gradient(135deg,#B39DFF,#D4C4FF)", borderRadius:20, padding:"20px", display:"flex", gap:16, alignItems:"center" }}>
-            <div style={{ width:80, height:80, borderRadius:20, background:"rgba(255,255,255,0.3)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:42, flexShrink:0 }}>🐩</div>
-            <div>
-              <div style={{ fontSize:11, fontWeight:800, color:"rgba(255,255,255,0.8)", letterSpacing:"0.06em", marginBottom:4 }}>BU HAFTANIN YILDIZI</div>
-              <div style={{ fontSize:18, fontWeight:900, color:"#fff", marginBottom:4 }}>Mocha ✨</div>
-              <div style={{ fontSize:12, color:"rgba(255,255,255,0.9)", lineHeight:1.4 }}>3 yaşında, İstanbul'dan.<br />Topluluğun en sevilen poodlelerinden!</div>
-              <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:8 }}>
-                <span style={{ fontSize:14 }}>💜</span>
-                <span style={{ fontSize:12, color:"#fff", fontWeight:700 }}>1.243 beğeni</span>
+          {(() => {
+            const name = settings?.yp_poodle_name  || "Mocha";
+            const city = settings?.yp_poodle_city  || "İstanbul";
+            const desc = settings?.yp_poodle_desc  || "Topluluğun en sevilen poodlelerinden!";
+            const img  = settings?.yp_poodle_img   || "";
+            return (
+              <div style={{ background:"linear-gradient(135deg,#B39DFF,#D4C4FF)", borderRadius:20, padding:"20px", display:"flex", gap:16, alignItems:"center" }}>
+                <div style={{ width:80, height:80, borderRadius:20, background:"rgba(255,255,255,0.3)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:42, flexShrink:0, overflow:"hidden" }}>
+                  {img ? <img src={img} alt={name} style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : "🐩"}
+                </div>
+                <div>
+                  <div style={{ fontSize:11, fontWeight:800, color:"rgba(255,255,255,0.8)", letterSpacing:"0.06em", marginBottom:4 }}>BU HAFTANIN YILDIZI</div>
+                  <div style={{ fontSize:18, fontWeight:900, color:"#fff", marginBottom:4 }}>{name} ✨</div>
+                  <div style={{ fontSize:12, color:"rgba(255,255,255,0.9)", lineHeight:1.4 }}>{city}'dan.<br />{desc}</div>
+                  <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:8 }}>
+                    <span style={{ fontSize:14 }}>💜</span>
+                    <span style={{ fontSize:12, color:"#fff", fontWeight:700 }}>Topluluğun favorisi</span>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            );
+          })()}
         </section>
 
         {/* ── YAKLAŞAN ETKİNLİKLER ─────────────────── */}

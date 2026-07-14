@@ -433,6 +433,7 @@ export async function registerRoutes(
     "breed_banners", "category_banners",
     "cargo_fee", "cargo_free_limit", "cargo_min_order",
     "card_surcharge_percent",
+    "yp_daily_tip", "yp_poodle_name", "yp_poodle_city", "yp_poodle_desc", "yp_poodle_img",
   ]);
   // Tüm app_settings'i verilen store için çöz: temel değerler + store öneki ezmeleri.
   async function resolveAllSettings(store: string): Promise<Record<string, string>> {
@@ -3989,6 +3990,7 @@ Bu site içeriği, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini, Bin
         "card_surcharge_percent",
         "konum_link", "whatsapp_number",
         "product_surcharge_overrides",
+        "yp_daily_tip", "yp_poodle_name", "yp_poodle_city", "yp_poodle_desc", "yp_poodle_img",
       ];
       const settings = await resolveSettings(keys, publicStoreId(req));
       res.set("Cache-Control", "no-store");
