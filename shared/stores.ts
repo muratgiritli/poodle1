@@ -130,13 +130,13 @@ export interface StoreConfig {
 
 const jetgo: StoreConfig = {
   id: "jetgo",
-  hostnames: ["enuygunpet.com", "www.enuygunpet.com"],
-  name: "Enuygun Pet Shop Samsun",
-  shortName: "Enuygun",
-  brandWord: "Enuygun",
-  alternateNames: ["Enuygun Samsun Pet Shop", "Enuygun Pet", "Enuygun Atakum Pet Shop", "Enuygun"],
-  domain: "https://www.enuygunpet.com",
-  logo: "/logo-enuygun.webp",
+  hostnames: ["yourpoodle.com", "www.yourpoodle.com", "enuygunpet.com", "www.enuygunpet.com"],
+  name: "YourPoodle Pet Shop Samsun",
+  shortName: "YourPoodle",
+  brandWord: "YourPoodle",
+  alternateNames: ["YourPoodle Samsun Pet Shop", "YourPoodle Pet", "YourPoodle Atakum Pet Shop"],
+  domain: "https://www.yourpoodle.com",
+  logo: "/images/yourpoodle-logo.jpg",
   favicon: "/favicon-192.png",
   phone: "+908508403959",
   phoneDisplay: "0850 840 39 59",
@@ -144,7 +144,7 @@ const jetgo: StoreConfig = {
   address: "Yenimahalle Atatürk 3. Kısım Blv. No:113/A, Atakum, Samsun",
   companyName: "Sizpa İnternet Tic. Ltd. Şti.",
   businessDescription:
-    "Samsun'un en hızlı pet shop'u Enuygun. Kedi maması, köpek maması, kedi kumu, ödül maması ve evcil hayvan ürünlerinde Atakum, İlkadım, Canik içi aynı gün teslimat ve kapıda ödeme imkanı.",
+    "Samsun'un en hızlı pet shop'u YourPoodle. Kedi maması, köpek maması, kedi kumu, ödül maması ve evcil hayvan ürünlerinde Atakum, İlkadım, Canik içi aynı gün teslimat ve kapıda ödeme imkanı.",
   slogan: "Samsun'un Hızlı Pet Shop'u — Aynı Gün Teslimat",
   social: [],
   theme: {
@@ -153,9 +153,9 @@ const jetgo: StoreConfig = {
     navBar: "#7c4dff",
   },
   seo: {
-    title: "Atakum Petshop & Samsun Pet Shop - Aynı Gün Teslimat | Enuygun",
+    title: "Atakum Petshop & Samsun Pet Shop - Aynı Gün Teslimat | YourPoodle",
     description:
-      "Atakum içinde 1 saatte, Samsun geneline aynı gün petshop teslimatı. Denizevleri, Atakent, Mimar Sinan ve tüm Atakum mahallelerine kedi maması, köpek maması, kedi kumu kapıda ödeme. Enuygun 0850 840 39 59.",
+      "Atakum içinde 1 saatte, Samsun geneline aynı gün petshop teslimatı. Denizevleri, Atakent, Mimar Sinan ve tüm Atakum mahallelerine kedi maması, köpek maması, kedi kumu kapıda ödeme. 0850 840 39 59.",
     keywords:
       "atakum petshop, atakum pet shop, atakum kedi maması, atakum köpek maması, atakum kedi kumu, atakum aynı gün teslimat, atakum 1 saatte teslimat, denizevleri petshop, atakent petshop, mimar sinan petshop, yenimahalle petshop, kurupelit petshop, samsun petshop, kapıda ödeme petshop atakum",
     ogImage: "/og-image.webp",
@@ -219,7 +219,7 @@ export function getStoreByExactHost(host?: string | null): StoreConfig | undefin
  * Replace shared-content "JETGO" / "jetgomarket.com" brand mentions with the
  * given store's brand word and domain. The shared SEO corpus + static index.html
  * are authored in JETGO / jetgomarket.com terms as the substitution SOURCE; every
- * store — including the flagship, which is now branded Enuygun — is derived from
+ * store — including the flagship, which is now branded YourPoodle — is derived from
  * it. Used by both client (<SEO>, page bodies) and server (meta injection) so
  * every domain reads as its own brand.
  */

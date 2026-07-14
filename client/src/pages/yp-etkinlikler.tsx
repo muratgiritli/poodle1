@@ -19,12 +19,12 @@ const DRAWER_LINKS = [
 ];
 
 const FALLBACK_EVENTS = [
-  { id:1, day:"18", month:"OCA", year:"2026", title:"Poodle Buluşması — Kadıköy", location:"İstanbul", desc:"İstanbul poodle severler Kadıköy Moda sahilinde buluşuyor. Poodlenizi getirin!", color:"#FF7FA7", type:"Buluşma", free:true },
-  { id:2, day:"25", month:"OCA", year:"2026", title:"Online: Tıraş Teknikleri Webinarı", location:"Zoom", desc:"Uzman groomer Selin Demir ile ev ortamında tıraş teknikleri webinarı.", color:"#A77BFF", type:"Online", free:true },
-  { id:3, day:"03", month:"ŞUB", year:"2026", title:"Poodle Agility Yarışması", location:"Ankara", desc:"Poodle'ınızın çevikliğini sınayın! Tüm yaş grupları için ayrı kategoriler mevcut.", color:"#78BEFF", type:"Yarışma", free:false },
-  { id:4, day:"15", month:"ŞUB", year:"2026", title:"Poodle Fotoğraf Günü", location:"İzmir", desc:"Profesyonel fotoğrafçı eşliğinde poodlenizle anılarınızı ölümsüzleştirin.", color:"#34D399", type:"Etkinlik", free:false },
-  { id:5, day:"22", month:"ŞUB", year:"2026", title:"Beslenme ve Sağlık Semineri", location:"Online (Zoom)", desc:"Veteriner Dr. Ayşe Kaya'nın poodle beslenmesi ve sağlığı üzerine interaktif semineri.", color:"#FBBF24", type:"Online", free:true },
-  { id:6, day:"08", month:"MAR", year:"2026", title:"İlkbahar Poodle Parkı Buluşması", location:"İstanbul", desc:"Bahar gelişini poodlelerinizle kutluyoruz. Parkta sosyalleşme ve mini yarışmalar.", color:"#F472B6", type:"Buluşma", free:true },
+  { id:1, day:"26", month:"TEM", year:"2026", title:"Poodle Buluşması — Kadıköy", location:"İstanbul", desc:"İstanbul poodle severler Kadıköy Moda sahilinde buluşuyor. Poodlenizi getirin!", color:"#FF7FA7", type:"Buluşma", free:true },
+  { id:2, day:"09", month:"AĞU", year:"2026", title:"Online: Tıraş Teknikleri Webinarı", location:"Zoom", desc:"Uzman groomer Selin Demir ile ev ortamında tıraş teknikleri webinarı.", color:"#A77BFF", type:"Online", free:true },
+  { id:3, day:"23", month:"AĞU", year:"2026", title:"Poodle Agility Yarışması", location:"Ankara", desc:"Poodle'ınızın çevikliğini sınayın! Tüm yaş grupları için ayrı kategoriler mevcut.", color:"#78BEFF", type:"Yarışma", free:false },
+  { id:4, day:"06", month:"EYL", year:"2026", title:"Poodle Fotoğraf Günü", location:"İzmir", desc:"Profesyonel fotoğrafçı eşliğinde poodlenizle anılarınızı ölümsüzleştirin.", color:"#34D399", type:"Etkinlik", free:false },
+  { id:5, day:"20", month:"EYL", year:"2026", title:"Beslenme ve Sağlık Semineri", location:"Online (Zoom)", desc:"Veteriner Dr. Ayşe Kaya'nın poodle beslenmesi ve sağlığı üzerine interaktif semineri.", color:"#FBBF24", type:"Online", free:true },
+  { id:6, day:"10", month:"EKİ", year:"2026", title:"Sonbahar Poodle Parkı Buluşması", location:"İstanbul", desc:"Sonbaharı poodlelerinizle karşılıyoruz. Parkta sosyalleşme ve mini yarışmalar.", color:"#F472B6", type:"Buluşma", free:true },
 ];
 
 const CSS = [

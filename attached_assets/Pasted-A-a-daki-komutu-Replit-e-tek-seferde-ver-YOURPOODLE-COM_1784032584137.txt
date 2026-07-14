@@ -1,0 +1,1636 @@
+Aşağıdaki komutu Replit’e **tek seferde** ver:
+
+# YOURPOODLE.COM TAM SİTE ANALİZİ, HATA DÜZELTME VE GELİŞTİRME TALİMATI
+
+Mevcut YourPoodle.com sitesini baştan sona incele ve aşağıdaki tüm maddeleri tek proje içerisinde uygula.
+
+Bu çalışma yalnızca görsel düzenleme değildir. Domain, SEO, mobil tasarım, kullanıcı deneyimi, sayfa yapısı, ürün sistemi, rehber, AI asistan, üyelik, çoklu dil, hız, güvenlik ve satış dönüşümü birlikte ele alınmalıdır.
+
+Önce mevcut kodları analiz et. Çalışan özellikleri bozma. Mevcut tasarımın iyi kısımlarını koru ancak aşağıda belirtilen hataları düzelt ve eksik özellikleri ekle.
+
+---
+
+# 1. PROJENİN ANA AMACI
+
+YourPoodle.com genel bir petshop sitesi değildir.
+
+YourPoodle.com yalnızca Toy Poodle ve Miniature Poodle sahiplerine hizmet veren özel bir platformdur.
+
+Sitenin ana konumlandırması:
+
+“Toy Poodle sahipleri için bakım, beslenme, sağlık, eğitim, topluluk, AI asistan ve seçilmiş ürünler platformu.”
+
+Sitenin kullanıcıya vermesi gereken ana mesaj:
+
+“Poodle’ınız için ihtiyacınız olan her şey tek yerde.”
+
+Sitenin temel hedefleri:
+
+* Poodle sahiplerine güvenilir bilgi sunmak
+* Kullanıcıya köpeğine özel öneriler vermek
+* Doğru mama ve ürün seçimini kolaylaştırmak
+* Kullanıcıların Poodle profili oluşturmasını sağlamak
+* AI asistan ile hızlı destek vermek
+* Topluluk oluşturmak
+* Ürün satışını bilgi ve güven üzerinden artırmak
+* Çoklu dil ile global kullanıcıya ulaşmak
+
+---
+
+# 2. ACİL DÜZELTİLMESİ GEREKEN DOMAIN VE İÇERİK HATALARI
+
+Mevcut projede veya domain yapılandırmasında Enuygun Pet, Atakum Petshop, Samsun Petshop, kedi, kuş, akvaryum, kemirgen veya genel petshop içerikleri bulunuyorsa tamamını kaldır.
+
+Kod tabanında aşağıdaki kelimeleri ara:
+
+* Enuygun Pet
+* Enuygun Pet Shop
+* Atakum Petshop
+* Samsun Petshop
+* Samsun
+* Atakum
+* Kedi maması
+* Kuş yemi
+* Akvaryum
+* Kemirgen
+* Aynı gün teslimat
+* 1 saatte kapında
+
+YourPoodle projesiyle ilgisi olmayan tüm eski içerikleri, meta etiketlerini, gizli metinleri ve schema verilerini kaldır.
+
+Aşağıdaki alanları kontrol et:
+
+* index.html
+* app layout
+* root layout
+* page title
+* meta description
+* Open Graph alanları
+* Twitter Card alanları
+* manifest.json
+* robots.txt
+* sitemap.xml
+* JSON-LD schema
+* footer
+* header
+* noscript alanı
+* SSR çıktısı
+* prerender çıktısı
+* 404 sayfası
+* gizli SEO metinleri
+* eski component dosyaları
+* eski API verileri
+* eski mock data
+* localStorage verileri
+* eski ürün kategorileri
+
+Googlebot, mobil ziyaretçi ve masaüstü ziyaretçi aynı içeriği görmelidir.
+
+Google’a farklı, kullanıcıya farklı içerik gönderme.
+
+---
+
+# 3. DOMAIN YÖNLENDİRMELERİ
+
+Ana domain:
+
+[https://yourpoodle.com/](https://yourpoodle.com/)
+
+Aşağıdaki tüm adresleri ana domaine 301 yönlendir:
+
+* [http://yourpoodle.com](http://yourpoodle.com)
+* [http://www.yourpoodle.com](http://www.yourpoodle.com)
+* [https://www.yourpoodle.com](https://www.yourpoodle.com)
+* [https://yourpoodle.com](https://yourpoodle.com)
+
+Canonical adres her zaman şu olsun:
+
+[https://yourpoodle.com/](https://yourpoodle.com/)
+
+[www.yourpoodle.com](http://www.yourpoodle.com) çalışmıyorsa DNS ve domain yönlendirmesi için gerekli yapılandırmayı hazırla.
+
+Projede hardcoded localhost, replit.app veya eski domain bağlantıları varsa kaldır.
+
+Tüm dahili bağlantılar yourpoodle.com domainini kullansın.
+
+---
+
+# 4. ANA SEO AYARLARI
+
+Ana sayfa title:
+
+YourPoodle | Toy Poodle Bakım, Mama, Eğitim ve Topluluk Platformu
+
+Ana sayfa meta description:
+
+Toy Poodle sahipleri için mama önerileri, bakım rehberleri, eğitim içerikleri, sağlık bilgileri, AI asistan, ürünler ve Poodle topluluğu tek platformda.
+
+Ana H1:
+
+Dünyanın En Büyük Toy Poodle Rehberi
+
+Alt açıklama:
+
+Köpeğiniz için ihtiyacınız olan her şey tek yerde.
+
+Ana sayfada yalnızca bir adet H1 kullan.
+
+Başlık sıralaması doğru olsun:
+
+* H1
+* H2
+* H3
+
+Başlıklar görsel büyüklük için değil, sayfa hiyerarşisi için kullanılsın.
+
+Her sayfanın farklı title ve meta description alanı olsun.
+
+Her sayfaya doğru canonical ekle.
+
+Aşağıdaki schema yapılarını oluştur:
+
+* Organization
+* WebSite
+* SearchAction
+* BreadcrumbList
+* Article
+* Product
+* FAQPage
+* Review
+* AggregateRating
+
+FAQ schema yalnızca sayfada kullanıcı tarafından görülebilen sorular için kullanılsın.
+
+Sahte yorum, sahte puan, sahte satış veya sahte kullanıcı sayısı schema içerisine eklenmesin.
+
+---
+
+# 5. ROBOTS.TXT VE SITEMAP
+
+robots.txt oluştur veya düzelt.
+
+Google’ın ana içerik sayfalarını taramasına izin ver.
+
+Aşağıdaki alanları indeksleme dışında bırak:
+
+* admin
+* kullanıcı hesap ayarları
+* ödeme sayfaları
+* sepet
+* sipariş sonucu
+* şifre sıfırlama
+* filtre kombinasyonları
+* arama sonuçları
+* test sayfaları
+* demo sayfaları
+* API endpointleri
+* geçici sayfalar
+
+Dinamik sitemap.xml oluştur.
+
+Sitemap içerisinde şunlar bulunsun:
+
+* ana sayfa
+* rehber kategori sayfaları
+* rehber detayları
+* ürün kategorileri
+* ürün detayları
+* araçlar
+* AI asistan tanıtım sayfası
+* topluluk ana sayfası
+* hakkımızda
+* iletişim
+* hukuki sayfalar
+
+Sitemap içerisine 404 veren, boş, gizli veya kopya sayfa ekleme.
+
+---
+
+# 6. ANA SAYFA TASARIMI
+
+Ana sayfa mobil öncelikli tasarlansın.
+
+Tasarım modern, güven veren, sıcak, premium ve sade olsun.
+
+Genel renk yapısı:
+
+* Beyaz arka plan
+* Açık krem alanlar
+* Yumuşak mor
+* Turkuaz
+* Pembe vurgular
+* Koyu lacivert metinler
+
+Aşırı fazla renk kullanma.
+
+Kartlar yumuşak gölgeli ve hafif oval köşeli olsun.
+
+Tüm site Poodle odaklı olsun.
+
+Kedi, kuş, balık veya farklı hayvan görselleri kullanma.
+
+---
+
+# 7. HEADER
+
+Header mobilde sabit olsun.
+
+Header yapısı:
+
+Sol:
+
+* YourPoodle logosu
+
+Sağ:
+
+* Arama ikonu
+* Dil seçici
+* Sepet ikonu
+* Menü ikonu
+
+Logo çok büyük olmasın.
+
+Header ekranın fazla bölümünü kaplamasın.
+
+Header altında yatay kaydırılabilir kategori menüsü ekle:
+
+* Rehber
+* Mama Bul
+* Sağlık
+* Bakım
+* Eğitim
+* AI Asistan
+* Topluluk
+* Market
+
+Yatay menü mobilde parmakla kaydırılabilsin.
+
+Aktif kategori belirgin olsun.
+
+Menü açıldığında tüm ekranı kaplayan sade bir mobil panel açılsın.
+
+Panelde şu başlıklar olsun:
+
+* Ana Sayfa
+* Rehber
+* Mama Bul
+* Hızlı Araçlar
+* AI Asistan
+* Topluluk
+* Market
+* Benim Poodle’ım
+* Hakkımızda
+* İletişim
+
+---
+
+# 8. HERO ALANI
+
+Hero alanında header bulunmayacak, header ayrı component olacak.
+
+Hero alanı ilk ekranı etkili şekilde doldursun.
+
+Sol veya üst bölüm:
+
+Başlık:
+
+Dünyanın En Büyük Toy Poodle Rehberi
+
+Alt metin:
+
+Köpeğiniz için ihtiyacınız olan her şey tek yerde.
+
+Üç buton:
+
+* Mama Bul
+* Rehbere Git
+* AI Asistana Sor
+
+Arka planda veya sağ bölümde mutlu, bakımlı, gerçekçi bir Toy Poodle görseli olsun.
+
+Görsel metni kapatmasın.
+
+Mobilde görsel ve metin dengeli yerleşsin.
+
+Butonlar mobilde rahat tıklanabilir olsun.
+
+Buton yüksekliği en az 48 piksel olsun.
+
+Hero altına küçük güven mesajları eklenebilir:
+
+* Poodle’a özel içerikler
+* Kişiselleştirilmiş öneriler
+* Ücretsiz araçlar
+
+Sahte kullanıcı sayısı veya sahte istatistik gösterme.
+
+---
+
+# 9. “BUGÜN NE ARIYORSUNUZ?” BÖLÜMÜ
+
+Hero alanından hemen sonra şu başlık olsun:
+
+Poodle’ınız için bugün ne arıyorsunuz?
+
+Altında ikonlu kartlar oluştur:
+
+* Doğru mamayı bul
+* Tuvalet eğitimi
+* Göz yaşı problemi
+* Tüy ve tarama
+* Havlama
+* Yalnız kalma
+* Yavru bakımı
+* Sağlık belirtileri
+
+Mobilde kartlar her sırada 2 adet olsun.
+
+Kartların tamamı tıklanabilir olsun.
+
+Kart tıklandığında doğru sayfaya yönlendirsin.
+
+Kartlar sadece görsel olmasın, gerçek bağlantıları çalışsın.
+
+---
+
+# 10. AI POODLE ASİSTANI
+
+AI asistan sadece küçük sohbet ikonu olarak kalmasın.
+
+Ana sayfada büyük bir tanıtım alanı oluştur.
+
+Başlık:
+
+Poodle’ınızla ilgili aklınıza takılanı sorun
+
+Alt metin:
+
+Yaşını, kilosunu ve ihtiyacını belirtin. Poodle’ınıza özel öneriler alın.
+
+Örnek soru butonları:
+
+* 4 aylık Poodle ne kadar mama yemeli?
+* Göz altı neden kızarıyor?
+* Evde yalnız kalınca neden havlıyor?
+* Hangi tarak kullanılmalı?
+* Tuvalet eğitimine nasıl başlamalıyım?
+
+Bir ana buton:
+
+AI Asistana Sor
+
+Asistan sayfasında ilk olarak şu bilgiler isteğe bağlı alınsın:
+
+* Poodle’ın yaşı
+* Kilosu
+* Cinsiyeti
+* Kısırlaştırma durumu
+* Sorun veya ihtiyaç
+
+Sağlık sorularında şu uyarıyı göster:
+
+Bu asistan genel bilgilendirme sağlar. Acil veya ciddi sağlık durumlarında veteriner hekime başvurun.
+
+AI asistan teşhis koyuyormuş gibi kesin ifadeler kullanmasın.
+
+---
+
+# 11. POODLE PROFİL SİSTEMİ
+
+Kullanıcı Poodle profili oluşturabilsin.
+
+Profil alanları:
+
+* Köpeğin adı
+* Profil fotoğrafı
+* Doğum tarihi
+* Yaş
+* Cinsiyet
+* Toy Poodle
+* Miniature Poodle
+* Standard Poodle
+* Kilo
+* Renk
+* Kısırlaştırma durumu
+* Alerji bilgisi
+* Hassasiyet
+* Kullandığı mama
+* Günlük aktivite seviyesi
+* Sağlık notları
+* Veteriner bilgisi
+* Son aşı tarihi
+* Son parazit uygulaması
+* Son tıraş tarihi
+
+Profil tamamlandıktan sonra kullanıcıya özel alan oluştur:
+
+* Günlük mama miktarı
+* Yaşına özel rehberler
+* Bakım önerileri
+* Aşı hatırlatmaları
+* Parazit hatırlatmaları
+* Tıraş hatırlatmaları
+* Doğum günü
+* Kilo takibi
+* Kaydedilen ürünler
+* Favori içerikler
+* Sipariş geçmişi
+
+Ana sayfaya profil tanıtım bölümü ekle:
+
+Başlık:
+
+Poodle profilinizi oluşturun
+
+Metin:
+
+Yaşına, kilosuna ve ihtiyaçlarına özel öneriler alın.
+
+Buton:
+
+Ücretsiz Profil Oluştur
+
+---
+
+# 12. HIZLI ARAÇLAR
+
+Ana sayfada hızlı araçlar bölümü oluştur.
+
+Araçlar:
+
+* Mama miktarı hesaplama
+* Poodle yaş hesaplama
+* İdeal kilo kontrolü
+* Günlük su ihtiyacı
+* Yasak yiyecek kontrolü
+* Bakım takvimi
+* Tıraş modeli seçimi
+* Belirti rehberi
+
+Mobilde her sırada 2 kart olsun.
+
+Her aracın ayrı sayfası ve çalışan formu olsun.
+
+---
+
+# 13. MAMA HESAPLAMA ARACI
+
+Kullanıcıdan şu bilgileri al:
+
+* Yaş
+* Kilo
+* Aktivite seviyesi
+* Kısırlaştırma durumu
+* Mama tipi
+* Kilo alma veya verme hedefi
+
+Sonuçta göster:
+
+* Tahmini günlük gram
+* Sabah miktarı
+* Akşam miktarı
+* Günlük su ihtiyacı
+* 2 kilogramlık paketin kaç gün gideceği
+* 3 kilogramlık paketin kaç gün gideceği
+* Günlük tahmini besleme maliyeti
+
+Sonuçların veteriner tavsiyesi olmadığını açıkça belirt.
+
+---
+
+# 14. MAMA BULMA SİHİRBAZI
+
+Sadece filtre sayfası yapma.
+
+Adım adım mama öneri sistemi oluştur.
+
+Sorular:
+
+1. Poodle’ın yaşı
+2. Kilosu
+3. Kısırlaştırıldı mı?
+4. Aktivite seviyesi
+5. Kilo problemi var mı?
+6. Alerjisi var mı?
+7. Tüy ve deri problemi var mı?
+8. Sindirim hassasiyeti var mı?
+9. Tercih edilen protein
+10. Bütçe
+11. Paket büyüklüğü
+
+Sonuç ekranında 3 öneri göster:
+
+* En uygun seçim
+* Fiyat performans seçimi
+* Premium seçim
+
+Her ürün için göster:
+
+* Neden önerildi?
+* Hangi yaş için?
+* Hangi ihtiyaca uygun?
+* Ana protein
+* Tahıllı veya tahılsız
+* Günlük kullanım miktarı
+* Paket kaç gün gider?
+* Günlük maliyet
+* Kullanıcı puanı
+* Sepete ekle
+* Detayı incele
+* Karşılaştır
+
+Veteriner serisi ürünlerde şu uyarı göster:
+
+Bu ürün veteriner hekim önerisiyle kullanılmalıdır.
+
+---
+
+# 15. MAMA FİLTRELERİ
+
+Mama kategori sayfasında filtreler mobil tam ekran panel olarak açılsın.
+
+Filtreler çoklu seçilebilir olsun.
+
+Filtre başlıkları:
+
+Yaş:
+
+* Yavru
+* Yetişkin
+* Yaşlı +7
+
+İhtiyaç:
+
+* Light
+* Kısır
+* Tahılsız
+* Hipoalerjenik
+* Kilo kontrol
+* Deri ve tüy
+* Hassas sindirim
+* Veteriner serisi
+
+Protein:
+
+* Somon
+* Tavşan
+* Tavuk
+* Kuzu
+* Alabalık
+* Balık
+
+Marka:
+
+* Royal Canin
+* Pro Plan
+* Hill’s
+* N&D
+* Brit Care
+* Reflex
+* Lavital
+* Pronature
+* Spectrum
+* Pro Performance
+* Happy Dog
+* Wanpy
+* Felicia
+* Advance
+
+Filtre panelinin altında iki sabit buton olsun:
+
+* Filtreleri Temizle
+* Sonuçları Göster
+
+Mobil ürün listesinde her sırada 2 ürün göster.
+
+Eğer çok küçük kart tasarımı kullanılacaksa her sırada 3 ürün gösterilebilir ancak yazılar okunabilir olmalıdır.
+
+---
+
+# 16. ÜRÜN KARTLARI
+
+Ürün kartlarında şu bilgiler bulunsun:
+
+* Ürün görseli
+* Marka
+* Ürün adı
+* Yaş grubu
+* Ana protein
+* Paket ağırlığı
+* Puan
+* Yorum sayısı
+* Fiyat
+* İndirim varsa eski fiyat
+* Sepete ekle butonu
+* Favori butonu
+
+Ürün kartında aşırı metin gösterme.
+
+Kartın tamamı ürün detayına yönlendirsin.
+
+Sepete ekle butonu kart linkinden ayrı çalışsın.
+
+Kullanıcı sepete eklediğinde kısa bir bildirim göster.
+
+---
+
+# 17. ÜRÜN DETAY SAYFASI
+
+Ürün detay sayfasında şu sıralama olsun:
+
+1. Ürün görselleri
+2. Marka ve ürün adı
+3. Puan ve yorum
+4. Fiyat
+5. Paket seçimi
+6. Sepete ekle
+7. Hızlı satın al
+8. Neden bu mama?
+9. Hangi Poodle’lar için uygun?
+10. İçindekiler
+11. Analitik bileşenler
+12. Günlük besleme tablosu
+13. Mama hesaplama
+14. Paket kaç gün gider?
+15. Günlük maliyet
+16. Kullanıcı yorumları
+17. Sık sorulan sorular
+18. Benzer ürünler
+
+Mobilde sepete ekle alanı ekranın altında sabit olabilir.
+
+Ürün görselleri büyütülebilsin.
+
+Paket seçenekleri gerçek stok durumuna bağlı olsun.
+
+Stokta olmayan paket sepete eklenemesin.
+
+---
+
+# 18. ÜRÜN KARŞILAŞTIRMA
+
+Kullanıcı en fazla 3 ürünü karşılaştırabilsin.
+
+Karşılaştırma tablosunda:
+
+* Marka
+* Ürün
+* Paket
+* Fiyat
+* Kilogram fiyatı
+* Günlük maliyet
+* Ana protein
+* Protein oranı
+* Yağ oranı
+* Tahıl durumu
+* Yaş grubu
+* Hassasiyet
+* Deri ve tüy desteği
+* Kısırlaştırılmış köpeğe uygunluk
+* Kullanıcı puanı
+
+Mobilde tablo yatay kaydırılabilir olsun.
+
+---
+
+# 19. MARKET ANA SAYFASI
+
+Market, sitenin ana kimliğini ele geçirmesin.
+
+Market sayfasında üst kategoriler:
+
+* Mama
+* Ödül
+* Tuvalet malzemeleri
+* Tüy ve bakım
+* Aksesuar
+* Oyuncak
+* Giyim
+* Seyahat
+* Kişiye özel ürünler
+
+Önerilen bölümler:
+
+* Çok satanlar
+* Yavru Poodle başlangıç seti
+* Göz bakım ürünleri
+* Tüy bakım ürünleri
+* Poodle’a uygun mamalar
+* Yeni ürünler
+* Kişiye özel ürünler
+
+“Tümünü gör” bağlantısı gerektiği yerde kullanılabilir ancak her bölümde tekrar etmesin.
+
+---
+
+# 20. REHBER ANA SAYFASI
+
+Rehber sayfası ürün sayfası gibi görünmemeli.
+
+Üst bölümde arama alanı olsun:
+
+Poodle’ınızla ilgili ne öğrenmek istiyorsunuz?
+
+Rehber kategorileri:
+
+* Yavru Poodle
+* Beslenme
+* Eğitim
+* Tüy ve bakım
+* Göz, kulak ve diş
+* Sağlık
+* Davranış
+* Seyahat
+* Yaz bakımı
+* Kış bakımı
+* Yaşlı Poodle
+
+Öne çıkan rehberler:
+
+* Toy Poodle tuvalet eğitimi
+* Yavru Poodle eve ilk geldiğinde
+* İlk aşılar
+* İlk mama
+* Göz yaşı lekesi
+* Tüy tarama
+* Tıraş
+* Kulak bakımı
+* Diş bakımı
+* Mama seçimi
+* Yasak yiyecekler
+* Havlama
+* Isırma
+* Yalnız kalma
+* Hastalıklar
+* Parazit ve bit
+* Uçak yolculuğu
+* Yaz bakımı
+* Kış bakımı
+
+---
+
+# 21. REHBER DETAY SAYFASI
+
+Her rehber detay sayfasında standart şablon kullan.
+
+Sıralama:
+
+1. Kategori
+2. Ana başlık
+3. Kısa cevap kutusu
+4. Son güncelleme tarihi
+5. Okuma süresi
+6. İçindekiler
+7. Detaylı açıklama
+8. Yaşa göre bilgi
+9. Adım adım uygulama
+10. Sık yapılan hatalar
+11. Ne zaman veterinere gidilmeli?
+12. Önerilen ürünler
+13. Sık sorulan sorular
+14. İlgili rehberler
+15. Kullanıcı yorumları
+16. Kaydet butonu
+17. Paylaş butonu
+
+Sağlık rehberlerinde şu uyarı yer alsın:
+
+Bu içerik genel bilgilendirme amaçlıdır ve veteriner hekim muayenesinin yerine geçmez.
+
+İçerik sayfalarında metin satır genişliği çok uzun olmasın.
+
+Mobilde yazılar en az 16 piksel olsun.
+
+---
+
+# 22. TOPLULUK
+
+Topluluk alanı oluştur.
+
+Bölümler:
+
+* Son paylaşımlar
+* Soru cevap
+* Fotoğraf paylaşımları
+* Yavru Poodle
+* Eğitim
+* Sağlık
+* Mama
+* Bakım
+* Şehir grupları
+* Etkinlikler
+
+Kullanıcılar:
+
+* Fotoğraf yükleyebilsin
+* Yazı paylaşabilsin
+* Yorum yapabilsin
+* Beğenebilsin
+* Kaydedebilsin
+* Şikâyet edebilsin
+* Kullanıcı engelleyebilsin
+
+Admin moderasyon sistemi olsun.
+
+Uygunsuz içerik bildirimi olsun.
+
+Spam önleme ekle.
+
+Yeni hesapların aşırı paylaşım yapmasını sınırla.
+
+---
+
+# 23. ÜYELİK VE GİRİŞ
+
+Üyelik seçenekleri:
+
+* E-posta
+* Telefon numarası
+* Google
+* Apple
+* Facebook
+
+Giriş ve kayıt sayfaları sade olsun.
+
+Kayıt sırasında çok fazla bilgi isteme.
+
+İlk aşamada:
+
+* Ad
+* E-posta veya telefon
+* Şifre
+* Kullanım koşulları onayı
+
+Poodle profili daha sonra tamamlanabilsin.
+
+Şifre göster/gizle ikonu olsun.
+
+Hata mesajları Türkçe ve anlaşılır olsun.
+
+---
+
+# 24. MOBİL ALT MENÜ
+
+Mobilde sabit alt menü ekle.
+
+Menü:
+
+* Ana Sayfa
+* Rehber
+* Asistan
+* Market
+* Profil
+
+AI Asistan butonu ortada ve daha belirgin olabilir.
+
+Alt menü içerikleri kapatmasın.
+
+iPhone safe area desteği olsun.
+
+---
+
+# 25. ARAMA SİSTEMİ
+
+Genel arama sistemi oluştur.
+
+Arama şunları bulabilsin:
+
+* Rehberler
+* Ürünler
+* Araçlar
+* Sık sorulan sorular
+* Topluluk gönderileri
+
+Arama yazarken öneriler göster.
+
+Son aramalar alanı eklenebilir.
+
+Sonuç bulunamazsa:
+
+* Yazımı kontrol edin
+* Benzer içerikleri görün
+* AI asistana sorun
+
+seçenekleri göster.
+
+---
+
+# 26. ÇOKLU DİL
+
+Site çoklu dil için hazırlanmalı.
+
+İlk dil seçenekleri:
+
+* Türkçe
+* İngilizce
+* Almanca
+* Fransızca
+* İspanyolca
+* İtalyanca
+* Arapça
+
+URL yapısı:
+
+* /tr/
+* /en/
+* /de/
+* /fr/
+* /es/
+* /it/
+* /ar/
+
+Her dilin:
+
+* ayrı URL’si
+* ayrı title alanı
+* ayrı meta description alanı
+* doğru hreflang etiketi
+* doğru canonical etiketi
+
+olsun.
+
+Dil değiştirildiğinde kullanıcı aynı sayfanın diğer diline gitmeli.
+
+Örneğin kullanıcı Türkçe mama rehberindeyse İngilizceye geçtiğinde ana sayfaya değil, aynı rehberin İngilizce versiyonuna geçsin.
+
+Arapça için RTL desteği ekle.
+
+Tarih, para birimi ve metin hizalamaları dile göre değişsin.
+
+---
+
+# 27. FOOTER
+
+Footer bölümleri:
+
+YourPoodle:
+
+* Hakkımızda
+* İletişim
+* Kariyer
+* Basın
+
+Rehber:
+
+* Yavru Poodle
+* Beslenme
+* Eğitim
+* Bakım
+* Sağlık
+
+Market:
+
+* Mama
+* Ödül
+* Bakım
+* Aksesuar
+* Kişiye özel
+
+Destek:
+
+* Sık sorulan sorular
+* Sipariş takibi
+* İade
+* Kargo
+* Yardım merkezi
+
+Yasal:
+
+* Kullanım koşulları
+* Üyelik sözleşmesi
+* Mesafeli satış sözleşmesi
+* Ön bilgilendirme
+* Gizlilik
+* KVKK
+* Çerez politikası
+* Topluluk kuralları
+
+Footer altına:
+
+* Şirket unvanı
+* Vergi bilgisi
+* MERSİS
+* İletişim e-postası
+* Telefon
+* Sosyal medya bağlantıları
+* Telif hakkı
+
+eklemek için yönetilebilir alan oluştur.
+
+---
+
+# 28. HUKUKİ SAYFALAR
+
+Aşağıdaki sayfaları oluştur:
+
+* Hakkımızda
+* İletişim
+* Mesafeli satış sözleşmesi
+* Ön bilgilendirme formu
+* İade ve iptal politikası
+* Kargo ve teslimat politikası
+* Gizlilik politikası
+* KVKK aydınlatma metni
+* Açık rıza metni
+* Çerez politikası
+* Üyelik sözleşmesi
+* Topluluk kuralları
+* Kullanıcı içeriği politikası
+* Sağlık içerikleri sorumluluk reddi
+
+Bu sayfaların metinleri admin panelinden değiştirilebilir olsun.
+
+---
+
+# 29. COOKIE BANNER
+
+KVKK ve çerez uyumlu banner oluştur.
+
+Seçenekler:
+
+* Tümünü kabul et
+* Zorunlu çerezler
+* Tercihleri yönet
+
+Kullanıcı tercihleri kaydedilsin.
+
+Kabul verilmeden analitik veya reklam çerezleri çalışmasın.
+
+---
+
+# 30. HIZ VE PERFORMANS
+
+Site hızını iyileştir.
+
+Yapılacaklar:
+
+* Görselleri WebP veya AVIF yap
+* Mobil için ayrı görsel boyutu kullan
+* Lazy loading ekle
+* Hero görselini optimize et
+* Kullanılmayan JavaScript’i kaldır
+* Kullanılmayan CSS’i kaldır
+* Componentleri gerektiğinde lazy load et
+* Font sayısını azalt
+* Fontları preload et
+* Görsel ölçülerini önceden tanımla
+* CLS sorunlarını engelle
+* Kod bölme uygula
+* Cache ayarlarını düzenle
+* API çağrılarını azalt
+* Liste sayfalarında pagination veya infinite scroll kullan
+
+Hedefler:
+
+* Mobil Lighthouse performansı en az 85
+* Erişilebilirlik en az 90
+* SEO en az 90
+* Best Practices en az 90
+
+---
+
+# 31. ERİŞİLEBİLİRLİK
+
+Tüm ikonlara aria-label ekle.
+
+Form alanlarında görünür label kullan.
+
+Sadece placeholder kullanma.
+
+Klavye ile gezinme mümkün olsun.
+
+Focus durumu görünür olsun.
+
+Renk kontrastları yeterli olsun.
+
+Butonlar minimum 44x44 piksel olsun.
+
+Görsellere açıklayıcı alt metni ekle.
+
+Dekoratif görsellerde boş alt kullan.
+
+Modal açıldığında odak modal içerisinde kalsın.
+
+Escape ile modal kapansın.
+
+---
+
+# 32. FORM DOĞRULAMA
+
+Tüm formlarda:
+
+* Zorunlu alan kontrolü
+* E-posta format kontrolü
+* Telefon format kontrolü
+* Şifre güç kontrolü
+* Dosya boyutu kontrolü
+* Dosya tipi kontrolü
+* Kullanıcı dostu hata mesajları
+* Gönderim sırasında loading
+* Başarılı işlem mesajı
+* Çift tıklamayı engelleme
+
+olsun.
+
+Hatalar yalnızca kırmızı çerçeve ile gösterilmesin, açıklama yazısı da gösterilsin.
+
+---
+
+# 33. SEPET VE ÖDEME
+
+Sepet sayfa yenilendiğinde kaybolmasın.
+
+Sepette:
+
+* Ürün
+* Paket
+* Adet
+* Fiyat
+* İndirim
+* Ara toplam
+* Kargo
+* Genel toplam
+
+göster.
+
+Adet artırma ve azaltma çalışsın.
+
+Stoktan fazla ürün eklenemesin.
+
+Kupon alanı ekle.
+
+Misafir ödeme seçeneği olsun.
+
+Ödeme adımları:
+
+1. Sepet
+2. Teslimat bilgisi
+3. Ödeme
+4. Sipariş özeti
+5. Başarılı sipariş
+
+Kullanıcı geri döndüğünde bilgileri kaybolmasın.
+
+Ödeme başarısız olduğunda sepet silinmesin.
+
+Aynı siparişin iki kez oluşmasını engelle.
+
+---
+
+# 34. KULLANICI YORUMLARI
+
+Ürün yorumlarında şu alanlar olabilir:
+
+* Poodle yaşı
+* Kilo
+* Renk
+* Ürünü kullanım süresi
+* İştah etkisi
+* Tüy etkisi
+* Sindirim etkisi
+* Fotoğraf
+* Genel puan
+
+Sahte yorum oluşturma.
+
+Admin yorum onay sistemi olsun.
+
+Kullanıcı satın aldığı ürünü yorumladıysa “Doğrulanmış Alışveriş” etiketi göster.
+
+---
+
+# 35. HATIRLATMA SİSTEMİ
+
+Kullanıcılar şu hatırlatmaları kurabilsin:
+
+* Mama siparişi
+* Aşı
+* Parazit
+* Tıraş
+* Tarama
+* Banyo
+* Diş bakımı
+* Veteriner kontrolü
+* Doğum günü
+
+Bildirim kanalları:
+
+* Site bildirimi
+* E-posta
+* Push bildirimi
+* İleride WhatsApp desteğine uygun altyapı
+
+---
+
+# 36. ADMİN PANELİ
+
+Admin paneline şu modülleri ekle:
+
+* Dashboard
+* Kullanıcılar
+* Poodle profilleri
+* Ürünler
+* Kategoriler
+* Markalar
+* Siparişler
+* Kuponlar
+* Rehber içerikleri
+* Rehber kategorileri
+* Yorumlar
+* Topluluk paylaşımları
+* Şikâyetler
+* Dil içerikleri
+* Banner yönetimi
+* Ana sayfa bölüm yönetimi
+* Menü yönetimi
+* Footer yönetimi
+* SEO yönetimi
+* Hukuki metinler
+* Bildirimler
+* Hatırlatmalar
+* Ayarlar
+
+Admin, ana sayfa bölümlerini açıp kapatabilsin.
+
+Admin, bölüm sırasını değiştirebilsin.
+
+Admin, SEO title ve description alanlarını düzenleyebilsin.
+
+Admin, ürün filtresi seçeneklerini yönetebilsin.
+
+---
+
+# 37. GÜVENLİK
+
+Şunları uygula:
+
+* Güvenli şifre saklama
+* Rate limiting
+* CSRF koruması
+* XSS koruması
+* SQL injection koruması
+* Dosya yükleme kontrolü
+* MIME type kontrolü
+* Görsel boyut sınırı
+* Spam koruması
+* Bot koruması
+* Admin yetkilendirme
+* Rol bazlı erişim
+* Oturum süresi
+* Güvenli cookie
+* HTTPS zorunluluğu
+
+API anahtarlarını frontend koduna yazma.
+
+Environment variable kullan.
+
+Hassas bilgileri Git deposuna koyma.
+
+---
+
+# 38. 404 VE HATA SAYFALARI
+
+Özel 404 sayfası oluştur.
+
+Mesaj:
+
+Aradığınız sayfayı bulamadık.
+
+Butonlar:
+
+* Ana Sayfaya Dön
+* Rehberlere Git
+* AI Asistana Sor
+
+500 hata sayfası oluştur.
+
+API hata durumlarında boş ekran gösterme.
+
+Skeleton loading kullan.
+
+---
+
+# 39. TASARIM KURALLARI
+
+Mobil öncelikli çalış.
+
+Masaüstü ve tablet uyumunu ayrıca kontrol et.
+
+Yatay scroll oluşmasın.
+
+Metinler kart dışına taşmasın.
+
+Açılır menüler diğer componentlerin arkasında kalmasın.
+
+Z-index değerlerini düzenle.
+
+Tüm görseller aynı tasarım dili içerisinde olsun.
+
+Fotoğraflar gerçekçi ve kaliteli olsun.
+
+Ürün görselleri beyaz veya sade arka planda olsun.
+
+Toy Poodle görselleri kullan.
+
+İkon stili tüm site genelinde aynı olsun.
+
+Aynı sayfada farklı icon kütüphanelerini karıştırma.
+
+---
+
+# 40. MASAÜSTÜ TASARIM
+
+Masaüstünde içerik maksimum genişliği yaklaşık 1280 piksel olsun.
+
+Ana sayfa çok geniş ve boş görünmesin.
+
+Hero iki sütun olabilir.
+
+Kategori alanları 4 veya 6 sütun olabilir.
+
+Ürün kartları 4 sütun olabilir.
+
+Rehber kartları 3 sütun olabilir.
+
+Header masaüstünde:
+
+* Logo
+* Menü
+* Arama
+* Dil
+* Hesabım
+* Favoriler
+* Sepet
+
+şeklinde olabilir.
+
+---
+
+# 41. MOBİL TESTLER
+
+Aşağıdaki ekran ölçülerinde test et:
+
+* 320 piksel
+* 360 piksel
+* 375 piksel
+* 390 piksel
+* 414 piksel
+* 430 piksel
+
+Test cihazları:
+
+* iPhone Safari
+* Android Chrome
+* Samsung Internet
+
+Kontrol et:
+
+* Header
+* Mobil menü
+* Alt menü
+* Hero
+* Filtre
+* Ürün kartı
+* Ürün detay
+* Sepet
+* Ödeme
+* Formlar
+* Modal
+* Dil menüsü
+* AI sohbet
+* Profil oluşturma
+
+---
+
+# 42. ÇALIŞMAYAN BUTONLAR
+
+Projede bulunan tüm butonları tek tek kontrol et.
+
+Şunları yapma:
+
+* href="#"
+* boş onClick
+* sadece görsel buton
+* çalışmayan kategori
+* çalışmayan sepete ekle
+* çalışmayan geri butonu
+* kapanmayan modal
+
+Her buton gerçek bir işlev veya bağlantıya sahip olsun.
+
+Henüz hazır olmayan özelliklerde boş buton bırakma.
+
+Gerekirse “Yakında” etiketi kullan ancak kullanıcıyı boş sayfaya gönderme.
+
+---
+
+# 43. ANALİTİK
+
+Aşağıdaki olaylar için analitik event altyapısı oluştur:
+
+* Hero butonu tıklama
+* Mama bul başlatma
+* Mama bul tamamlama
+* AI asistana soru
+* Profil oluşturma
+* Ürün görüntüleme
+* Sepete ekleme
+* Sepetten çıkarma
+* Ödeme başlatma
+* Satın alma
+* Rehber görüntüleme
+* Rehber kaydetme
+* Dil değiştirme
+* Topluluk paylaşımı
+
+Kullanıcı çerez izni vermeden pazarlama analitiği çalışmasın.
+
+---
+
+# 44. ÖNERİLEN URL YAPISI
+
+* /
+* /rehber
+* /rehber/yavru-poodle
+* /rehber/beslenme
+* /rehber/egitim
+* /rehber/bakim
+* /rehber/saglik
+* /rehber/davranis
+* /rehber/seyahat
+* /mama-bul
+* /mama-hesaplama
+* /yasak-yiyecekler
+* /ideal-kilo
+* /bakim-takvimi
+* /ai-asistan
+* /topluluk
+* /market
+* /market/mama
+* /market/odul
+* /market/bakim
+* /market/tuvalet
+* /market/aksesuar
+* /urun/urun-adi
+* /profil
+* /profil/poodle
+* /favoriler
+* /sepet
+* /odeme
+* /siparisler
+* /hakkimizda
+* /iletisim
+* /gizlilik
+* /kvkk
+* /cerez-politikasi
+
+URL’lerde Türkçe karakter kullanma.
+
+URL’ler küçük harf olsun.
+
+Kelimeler tire ile ayrılsın.
+
+---
+
+# 45. ANA SAYFA NİHAİ SIRALAMASI
+
+Ana sayfa şu sırayla oluşturulsun:
+
+1. Sabit header
+2. Yatay kategori menüsü
+3. Hero alanı
+4. Poodle’ınız için bugün ne arıyorsunuz?
+5. AI Poodle Asistanı
+6. Poodle profilinizi oluşturun
+7. Hızlı araçlar
+8. Bugün en çok okunan rehberler
+9. Yaşa göre rehber
+10. Mama bulma tanıtımı
+11. Poodle sahiplerinin tercih ettiği ürünler
+12. Topluluk paylaşımları
+13. Kullanıcı yorumları
+14. Sık sorulan sorular
+15. E-posta üyeliği
+16. Footer
+17. Mobil sabit alt menü
+
+Market bölümü ana sayfada aşırı büyük olmasın.
+
+Bilgi, AI ve kişiselleştirme ürünlerden önce gelsin.
+
+---
+
+# 46. İÇERİK TONU
+
+Metinler samimi, güvenilir ve anlaşılır olsun.
+
+Aşırı teknik veteriner dili kullanma.
+
+Kesin sağlık teşhisi verme.
+
+Aşırı satış baskısı oluşturma.
+
+“Şimdi almazsanız fırsatı kaçırırsınız” gibi agresif ifadeler kullanma.
+
+Markanın dili:
+
+* Uzman
+* Sıcak
+* Yardımcı
+* Poodle’a özel
+* Güven veren
+
+---
+
+# 47. TAMAMLAMA SONRASI KONTROL
+
+Tüm geliştirmeler tamamlandıktan sonra şu kontrolleri yap:
+
+* Build hatası var mı?
+* Console hatası var mı?
+* Mobil taşma var mı?
+* Bozuk görsel var mı?
+* Bozuk link var mı?
+* 404 veren sayfa var mı?
+* Çalışmayan buton var mı?
+* Sepet çalışıyor mu?
+* Dil seçimi korunuyor mu?
+* Profil kaydoluyor mu?
+* Filtreler çalışıyor mu?
+* Mama hesaplama sonuç veriyor mu?
+* AI asistan sayfası açılıyor mu?
+* Formlar hata mesajı gösteriyor mu?
+* SEO title doğru mu?
+* Canonical doğru mu?
+* Sitemap çalışıyor mu?
+* robots.txt çalışıyor mu?
+* www yönlendirmesi doğru mu?
+* Eski Enuygun Pet içerikleri tamamen silindi mi?
+* Googlebot ile kullanıcı aynı içeriği görüyor mu?
+
+---
+
+# 48. ÇALIŞMA ŞEKLİ
+
+Önce mevcut projeyi analiz et.
+
+Çalışan kodları gereksiz yere silme.
+
+Component yapısını düzenli tut.
+
+Tek bir dosyada binlerce satır kod oluşturma.
+
+Yeniden kullanılabilir componentler oluştur.
+
+Önerilen component yapısı:
+
+* Header
+* MobileMenu
+* CategoryNav
+* Hero
+* NeedSelector
+* AIAssistantBanner
+* PoodleProfileBanner
+* QuickTools
+* GuideCard
+* ProductCard
+* CommunityCard
+* FAQ
+* Footer
+* MobileBottomNav
+* FilterDrawer
+* ProductGallery
+* ReviewCard
+* ReminderCard
+
+Kod okunabilir, modüler ve geliştirilebilir olsun.
+
+Her aşamadan sonra projeyi çalıştır ve hataları düzelt.
+
+Eksik görseller için geçici kırık bağlantı kullanma.
+
+Uygun placeholder veya local asset kullan.
+
+Tüm butonları ve sayfa bağlantılarını çalışır durumda teslim et.
+
+---
+
+# SON HEDEF
+
+YourPoodle.com açıldığında kullanıcı sitenin sıradan bir petshop olmadığını hemen anlamalıdır.
+
+Kullanıcının ilk algısı şu olmalıdır:
+
+“Bu site sadece Poodle sahipleri için hazırlanmış. Köpeğimle ilgili aradığım bilgiyi, doğru mamayı, ürünleri ve kişisel önerileri burada bulabilirim.”
+
+Sitenin ana stratejisi:
+
+Önce bilgi ve güven oluştur.
+
+Sonra Poodle profilini oluştur.
+
+Ardından kişisel öneri sun.
+
+En son doğru ürüne yönlendir.
+
+Tüm projeyi bu stratejiye göre yeniden düzenle.

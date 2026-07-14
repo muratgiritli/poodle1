@@ -215,7 +215,7 @@ export default function YourPoodleHomePage() {
             <span style={{ fontSize:20 }}>⚡</span>
             <span style={{ fontSize:18, fontWeight:800, color:"#1a1a1a" }}>Bilgi Bankası</span>
           </div>
-          <p style={{ fontSize:13, color:"#888", marginBottom:18 }}>Poodle'iniz için en çok kullanılan araçlar.</p>
+          <p style={{ fontSize:13, color:"#888", marginBottom:18 }}>Poodle'ınız için en çok kullanılan araçlar.</p>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"20px 8px" }}>
             {[
               { label:"Mama Hesaplama",   desc:"Günlük mama miktarını hesapla",    bg:"#FFF0E0", color:"#E07820",
@@ -433,7 +433,7 @@ export default function YourPoodleHomePage() {
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
             {[
-              { emoji:"🌸", name:"Zeynep K.", stars:5, text:"YourPoodle sayesinde poodlem için doğru mamayı bulduk. Harika bir platform!" },
+              { emoji:"🌸", name:"Zeynep K.", stars:5, text:"YourPoodle sayesinde poodle'ım için doğru mamayı bulduk. Harika bir platform!" },
               { emoji:"🐶", name:"Mert A.",   stars:5, text:"Bilgi bankası inanılmaz kapsamlı. Her sorunun cevabı burada." },
               { emoji:"💜", name:"Selin T.",  stars:5, text:"Club üyeliği çok değerli, topluluktaki insanlar gerçekten yardımsever." },
             ].map(({ emoji, name, stars, text }) => (

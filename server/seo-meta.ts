@@ -407,6 +407,37 @@ function injectHomeMeta(html: string, urlPath: string, store: StoreConfig): stri
 
 const PRODUCT_PATH_RE = /^\/urun\/(\d+)(?:\/[^/?#]*)?\/?$/;
 
+// ── YourPoodle sub-app: per-route meta ────────────────────────────────────────
+const YP_ROUTE_META: Record<string, { title: string; description: string }> = {
+  "/yourpoodle":             { title: "YourPoodle — Poodle Platformu",                         description: "Türkiye'nin poodle topluluğu. Rehber, bakım araçları, etkinlikler ve poodle severler için özel platform." },
+  "/yourpoodle/rehber":      { title: "Poodle Rehberi — YourPoodle",                           description: "Toy, Minyatür ve Standart Poodle için kapsamlı bakım, eğitim ve sağlık rehberi." },
+  "/yourpoodle/bilgi":       { title: "Bilgi Bankası — YourPoodle",                            description: "Poodle sağlık araçları: mama hesaplama, belirti kontrolü, aşı takvimi ve daha fazlası." },
+  "/yourpoodle/club":        { title: "Poodle Club — YourPoodle",                              description: "YourPoodle topluluğuna katılın. Poodle sahipleriyle buluşun, deneyim ve fotoğraf paylaşın." },
+  "/yourpoodle/magaza":      { title: "Mağaza — YourPoodle Pet Shop Samsun",                   description: "Samsun Atakum YourPoodle Pet Shop. Poodle mamaları, oyuncaklar ve aksesuar. Aynı gün teslimat." },
+  "/yourpoodle/mama":        { title: "Mama Rehberi — YourPoodle",                             description: "Poodle için doğru mama seçimi, porsiyon hesaplama ve beslenme ipuçları." },
+  "/yourpoodle/egitim":      { title: "Eğitim Rehberi — YourPoodle",                          description: "Poodle eğitimi: temel komutlar, yaşa göre eğitim yöntemleri ve ipuçları." },
+  "/yourpoodle/saglik":      { title: "Sağlık Rehberi — YourPoodle",                          description: "Poodle sağlığı: belirtiler, acil durumlar, veteriner ipuçları ve önleyici bakım." },
+  "/yourpoodle/bakim":       { title: "Bakım Rehberi — YourPoodle",                           description: "Poodle tıraş, tüy bakımı, banyo ve günlük bakım kontrol listesi." },
+  "/yourpoodle/etkinlikler": { title: "Etkinlikler — YourPoodle",                             description: "Poodle buluşmaları, online webinarlar, yarışmalar ve sosyal etkinlikler." },
+  "/yourpoodle/poodle-ekle": { title: "Poodle'ımı Ekle — YourPoodle",                        description: "Poodle'ınızın profilini oluşturun, topluluğa katılın." },
+  "/yourpoodle/topluluk":    { title: "Topluluk — YourPoodle",                                description: "Poodle severlerle bağlantı kurun, fotoğraf ve deneyim paylaşın." },
+};
+
+function injectYPMeta(html: string, urlPath: string, store: StoreConfig): string {
+  const meta = YP_ROUTE_META[urlPath] ?? YP_ROUTE_META["/yourpoodle"];
+  const canonical = `${store.domain}${urlPath}`;
+  const title = escapeHtml(meta.title);
+  const description = escapeHtml(meta.description);
+  let out = html;
+  out = out.replace(/<title>[\s\S]*?<\/title>/i, `<title>${title}</title>`);
+  out = replaceTag(out, /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i, `<meta name="description" content="${description}" />`);
+  out = replaceTag(out, /<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:title" content="${title}" />`);
+  out = replaceTag(out, /<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:description" content="${description}" />`);
+  out = replaceTag(out, /<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:url" content="${canonical}" />`);
+  out = replaceTag(out, /<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/i, `<link rel="canonical" href="${canonical}" />`);
+  return out;
+}
+
 /**
  * Apply per-route, per-domain SEO metadata. `host` selects the active store so
  * every custom domain serves its own brand identity and self-canonicalizes.
@@ -420,6 +451,12 @@ export async function injectAllMeta(html: string, urlPath: string, host?: string
   out = injectGoogleTags(out, dbGoogle ? { ...store, google: dbGoogle } : store);
 
   const cleanPath = urlPath.split("?")[0].split("#")[0];
+
+  // YourPoodle sub-app: inject platform-specific meta for all /yourpoodle/* routes
+  if (cleanPath.startsWith("/yourpoodle")) {
+    return injectYPMeta(out, cleanPath, store);
+  }
+
   const m = cleanPath.match(PRODUCT_PATH_RE);
   if (m) {
     const id = Number(m[1]);

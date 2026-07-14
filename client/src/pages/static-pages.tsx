@@ -7,7 +7,7 @@ import { brandify, CURRENT_STORE } from "@/lib/store";
 
 const COMPANY = {
   name: "Sizpa İnternet Tic. Ltd. Şti.",
-  brand: "JETGO Pet Shop",
+  brand: brandify("JETGO Pet Shop"),
   ticSicilNo: "29458",
   mersisNo: "0772071161700010",
   vergiDairesi: "Gaziler",
@@ -122,8 +122,8 @@ export function SSSPage() {
   return (
     <PageWrapper title="Sıkça Sorulan Sorular">
       <SEO
-        title="Sıkça Sorulan Sorular | JETGO Samsun Pet Shop"
-        description="JETGO Pet Shop hakkında merak edilen sorular ve cevapları. Sipariş, teslimat, ödeme, iade ve üyelik konularında detaylı bilgi."
+        title={brandify("Sıkça Sorulan Sorular | JETGO Samsun Pet Shop")}
+        description={brandify("JETGO Pet Shop hakkında merak edilen sorular ve cevapları. Sipariş, teslimat, ödeme, iade ve üyelik konularında detaylı bilgi.")}
         canonical={`${SITE_DOMAIN}/sss`}
         jsonLd={FAQ_JSONLD(faqs.map(f => ({ question: f.q, answer: f.a })))}
       />
@@ -165,7 +165,7 @@ export function IslemRehberiPage() {
 
   return (
     <PageWrapper title="İşlem Rehberi">
-      <SEO title="İşlem Rehberi - Nasıl Sipariş Verilir | JETGO Samsun Pet Shop" description="JETGO Pet Shop'tan adım adım nasıl sipariş vereceğinizi öğrenin. Üyelik, sepet, ödeme ve teslimat süreçleri hakkında detaylı bilgi." canonical={`${SITE_DOMAIN}/islem-rehberi`} />
+      <SEO title={brandify("İşlem Rehberi - Nasıl Sipariş Verilir | JETGO Samsun Pet Shop")} description={brandify("JETGO Pet Shop'tan adım adım nasıl sipariş vereceğinizi öğrenin. Üyelik, sepet, ödeme ve teslimat süreçleri hakkında detaylı bilgi.")} canonical={`${SITE_DOMAIN}/islem-rehberi`} />
 
       <p className="text-sm text-muted-foreground mb-6">{brandify("JETGO")}'dan sipariş vermek çok kolay! Adım adım nasıl yapacağınızı aşağıda bulabilirsiniz.</p>
 
@@ -202,7 +202,7 @@ export function IslemRehberiPage() {
 export function TeslimatIadePage() {
   return (
     <PageWrapper title="Teslimat ve İade Şartları">
-      <SEO title="Teslimat ve İade Şartları | JETGO Samsun Pet Shop" description="JETGO Pet Shop teslimat koşulları, teslimat süreleri, iade politikası ve cayma hakkı hakkında detaylı bilgi." canonical={`${SITE_DOMAIN}/teslimat-iade`} />
+      <SEO title={brandify("Teslimat ve İade Şartları | JETGO Samsun Pet Shop")} description={brandify("JETGO Pet Shop teslimat koşulları, teslimat süreleri, iade politikası ve cayma hakkı hakkında detaylı bilgi.")} canonical={`${SITE_DOMAIN}/teslimat-iade`} />
 
       <Section>
         <p><strong>{COMPANY.name}</strong> ("{brandify("JETGO")}") olarak müşterilerimize hızlı, güvenilir ve şeffaf bir alışveriş deneyimi sunmayı taahhüt ediyoruz. İşbu sayfa, teslimat koşullarımızı ve 6502 sayılı Tüketicinin Korunması Hakkında Kanun kapsamındaki iade politikamızı detaylı olarak açıklamaktadır.</p>
@@ -317,7 +317,7 @@ export function TeslimatIadePage() {
 function MesafeliSatisJetgo() {
   return (
     <PageWrapper title="Mesafeli Satış Sözleşmesi">
-      <SEO title="Mesafeli Satış Sözleşmesi | JETGO" description="Jetgomarket.com mesafeli satış sözleşmesi: taraflar, teslimat, cayma hakkı, iade ve ödeme koşulları." canonical={`${SITE_DOMAIN}/mesafeli-satis`} />
+      <SEO title={brandify("Mesafeli Satış Sözleşmesi | JETGO")} description={brandify("jetgomarket.com mesafeli satış sözleşmesi: taraflar, teslimat, cayma hakkı, iade ve ödeme koşulları.")} canonical={`${SITE_DOMAIN}/mesafeli-satis`} />
 
       <Section title="1. Taraflar">
         <p><strong>SATICI / HİZMET SAĞLAYICI</strong></p>
@@ -410,7 +410,7 @@ export function MesafeliSatisSozlesmesiPage() {
   if (CURRENT_STORE.id === "jetgo") return <MesafeliSatisJetgo />;
   return (
     <PageWrapper title="Mesafeli Satış Sözleşmesi">
-      <SEO title="Mesafeli Satış Sözleşmesi | JETGO Samsun Pet Shop" description="JETGO Pet Shop mesafeli satış sözleşmesi. 6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği kapsamında ön bilgilendirme ve sözleşme koşulları." canonical={`${SITE_DOMAIN}/mesafeli-satis`} />
+      <SEO title={brandify("Mesafeli Satış Sözleşmesi | JETGO Samsun Pet Shop")} description={brandify("JETGO Pet Shop mesafeli satış sözleşmesi. 6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği kapsamında ön bilgilendirme ve sözleşme koşulları.")} canonical={`${SITE_DOMAIN}/mesafeli-satis`} />
 
       <Section>
         <p>İşbu Mesafeli Satış Sözleşmesi ("Sözleşme"), 6502 sayılı Tüketicinin Korunması Hakkında Kanun ("Kanun") ve 27.11.2014 tarihli 29188 sayılı Resmi Gazete'de yayımlanan Mesafeli Sözleşmeler Yönetmeliği ("Yönetmelik") hükümlerine uygun olarak düzenlenmiştir.</p>
@@ -537,7 +537,7 @@ export function MesafeliSatisSozlesmesiPage() {
 export function KVKKPage() {
   return (
     <PageWrapper title="Kişisel Verilerin Korunması (KVKK) Aydınlatma Metni">
-      <SEO title="KVKK Aydınlatma Metni | JETGO Samsun Pet Shop" description="JETGO Pet Shop kişisel verilerin korunması kanunu (KVKK) kapsamında aydınlatma metni. 6698 sayılı Kanun gereği veri işleme politikamız." canonical={`${SITE_DOMAIN}/kvkk`} />
+      <SEO title={brandify("KVKK Aydınlatma Metni | JETGO Samsun Pet Shop")} description={brandify("JETGO Pet Shop kişisel verilerin korunması kanunu (KVKK) kapsamında aydınlatma metni. 6698 sayılı Kanun gereği veri işleme politikamız.")} canonical={`${SITE_DOMAIN}/kvkk`} />
 
       <Section>
         <p><strong>{COMPANY.name}</strong> ("Şirket") olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") kapsamında veri sorumlusu sıfatıyla, kişisel verilerinizin hukuka uygun biçimde işlenmesini, güvenli şekilde saklanmasını ve korunmasını sağlamayı taahhüt ediyoruz.</p>
@@ -646,7 +646,7 @@ export function KVKKPage() {
 export function GizlilikPage() {
   return (
     <PageWrapper title="Gizlilik Politikası">
-      <SEO title="Gizlilik Politikası | JETGO Samsun Pet Shop" description="JETGO Pet Shop gizlilik politikası. Kişisel verilerinizin nasıl toplandığı, kullanıldığı, korunduğu ve paylaşıldığı hakkında detaylı bilgi." canonical={`${SITE_DOMAIN}/gizlilik`} />
+      <SEO title={brandify("Gizlilik Politikası | JETGO Samsun Pet Shop")} description={brandify("JETGO Pet Shop gizlilik politikası. Kişisel verilerinizin nasıl toplandığı, kullanıldığı, korunduğu ve paylaşıldığı hakkında detaylı bilgi.")} canonical={`${SITE_DOMAIN}/gizlilik`} />
 
       <Section>
         <p><strong>{COMPANY.name}</strong> ("{brandify("JETGO")}") olarak gizliliğinize saygı duyuyor ve kişisel verilerinizi korumayı taahhüt ediyoruz. İşbu Gizlilik Politikası, web sitemizi ve mobil uygulamamızı kullanırken hangi bilgilerin toplandığını, nasıl kullanıldığını, kimlerle paylaşıldığını ve nasıl korunduğunu detaylı olarak açıklamaktadır.</p>
@@ -754,7 +754,7 @@ export function GizlilikPage() {
 export function GizlilikSozlesmesiPage() {
   return (
     <PageWrapper title="Gizlilik Sözleşmesi">
-      <SEO title="Gizlilik Sözleşmesi | JETGO Samsun Pet Shop" description="JETGO Pet Shop gizlilik sözleşmesi. Kişisel verilerinizin korunması, veri işleme politikası ve kullanıcı hakları hakkında detaylı sözleşme metni." canonical={`${SITE_DOMAIN}/gizlilik-sozlesmesi`} />
+      <SEO title={brandify("Gizlilik Sözleşmesi | JETGO Samsun Pet Shop")} description={brandify("JETGO Pet Shop gizlilik sözleşmesi. Kişisel verilerinizin korunması, veri işleme politikası ve kullanıcı hakları hakkında detaylı sözleşme metni.")} canonical={`${SITE_DOMAIN}/gizlilik-sozlesmesi`} />
 
       <Section>
         <p>İşbu Gizlilik Sözleşmesi ("Sözleşme"), <strong>{COMPANY.name}</strong> ("Şirket" veya "Hizmet Sağlayıcı") tarafından işletilen {brandify("JETGO Pet Shop")} web sitesini ve mobil uygulamasını ("Site") kullanan kullanıcıların ("Kullanıcı") kişisel verilerinin toplanması, işlenmesi, saklanması, korunması ve imha edilmesine ilişkin koşulları düzenler.</p>
@@ -906,7 +906,7 @@ export function GizlilikSozlesmesiPage() {
 export function KullanimKosullariPage() {
   return (
     <PageWrapper title="Kullanım Koşulları">
-      <SEO title="Kullanım Koşulları | JETGO Samsun Pet Shop" description="JETGO Pet Shop web sitesi kullanım koşulları ve şartları. Site kullanımı, sipariş, ödeme, fikri mülkiyet ve sorumluluk sınırları hakkında bilgi." canonical={`${SITE_DOMAIN}/kullanim-kosullari`} />
+      <SEO title={brandify("Kullanım Koşulları | JETGO Samsun Pet Shop")} description={brandify("JETGO Pet Shop web sitesi kullanım koşulları ve şartları. Site kullanımı, sipariş, ödeme, fikri mülkiyet ve sorumluluk sınırları hakkında bilgi.")} canonical={`${SITE_DOMAIN}/kullanim-kosullari`} />
 
       <Section>
         <p>İşbu Kullanım Koşulları ("Koşullar"), <strong>{COMPANY.name}</strong> tarafından işletilen {brandify("JETGO Pet Shop")} web sitesinin ("Site") kullanımına ilişkin kuralları ve koşulları belirler. Site'yi kullanarak işbu Koşulları kabul etmiş sayılırsınız.</p>
@@ -1014,7 +1014,7 @@ export function KullanimKosullariPage() {
 function CerezPolitikasiJetgo() {
   return (
     <PageWrapper title="Çerez (Cookie) Politikası">
-      <SEO title="Çerez Politikası | JETGO" description="Jetgomarket.com çerez (cookie) politikası: çerez türleri, üçüncü taraf çerezleri, saklama süreleri ve çerez yönetimi." canonical={`${SITE_DOMAIN}/cerez-politikasi`} />
+      <SEO title={brandify("Çerez Politikası | JETGO")} description={brandify("jetgomarket.com çerez (cookie) politikası: çerez türleri, üçüncü taraf çerezleri, saklama süreleri ve çerez yönetimi.")} canonical={`${SITE_DOMAIN}/cerez-politikasi`} />
 
       <Section>
         <p><strong>Son Güncelleme:</strong> 27.06.2026</p>
@@ -1129,7 +1129,7 @@ export function CerezPage() {
   if (CURRENT_STORE.id === "jetgo") return <CerezPolitikasiJetgo />;
   return (
     <PageWrapper title="Çerez Politikası">
-      <SEO title="Çerez Politikası | JETGO Samsun Pet Shop" description="JETGO Pet Shop çerez (cookie) kullanımı hakkında detaylı bilgilendirme. Çerez türleri, kullanım amaçları ve yönetimi." canonical={`${SITE_DOMAIN}/cerez-politikasi`} />
+      <SEO title={brandify("Çerez Politikası | JETGO Samsun Pet Shop")} description={brandify("JETGO Pet Shop çerez (cookie) kullanımı hakkında detaylı bilgilendirme. Çerez türleri, kullanım amaçları ve yönetimi.")} canonical={`${SITE_DOMAIN}/cerez-politikasi`} />
 
       <Section>
         <p><strong>{COMPANY.name}</strong> ("{brandify("JETGO")}") olarak web sitemizde çerezler (cookies) kullanmaktayız. İşbu Çerez Politikası, sitemizde hangi çerezlerin kullanıldığını, ne amaçla kullanıldığını ve çerezleri nasıl yönetebileceğinizi açıklamaktadır.</p>
@@ -1218,7 +1218,7 @@ export function CerezPage() {
 export function HakkimizdaPage() {
   return (
     <PageWrapper title="Hakkımızda">
-      <SEO title="Hakkımızda | JETGO Samsun Pet Shop" description="JETGO - Samsun Atakum'un güvenilir pet shop'u. Sizpa İnternet Tic. Ltd. Şti. tarafından işletilmektedir. Kedi, köpek, kuş ve kemirgen ürünlerinde kaliteli hizmet." canonical={`${SITE_DOMAIN}/hakkimizda`} />
+      <SEO title={brandify("Hakkımızda | JETGO Samsun Pet Shop")} description={brandify("JETGO - Samsun Atakum'un güvenilir pet shop'u. Sizpa İnternet Tic. Ltd. Şti. tarafından işletilmektedir. Kedi, köpek, kuş ve kemirgen ürünlerinde kaliteli hizmet.")} canonical={`${SITE_DOMAIN}/hakkimizda`} />
 
       <Section>
         <p><strong>{COMPANY.name}</strong> bünyesinde faaliyet gösteren <strong>{brandify("JETGO Pet Shop")}</strong> olarak, Samsun Atakum'da evcil hayvan sahiplerine kaliteli ürünleri en uygun fiyatlarla ulaştırmayı hedefliyoruz.</p>
@@ -1278,7 +1278,7 @@ export function HakkimizdaPage() {
 export function IletisimPage() {
   return (
     <PageWrapper title="İletişim">
-      <SEO title="İletişim | JETGO Samsun Pet Shop" description="JETGO Pet Shop iletişim bilgileri. Samsun Atakum'da evcil hayvan ürünleri siparişi için bize ulaşın. Telefon, WhatsApp, e-posta." canonical={`${SITE_DOMAIN}/iletisim`} />
+      <SEO title={brandify("İletişim | JETGO Samsun Pet Shop")} description={brandify("JETGO Pet Shop iletişim bilgileri. Samsun Atakum'da evcil hayvan ürünleri siparişi için bize ulaşın. Telefon, WhatsApp, e-posta.")} canonical={`${SITE_DOMAIN}/iletisim`} />
 
       <div className="space-y-4">
         <div className="p-5 border rounded-lg space-y-4" data-testid="contact-info">
@@ -1449,8 +1449,8 @@ export function MagazaPage() {
   return (
     <PageWrapper title={brandify("JETGO Pet Shop Atakum Mağazası")}>
       <SEO
-        title="JETGO Atakum Mağaza | Samsun Pet Shop Adres, Harita, Çalışma Saatleri"
-        description="JETGO Pet Shop Atakum mağazası: Yenimahalle Atatürk 3. Kısım Bulvarı No:113/A. Aynı gün teslimat, kapıda ödeme, 900+ ürün. Pzt-Cmt 09:00-22:00, Pazar 10:00-22:00."
+        title={brandify("JETGO Atakum Mağaza | Samsun Pet Shop Adres, Harita, Çalışma Saatleri")}
+        description={brandify("JETGO Pet Shop Atakum mağazası: Yenimahalle Atatürk 3. Kısım Bulvarı No:113/A. Aynı gün teslimat, kapıda ödeme, 900+ ürün. Pzt-Cmt 09:00-22:00, Pazar 10:00-22:00.")}
         canonical={`${SITE_DOMAIN}/magaza`}
         keywords="atakum petshop mağaza, samsun pet shop adres, jetgo mağaza, atakum pet shop, yenimahalle pet shop, samsun petshop konum"
         jsonLd={[storeJsonLd, breadcrumbJsonLd, FAQ_JSONLD(storeFaqs.map(f => ({ question: f.q, answer: f.a })))]}
