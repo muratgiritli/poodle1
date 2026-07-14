@@ -1,287 +1,180 @@
-import React from 'react';
-import { 
-  Search, 
-  ShoppingCart, 
-  Menu, 
-  Star, 
-  BookOpen, 
-  Clock, 
-  Home, 
-  Users, 
-  ShoppingBag, 
-  User, 
-  ChevronRight,
-  Utensils,
-  Scissors
-} from 'lucide-react';
+import { useState } from "react";
+import { Search, ShoppingBag, ChevronDown, Menu, X, Home, Users, BookOpen, Monitor, Clock, ChevronRight } from "lucide-react";
 
-export function Rehber() {
+const LANGUAGES = [
+  { code: "TR", flag: "🇹🇷" }, { code: "EN", flag: "🇺🇸" }, { code: "DE", flag: "🇩🇪" },
+  { code: "FR", flag: "🇫🇷" }, { code: "RU", flag: "🇷🇺" }, { code: "AR", flag: "🇸🇦" },
+];
+
+const CATS = ["Tümü","Beslenme","Sağlık","Bakım","Eğitim","Davranış","Üreme"];
+
+const ARTICLES = [
+  { emoji:"🍖", cat:"Beslenme",  title:"Toy Poodle İçin En İyi Mama Markaları 2024",         min:5,  views:"2.4B",  featured:true  },
+  { emoji:"✂️", cat:"Bakım",     title:"Evde Poodle Tıraşı: Adım Adım Rehber",               min:8,  views:"1.8B",  featured:true  },
+  { emoji:"💊", cat:"Sağlık",    title:"Poodle'larda Görülen 10 Yaygın Sağlık Sorunu",       min:6,  views:"3.1B",  featured:false },
+  { emoji:"🐾", cat:"Eğitim",    title:"Poodle'ınıza Temel Komutları Nasıl Öğretirsiniz?",   min:10, views:"980B",  featured:false },
+  { emoji:"❤️", cat:"Davranış",  title:"Poodle Anksiyetesi: Belirtiler ve Çözüm Yolları",    min:7,  views:"1.2B",  featured:false },
+  { emoji:"🏥", cat:"Sağlık",    title:"Poodle'larda Kalça Displazisi: Erken Teşhis",        min:9,  views:"760B",  featured:false },
+  { emoji:"🛁", cat:"Bakım",     title:"Poodle Tüy Bakımı: Haftalık Rutin Rehberi",          min:5,  views:"1.5B",  featured:false },
+  { emoji:"🥩", cat:"Beslenme",  title:"Yavru Poodle Beslenmesi: İlk 12 Ay",                 min:6,  views:"890B",  featured:false },
+  { emoji:"🎓", cat:"Eğitim",    title:"Clicker Eğitimi ile Hızlı Öğrenme Teknikleri",       min:8,  views:"640B",  featured:false },
+];
+
+const DRAWER_LINKS = [
+  "Ana Sayfa","Rehber","Bilgi Bankası","Mağaza","Mama","Eğitim","Sağlık","Bakım","Poodle Club",
+];
+
+function BottomNav({ active }: { active: string }) {
   return (
-    <div className="max-w-[430px] mx-auto min-h-screen bg-gray-50 pb-24 relative overflow-hidden font-['Nunito',sans-serif]">
-      {/* Import Google Fonts */}
-      <div dangerouslySetInnerHTML={{ __html: `<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">` }} />
-      <style dangerouslySetInnerHTML={{ __html: `
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}} />
+    <nav style={{ position:"fixed", bottom:0, left:0, right:0, background:"#fff", borderTop:"1px solid #f0f0f0", boxShadow:"0 -4px 20px rgba(0,0,0,0.08)", height:64, display:"flex", alignItems:"center", justifyContent:"space-around", zIndex:200, padding:"0 8px" }}>
+      {[
+        { label:"Ana Sayfa", href:"/", icon:<Home size={22} strokeWidth={2} /> },
+        { label:"Club",      href:"/club", icon:<Users size={22} strokeWidth={2} /> },
+      ].map(({ label, href, icon }) => (
+        <a key={label} href={href} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, textDecoration:"none", flex:1, color: active===label ? "#7C3AFF" : "#aaa" }}>
+          {icon}
+          <span style={{ fontSize:10, fontWeight: active===label ? 800 : 700, fontFamily:"'Inter',sans-serif" }}>{label}</span>
+          {active===label && <div style={{ width:20, height:2.5, borderRadius:2, background:"#7C3AFF" }} />}
+        </a>
+      ))}
+      <a href="/sepet" style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, textDecoration:"none", flex:1, position:"relative" }}>
+        <div style={{ width:54, height:54, borderRadius:"50%", background:"linear-gradient(135deg,#9B59FF,#7C3AFF)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 6px 20px rgba(124,58,255,0.4)", position:"absolute", top:-24 }}>
+          <ShoppingBag size={24} color="#fff" strokeWidth={2.2} />
+        </div>
+        <span style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:"'Inter',sans-serif", marginTop:32 }}>Sepet</span>
+      </a>
+      {[
+        { label:"Rehber",       href:"/rehber",       icon:<BookOpen size={22} strokeWidth={2} /> },
+        { label:"Bilgi Bankası",href:"/bilgi-bankasi", icon:<Monitor size={22} strokeWidth={2} /> },
+      ].map(({ label, href, icon }) => (
+        <a key={label} href={href} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, textDecoration:"none", flex:1, color: active===label ? "#7C3AFF" : "#aaa" }}>
+          {icon}
+          <span style={{ fontSize:10, fontWeight: active===label ? 800 : 700, fontFamily:"'Inter',sans-serif" }}>{label}</span>
+          {active===label && <div style={{ width:20, height:2.5, borderRadius:2, background:"#7C3AFF" }} />}
+        </a>
+      ))}
+    </nav>
+  );
+}
 
-      {/* HEADER */}
-      <header className="sticky top-0 z-40 bg-white">
-        <div className="flex items-center justify-between px-4 h-14 border-b border-gray-100">
-          <div className="text-2xl font-bold font-['Dancing_Script'] text-gray-900">
-            YourPoodle
+export default function Rehber() {
+  const [activeLang, setActiveLang] = useState(LANGUAGES[0]);
+  const [langOpen, setLangOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [activeCat, setActiveCat] = useState("Tümü");
+  const [search, setSearch] = useState("");
+
+  const filtered = ARTICLES.filter(a =>
+    (activeCat === "Tümü" || a.cat === activeCat) &&
+    (search === "" || a.title.toLowerCase().includes(search.toLowerCase()))
+  );
+
+  return (
+    <>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap'); *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;} body{background:#fff;} .noscroll::-webkit-scrollbar{display:none;} .noscroll{-ms-overflow-style:none;scrollbar-width:none;} .icon-btn{background:none;border:none;cursor:pointer;display:flex;align-items:center;padding:6px;border-radius:8px;}`}</style>
+
+      <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"'Inter',sans-serif", paddingBottom:80 }}>
+
+        {/* DRAWER */}
+        {drawerOpen && <div onClick={() => setDrawerOpen(false)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.3)", zIndex:199 }} />}
+        <div style={{ position:"fixed", top:0, right:0, height:"100%", width:280, background:"#fff", zIndex:200, transform: drawerOpen ? "translateX(0)" : "translateX(100%)", transition:"transform 0.24s ease", boxShadow:"-4px 0 24px rgba(0,0,0,0.12)" }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"20px 18px 14px", borderBottom:"1px solid #f2f2f2" }}>
+            <img src="/__mockup/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height:32, objectFit:"contain" }} />
+            <button className="icon-btn" onClick={() => setDrawerOpen(false)}><X size={20} color="#444" /></button>
           </div>
-          <div className="flex items-center gap-3 text-gray-700">
-            <Search size={20} />
-            <ShoppingCart size={20} />
-            <span className="text-sm font-bold">🇬🇧 EN</span>
-            <Menu size={24} />
-          </div>
+          <nav>{DRAWER_LINKS.map(l => <a key={l} href={`/${l.toLowerCase().replace(/\s/g,"-")}`} style={{ display:"block", padding:"14px 20px", fontSize:15, fontWeight:600, color:"#222", textDecoration:"none", borderBottom:"1px solid #fafafa" }}>{l}</a>)}</nav>
         </div>
 
-        {/* NAVIGATION TABS */}
-        <div className="flex px-4 overflow-x-auto no-scrollbar border-b border-gray-100 shadow-sm">
-          <div className="flex whitespace-nowrap">
-            <div className="px-4 py-3.5 text-sm text-gray-500 font-bold">Home</div>
-            <div className="px-4 py-3.5 text-sm text-purple-600 font-extrabold border-b-[3px] border-purple-600">Guide</div>
-            <div className="px-4 py-3.5 text-sm text-gray-500 font-bold">Knowledge Base</div>
-            <div className="px-4 py-3.5 text-sm text-gray-500 font-bold">Shop</div>
-          </div>
-        </div>
-      </header>
-
-      {/* HERO SECTION */}
-      <section className="bg-gradient-to-r from-[#7C3AED] to-[#E040FB] p-5 pb-8 relative rounded-b-[2rem] shadow-md">
-        <div className="flex justify-between items-start mb-6 pt-2">
-          <div className="w-[65%]">
-            <div className="bg-white/25 text-white text-[11px] font-bold px-3 py-1.5 rounded-full inline-flex items-center backdrop-blur-md mb-4 shadow-sm">
-              📚 50+ Rehber
+        {/* HEADER */}
+        <header style={{ position:"sticky", top:0, zIndex:100, background:"#fff", borderBottom:"1px solid #f0f0f0" }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px" }}>
+            <img src="/__mockup/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height:36, width:160, objectFit:"contain", objectPosition:"left center" }} />
+            <div style={{ display:"flex", alignItems:"center", gap:4 }}>
+              <button className="icon-btn"><Search size={21} color="#333" strokeWidth={2} /></button>
+              <button className="icon-btn"><ShoppingBag size={21} color="#333" strokeWidth={2} /></button>
+              <div style={{ position:"relative" }}>
+                <button className="icon-btn" onClick={() => setLangOpen(!langOpen)} style={{ gap:4, padding:"5px 8px" }}>
+                  <span style={{ fontSize:15 }}>{activeLang.flag}</span>
+                  <span style={{ fontSize:13, fontWeight:700, color:"#6C47FF" }}>{activeLang.code}</span>
+                  <ChevronDown size={13} color="#6C47FF" strokeWidth={2.5} style={{ transform: langOpen ? "rotate(180deg)" : "none", transition:"transform 0.18s" }} />
+                </button>
+                {langOpen && (
+                  <div style={{ position:"absolute", right:0, top:38, background:"#fff", borderRadius:12, border:"1px solid #eee", boxShadow:"0 8px 28px rgba(0,0,0,0.12)", zIndex:150, minWidth:110, padding:"4px 0" }}>
+                    {LANGUAGES.map(l => <button key={l.code} onClick={() => { setActiveLang(l); setLangOpen(false); }} style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:"9px 14px", border:"none", background: activeLang.code===l.code ? "#F5F0FF" : "transparent", cursor:"pointer", fontSize:13, fontWeight:700, color: activeLang.code===l.code ? "#6C47FF" : "#333", fontFamily:"'Inter',sans-serif" }}><span style={{ fontSize:16 }}>{l.flag}</span>{l.code}</button>)}
+                  </div>
+                )}
+              </div>
+              <button className="icon-btn" onClick={() => setDrawerOpen(true)}><Menu size={22} color="#333" strokeWidth={2} /></button>
             </div>
-            <h1 className="text-[28px] font-extrabold text-white leading-tight mb-3">Toy Poodle Rehberi</h1>
-            <p className="text-white/90 text-[13px] leading-relaxed font-medium">
-              Bakım, eğitim, beslenme ve günlük yaşam için adım adım hazırlanmış rehberler.
-            </p>
           </div>
-          <div className="bg-white p-3 rounded-2xl shadow-xl mt-3 mr-1 transform rotate-3 flex-shrink-0 border-4 border-white/40 backdrop-blur-sm">
-            <div className="text-6xl" role="img" aria-label="poodle chef">🐩</div>
+          <div style={{ display:"flex", borderTop:"1px solid #f0f0f0" }}>
+            {[{label:"Ana Sayfa",href:"/"},{label:"Rehber",href:"/rehber"},{label:"Bilgi Bankası",href:"/bilgi"},{label:"Mağaza",href:"/magaza"}].map(t => (
+              <a key={t.label} href={t.href} style={{ flex:1, padding:"11px 4px", fontSize:13.5, fontWeight: t.label==="Rehber" ? 700 : 500, color: t.label==="Rehber" ? "#6C47FF" : "#555", borderBottom: t.label==="Rehber" ? "2.5px solid #6C47FF" : "2.5px solid transparent", textAlign:"center", textDecoration:"none", display:"block" }}>{t.label}</a>
+            ))}
+          </div>
+        </header>
+
+        {/* PAGE TITLE */}
+        <div style={{ padding:"20px 16px 0" }}>
+          <h1 style={{ fontSize:22, fontWeight:900, color:"#1a1a1a", marginBottom:4 }}>📖 Rehber</h1>
+          <p style={{ fontSize:13, color:"#888" }}>Toy Poodle'ınız için kapsamlı içerikler</p>
+        </div>
+
+        {/* SEARCH */}
+        <div style={{ padding:"14px 16px 0" }}>
+          <div style={{ display:"flex", alignItems:"center", background:"#F7F7F7", border:"1.5px solid #ececec", borderRadius:14, height:48, overflow:"hidden" }}>
+            <div style={{ paddingLeft:14, color:"#bbb", display:"flex" }}><Search size={18} strokeWidth={2} /></div>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Makale ara..." style={{ flex:1, border:"none", outline:"none", fontSize:13.5, fontWeight:600, color:"#333", background:"transparent", padding:"0 10px", fontFamily:"'Inter',sans-serif" }} />
           </div>
         </div>
 
-        <div className="relative mb-5 z-10 shadow-lg rounded-full">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" />
+        {/* CATEGORY CHIPS */}
+        <div style={{ padding:"12px 16px 0" }}>
+          <div className="noscroll" style={{ display:"flex", gap:8, overflowX:"auto" }}>
+            {CATS.map(c => (
+              <button key={c} onClick={() => setActiveCat(c)} style={{ flexShrink:0, padding:"7px 16px", borderRadius:20, border:"1.5px solid", borderColor: activeCat===c ? "#7C3AFF" : "#e8e8e8", background: activeCat===c ? "#7C3AFF" : "#fff", color: activeCat===c ? "#fff" : "#555", fontSize:12.5, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>{c}</button>
+            ))}
           </div>
-          <input 
-            type="text" 
-            className="block w-full pl-11 pr-4 py-3.5 bg-white rounded-full text-[14px] font-medium shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500" 
-            placeholder="Hangi konuda yardıma ihtiyacınız var?" 
-          />
         </div>
 
-        <div className="flex overflow-x-auto no-scrollbar gap-2.5 pb-1">
-          {['Yavru', 'Beslenme', 'Bakım', 'Eğitim', 'Davranış', 'Seyahat', 'Mevsim Bakımı'].map((chip, i) => (
-            <div key={chip} className={`whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-bold shadow-sm cursor-pointer transition-transform active:scale-95 ${i === 0 ? 'bg-white text-purple-700 border-2 border-purple-200' : 'bg-white/95 text-gray-700 hover:bg-white'}`}>
-              {chip}
+        {/* FEATURED */}
+        {activeCat === "Tümü" && search === "" && (
+          <div style={{ padding:"16px 16px 0" }}>
+            <div style={{ background:"linear-gradient(135deg,#EDE8FF,#F5F0FF)", borderRadius:18, padding:"18px", display:"flex", gap:14, alignItems:"center", cursor:"pointer" }}>
+              <div style={{ width:64, height:64, borderRadius:16, background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:32, flexShrink:0 }}>🍖</div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:10, fontWeight:800, color:"#7C3AFF", letterSpacing:"0.06em", marginBottom:5 }}>ÖNE ÇIKAN</div>
+                <div style={{ fontSize:15, fontWeight:800, color:"#1a1a1a", lineHeight:1.35, marginBottom:6 }}>Toy Poodle İçin En İyi Mama Markaları 2024</div>
+                <div style={{ display:"flex", gap:12 }}>
+                  <span style={{ fontSize:11, color:"#888", display:"flex", alignItems:"center", gap:3 }}><Clock size={11} strokeWidth={2} /> 5 dk</span>
+                  <span style={{ fontSize:11, color:"#888" }}>👁 2.4B görüntülenme</span>
+                </div>
+              </div>
+              <ChevronRight size={18} color="#7C3AFF" />
+            </div>
+          </div>
+        )}
+
+        {/* ARTICLE LIST */}
+        <div style={{ padding:"16px 16px 0", display:"flex", flexDirection:"column", gap:12 }}>
+          {filtered.filter(a => !a.featured || activeCat !== "Tümü" || search !== "").map(a => (
+            <div key={a.title} style={{ display:"flex", gap:12, alignItems:"center", padding:"12px", background:"#FAFAFA", borderRadius:14, cursor:"pointer" }}>
+              <div style={{ width:52, height:52, borderRadius:12, background:"#EDE8FF", display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, flexShrink:0 }}>{a.emoji}</div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:10, fontWeight:700, color:"#7C3AFF", marginBottom:4 }}>{a.cat}</div>
+                <div style={{ fontSize:13, fontWeight:700, color:"#1a1a1a", lineHeight:1.4, marginBottom:5 }}>{a.title}</div>
+                <div style={{ display:"flex", gap:10 }}>
+                  <span style={{ fontSize:11, color:"#aaa", display:"flex", alignItems:"center", gap:3 }}><Clock size={11} strokeWidth={2} />{a.min} dk</span>
+                  <span style={{ fontSize:11, color:"#aaa" }}>👁 {a.views}</span>
+                </div>
+              </div>
+              <ChevronRight size={16} color="#ccc" />
             </div>
           ))}
         </div>
-      </section>
 
-      {/* EN ÇOK OKUNAN REHBERLER */}
-      <section className="mt-8">
-        <div className="flex items-center px-5 mb-4">
-          <Star className="h-5 w-5 text-yellow-400 fill-yellow-400 mr-2.5 drop-shadow-sm" />
-          <h2 className="text-[19px] font-extrabold text-gray-900 tracking-tight">En Çok Okunan Rehberler</h2>
-        </div>
-
-        <div className="flex overflow-x-auto no-scrollbar gap-4 px-5 pb-6">
-          {[
-            { icon: '🚽', title: 'Tuvalet Eğitimi', desc: 'Adım adım eğitim rehberi' },
-            { icon: '👁️', title: 'Göz Akıntısı', desc: 'Temizlik ve bakım' },
-            { icon: '🍖', title: 'Mama Seçimi', desc: 'Doğru mama nasıl seçilir?' },
-            { icon: '🔊', title: 'Havlama Sorunu', desc: 'Kontrol etme yöntemleri' },
-            { icon: '💉', title: 'İlk Aşılar', desc: 'Aşı takvimi ve önemi' },
-            { icon: '✂️', title: 'Tıraş ve Tarama', desc: 'Bakım ipuçları' },
-          ].map((item, i) => (
-            <div key={i} className="min-w-[144px] w-36 bg-white rounded-[20px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-4 flex flex-col flex-shrink-0 active:scale-95 transition-transform cursor-pointer">
-              <div className="text-4xl text-center mb-3.5 drop-shadow-sm">{item.icon}</div>
-              <h3 className="font-extrabold text-[14px] text-gray-900 leading-tight mb-1.5">{item.title}</h3>
-              <p className="text-[12px] text-gray-500 leading-snug mb-3 flex-grow font-medium">{item.desc}</p>
-              <div className="text-[12px] font-bold text-purple-600 mt-auto flex items-center">
-                Oku <ChevronRight className="h-3.5 w-3.5 ml-0.5" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* TÜM REHBER KATEGORİLERİ */}
-      <section className="mt-2 px-5 mb-10">
-        <div className="flex items-center mb-5">
-          <BookOpen className="h-5 w-5 text-gray-800 mr-2.5" />
-          <h2 className="text-[19px] font-extrabold text-gray-900 tracking-tight">Tüm Rehber Kategorileri</h2>
-        </div>
-
-        <div className="flex flex-col gap-5">
-          {/* Card 1 - Yavru */}
-          <div className="bg-white border-l-[5px] border-l-orange-400 border border-y-orange-100 border-r-orange-100 rounded-2xl p-5 shadow-[0_4px_15px_rgba(0,0,0,0.02)]">
-            <div className="flex items-center justify-between mb-3.5">
-              <div className="flex items-center gap-3">
-                <div className="bg-orange-100 p-2.5 rounded-full text-orange-600">
-                  <Home className="h-5 w-5" />
-                </div>
-                <h3 className="font-extrabold text-gray-900 text-[17px]">Yavru Toy Poodle</h3>
-              </div>
-              <div className="bg-orange-100 text-orange-600 text-[11px] font-extrabold px-3 py-1.5 rounded-full uppercase tracking-wide">
-                Başlangıç
-              </div>
-            </div>
-            
-            <p className="text-[13.5px] text-gray-600 mb-4 font-medium leading-relaxed">
-              Yavru Toy Poodle'ın eve gelişinden temel bakım ve eğitimine kadar ilk dönem rehberi.
-            </p>
-            
-            <div className="flex items-center text-gray-500 text-[12px] font-bold mb-4">
-              <Clock className="h-3.5 w-3.5 mr-1.5" /> 15 rehber
-            </div>
-            
-            <div className="border-t border-gray-100 my-4"></div>
-            
-            <ul className="space-y-2.5 mb-5">
-              {['Eve İlk Geliş', 'İlk Gün Yapılması Gerekenler', 'İlk Gece', 'İlk Mama', 'İlk Veteriner'].map((item, i) => (
-                <li key={i} className="flex items-center text-[13.5px] text-gray-700 font-semibold">
-                  <div className="w-1.5 h-1.5 bg-orange-400 rounded-full mr-3 shadow-sm"></div>
-                  {item}
-                </li>
-              ))}
-            </ul>
-            
-            <div className="text-[13px] text-purple-600 font-extrabold mb-5 cursor-pointer hover:underline">
-              +9 daha göster →
-            </div>
-            
-            <button className="w-full bg-orange-50 hover:bg-orange-100 text-orange-600 font-extrabold py-3.5 rounded-xl flex items-center justify-center transition-colors active:scale-[0.98]">
-              Tümünü Gör <ChevronRight className="h-4 w-4 ml-1.5" />
-            </button>
-          </div>
-
-          {/* Card 2 - Beslenme */}
-          <div className="bg-white border-l-[5px] border-l-green-500 border border-y-green-100 border-r-green-100 rounded-2xl p-5 shadow-[0_4px_15px_rgba(0,0,0,0.02)]">
-            <div className="flex items-center justify-between mb-3.5">
-              <div className="flex items-center gap-3">
-                <div className="bg-green-100 p-2.5 rounded-full text-green-600">
-                  <Utensils className="h-5 w-5" />
-                </div>
-                <h3 className="font-extrabold text-gray-900 text-[17px]">Beslenme</h3>
-              </div>
-              <div className="bg-green-100 text-green-700 text-[11px] font-extrabold px-3 py-1.5 rounded-full uppercase tracking-wide">
-                Orta
-              </div>
-            </div>
-            
-            <p className="text-[13.5px] text-gray-600 mb-4 font-medium leading-relaxed">
-              Yaşına, kilosuna ve özel ihtiyaçlarına göre doğru beslenme rehberi.
-            </p>
-            
-            <div className="flex items-center text-gray-500 text-[12px] font-bold mb-4">
-              <Clock className="h-3.5 w-3.5 mr-1.5" /> 8 rehber
-            </div>
-            
-            <div className="border-t border-gray-100 my-4"></div>
-            
-            <ul className="space-y-2.5 mb-5">
-              {['Mama Seçimi', 'Mama Hesaplama', 'Günlük Mama Miktarı', 'Yavru Mama', 'Ödül Mamaları'].map((item, i) => (
-                <li key={i} className="flex items-center text-[13.5px] text-gray-700 font-semibold">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-3 shadow-sm"></div>
-                  {item}
-                </li>
-              ))}
-            </ul>
-            
-            <div className="text-[13px] text-purple-600 font-extrabold mb-5 cursor-pointer hover:underline">
-              +3 daha göster →
-            </div>
-            
-            <button className="w-full bg-green-50 hover:bg-green-100 text-green-700 font-extrabold py-3.5 rounded-xl flex items-center justify-center transition-colors active:scale-[0.98]">
-              Tümünü Gör <ChevronRight className="h-4 w-4 ml-1.5" />
-            </button>
-          </div>
-
-          {/* Card 3 - Bakım */}
-          <div className="bg-white border-l-[5px] border-l-purple-500 border border-y-purple-100 border-r-purple-100 rounded-2xl p-5 shadow-[0_4px_15px_rgba(0,0,0,0.02)]">
-            <div className="flex items-center justify-between mb-3.5">
-              <div className="flex items-center gap-3">
-                <div className="bg-purple-100 p-2.5 rounded-full text-purple-600">
-                  <Scissors className="h-5 w-5" />
-                </div>
-                <h3 className="font-extrabold text-gray-900 text-[17px]">Bakım</h3>
-              </div>
-              <div className="bg-purple-100 text-purple-700 text-[11px] font-extrabold px-3 py-1.5 rounded-full uppercase tracking-wide">
-                Orta
-              </div>
-            </div>
-            
-            <p className="text-[13.5px] text-gray-600 mb-4 font-medium leading-relaxed">
-              Tüy, göz, kulak, diş ve pati bakımının tüm detayları.
-            </p>
-            
-            <div className="flex items-center text-gray-500 text-[12px] font-bold mb-4">
-              <Clock className="h-3.5 w-3.5 mr-1.5" /> 9 rehber
-            </div>
-            
-            <div className="border-t border-gray-100 my-4"></div>
-            
-            <ul className="space-y-2.5 mb-5">
-              {['Tarama', 'Tıraş', 'Göz Temizliği', 'Kulak Bakımı', 'Diş Bakımı'].map((item, i) => (
-                <li key={i} className="flex items-center text-[13.5px] text-gray-700 font-semibold">
-                  <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mr-3 shadow-sm"></div>
-                  {item}
-                </li>
-              ))}
-            </ul>
-            
-            <div className="text-[13px] text-purple-600 font-extrabold mb-5 cursor-pointer hover:underline">
-              +4 daha göster →
-            </div>
-            
-            <button className="w-full bg-purple-50 hover:bg-purple-100 text-purple-700 font-extrabold py-3.5 rounded-xl flex items-center justify-center transition-colors active:scale-[0.98]">
-              Tümünü Gör <ChevronRight className="h-4 w-4 ml-1.5" />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* BOTTOM NAVIGATION */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.08)] z-50">
-        <div className="flex justify-around items-center h-20 px-2 pb-2">
-          <div className="flex flex-col items-center justify-center w-16 text-gray-400 cursor-pointer">
-            <Home className="h-[22px] w-[22px] mb-1.5" strokeWidth={2.5} />
-            <span className="text-[10px] font-bold">Home</span>
-          </div>
-          <div className="flex flex-col items-center justify-center w-16 text-gray-400 cursor-pointer">
-            <Users className="h-[22px] w-[22px] mb-1.5" strokeWidth={2.5} />
-            <span className="text-[10px] font-bold">Club</span>
-          </div>
-          <div className="flex flex-col items-center justify-center w-16 -mt-8 cursor-pointer hover:-translate-y-1 transition-transform">
-            <div className="bg-purple-600 text-white p-4 rounded-full shadow-[0_8px_20px_rgba(124,58,237,0.4)] flex items-center justify-center">
-              <ShoppingCart className="h-6 w-6" strokeWidth={2.5} />
-            </div>
-          </div>
-          <div className="flex flex-col items-center justify-center w-16 text-gray-400 cursor-pointer">
-            <ShoppingBag className="h-[22px] w-[22px] mb-1.5" strokeWidth={2.5} />
-            <span className="text-[10px] font-bold">Shop</span>
-          </div>
-          <div className="flex flex-col items-center justify-center w-16 text-gray-400 cursor-pointer">
-            <User className="h-[22px] w-[22px] mb-1.5" strokeWidth={2.5} />
-            <span className="text-[10px] font-bold">Profile</span>
-          </div>
-        </div>
       </div>
-    </div>
+      <BottomNav active="Rehber" />
+    </>
   );
 }

@@ -8,7 +8,10 @@ export const modules: ModuleMap = {
   "./components/mockups/jetgo-landing/Landing.tsx": () => import("../components/mockups/jetgo-landing/Landing.tsx"),
   "./components/mockups/jetgo-landing/Variant2.tsx": () => import("../components/mockups/jetgo-landing/Variant2.tsx"),
   "./components/mockups/yourpoodle/Bilgi.tsx": () => import("../components/mockups/yourpoodle/Bilgi.tsx"),
+  "./components/mockups/yourpoodle/BilgiBankasi.tsx": () => import("../components/mockups/yourpoodle/BilgiBankasi.tsx"),
+  "./components/mockups/yourpoodle/Club.tsx": () => import("../components/mockups/yourpoodle/Club.tsx"),
   "./components/mockups/yourpoodle/Homepage.tsx": () => import("../components/mockups/yourpoodle/Homepage.tsx"),
+  "./components/mockups/yourpoodle/Magaza.tsx": () => import("../components/mockups/yourpoodle/Magaza.tsx"),
   "./components/mockups/yourpoodle/Rehber.tsx": () => import("../components/mockups/yourpoodle/Rehber.tsx"),
   "./components/mockups/yourpoodle/YourPoodleHome.tsx": () => import("../components/mockups/yourpoodle/YourPoodleHome.tsx")
 };
