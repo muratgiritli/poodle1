@@ -872,6 +872,7 @@ export async function registerRoutes(
         { url: "/yourpoodle/topluluk",    priority: "0.7", changefreq: "weekly" },
         { url: "/yourpoodle/etkinlikler", priority: "0.6", changefreq: "weekly" },
         { url: "/yourpoodle/hakkinda",    priority: "0.5", changefreq: "monthly" },
+        { url: "/yourpoodle/profil",      priority: "0.4", changefreq: "monthly" },
         // /yourpoodle/giris is noindex — excluded
       ];
       let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n`;
