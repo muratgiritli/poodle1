@@ -73,6 +73,7 @@ integrations = ["javascript_openai_ai_integrations:2.0.0"]
 [userenv.shared]
 NETGSM_USERCODE = "8508403959"
 NETGSM_MSGHEADER = "SIZPA INT."
+VAPID_PUBLIC_KEY = "BEaZK2cs7qYq2yLD9bYXMRElAnaqgWUt27u13NBFSjDrE5U0zr7YhbcaUhNYUNpnshZx52813d5x3u6Oo55yHYQ"
 
 [userenv.development]
 TEST_OTP_BYPASS = "1"

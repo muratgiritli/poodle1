@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import {
   ChevronDown, Menu, X, Home, Users, BookOpen, Monitor,
   Heart, MessageCircle, Share2, Plus, Camera, ShoppingBag,
-  Edit3, Check, ChevronLeft,
+  Edit3, Check, ChevronLeft, Bell, BellOff, Calendar,
 } from "lucide-react";
 import { useCustomer } from "@/contexts/CustomerContext";
 
@@ -49,9 +50,10 @@ const DRAWER_LINKS = [
 ];
 
 const TABS = [
-  { id:"feed",  label:"📰 Akış" },
-  { id:"my",    label:"🐩 Poodlem" },
-  { id:"people",label:"👥 Topluluk" },
+  { id:"feed",      label:"📰 Akış" },
+  { id:"my",        label:"🐩 Poodlem" },
+  { id:"people",    label:"👥 Topluluk" },
+  { id:"events",    label:"🎉 Etkinlik" },
 ];
 
 const SEED_POSTS: Post[] = [
@@ -282,6 +284,70 @@ function PoodleForm({ initial, onSave }: { initial: PoodleProfile; onSave: (p: P
   );
 }
 
+/* ─── Push Subscription Hook ────────────────────────────── */
+function usePushSubscription() {
+  const [state, setState] = useState<"idle"|"subscribed"|"denied"|"loading">("idle");
+
+  useEffect(() => {
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) { setState("denied"); return; }
+    if (Notification.permission === "denied") { setState("denied"); return; }
+    navigator.serviceWorker.ready.then(reg => {
+      reg.pushManager.getSubscription().then(sub => {
+        setState(sub ? "subscribed" : "idle");
+      });
+    }).catch(() => setState("denied"));
+  }, []);
+
+  const subscribe = async () => {
+    setState("loading");
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== "granted") { setState("denied"); return; }
+      const vapidRes = await fetch("/api/push/vapid-public-key");
+      const { publicKey } = await vapidRes.json();
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      });
+      await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(sub.toJSON()),
+      });
+      setState("subscribed");
+    } catch { setState("idle"); }
+  };
+
+  const unsubscribe = async () => {
+    setState("loading");
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        await fetch("/api/push/subscribe", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ endpoint: sub.endpoint }),
+        });
+        await sub.unsubscribe();
+      }
+      setState("idle");
+    } catch { setState("idle"); }
+  };
+
+  return { state, subscribe, unsubscribe };
+}
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = "=".repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
+
 /* ─── Main ───────────────────────────────────────────────── */
 export default function Club() {
   const [, navigate]   = useLocation();
@@ -294,6 +360,18 @@ export default function Club() {
   const [showCompose,  setShowCompose]  = useState(false);
   const [poodle,       setPoodle]       = useState<PoodleProfile>(() => {
     try { return JSON.parse(localStorage.getItem("yp_poodle")||"{}"); } catch { return {}; }
+  });
+  const { state: pushState, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushSubscription();
+
+  // Fetch events from API
+  const { data: events = [] } = useQuery<any[]>({
+    queryKey: ["/api/yp-events"],
+    queryFn: async () => {
+      const res = await fetch("/api/yp-events");
+      if (!res.ok) return [];
+      return res.json();
+    },
+    staleTime: 5 * 60 * 1000,
   });
 
   const emptyPoodle: PoodleProfile = { name:"", breed:"", age:"", color:"", about:"", photo:"" };
@@ -443,6 +521,29 @@ export default function Club() {
                 </button>
               )}
 
+              {/* Push notification opt-in */}
+              {pushState !== "denied" && (
+                <div style={{ background: pushState === "subscribed" ? "#F0FFF4" : "#fff", borderRadius:16, padding:"14px 16px", marginBottom:14, border:`1.5px solid ${pushState==="subscribed"?"#BBF7D0":"#EDE8FF"}`, display:"flex", alignItems:"center", gap:12 }}>
+                  {pushState === "subscribed"
+                    ? <Bell size={22} color="#16A34A" />
+                    : <Bell size={22} color="#7C3AFF" />}
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13, fontWeight:800, color:"#1a1a1a" }}>
+                      {pushState === "subscribed" ? "Bildirimler Aktif ✅" : "Bildirimler Al 🔔"}
+                    </div>
+                    <div style={{ fontSize:11, color:"#888" }}>
+                      {pushState === "subscribed" ? "Yeni etkinlik ve içeriklerden haberdar oluyorsunuz" : "Yeni etkinlik ve içeriklerden anında haberdar ol"}
+                    </div>
+                  </div>
+                  <button
+                    onClick={pushState === "subscribed" ? pushUnsubscribe : pushSubscribe}
+                    disabled={pushState === "loading"}
+                    style={{ padding:"8px 14px", borderRadius:12, border:"none", background: pushState==="subscribed"?"#F0FFF4":"#7C3AFF", color:pushState==="subscribed"?"#16A34A":"#fff", fontSize:12, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif", whiteSpace:"nowrap", border2:"2px solid currentColor" }}>
+                    {pushState === "loading" ? "…" : pushState === "subscribed" ? "Kapat" : "Aç"}
+                  </button>
+                </div>
+              )}
+
               {/* Guest join CTA */}
               {!isLoggedIn && (
                 <div style={{ background:"#fff", borderRadius:16, padding:"16px", marginBottom:16, border:"1.5px solid #EDE8FF", display:"flex", alignItems:"center", gap:12 }}>
@@ -487,6 +588,49 @@ export default function Club() {
                     <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a" }}>Poodle Profilim</span>
                   </div>
                   <PoodleForm initial={profile} onSave={handleSavePoodle} />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ══ EVENTS TAB ══ */}
+          {activeTab==="events" && (
+            <div className="fade-up">
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
+                <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a" }}>🎉 Etkinlikler</span>
+              </div>
+              {events.length === 0 ? (
+                <div style={{ textAlign:"center", padding:"40px 0", color:"#aaa" }}>
+                  <Calendar size={40} style={{ marginBottom:12, opacity:0.3 }} />
+                  <div style={{ fontSize:14, fontWeight:700 }}>Yakında etkinlik duyurulacak</div>
+                  <div style={{ fontSize:12, marginTop:4 }}>Bildirimleri açarak ilk öğrenen siz olun!</div>
+                  {pushState !== "denied" && pushState !== "subscribed" && (
+                    <button onClick={pushSubscribe}
+                      style={{ marginTop:16, padding:"10px 22px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#7C3AFF,#A855F7)", color:"#fff", fontSize:13, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
+                      🔔 Bildirim Aç
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                  {events.map((ev: any) => (
+                    <div key={ev.id} className="card" style={{ padding:"18px 16px" }}>
+                      {ev.image && <img src={ev.image} alt={ev.title} style={{ width:"100%", height:140, objectFit:"cover", borderRadius:12, marginBottom:12, display:"block" }} />}
+                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
+                        <span style={{ fontSize:11, background:"#EDE8FF", color:"#7C3AFF", borderRadius:6, padding:"2px 8px", fontWeight:700 }}>🎉 Etkinlik</span>
+                        {ev.date && <span style={{ fontSize:11, color:"#aaa" }}>{new Date(ev.date).toLocaleDateString("tr-TR", { day:"numeric", month:"long", year:"numeric" })}</span>}
+                      </div>
+                      <div style={{ fontSize:15, fontWeight:900, color:"#1a1a1a", marginBottom:6 }}>{ev.title}</div>
+                      {ev.description && <p style={{ fontSize:13, color:"#555", lineHeight:1.65, fontFamily:"Inter,sans-serif" }}>{ev.description}</p>}
+                      {ev.location && <div style={{ fontSize:12, color:"#888", marginTop:8 }}>📍 {ev.location}</div>}
+                      {ev.link && (
+                        <a href={ev.link} target="_blank" rel="noopener noreferrer"
+                          style={{ display:"inline-block", marginTop:12, padding:"9px 18px", borderRadius:12, background:"linear-gradient(135deg,#7C3AFF,#A855F7)", color:"#fff", fontSize:13, fontWeight:800, textDecoration:"none" }}>
+                          Detaylar →
+                        </a>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

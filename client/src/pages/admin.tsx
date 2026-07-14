@@ -7303,6 +7303,11 @@ function YourPoodleSettingsCard() {
   const [poodleCity,  setPoodleCity]  = useState("");
   const [poodleDesc,  setPoodleDesc]  = useState("");
   const [poodleImg,   setPoodleImg]   = useState("");
+  const [gscId,       setGscId]       = useState("");
+  const [pushTitle,   setPushTitle]   = useState("");
+  const [pushBody,    setPushBody]    = useState("");
+  const [pushResult,  setPushResult]  = useState<{sent:number;failed:number}|null>(null);
+  const [pushLoading, setPushLoading] = useState(false);
 
   useEffect(() => {
     if (data) {
@@ -7311,6 +7316,7 @@ function YourPoodleSettingsCard() {
       setPoodleCity(data.yp_poodle_city || "");
       setPoodleDesc(data.yp_poodle_desc || "");
       setPoodleImg(data.yp_poodle_img || "");
+      setGscId(data.gsc_verification_id || "");
     }
   }, [data]);
 
@@ -7323,6 +7329,7 @@ function YourPoodleSettingsCard() {
         yp_poodle_city: poodleCity,
         yp_poodle_desc: poodleDesc,
         yp_poodle_img: poodleImg,
+        gsc_verification_id: gscId,
       });
     },
     onSuccess: () => {
@@ -7332,6 +7339,24 @@ function YourPoodleSettingsCard() {
     },
     onError: () => toast({ title: "Kayıt hatası", variant: "destructive" }),
   });
+
+  const sendPush = async () => {
+    if (!pushTitle.trim() || !pushBody.trim()) return;
+    setPushLoading(true);
+    setPushResult(null);
+    try {
+      const res = await fetch("/api/admin/push/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ title: pushTitle, body: pushBody, url: "/yourpoodle/club" }),
+      });
+      const json = await res.json();
+      setPushResult(json);
+      if (json.sent > 0) { setPushTitle(""); setPushBody(""); }
+    } catch { toast({ title: "Push gönderilemedi", variant: "destructive" }); }
+    finally { setPushLoading(false); }
+  };
 
   return (
     <Card className="border-violet-300">
@@ -7378,9 +7403,30 @@ function YourPoodleSettingsCard() {
           </div>
         </div>
 
+        <div className="border-t pt-3 space-y-2">
+          <Label className="text-xs font-bold flex items-center gap-1.5">🔍 Google Search Console</Label>
+          <p className="text-[10px] text-muted-foreground">GSC'den alınan doğrulama kodunun ID kısmı. Örn: google<strong>abc123def456</strong>.html → <code>abc123def456</code></p>
+          <Input value={gscId} onChange={e => setGscId(e.target.value.trim())} placeholder="abc123def456..." className="h-8 text-sm font-mono" />
+        </div>
+
         <Button size="sm" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="w-full">
           {saveMutation.isPending ? "Kaydediliyor…" : "YourPoodle Ayarlarını Kaydet"}
         </Button>
+
+        <div className="border-t pt-3 space-y-2">
+          <Label className="text-xs font-bold flex items-center gap-1.5">🔔 Push Bildirimi Gönder</Label>
+          <p className="text-[10px] text-muted-foreground">Tüm bildirim abonelerine anında push bildirimi gönder.</p>
+          <Input value={pushTitle} onChange={e => setPushTitle(e.target.value.slice(0,80))} placeholder="Başlık…" className="h-8 text-sm" />
+          <Input value={pushBody}  onChange={e => setPushBody(e.target.value.slice(0,180))} placeholder="İçerik…" className="h-8 text-sm" />
+          {pushResult && (
+            <p className="text-[11px] font-medium text-green-700">
+              ✅ {pushResult.sent} gönderildi{pushResult.failed > 0 ? `, ${pushResult.failed} başarısız` : ""}
+            </p>
+          )}
+          <Button size="sm" variant="outline" onClick={sendPush} disabled={pushLoading || !pushTitle.trim() || !pushBody.trim()} className="w-full">
+            {pushLoading ? "Gönderiliyor…" : "🔔 Push Gönder"}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

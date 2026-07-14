@@ -14,12 +14,27 @@ import { saveProductImage, getProductImage, downloadAndSaveImage } from "./image
 import { runVetImport, getVetImportStatus, isVetImportRunning } from "./vet-import";
 import { runSeoFill, getSeoFillStatus, isSeoFillRunning } from "./seo-fill";
 import multer from "multer";
+import webpush from "web-push";
 import OpenAI from "openai";
 import { getSeoPagesForStore, getSitemapPagesForStore, isCargoStore } from "../client/src/lib/seo-data";
 import { getAllStoreGoogleConfigs, setStoreGoogleConfig, deleteStoreGoogleConfig } from "./google-tags";
 import { getAllStoreMerchantConfigs, getStoreMerchantConfig, setStoreMerchantConfig, deleteStoreMerchantConfig, effectiveStoreCode } from "./merchant";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+
+// ── Web Push / VAPID ───────────────────────────────────────────────────────
+const VAPID_PUBLIC_KEY  = process.env.VAPID_PUBLIC_KEY  || "BEaZK2cs7qYq2yLD9bYXMRElAnaqgWUt27u13NBFSjDrE5U0zr7YhbcaUhNYUNpnshZx52813d5x3u6Oo55yHYQ";
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "FsDxc57qFh1kSr6JqINMbGOHSPbQBk_yoWUn6TE8C8U";
+webpush.setVapidDetails("mailto:hello@yourpoodle.com", VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+
+const ENSURE_YP_PUSH = `CREATE TABLE IF NOT EXISTS yp_push_subscriptions (
+  id SERIAL PRIMARY KEY,
+  endpoint TEXT UNIQUE NOT NULL,
+  auth TEXT NOT NULL,
+  p256dh TEXT NOT NULL,
+  customer_id INT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+)`;
 
 function parseSkt(skt: string): Date | null {
   if (skt.includes("/")) {
@@ -1511,10 +1526,17 @@ export async function registerRoutes(
   // Google Search Console HTML-dosya doğrulaması, DOMAIN BAZLI. Her mağaza kendi
   // google.verificationFileId değerini ayarlar; dosya yalnızca ait olduğu domainde
   // sunulur (diğerlerinde 404), böylece her domain Google'da bağımsız doğrulanır.
-  app.get(/^\/google([0-9a-zA-Z]+)\.html$/, (req, res) => {
+  app.get(/^\/google([0-9a-zA-Z]+)\.html$/, async (req, res) => {
     const store = reqStore(req);
     const id = req.path.match(/^\/google([0-9a-zA-Z]+)\.html$/)?.[1];
-    if (id && store.google?.verificationFileId && id === store.google.verificationFileId) {
+    // Check static store config first, then DB-backed setting
+    const dbResult = await sharedPool.query(
+      `SELECT value FROM app_settings WHERE key=$1 LIMIT 1`,
+      [`${store.id}:gsc_verification_id`]
+    ).catch(() => ({ rows: [] as any[] }));
+    const dbId = dbResult.rows[0]?.value;
+    const staticId = store.google?.verificationFileId;
+    if (id && ((dbId && id === dbId) || (staticId && id === staticId))) {
       res.type("text/html").send(`google-site-verification: google${id}.html`);
       return;
     }
@@ -6340,6 +6362,84 @@ Kurallar:
         [customerId, String(name).trim(), breed||'toy', age||null, color||null, gender||null, photo||null, about||null]
       );
       res.json(result.rows[0]);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  // ── Poodle photo upload ────────────────────────────────────────────────
+  app.post("/api/yp/poodle/photo", upload.single("photo"), async (req, res) => {
+    const customerId = (req.session as any)?.customerId;
+    if (!customerId) return res.status(401).json({ error: "Giriş gerekli" });
+    if (!req.file || !req.file.mimetype.startsWith("image/")) return res.status(400).json({ error: "Resim gerekli" });
+    try {
+      const pathMod = await import("path");
+      const fs      = await import("fs/promises");
+      const sharp   = (await import("sharp")).default;
+      const webp    = await sharp(req.file.buffer).resize(400, 400, { fit: "cover" }).webp({ quality: 82 }).toBuffer();
+      const filename = `yp-poodle-${customerId}-${Date.now()}.webp`;
+      const dirs = [
+        pathMod.default.join(process.cwd(), "dist",   "public", "product-images"),
+        pathMod.default.join(process.cwd(), "client", "public", "product-images"),
+      ];
+      for (const dir of dirs) {
+        try { await fs.default.mkdir(dir, { recursive: true }); await fs.default.writeFile(pathMod.default.join(dir, filename), webp); } catch {}
+      }
+      const url = `/product-images/${filename}`;
+      await sharedPool.query(`UPDATE yp_poodles SET photo=$1 WHERE customer_id=$2`, [url, customerId]);
+      res.json({ url });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  // ── Push notification: VAPID public key ───────────────────────────────
+  app.get("/api/push/vapid-public-key", (_req, res) => {
+    res.json({ publicKey: VAPID_PUBLIC_KEY });
+  });
+
+  // ── Push notification: subscribe / unsubscribe ─────────────────────────
+  app.post("/api/push/subscribe", async (req, res) => {
+    try {
+      await sharedPool.query(ENSURE_YP_PUSH);
+      const { endpoint, keys } = req.body;
+      if (!endpoint || !keys?.auth || !keys?.p256dh) return res.status(400).json({ error: "Eksik parametre" });
+      const customerId = (req.session as any)?.customerId || null;
+      await sharedPool.query(
+        `INSERT INTO yp_push_subscriptions (endpoint, auth, p256dh, customer_id)
+         VALUES ($1,$2,$3,$4)
+         ON CONFLICT (endpoint) DO UPDATE SET auth=$2, p256dh=$3, customer_id=$4`,
+        [endpoint, keys.auth, keys.p256dh, customerId]
+      );
+      res.json({ ok: true });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.delete("/api/push/subscribe", async (req, res) => {
+    const { endpoint } = req.body;
+    if (endpoint) {
+      try { await sharedPool.query("DELETE FROM yp_push_subscriptions WHERE endpoint=$1", [endpoint]); } catch {}
+    }
+    res.json({ ok: true });
+  });
+
+  // ── Push notification: admin send ──────────────────────────────────────
+  app.post("/api/admin/push/send", requireAdmin, async (req, res) => {
+    const { title, body, url } = req.body;
+    if (!title || !body) return res.status(400).json({ error: "Başlık ve içerik gerekli" });
+    try {
+      await sharedPool.query(ENSURE_YP_PUSH);
+      const { rows } = await sharedPool.query("SELECT * FROM yp_push_subscriptions");
+      const payload = JSON.stringify({ title, body, url: url || "/yourpoodle", icon: "/favicon-192.png" });
+      let sent = 0, failed = 0;
+      for (const sub of rows) {
+        try {
+          await webpush.sendNotification({ endpoint: sub.endpoint, keys: { auth: sub.auth, p256dh: sub.p256dh } }, payload);
+          sent++;
+        } catch (e: any) {
+          if (e.statusCode === 410 || e.statusCode === 404) {
+            try { await sharedPool.query("DELETE FROM yp_push_subscriptions WHERE endpoint=$1", [sub.endpoint]); } catch {}
+          }
+          failed++;
+        }
+      }
+      res.json({ sent, failed });
     } catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 

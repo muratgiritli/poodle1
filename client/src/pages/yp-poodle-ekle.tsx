@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { ChevronDown, Menu, X, Home, Users, BookOpen, Monitor, ShoppingBag, Check, ChevronLeft } from "lucide-react";
 import { useCustomer } from "@/contexts/CustomerContext";
@@ -38,8 +38,33 @@ export default function PoodleEkle() {
     try { return JSON.parse(localStorage.getItem("yp_poodle")||"{}"); } catch { return {}; }
   });
 
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
   const F = (k: string) => (e: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>) =>
     setForm((f: any) => ({ ...f, [k]: e.target.value }));
+
+  const handlePhotoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Immediate preview via FileReader
+    const reader = new FileReader();
+    reader.onload = ev => setForm((f: any) => ({ ...f, photo: ev.target?.result as string }));
+    reader.readAsDataURL(file);
+    // Upload to server if logged in
+    if (isLoggedIn) {
+      setUploading(true);
+      try {
+        const fd = new FormData();
+        fd.append("photo", file);
+        const res = await fetch("/api/yp/poodle/photo", { method: "POST", credentials: "include", body: fd });
+        if (res.ok) {
+          const { url } = await res.json();
+          setForm((f: any) => ({ ...f, photo: url }));
+        }
+      } catch {} finally { setUploading(false); }
+    }
+  };
 
   const handleSave = async () => {
     localStorage.setItem("yp_poodle", JSON.stringify(form));
@@ -181,8 +206,23 @@ export default function PoodleEkle() {
                   ))}
                 </div>
               </div>
-              <div><label style={lbl}>Fotoğraf URL'si</label>
-                <input value={form.photo||""} onChange={F("photo")} placeholder="https://..." style={inp}/>
+              <div>
+                <label style={lbl}>Fotoğraf</label>
+                <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handlePhotoFile} style={{ display:"none" }}/>
+                <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                  <button type="button" onClick={() => fileRef.current?.click()}
+                    style={{ display:"flex",alignItems:"center",gap:6,padding:"11px 16px",borderRadius:12,border:"2px solid #7C3AFF",background:"#F5F0FF",color:"#7C3AFF",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif",flexShrink:0 }}>
+                    📷 {form.photo && !form.photo.startsWith("data:") ? "Değiştir" : "Fotoğraf Seç"}
+                    {uploading && " …"}
+                  </button>
+                  {form.photo && (
+                    <img src={form.photo} alt="preview" style={{ width:44,height:44,borderRadius:"50%",objectFit:"cover",border:"2px solid #eee" }}/>
+                  )}
+                  {!form.photo && (
+                    <input value={""} onChange={e => setForm((f:any)=>({...f,photo:e.target.value}))}
+                      placeholder="veya URL yapıştır…" style={{ ...inp, flex:1 }}/>
+                  )}
+                </div>
               </div>
               <div><label style={lbl}>Hakkında</label>
                 <textarea value={form.about||""} onChange={F("about")} placeholder="Poodle'ın hakkında birkaç cümle yaz..." rows={3}
