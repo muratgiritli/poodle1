@@ -153,7 +153,7 @@ export default function VeterinerSubPage() {
         description={`${title} veteriner mama çeşitleri Samsun'da aynı gün kapıya teslim. Güvenilir markalar, uygun fiyatlar.`}
         canonical={`${SITE_DOMAIN}/veteriner/${subSlug}`}
       />
-      <main className="flex-1 max-w-lg mx-auto px-4 w-full py-6">
+      <main className="flex-1 max-w-lg md:max-w-5xl mx-auto px-4 w-full py-6">
         <Link href="/kategori/veteriner">
           <button
             type="button"

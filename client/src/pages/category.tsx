@@ -244,7 +244,7 @@ export default function CategoryPage() {
           ]}
         />
 
-        <main className="flex-1 max-w-lg mx-auto px-4 w-full py-6 pb-28 md:pb-8">
+        <main className="flex-1 max-w-lg md:max-w-5xl mx-auto px-4 w-full py-6 pb-28 md:pb-8">
           <div className="text-center mb-6">
             <span className="text-4xl md:text-5xl block mb-2">{animalMeta.emoji}</span>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight" data-testid="text-category-title">
@@ -267,7 +267,7 @@ export default function CategoryPage() {
               <p className="text-muted-foreground text-sm" data-testid="text-no-products">Henüz ürün eklenmedi</p>
             </div>
           ) : (
-            <div className={modern ? "flex flex-col gap-3" : "grid gap-3 grid-cols-2"} data-testid="grid-direct-products">
+            <div className={modern ? "flex flex-col gap-3" : "grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"} data-testid="grid-direct-products">
               {products.map((product) => (
                 <KemirgenProductCard key={product.id} product={product} />
               ))}
@@ -295,7 +295,7 @@ export default function CategoryPage() {
         ]}
       />
 
-      <main className="flex-1 max-w-2xl mx-auto px-4 w-full py-6">
+      <main className="flex-1 max-w-2xl md:max-w-5xl mx-auto px-4 w-full py-6">
         <FreeShippingBanner className="mb-4" />
         <div className="text-center mb-6">
           <span className="text-4xl md:text-5xl block mb-2">{animalMeta.emoji}</span>

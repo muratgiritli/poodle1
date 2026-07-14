@@ -28,7 +28,7 @@ export default function CategoriesOverview() {
           { name: "Kategoriler", url: `${SITE_DOMAIN}/kategori` },
         ])}
       />
-      <div className="max-w-2xl mx-auto px-4 py-6">
+      <div className="max-w-2xl md:max-w-5xl mx-auto px-4 py-6">
         <FreeShippingBanner className="mb-4" />
         <div className="text-center mb-6">
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight" data-testid="text-categories-title">
@@ -39,7 +39,7 @@ export default function CategoriesOverview() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
           {CATEGORIES.map((cat, i) => (
             <motion.div
               key={cat.name}

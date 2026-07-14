@@ -100,7 +100,7 @@ export default function FavoritesPage() {
         description="Favori evcil hayvan ürünleriniz. Beğendiğiniz mama, aksesuar ve bakım ürünlerini favorilerinize ekleyin."
         noindex
       />
-      <div className="max-w-lg mx-auto px-3 py-4">
+      <div className="max-w-lg md:max-w-5xl mx-auto px-3 py-4">
         <h1 className="text-lg font-bold flex items-center gap-2 mb-4" data-testid="text-favorites-title">
           <Heart className="w-5 h-5 text-red-500 fill-red-500" />
           Favorilerim

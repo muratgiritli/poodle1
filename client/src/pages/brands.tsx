@@ -91,7 +91,7 @@ export default function BrandsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-white pb-16 md:pb-0">
-        <main className="flex-1 max-w-lg mx-auto px-4 w-full py-6">
+        <main className="flex-1 max-w-lg md:max-w-5xl mx-auto px-4 w-full py-6">
           <div className="text-center mb-6">
             <div className="h-8 w-48 mx-auto bg-gray-200 animate-pulse rounded" />
           </div>
@@ -124,7 +124,7 @@ export default function BrandsPage() {
         keywords={`${animalLabel.toLowerCase()} ${subTitle.toLowerCase()} markaları, samsun ${animalLabel.toLowerCase()} ${subTitle.toLowerCase()}, atakum pet shop, ${animalLabel.toLowerCase()} maması markaları samsun`}
         canonical={`${SITE_DOMAIN}/kategori/${animalSlug}/${subSlug}`}
       />
-      <main className="flex-1 max-w-lg mx-auto px-4 w-full py-6">
+      <main className="flex-1 max-w-lg md:max-w-5xl mx-auto px-4 w-full py-6">
         <FreeShippingBanner className="mb-4" />
         <div className="text-center mb-6">
           <h2 className="text-2xl font-extrabold" data-testid="text-brands-title">
@@ -135,9 +135,9 @@ export default function BrandsPage() {
           </p>
         </div>
 
-        <div className="flex flex-col gap-2.5 items-center" data-testid="list-brands">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 max-w-[280px] md:max-w-none mx-auto" data-testid="list-brands">
           {brands.map((brand) => (
-            <div key={brand.id} className="w-full max-w-[280px]">
+            <div key={brand.id} className="w-full">
               <Link href={`/siparis/${animalSlug}/${subSlug}/${brand.brandSlug}`}>
                 <div
                   className="rounded-md overflow-visible hover-elevate active-elevate-2 flex items-center justify-center py-3 px-4"

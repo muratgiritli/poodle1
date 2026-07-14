@@ -652,7 +652,7 @@ export default function ProductDetailPage() {
           jsonLd={seoData.jsonLd}
         />
       )}
-      <main className={`flex-1 max-w-2xl mx-auto px-4 w-full py-6 ${jetgoBottomNav ? "pb-6" : "pb-28"} md:pb-8`}>
+      <main className={`flex-1 max-w-2xl md:max-w-5xl mx-auto px-4 w-full py-6 ${jetgoBottomNav ? "pb-6" : "pb-28"} md:pb-8`}>
         {!isCampaignMode && <FreeShippingBanner className="mb-4" />}
         <div>
           <div className="flex flex-col md:flex-row gap-6">
@@ -1244,7 +1244,7 @@ export default function ProductDetailPage() {
           className={`fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 py-3 shadow-[0_-2px_12px_rgba(0,0,0,0.08)] ${jetgoBottomNav ? "hidden md:block" : ""}`}
           data-testid="bar-buy"
         >
-          <div className="max-w-2xl mx-auto flex items-center gap-3">
+          <div className="max-w-2xl md:max-w-5xl mx-auto flex items-center gap-3">
             {useModernLayout && (
               <div className="flex items-center gap-2 min-w-0 max-w-[45%]">
                 <div className="w-10 h-10 rounded-md overflow-hidden bg-muted/30 shrink-0">

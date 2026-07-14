@@ -471,7 +471,7 @@ function InlineSubcategories({
           <p className="text-xs text-muted-foreground text-center mb-3" data-testid="text-inline-count">
             {inlineProducts.length} ürün
           </p>
-          <div className={modern ? "flex flex-col gap-3" : "grid grid-cols-2 gap-3"}>
+          <div className={modern ? "flex flex-col gap-3" : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"}>
             {inlineProducts.map((product) => (
               <div key={product.id}>
                 <InlineSubcategoryProductCard
@@ -557,7 +557,7 @@ export default function BrandProductsPage() {
         description={`${data.category.brandName} ${animal === "kedi" ? "kedi" : animal === "kopek" ? "köpek" : animal === "kus" ? "kuş" : "kemirgen"} maması Samsun'da en uygun fiyatlarla JETGO Pet Shop'ta. Samsun içi aynı gün teslimat, kapıda ödeme. ${data.category.brandName} ürünlerini online sipariş edin.`}
         canonical={`${SITE_DOMAIN}/siparis/${animal}/${subcategory}/${brandSlug}`}
       />
-      <main className="flex-1 max-w-lg mx-auto px-4 w-full py-6 pb-28 md:pb-8">
+      <main className="flex-1 max-w-lg md:max-w-5xl mx-auto px-4 w-full py-6 pb-28 md:pb-8">
         <FreeShippingBanner className="mb-4" />
         <div className="text-center mb-6">
           <h2 className="text-xl font-extrabold" data-testid="text-brand-title">
@@ -608,7 +608,7 @@ export default function BrandProductsPage() {
           );
         })()}
 
-        <div className={modern ? "flex flex-col gap-3" : "grid grid-cols-2 gap-3"} data-testid="grid-products">
+        <div className={modern ? "flex flex-col gap-3" : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"} data-testid="grid-products">
           {data.products
             .filter(p => !activeMamaType || p.mamaType === activeMamaType)
             .map((product) => (
@@ -629,7 +629,7 @@ export default function BrandProductsPage() {
 
       {itemCount > 0 && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t p-3">
-          <div className="max-w-lg mx-auto flex items-center justify-between gap-3 flex-wrap">
+          <div className="max-w-lg md:max-w-5xl mx-auto flex items-center justify-between gap-3 flex-wrap">
             <div className="flex flex-col">
               <span className="text-xs text-muted-foreground" data-testid="text-sticky-count">{itemCount} ürün</span>
               <span className="text-lg font-extrabold text-primary" data-testid="text-sticky-total">

@@ -165,7 +165,7 @@ export default function AcikMamaPage() {
           { question: "Kapıda ödeme yapabilir miyim?", answer: "Evet, kapıda nakit, kredi kartı (POS) ve QR ile ödeme seçenekleri mevcuttur." },
         ])}
       />
-      <main className="flex-1 max-w-lg mx-auto px-4 w-full py-6">
+      <main className="flex-1 max-w-lg md:max-w-5xl mx-auto px-4 w-full py-6">
         <FreeShippingBanner className="mb-4" />
         <div className="text-center mb-6">
           <h2 className="text-2xl font-extrabold" data-testid="text-acik-title">
@@ -202,7 +202,7 @@ export default function AcikMamaPage() {
                     {group.brand.brandName}
                   </h3>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                   {group.products.map((product, pi) => (
                     <motion.div
                       key={product.id}
