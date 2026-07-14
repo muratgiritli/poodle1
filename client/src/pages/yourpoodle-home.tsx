@@ -130,7 +130,7 @@ export default function YourPoodleHomePage() {
         </header>
 
         {/* ── HERO ──────────────────────────────────── */}
-        <section style={{ background:"linear-gradient(135deg,#B39DFF 0%,#C8B8FF 40%,#D4C4FF 100%)", display:"flex", alignItems:"stretch", minHeight:340, position:"relative", overflow:"hidden", padding:"28px 20px 0 20px" }}>
+        <section style={{ background:"linear-gradient(135deg,#B39DFF 0%,#C8B8FF 40%,#D4C4FF 100%)", display:"flex", alignItems:"stretch", minHeight:340, position:"relative", overflow:"hidden", padding:"28px 20px 24px 20px" }}>
           <div style={{ flex:"0 0 55%", display:"flex", flexDirection:"column", justifyContent:"flex-start", zIndex:2, paddingBottom:24 }}>
             <div style={{ display:"inline-flex", alignItems:"center", background:"rgba(0,0,0,0.25)", borderRadius:6, padding:"3px 10px", marginBottom:12, alignSelf:"flex-start" }}>
               <span style={{ fontSize:11, fontWeight:800, color:"#fff", letterSpacing:"0.08em" }}>DÜNYANIN EN BÜYÜK</span>
@@ -156,16 +156,16 @@ export default function YourPoodleHomePage() {
                 <span style={{ fontSize:18, color:"#5B21B6", fontWeight:700 }}>+</span>
               </a>
             </div>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:16 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginTop:18, background:"rgba(0,0,0,0.15)", borderRadius:12, padding:"8px 12px", alignSelf:"flex-start" }}>
               <div style={{ display:"flex" }}>
                 {[1,2,3,4].map(i => (
                   <img key={i} src={`/images/poodle-avatar-${i}.jpg`} alt=""
-                    style={{ width:28, height:28, borderRadius:"50%", border:"2px solid #fff", marginLeft:i===1?0:-8, objectFit:"cover" }} />
+                    style={{ width:26, height:26, borderRadius:"50%", border:"2px solid rgba(255,255,255,0.9)", marginLeft:i===1?0:-8, objectFit:"cover", flexShrink:0 }} />
                 ))}
               </div>
-              <div>
-                <span style={{ fontSize:14, fontWeight:900, color:"#fff" }}>10.000+</span>
-                <span style={{ fontSize:12, color:"rgba(255,255,255,0.85)", marginLeft:5 }}>mutlu poodle ailesi 💜</span>
+              <div style={{ display:"flex", alignItems:"baseline", gap:4 }}>
+                <span style={{ fontSize:13, fontWeight:900, color:"#fff" }}>10.000+</span>
+                <span style={{ fontSize:11, color:"rgba(255,255,255,0.9)", fontWeight:600 }}>mutlu poodle ailesi 💜</span>
               </div>
             </div>
           </div>
