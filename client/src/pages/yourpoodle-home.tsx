@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Search, ShoppingBag, ChevronDown, Menu, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
+import { useCustomer } from "@/contexts/CustomerContext";
 
 const LANGUAGES = [
   { code: "TR", flag: "🇹🇷" },
@@ -37,6 +38,7 @@ export default function YourPoodleHomePage() {
   const [activeLang, setActiveLang] = useState(LANGUAGES[0]);
   const [langOpen,   setLangOpen]   = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { isLoggedIn } = useCustomer();
 
   const activeTab = NAV_TABS.find(t => t.href === location)?.label ?? "Ana Sayfa";
 
@@ -48,7 +50,7 @@ export default function YourPoodleHomePage() {
         ".yp-icon-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 8px; }",
         ".yp-icon-btn:active { background: #f5f5f5; }",
         ".yp-tab-btn { background: none; border: none; cursor: pointer; font-family: Inter, sans-serif; }",
-        ".yp-drawer { position: fixed; top: 0; right: 0; height: 100%; width: 72%; max-width: 280px; background: #fff; z-index: 200; transform: translateX(100%); transition: transform 0.24s ease; box-shadow: -4px 0 24px rgba(0,0,0,0.13); }",
+        ".yp-drawer { position: fixed; top: 0; left: 0; height: 100%; width: 72%; max-width: 280px; background: #fff; z-index: 200; transform: translateX(-100%); transition: transform 0.24s ease; box-shadow: 4px 0 24px rgba(0,0,0,0.13); }",
         ".yp-drawer.open { transform: translateX(0); }",
         ".yp-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 199; }",
       ].join("\n")}</style>
@@ -76,29 +78,34 @@ export default function YourPoodleHomePage() {
 
         {/* ── HEADER ────────────────────────────────── */}
         <header style={{ position:"sticky", top:0, zIndex:100, background:"#fff", borderBottom:"1px solid #f0f0f0" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px" }}>
-            <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle"
-              style={{ height:36, width:160, objectFit:"contain", objectPosition:"left center" }} />
-
-            <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-              <button className="yp-icon-btn" aria-label="Ara">
-                <Search size={21} color="#333" strokeWidth={2} />
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px" }}>
+            {/* Sol: Hamburger + Logo */}
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <button className="yp-icon-btn" aria-label="Menü" onClick={() => setDrawerOpen(true)}>
+                <Menu size={22} color="#333" strokeWidth={2} />
               </button>
-              <button className="yp-icon-btn" aria-label="Sepet">
-                <ShoppingBag size={21} color="#333" strokeWidth={2} />
+              <button className="yp-icon-btn" onClick={() => navigate("/")} style={{ padding:0 }}>
+                <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle"
+                  style={{ height:30, width:120, objectFit:"contain", objectPosition:"left center" }} />
               </button>
-
+            </div>
+            {/* Sağ: Üye Girişi + Dil */}
+            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+              <button className="yp-icon-btn" onClick={() => navigate(isLoggedIn ? "/" : "/yourpoodle/giris")}
+                style={{ padding:"6px 13px", borderRadius:20, border:"2px solid", borderColor:isLoggedIn?"#22C55E":"#7C3AFF", background:isLoggedIn?"#F0FDF4":"#F5F0FF", color:isLoggedIn?"#16A34A":"#7C3AFF", fontSize:12, fontWeight:800, whiteSpace:"nowrap" }}>
+                {isLoggedIn ? "Hesabım 👤" : "Üye Girişi"}
+              </button>
               <div style={{ position:"relative" }}>
                 <button className="yp-icon-btn" aria-label="Dil seç"
                   onClick={() => setLangOpen(!langOpen)}
-                  style={{ gap:4, padding:"5px 8px", borderRadius:8 }}>
-                  <span style={{ fontSize:15 }}>{activeLang.flag}</span>
-                  <span style={{ fontSize:13, fontWeight:700, color:"#6C47FF", letterSpacing:"0.02em" }}>{activeLang.code}</span>
-                  <ChevronDown size={13} color="#6C47FF" strokeWidth={2.5}
+                  style={{ gap:3, padding:"5px 6px" }}>
+                  <span style={{ fontSize:14 }}>{activeLang.flag}</span>
+                  <span style={{ fontSize:12, fontWeight:700, color:"#6C47FF" }}>{activeLang.code}</span>
+                  <ChevronDown size={12} color="#6C47FF" strokeWidth={2.5}
                     style={{ transform: langOpen ? "rotate(180deg)" : "none", transition:"transform 0.18s" }} />
                 </button>
                 {langOpen && (
-                  <div style={{ position:"absolute", right:0, top:38, background:"#fff", borderRadius:12, border:"1px solid #eee", boxShadow:"0 8px 28px rgba(0,0,0,0.12)", zIndex:150, minWidth:110, padding:"4px 0" }}>
+                  <div style={{ position:"absolute", right:0, top:36, background:"#fff", borderRadius:12, border:"1px solid #eee", boxShadow:"0 8px 28px rgba(0,0,0,0.12)", zIndex:150, minWidth:110, padding:"4px 0" }}>
                     {LANGUAGES.map(l => (
                       <button key={l.code} onClick={() => { setActiveLang(l); setLangOpen(false); }}
                         style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:"9px 14px", border:"none", cursor:"pointer", background: activeLang.code === l.code ? "#F5F0FF" : "transparent", fontSize:13, fontWeight:700, color: activeLang.code === l.code ? "#6C47FF" : "#333", fontFamily:"'Inter',sans-serif" }}>
@@ -108,10 +115,6 @@ export default function YourPoodleHomePage() {
                   </div>
                 )}
               </div>
-
-              <button className="yp-icon-btn" aria-label="Menü" onClick={() => setDrawerOpen(true)}>
-                <Menu size={22} color="#333" strokeWidth={2} />
-              </button>
             </div>
           </div>
 

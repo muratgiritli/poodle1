@@ -5,6 +5,7 @@ import {
   Home, Users, BookOpen, Monitor, ChevronLeft, RotateCcw,
   CheckCircle2, Circle, AlertTriangle,
 } from "lucide-react";
+import { useCustomer } from "@/contexts/CustomerContext";
 
 /* ─── Shared style ──────────────────────────────────────── */
 const CSS = [
@@ -775,6 +776,7 @@ export default function BilgiBankasi() {
   const [langOpen,   setLangOpen]   = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeTool, setActiveTool] = useState<string|null>(null);
+  const { isLoggedIn } = useCustomer();
   const [search,     setSearch]     = useState("");
 
   const filtered = TOOLS.filter(t => search === "" || t.label.toLowerCase().includes(search.toLowerCase()) || t.desc.toLowerCase().includes(search.toLowerCase()));
@@ -788,7 +790,7 @@ export default function BilgiBankasi() {
 
       {/* DRAWER */}
       {drawerOpen && <div onClick={() => setDrawerOpen(false)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.3)", zIndex:199 }} />}
-      <div style={{ position:"fixed", top:0, right:0, height:"100%", width:280, background:"#fff", zIndex:200, transform:drawerOpen?"translateX(0)":"translateX(100%)", transition:"transform 0.24s ease", boxShadow:"-4px 0 24px rgba(0,0,0,0.12)" }}>
+      <div style={{ position:"fixed", top:0, left:0, height:"100%", width:280, background:"#fff", zIndex:200, transform:drawerOpen?"translateX(0)":"translateX(-100%)", transition:"transform 0.24s ease", boxShadow:"4px 0 24px rgba(0,0,0,0.12)" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"20px 18px 14px", borderBottom:"1px solid #f2f2f2" }}>
           <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height:32, objectFit:"contain" }} />
           <button className="icon-btn" onClick={() => setDrawerOpen(false)}><X size={20} color="#444" /></button>
@@ -807,20 +809,28 @@ export default function BilgiBankasi() {
 
         {/* HEADER */}
         <header style={{ position:"sticky", top:0, zIndex:100, background:"#fff", borderBottom:"1px solid #f0f0f0" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px" }}>
-            <button onClick={() => { if (activeTool) { setActiveTool(null); } else { navigate("/"); } }} style={{ background:"none", border:"none", cursor:"pointer", padding:0 }}>
-              <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height:36, width:160, objectFit:"contain", objectPosition:"left center" }} />
-            </button>
-            <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-              <button className="icon-btn" onClick={() => navigate("/yourpoodle/magaza")}><ShoppingBag size={21} color="#333" strokeWidth={2} /></button>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px" }}>
+            {/* Sol: Hamburger + Logo */}
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <button className="icon-btn" onClick={() => setDrawerOpen(true)}><Menu size={22} color="#333" strokeWidth={2} /></button>
+              <button className="icon-btn" onClick={() => { if (activeTool) { setActiveTool(null); } else { navigate("/"); } }} style={{ padding:0 }}>
+                <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height:30, width:120, objectFit:"contain", objectPosition:"left center" }} />
+              </button>
+            </div>
+            {/* Sağ: Üye Girişi + Dil */}
+            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+              <button className="icon-btn" onClick={() => navigate(isLoggedIn ? "/" : "/yourpoodle/giris")}
+                style={{ padding:"6px 13px", borderRadius:20, border:"2px solid", borderColor:isLoggedIn?"#22C55E":"#7C3AFF", background:isLoggedIn?"#F0FDF4":"#F5F0FF", color:isLoggedIn?"#16A34A":"#7C3AFF", fontSize:12, fontWeight:800, whiteSpace:"nowrap" }}>
+                {isLoggedIn ? "Hesabım 👤" : "Üye Girişi"}
+              </button>
               <div style={{ position:"relative" }}>
-                <button className="icon-btn" onClick={() => setLangOpen(!langOpen)} style={{ gap:4, padding:"5px 8px" }}>
-                  <span style={{ fontSize:15 }}>{activeLang.flag}</span>
-                  <span style={{ fontSize:13, fontWeight:700, color:"#6C47FF" }}>{activeLang.code}</span>
-                  <ChevronDown size={13} color="#6C47FF" strokeWidth={2.5} style={{ transform:langOpen?"rotate(180deg)":"none", transition:"transform 0.18s" }} />
+                <button className="icon-btn" onClick={() => setLangOpen(!langOpen)} style={{ gap:3, padding:"5px 6px" }}>
+                  <span style={{ fontSize:14 }}>{activeLang.flag}</span>
+                  <span style={{ fontSize:12, fontWeight:700, color:"#6C47FF" }}>{activeLang.code}</span>
+                  <ChevronDown size={12} color="#6C47FF" strokeWidth={2.5} style={{ transform:langOpen?"rotate(180deg)":"none", transition:"transform 0.18s" }} />
                 </button>
                 {langOpen && (
-                  <div style={{ position:"absolute", right:0, top:38, background:"#fff", borderRadius:12, border:"1px solid #eee", boxShadow:"0 8px 28px rgba(0,0,0,0.12)", zIndex:150, minWidth:110, padding:"4px 0" }}>
+                  <div style={{ position:"absolute", right:0, top:36, background:"#fff", borderRadius:12, border:"1px solid #eee", boxShadow:"0 8px 28px rgba(0,0,0,0.12)", zIndex:150, minWidth:110, padding:"4px 0" }}>
                     {LANGUAGES.map(l => (
                       <button key={l.code} onClick={() => { setActiveLang(l); setLangOpen(false); }}
                         style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:"9px 14px", border:"none", background: activeLang.code===l.code?"#F5F0FF":"transparent", cursor:"pointer", fontSize:13, fontWeight:700, color: activeLang.code===l.code?"#6C47FF":"#333", fontFamily:"Inter,sans-serif" }}>
@@ -830,7 +840,6 @@ export default function BilgiBankasi() {
                   </div>
                 )}
               </div>
-              <button className="icon-btn" onClick={() => setDrawerOpen(true)}><Menu size={22} color="#333" strokeWidth={2} /></button>
             </div>
           </div>
           {/* Tab bar */}

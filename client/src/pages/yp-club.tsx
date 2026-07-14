@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Search, ShoppingBag, ChevronDown, Menu, X, Home, Users, BookOpen, Monitor, Check, Star, Crown } from "lucide-react";
+import { useLocation } from "wouter";
+import { ChevronDown, Menu, X, Home, Users, BookOpen, Monitor, Check, Star, Crown, ShoppingBag } from "lucide-react";
+import { useCustomer } from "@/contexts/CustomerContext";
 
 const LANGUAGES = [
   { code: "TR", flag: "🇹🇷" }, { code: "EN", flag: "🇺🇸" }, { code: "DE", flag: "🇩🇪" },
@@ -52,10 +54,12 @@ function BottomNav() {
 }
 
 export default function Club() {
+  const [, navigate] = useLocation();
   const [activeLang, setActiveLang] = useState(LANGUAGES[0]);
   const [langOpen, setLangOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("Premium");
+  const { isLoggedIn } = useCustomer();
 
   return (
     <>
@@ -64,35 +68,47 @@ export default function Club() {
       <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"'Inter',sans-serif", paddingBottom:80 }}>
 
         {drawerOpen && <div onClick={() => setDrawerOpen(false)} style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.3)",zIndex:199 }}/>}
-        <div style={{ position:"fixed",top:0,right:0,height:"100%",width:280,background:"#fff",zIndex:200,transform:drawerOpen?"translateX(0)":"translateX(100%)",transition:"transform 0.24s ease",boxShadow:"-4px 0 24px rgba(0,0,0,0.12)" }}>
+        <div style={{ position:"fixed",top:0,left:0,height:"100%",width:280,background:"#fff",zIndex:200,transform:drawerOpen?"translateX(0)":"translateX(-100%)",transition:"transform 0.24s ease",boxShadow:"4px 0 24px rgba(0,0,0,0.12)" }}>
           <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"20px 18px 14px",borderBottom:"1px solid #f2f2f2" }}>
             <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height:32,objectFit:"contain" }}/>
             <button className="icon-btn" onClick={() => setDrawerOpen(false)}><X size={20} color="#444"/></button>
           </div>
-          <nav>{["Ana Sayfa","Club","Rehber","Bilgi Bankası","Mağaza"].map(l=><a key={l} href={`/${l.toLowerCase().replace(/\s/g,"-")}`} style={{ display:"block",padding:"14px 20px",fontSize:15,fontWeight:600,color:"#222",textDecoration:"none",borderBottom:"1px solid #fafafa" }}>{l}</a>)}</nav>
+          <nav>
+            {[{l:"Ana Sayfa",h:"/"},{l:"Rehber",h:"/yourpoodle/rehber"},{l:"Bilgi Bankası",h:"/yourpoodle/bilgi"},{l:"Mağaza",h:"/yourpoodle/magaza"},{l:"Club",h:"/yourpoodle/club"}].map(({l,h})=>(
+              <button key={l} onClick={()=>{setDrawerOpen(false);navigate(h);}} style={{ display:"block",width:"100%",textAlign:"left",padding:"14px 20px",fontSize:15,fontWeight:600,color:"#222",background:"none",border:"none",borderBottom:"1px solid #fafafa",cursor:"pointer",fontFamily:"Inter,sans-serif" }}>{l}</button>
+            ))}
+          </nav>
         </div>
 
         {/* HEADER */}
         <header style={{ position:"sticky",top:0,zIndex:100,background:"#fff",borderBottom:"1px solid #f0f0f0" }}>
-          <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 16px" }}>
-            <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height:36,width:160,objectFit:"contain",objectPosition:"left center" }}/>
-            <div style={{ display:"flex",alignItems:"center",gap:4 }}>
-              <button className="icon-btn"><Search size={21} color="#333" strokeWidth={2}/></button>
-              <button className="icon-btn"><ShoppingBag size={21} color="#333" strokeWidth={2}/></button>
-              <div style={{ position:"relative" }}>
-                <button className="icon-btn" onClick={()=>setLangOpen(!langOpen)} style={{ gap:4,padding:"5px 8px" }}>
-                  <span style={{ fontSize:15 }}>{activeLang.flag}</span>
-                  <span style={{ fontSize:13,fontWeight:700,color:"#6C47FF" }}>{activeLang.code}</span>
-                  <ChevronDown size={13} color="#6C47FF" strokeWidth={2.5}/>
-                </button>
-                {langOpen&&<div style={{ position:"absolute",right:0,top:38,background:"#fff",borderRadius:12,border:"1px solid #eee",boxShadow:"0 8px 28px rgba(0,0,0,0.12)",zIndex:150,minWidth:110,padding:"4px 0" }}>{LANGUAGES.map(l=><button key={l.code} onClick={()=>{setActiveLang(l);setLangOpen(false);}} style={{ display:"flex",alignItems:"center",gap:8,width:"100%",padding:"9px 14px",border:"none",background:"transparent",cursor:"pointer",fontSize:13,fontWeight:700,color:"#333",fontFamily:"'Inter',sans-serif" }}><span style={{ fontSize:16 }}>{l.flag}</span>{l.code}</button>)}</div>}
-              </div>
+          <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px" }}>
+            {/* Sol */}
+            <div style={{ display:"flex",alignItems:"center",gap:8 }}>
               <button className="icon-btn" onClick={()=>setDrawerOpen(true)}><Menu size={22} color="#333" strokeWidth={2}/></button>
+              <button className="icon-btn" onClick={()=>navigate("/")} style={{ padding:0 }}>
+                <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height:30,width:120,objectFit:"contain",objectPosition:"left center" }}/>
+              </button>
+            </div>
+            {/* Sağ */}
+            <div style={{ display:"flex",alignItems:"center",gap:6 }}>
+              <button className="icon-btn" onClick={()=>navigate(isLoggedIn?"/":"/yourpoodle/giris")}
+                style={{ padding:"6px 13px",borderRadius:20,border:"2px solid",borderColor:isLoggedIn?"#22C55E":"#7C3AFF",background:isLoggedIn?"#F0FDF4":"#F5F0FF",color:isLoggedIn?"#16A34A":"#7C3AFF",fontSize:12,fontWeight:800,whiteSpace:"nowrap" }}>
+                {isLoggedIn?"Hesabım 👤":"Üye Girişi"}
+              </button>
+              <div style={{ position:"relative" }}>
+                <button className="icon-btn" onClick={()=>setLangOpen(!langOpen)} style={{ gap:3,padding:"5px 6px" }}>
+                  <span style={{ fontSize:14 }}>{activeLang.flag}</span>
+                  <span style={{ fontSize:12,fontWeight:700,color:"#6C47FF" }}>{activeLang.code}</span>
+                  <ChevronDown size={12} color="#6C47FF" strokeWidth={2.5} style={{ transform:langOpen?"rotate(180deg)":"none",transition:"transform 0.18s" }}/>
+                </button>
+                {langOpen&&<div style={{ position:"absolute",right:0,top:36,background:"#fff",borderRadius:12,border:"1px solid #eee",boxShadow:"0 8px 28px rgba(0,0,0,0.12)",zIndex:150,minWidth:110,padding:"4px 0" }}>{LANGUAGES.map(l=><button key={l.code} onClick={()=>{setActiveLang(l);setLangOpen(false);}} style={{ display:"flex",alignItems:"center",gap:8,width:"100%",padding:"9px 14px",border:"none",background:activeLang.code===l.code?"#F5F0FF":"transparent",cursor:"pointer",fontSize:13,fontWeight:700,color:activeLang.code===l.code?"#6C47FF":"#333",fontFamily:"Inter,sans-serif" }}><span style={{ fontSize:16 }}>{l.flag}</span>{l.code}</button>)}</div>}
+              </div>
             </div>
           </div>
           <div style={{ display:"flex",borderTop:"1px solid #f0f0f0" }}>
-            {[{label:"Ana Sayfa",href:"/"},{label:"Rehber",href:"/rehber"},{label:"Bilgi Bankası",href:"/bilgi"},{label:"Mağaza",href:"/magaza"}].map(t=>(
-              <a key={t.label} href={t.href} style={{ flex:1,padding:"11px 4px",fontSize:13.5,fontWeight:500,color:"#555",borderBottom:"2.5px solid transparent",textAlign:"center",textDecoration:"none",display:"block" }}>{t.label}</a>
+            {[{label:"Ana Sayfa",href:"/"},{label:"Rehber",href:"/yourpoodle/rehber"},{label:"Bilgi Bankası",href:"/yourpoodle/bilgi"},{label:"Mağaza",href:"/yourpoodle/magaza"}].map(t=>(
+              <button key={t.label} onClick={()=>navigate(t.href)} style={{ flex:1,padding:"11px 4px",fontSize:13.5,fontWeight:500,color:"#555",borderBottom:"2.5px solid transparent",textAlign:"center",background:"none",border:"none",borderBottomWidth:"2.5px",borderBottomStyle:"solid",borderBottomColor:"transparent",cursor:"pointer",fontFamily:"Inter,sans-serif" }}>{t.label}</button>
             ))}
           </div>
         </header>
