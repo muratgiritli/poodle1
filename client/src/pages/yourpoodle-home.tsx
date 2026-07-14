@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { useCustomer } from "@/contexts/CustomerContext";
+import { useQuery } from "@tanstack/react-query";
 
 const LANGUAGES = [
   { code: "TR", flag: "🇹🇷" },
@@ -39,6 +40,11 @@ export default function YourPoodleHomePage() {
   const [langOpen,   setLangOpen]   = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { isLoggedIn } = useCustomer();
+
+  const { data: products = [] } = useQuery<any[]>({
+    queryKey: ["/api/products"],
+    staleTime: 5 * 60 * 1000,
+  });
 
   const activeTab = NAV_TABS.find(t => t.href === location)?.label ?? "Ana Sayfa";
 
@@ -288,25 +294,30 @@ export default function YourPoodleHomePage() {
             <a href="/yourpoodle/magaza" style={{ fontSize:12, fontWeight:700, color:"#7C3AFF", textDecoration:"none" }}>Tümü →</a>
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10 }}>
-            {[
-              { emoji:"🦴", name:"Royal Canin Poodle Adult", price:"₺485", badge:"En Çok Satan" },
-              { emoji:"✂️", name:"Slicker Tıraş Fırçası",   price:"₺129", badge:"" },
-              { emoji:"🎀", name:"Poodle Fiyonk Seti",       price:"₺79",  badge:"Yeni" },
-              { emoji:"💊", name:"Eklem Takviyesi Kapsül",   price:"₺320", badge:"" },
-              { emoji:"🛁", name:"Köpek Şampuanı 500ml",     price:"₺189", badge:"İndirim" },
-              { emoji:"🏠", name:"Taşıma Çantası Soft",      price:"₺599", badge:"" },
-              { emoji:"🧶", name:"Interaktif Oyuncak Set",   price:"₺149", badge:"Popüler" },
-              { emoji:"🪮", name:"Profesyonel Tarak Seti",   price:"₺219", badge:"" },
-              { emoji:"🎾", name:"Mini Tenis Topu 3'lü",     price:"₺59",  badge:"" },
-            ].map(({ emoji, name, price, badge }) => (
-              <div key={name} style={{ background:"#FAFAFA", borderRadius:14, overflow:"hidden", cursor:"pointer", display:"flex", flexDirection:"column" }}>
-                <div style={{ background:"#F0ECFF", height:80, display:"flex", alignItems:"center", justifyContent:"center", fontSize:34, position:"relative" }}>
-                  {emoji}
-                  {badge && <div style={{ position:"absolute", top:6, left:6, background:"#7C3AFF", borderRadius:6, padding:"2px 6px" }}><span style={{ fontSize:8, fontWeight:800, color:"#fff" }}>{badge}</span></div>}
+            {products.slice(0, 9).map((p: any) => (
+              <div key={p.id} onClick={() => navigate(`/urun/${p.id}`)}
+                style={{ background:"#FAFAFA", borderRadius:14, overflow:"hidden", cursor:"pointer", display:"flex", flexDirection:"column", transition:"transform 0.12s", WebkitTapHighlightColor:"transparent" }}
+                onMouseEnter={e => (e.currentTarget.style.transform="scale(1.02)")}
+                onMouseLeave={e => (e.currentTarget.style.transform="scale(1)")}>
+                <div style={{ background:"#F0ECFF", height:90, display:"flex", alignItems:"center", justifyContent:"center", position:"relative", overflow:"hidden" }}>
+                  {p.img
+                    ? <img src={p.img} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                    : <span style={{ fontSize:34 }}>🐾</span>
+                  }
+                  {p.originalPrice && p.originalPrice > p.price && (
+                    <div style={{ position:"absolute", top:5, left:5, background:"#EF4444", borderRadius:6, padding:"2px 6px" }}>
+                      <span style={{ fontSize:8, fontWeight:800, color:"#fff" }}>İNDİRİM</span>
+                    </div>
+                  )}
                 </div>
-                <div style={{ padding:"8px 8px 10px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:700, color:"#1a1a1a", lineHeight:1.3, marginBottom:4 }}>{name}</div>
-                  <div style={{ fontSize:12, fontWeight:900, color:"#7C3AFF" }}>{price}</div>
+                <div style={{ padding:"8px 8px 10px", flex:1, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
+                  <div style={{ fontSize:10, fontWeight:700, color:"#1a1a1a", lineHeight:1.35, marginBottom:5, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" as any, overflow:"hidden" }}>{p.name}</div>
+                  <div style={{ display:"flex", alignItems:"baseline", gap:4, flexWrap:"wrap" }}>
+                    <span style={{ fontSize:12, fontWeight:900, color:"#7C3AFF" }}>₺{Number(p.price).toLocaleString("tr-TR", { minimumFractionDigits:0, maximumFractionDigits:0 })}</span>
+                    {p.originalPrice && p.originalPrice > p.price && (
+                      <span style={{ fontSize:9, color:"#bbb", textDecoration:"line-through" }}>₺{Number(p.originalPrice).toLocaleString("tr-TR", { minimumFractionDigits:0, maximumFractionDigits:0 })}</span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
