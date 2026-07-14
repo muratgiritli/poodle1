@@ -7356,5 +7356,126 @@ Bu site içeriği, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini, Bin
     res.json({ message: "Oyunuz kaydedildi!" });
   });
 
+  // ─── YourPoodle Events API ────────────────────────────────────────────────
+  // Public: list all events (sorted by date)
+  app.get("/api/yp-events", async (_req, res) => {
+    try {
+      const result = await sharedPool.query(
+        `SELECT id, title, description, location, event_date, day, month, year, type, free, color
+         FROM yp_events WHERE is_active = true ORDER BY sort_order ASC, id ASC`
+      );
+      res.json(result.rows);
+    } catch {
+      // table may not exist yet — return empty so frontend falls back to hardcoded
+      res.json([]);
+    }
+  });
+
+  // Admin: list all events
+  app.get("/api/admin/yp-events", requireAdmin, async (_req, res) => {
+    try {
+      const result = await sharedPool.query(`SELECT * FROM yp_events ORDER BY sort_order ASC, id ASC`);
+      res.json(result.rows);
+    } catch { res.json([]); }
+  });
+
+  // Admin: create event
+  app.post("/api/admin/yp-events", requireAdmin, async (req, res) => {
+    const { title, description, location, event_date, day, month, year, type, free, color, sort_order } = req.body;
+    if (!title || !day || !month) return res.status(400).json({ message: "title, day, month gerekli" });
+    try {
+      const result = await sharedPool.query(
+        `INSERT INTO yp_events (title, description, location, event_date, day, month, year, type, free, color, sort_order, is_active)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,true) RETURNING *`,
+        [title, description||null, location||null, event_date||null, day, month, year||null, type||"Etkinlik", free===true||free==="true", color||"#7C3AFF", sort_order||0]
+      );
+      res.json(result.rows[0]);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  // Admin: update event
+  app.put("/api/admin/yp-events/:id", requireAdmin, async (req, res) => {
+    const id = parseInt(req.params.id);
+    const { title, description, location, event_date, day, month, year, type, free, color, sort_order, is_active } = req.body;
+    try {
+      const result = await sharedPool.query(
+        `UPDATE yp_events SET title=$1, description=$2, location=$3, event_date=$4, day=$5, month=$6, year=$7,
+         type=$8, free=$9, color=$10, sort_order=$11, is_active=$12 WHERE id=$13 RETURNING *`,
+        [title, description||null, location||null, event_date||null, day, month, year||null, type||"Etkinlik", free===true||free==="true", color||"#7C3AFF", sort_order||0, is_active!==false, id]
+      );
+      if (!result.rows[0]) return res.status(404).json({ message: "Etkinlik bulunamadı" });
+      res.json(result.rows[0]);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  // Admin: delete event
+  app.delete("/api/admin/yp-events/:id", requireAdmin, async (req, res) => {
+    const id = parseInt(req.params.id);
+    try {
+      await sharedPool.query(`DELETE FROM yp_events WHERE id=$1`, [id]);
+      res.json({ ok: true });
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  // ─── YourPoodle Articles API ──────────────────────────────────────────────
+  // Public: list all articles
+  app.get("/api/yp-articles", async (_req, res) => {
+    try {
+      const result = await sharedPool.query(
+        `SELECT id, title, body, tag, emoji, min_read, featured, sort_order
+         FROM yp_articles WHERE is_active = true ORDER BY featured DESC, sort_order ASC, id ASC`
+      );
+      res.json(result.rows);
+    } catch {
+      res.json([]);
+    }
+  });
+
+  // Admin: list all articles
+  app.get("/api/admin/yp-articles", requireAdmin, async (_req, res) => {
+    try {
+      const result = await sharedPool.query(`SELECT * FROM yp_articles ORDER BY sort_order ASC, id ASC`);
+      res.json(result.rows);
+    } catch { res.json([]); }
+  });
+
+  // Admin: create article
+  app.post("/api/admin/yp-articles", requireAdmin, async (req, res) => {
+    const { title, body, tag, emoji, min_read, featured, sort_order } = req.body;
+    if (!title || !body) return res.status(400).json({ message: "title ve body gerekli" });
+    try {
+      const result = await sharedPool.query(
+        `INSERT INTO yp_articles (title, body, tag, emoji, min_read, featured, sort_order, is_active)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,true) RETURNING *`,
+        [title, body, tag||null, emoji||"📖", min_read||5, featured===true||featured==="true", sort_order||0]
+      );
+      res.json(result.rows[0]);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  // Admin: update article
+  app.put("/api/admin/yp-articles/:id", requireAdmin, async (req, res) => {
+    const id = parseInt(req.params.id);
+    const { title, body, tag, emoji, min_read, featured, sort_order, is_active } = req.body;
+    try {
+      const result = await sharedPool.query(
+        `UPDATE yp_articles SET title=$1, body=$2, tag=$3, emoji=$4, min_read=$5, featured=$6, sort_order=$7, is_active=$8
+         WHERE id=$9 RETURNING *`,
+        [title, body, tag||null, emoji||"📖", min_read||5, featured===true||featured==="true", sort_order||0, is_active!==false, id]
+      );
+      if (!result.rows[0]) return res.status(404).json({ message: "Makale bulunamadı" });
+      res.json(result.rows[0]);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  // Admin: delete article
+  app.delete("/api/admin/yp-articles/:id", requireAdmin, async (req, res) => {
+    const id = parseInt(req.params.id);
+    try {
+      await sharedPool.query(`DELETE FROM yp_articles WHERE id=$1`, [id]);
+      res.json({ ok: true });
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
   return httpServer;
 }

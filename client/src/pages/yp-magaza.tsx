@@ -99,7 +99,7 @@ export default function Magaza() {
             <button className="icon-btn" onClick={()=>setDrawerOpen(false)}><X size={20} color="#444"/></button>
           </div>
           <nav>
-            {[{l:"Ana Sayfa",h:"/"},{l:"Rehber",h:"/yourpoodle/rehber"},{l:"Bilgi Bankası",h:"/yourpoodle/bilgi"},{l:"Mağaza",h:"/yourpoodle/magaza"},{l:"Club",h:"/yourpoodle/club"}].map(({l,h})=>(
+            {[{l:"Ana Sayfa",h:"/"},{l:"Rehber",h:"/yourpoodle/rehber"},{l:"Bilgi Bankası",h:"/yourpoodle/bilgi"},{l:"Mağaza",h:"/yourpoodle/magaza"},{l:"Mama",h:"/yourpoodle/mama"},{l:"Eğitim",h:"/yourpoodle/egitim"},{l:"Sağlık",h:"/yourpoodle/saglik"},{l:"Bakım",h:"/yourpoodle/bakim"},{l:"Poodle Club",h:"/yourpoodle/club"},{l:"Etkinlikler",h:"/yourpoodle/etkinlikler"}].map(({l,h})=>(
               <button key={l} onClick={()=>{setDrawerOpen(false);navigate(h);}} style={{ display:"block",width:"100%",textAlign:"left",padding:"14px 20px",fontSize:15,fontWeight:600,color:h==="/yourpoodle/magaza"?"#7C3AFF":"#222",background:h==="/yourpoodle/magaza"?"#F5F0FF":"none",border:"none",borderBottom:"1px solid #fafafa",cursor:"pointer",fontFamily:"Inter,sans-serif" }}>{l}</button>
             ))}
           </nav>
@@ -117,7 +117,7 @@ export default function Magaza() {
             </div>
             {/* Sağ */}
             <div style={{ display:"flex",alignItems:"center",gap:6 }}>
-              <button className="icon-btn" onClick={()=>navigate(isLoggedIn?"/":"/yourpoodle/giris")}
+              <button className="icon-btn" onClick={()=>navigate(isLoggedIn?"/hesabim":"/yourpoodle/giris")}
                 style={{ padding:"6px 13px",borderRadius:20,border:"2px solid",borderColor:isLoggedIn?"#22C55E":"#7C3AFF",background:isLoggedIn?"#F0FDF4":"#F5F0FF",color:isLoggedIn?"#16A34A":"#7C3AFF",fontSize:12,fontWeight:800,whiteSpace:"nowrap" }}>
                 {isLoggedIn?"Hesabım 👤":"Üye Girişi"}
               </button>

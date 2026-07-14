@@ -7,7 +7,7 @@ import { STORES, type StoreGoogle } from "@shared/stores";
 import { brandify } from "@/lib/store";
 import enuygunStoreBanner from "@assets/enuygunpet_magaza_1783254122911.webp";
 import { isSharedRowInStoreView, confirmSharedEdit, storeCtxParam, STORE_SCOPED_SETTING_KEYS, confirmSharedSettingsSave } from "@/lib/storeScope";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6989,6 +6989,250 @@ function BannersSection() {
   );
 }
 
+/* ─── YP Articles Admin ─────────────────────────────────────── */
+function YPArticlesCard() {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const { data: articles = [] } = useQuery<any[]>({
+    queryKey: ["/api/admin/yp-articles"],
+    queryFn: () => fetch("/api/admin/yp-articles", { credentials:"include" }).then(r => r.json()),
+    staleTime: 30000,
+  });
+  const [editing, setEditing] = useState<any|null>(null);
+  const [form, setForm] = useState<any>({});
+  const openNew = () => { setForm({ emoji:"📖", min_read:5, sort_order:0 }); setEditing({ id: null }); };
+  const openEdit = (a: any) => { setForm(a); setEditing(a); };
+  const close = () => { setEditing(null); setForm({}); };
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const url = editing?.id ? `/api/admin/yp-articles/${editing.id}` : "/api/admin/yp-articles";
+      const method = editing?.id ? "PUT" : "POST";
+      const r = await fetch(url, { method, headers:{"Content-Type":"application/json"}, credentials:"include", body: JSON.stringify(form) });
+      if (!r.ok) throw new Error((await r.json()).message);
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["/api/admin/yp-articles"] }); toast({ title: "Makale kaydedildi" }); close(); },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const r = await fetch(`/api/admin/yp-articles/${id}`, { method:"DELETE", credentials:"include" });
+      if (!r.ok) throw new Error("Silinemedi");
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["/api/admin/yp-articles"] }); toast({ title: "Makale silindi" }); },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+
+  const F = (k: string) => (e: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) =>
+    setForm((f: any) => ({ ...f, [k]: e.target.value }));
+
+  return (
+    <Card className="border-violet-200">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm flex items-center gap-2">📖 YourPoodle Makaleler</CardTitle>
+          <Button size="sm" onClick={openNew} className="h-7 text-xs">+ Yeni Makale</Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-3 space-y-2">
+        {articles.length === 0 && <p className="text-xs text-muted-foreground">Henüz makale yok. "Yeni Makale" ile ekleyin.</p>}
+        {articles.map((a: any) => (
+          <div key={a.id} className="flex items-start gap-2 p-2 rounded-lg border bg-muted/40">
+            <span className="text-lg flex-shrink-0">{a.emoji}</span>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-semibold truncate">{a.title}</div>
+              <div className="text-[10px] text-muted-foreground flex gap-2 mt-0.5">
+                <span>{a.tag}</span><span>{a.min_read} dk</span>
+                <span className={a.is_active ? "text-green-600" : "text-red-500"}>{a.is_active ? "Aktif" : "Gizli"}</span>
+              </div>
+            </div>
+            <div className="flex gap-1 flex-shrink-0">
+              <Button size="sm" variant="outline" className="h-6 text-[10px] px-2" onClick={() => openEdit(a)}>Düzenle</Button>
+              <Button size="sm" variant="destructive" className="h-6 text-[10px] px-2" onClick={() => { if (confirm("Makaleyi sil?")) deleteMutation.mutate(a.id); }}>Sil</Button>
+            </div>
+          </div>
+        ))}
+      </CardContent>
+
+      {editing !== null && (
+        <CardContent className="border-t p-3 space-y-3">
+          <div className="text-xs font-bold">{editing?.id ? "Makaleyi Düzenle" : "Yeni Makale"}</div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-[11px]">Emoji</Label>
+              <Input value={form.emoji||""} onChange={F("emoji")} className="h-7 text-sm" placeholder="📖"/>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[11px]">Etiket</Label>
+              <Input value={form.tag||""} onChange={F("tag")} className="h-7 text-sm" placeholder="Bakım"/>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-[11px]">Başlık *</Label>
+            <Input value={form.title||""} onChange={F("title")} className="h-7 text-sm"/>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-[11px]">İçerik *</Label>
+            <textarea value={form.body||""} onChange={F("body")} rows={4} className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm resize-none"/>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-[11px]">Okuma Süresi (dk)</Label>
+              <Input type="number" value={form.min_read||5} onChange={F("min_read")} className="h-7 text-sm"/>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[11px]">Sıra</Label>
+              <Input type="number" value={form.sort_order||0} onChange={F("sort_order")} className="h-7 text-sm"/>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => saveMutation.mutate()} disabled={!form.title||!form.body||saveMutation.isPending} className="flex-1">
+              {saveMutation.isPending ? "Kaydediliyor…" : "Kaydet"}
+            </Button>
+            <Button size="sm" variant="outline" onClick={close}>İptal</Button>
+          </div>
+        </CardContent>
+      )}
+    </Card>
+  );
+}
+
+/* ─── YP Events Admin ───────────────────────────────────────── */
+function YPEventsCard() {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const { data: events = [] } = useQuery<any[]>({
+    queryKey: ["/api/admin/yp-events"],
+    queryFn: () => fetch("/api/admin/yp-events", { credentials:"include" }).then(r => r.json()),
+    staleTime: 30000,
+  });
+  const [editing, setEditing] = useState<any|null>(null);
+  const [form, setForm] = useState<any>({});
+  const openNew = () => { setForm({ color:"#7C3AFF", type:"Buluşma", free:true, sort_order:0 }); setEditing({ id:null }); };
+  const openEdit = (ev: any) => { setForm(ev); setEditing(ev); };
+  const close = () => { setEditing(null); setForm({}); };
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const url = editing?.id ? `/api/admin/yp-events/${editing.id}` : "/api/admin/yp-events";
+      const method = editing?.id ? "PUT" : "POST";
+      const r = await fetch(url, { method, headers:{"Content-Type":"application/json"}, credentials:"include", body: JSON.stringify(form) });
+      if (!r.ok) throw new Error((await r.json()).message);
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["/api/admin/yp-events"] }); toast({ title: "Etkinlik kaydedildi" }); close(); },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const r = await fetch(`/api/admin/yp-events/${id}`, { method:"DELETE", credentials:"include" });
+      if (!r.ok) throw new Error("Silinemedi");
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["/api/admin/yp-events"] }); toast({ title: "Etkinlik silindi" }); },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+
+  const F = (k: string) => (e: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>) =>
+    setForm((f: any) => ({ ...f, [k]: e.target.value }));
+
+  return (
+    <Card className="border-purple-200">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm flex items-center gap-2">📅 YourPoodle Etkinlikler</CardTitle>
+          <Button size="sm" onClick={openNew} className="h-7 text-xs">+ Yeni Etkinlik</Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-3 space-y-2">
+        {events.length === 0 && <p className="text-xs text-muted-foreground">Henüz etkinlik yok. "Yeni Etkinlik" ile ekleyin.</p>}
+        {events.map((ev: any) => (
+          <div key={ev.id} className="flex items-start gap-2 p-2 rounded-lg border bg-muted/40">
+            <div style={{ width:36, height:36, borderRadius:8, background: ev.color+"22", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              <div className="text-xs font-black" style={{ color: ev.color, lineHeight:1 }}>{ev.day}</div>
+              <div className="text-[9px] font-bold" style={{ color: ev.color }}>{ev.month}</div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-semibold truncate">{ev.title}</div>
+              <div className="text-[10px] text-muted-foreground flex gap-2 mt-0.5">
+                <span>{ev.type}</span><span>{ev.location}</span>
+                {ev.free && <span className="text-green-600">Ücretsiz</span>}
+                <span className={ev.is_active ? "text-green-600" : "text-red-500"}>{ev.is_active ? "Aktif" : "Gizli"}</span>
+              </div>
+            </div>
+            <div className="flex gap-1 flex-shrink-0">
+              <Button size="sm" variant="outline" className="h-6 text-[10px] px-2" onClick={() => openEdit(ev)}>Düzenle</Button>
+              <Button size="sm" variant="destructive" className="h-6 text-[10px] px-2" onClick={() => { if (confirm("Etkinliği sil?")) deleteMutation.mutate(ev.id); }}>Sil</Button>
+            </div>
+          </div>
+        ))}
+      </CardContent>
+
+      {editing !== null && (
+        <CardContent className="border-t p-3 space-y-3">
+          <div className="text-xs font-bold">{editing?.id ? "Etkinliği Düzenle" : "Yeni Etkinlik"}</div>
+          <div className="space-y-1">
+            <Label className="text-[11px]">Başlık *</Label>
+            <Input value={form.title||""} onChange={F("title")} className="h-7 text-sm"/>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="space-y-1">
+              <Label className="text-[11px]">Gün *</Label>
+              <Input value={form.day||""} onChange={F("day")} className="h-7 text-sm" placeholder="18" maxLength={2}/>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[11px]">Ay *</Label>
+              <Input value={form.month||""} onChange={F("month")} className="h-7 text-sm" placeholder="OCA" maxLength={5}/>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[11px]">Yıl</Label>
+              <Input value={form.year||""} onChange={F("year")} className="h-7 text-sm" placeholder="2026" maxLength={4}/>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-[11px]">Konum</Label>
+              <Input value={form.location||""} onChange={F("location")} className="h-7 text-sm" placeholder="İstanbul"/>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[11px]">Tür</Label>
+              <select value={form.type||"Buluşma"} onChange={F("type")} className="w-full h-7 rounded-md border border-input bg-background px-2 text-sm">
+                {["Buluşma","Online","Yarışma","Etkinlik","Seminer"].map(t=><option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-[11px]">Renk</Label>
+              <div className="flex gap-1 items-center">
+                <input type="color" value={form.color||"#7C3AFF"} onChange={e=>setForm((f:any)=>({...f,color:e.target.value}))} className="h-7 w-10 rounded border border-input cursor-pointer"/>
+                <Input value={form.color||""} onChange={F("color")} className="h-7 text-sm flex-1" placeholder="#7C3AFF"/>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[11px]">Ücretsiz?</Label>
+              <select value={form.free?"true":"false"} onChange={e=>setForm((f:any)=>({...f,free:e.target.value==="true"}))} className="w-full h-7 rounded-md border border-input bg-background px-2 text-sm">
+                <option value="true">Evet</option>
+                <option value="false">Hayır</option>
+              </select>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-[11px]">Açıklama</Label>
+            <textarea value={form.description||""} onChange={F("description")} rows={2} className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm resize-none"/>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => saveMutation.mutate()} disabled={!form.title||!form.day||!form.month||saveMutation.isPending} className="flex-1">
+              {saveMutation.isPending ? "Kaydediliyor…" : "Kaydet"}
+            </Button>
+            <Button size="sm" variant="outline" onClick={close}>İptal</Button>
+          </div>
+        </CardContent>
+      )}
+    </Card>
+  );
+}
+
 function YourPoodleSettingsCard() {
   const { toast } = useToast();
   const { store: adminStore } = useAdminStore();
@@ -9313,6 +9557,8 @@ function SettingsSection() {
       <h2 className="text-lg font-bold">Puan & Besleme Ayarları</h2>
 
       <YourPoodleSettingsCard />
+      <YPArticlesCard />
+      <YPEventsCard />
 
       {(adminStore === "all" || STORES.find(s => s.id === adminStore)?.commerce?.fulfillment === "cargo") && (
         <Card className="border-purple-300">

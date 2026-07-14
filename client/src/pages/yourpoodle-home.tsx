@@ -32,6 +32,7 @@ const DRAWER_LINKS = [
   { label: "Sağlık",        href: "/yourpoodle/saglik" },
   { label: "Bakım",         href: "/yourpoodle/bakim" },
   { label: "Poodle Club",   href: "/yourpoodle/club" },
+  { label: "Etkinlikler",   href: "/yourpoodle/etkinlikler" },
 ];
 
 export default function YourPoodleHomePage() {
@@ -102,7 +103,7 @@ export default function YourPoodleHomePage() {
             </div>
             {/* Sağ: Üye Girişi + Dil */}
             <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-              <button className="yp-icon-btn" onClick={() => navigate(isLoggedIn ? "/" : "/yourpoodle/giris")}
+              <button className="yp-icon-btn" onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
                 style={{ padding:"6px 13px", borderRadius:20, border:"2px solid", borderColor:isLoggedIn?"#22C55E":"#7C3AFF", background:isLoggedIn?"#F0FDF4":"#F5F0FF", color:isLoggedIn?"#16A34A":"#7C3AFF", fontSize:12, fontWeight:800, whiteSpace:"nowrap" }}>
                 {isLoggedIn ? "Hesabım 👤" : "Üye Girişi"}
               </button>
@@ -158,14 +159,14 @@ export default function YourPoodleHomePage() {
               Toy Poodle'ınıza dair her şey burada! Sağlık, topluluk, özel ayrıcalıklar...
             </p>
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-              <a href="/yourpoodle/club" style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, height:50, borderRadius:14, background:"#7C3AFF", textDecoration:"none", cursor:"pointer", boxShadow:"0 4px 16px rgba(100,50,200,0.35)" }}>
+              <button onClick={() => navigate("/yourpoodle/club")} style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, height:50, borderRadius:14, background:"#7C3AFF", cursor:"pointer", boxShadow:"0 4px 16px rgba(100,50,200,0.35)", border:"none" }}>
                 <span style={{ fontSize:14, fontWeight:800, color:"#fff", letterSpacing:"0.05em" }}>CLUB'A KATIL</span>
                 <span style={{ fontSize:16 }}>🐾</span>
-              </a>
-              <a href="/yourpoodle/poodle-ekle" style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, height:50, borderRadius:14, background:"rgba(255,255,255,0.92)", textDecoration:"none", cursor:"pointer", border:"2px solid rgba(255,255,255,0.6)" }}>
+              </button>
+              <button onClick={() => navigate("/yourpoodle/poodle-ekle")} style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, height:50, borderRadius:14, background:"rgba(255,255,255,0.92)", cursor:"pointer", border:"2px solid rgba(255,255,255,0.6)" }}>
                 <span style={{ fontSize:14, fontWeight:800, color:"#5B21B6", letterSpacing:"0.05em" }}>POODLE'İMİ EKLE</span>
                 <span style={{ fontSize:18, color:"#5B21B6", fontWeight:700 }}>+</span>
-              </a>
+              </button>
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginTop:18, background:"rgba(0,0,0,0.15)", borderRadius:12, padding:"8px 12px", alignSelf:"flex-start" }}>
               <div style={{ display:"flex" }}>
@@ -271,7 +272,7 @@ export default function YourPoodleHomePage() {
               <span style={{ fontSize:18 }}>📖</span>
               <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a" }}>Son Rehber Yazıları</span>
             </div>
-            <a href="/yourpoodle/rehber" style={{ fontSize:12, fontWeight:700, color:"#7C3AFF", textDecoration:"none" }}>Tümü →</a>
+            <button onClick={() => navigate("/yourpoodle/rehber")} style={{ fontSize:12, fontWeight:700, color:"#7C3AFF", background:"none", border:"none", cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>Tümü →</button>
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
             {[
@@ -298,7 +299,7 @@ export default function YourPoodleHomePage() {
               <span style={{ fontSize:18 }}>🛍️</span>
               <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a" }}>Öne Çıkan Ürünler</span>
             </div>
-            <a href="/yourpoodle/magaza" style={{ fontSize:12, fontWeight:700, color:"#7C3AFF", textDecoration:"none" }}>Tümü →</a>
+            <button onClick={() => navigate("/yourpoodle/magaza")} style={{ fontSize:12, fontWeight:700, color:"#7C3AFF", background:"none", border:"none", cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>Tümü →</button>
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10 }}>
             {products.slice(0, 9).map((p: any) => (
@@ -338,7 +339,7 @@ export default function YourPoodleHomePage() {
               <span style={{ fontSize:18 }}>👥</span>
               <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a" }}>Topluluk Paylaşımları</span>
             </div>
-            <a href="/yourpoodle/topluluk" style={{ fontSize:12, fontWeight:700, color:"#7C3AFF", textDecoration:"none" }}>Tümü →</a>
+            <button onClick={() => navigate("/yourpoodle/topluluk")} style={{ fontSize:12, fontWeight:700, color:"#7C3AFF", background:"none", border:"none", cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>Tümü →</button>
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
             {[
@@ -401,7 +402,7 @@ export default function YourPoodleHomePage() {
               <span style={{ fontSize:18 }}>📅</span>
               <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a" }}>Yaklaşan Etkinlikler</span>
             </div>
-            <a href="/yourpoodle/etkinlikler" style={{ fontSize:12, fontWeight:700, color:"#7C3AFF", textDecoration:"none" }}>Tümü →</a>
+            <button onClick={() => navigate("/yourpoodle/etkinlikler")} style={{ fontSize:12, fontWeight:700, color:"#7C3AFF", background:"none", border:"none", cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>Tümü →</button>
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
             {[
@@ -467,7 +468,7 @@ export default function YourPoodleHomePage() {
             <div style={{ width:54, height:54, borderRadius:"50%", background:"linear-gradient(135deg,#9B59FF,#7C3AFF)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 6px 20px rgba(124,58,255,0.4)", position:"absolute", top:-24 }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
             </div>
-            <span style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:"'Inter',sans-serif", marginTop:32 }}>Sepet</span>
+            <span style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:"'Inter',sans-serif", marginTop:32 }}>Mağaza</span>
           </button>
 
           <button onClick={() => navigate("/yourpoodle/rehber")} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"none", border:"none", cursor:"pointer", flex:1 }}>

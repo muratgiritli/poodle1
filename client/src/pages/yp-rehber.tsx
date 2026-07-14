@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import {
   Search, ChevronDown, Menu, X,
   Home, Users, BookOpen, Monitor, Clock, ChevronRight,
-  ArrowLeft, Heart, Share2,
+  ArrowLeft, Heart, Share2, ShoppingBag,
 } from "lucide-react";
 import { useCustomer } from "@/contexts/CustomerContext";
 
@@ -83,11 +83,12 @@ const DRAWER_LINKS = [
   { label:"Rehber",       href:"/yourpoodle/rehber" },
   { label:"Bilgi Bankası",href:"/yourpoodle/bilgi" },
   { label:"Mağaza",       href:"/yourpoodle/magaza" },
-  { label:"Club",         href:"/yourpoodle/club" },
-  { label:"Mama",         href:"/yourpoodle/magaza" },
-  { label:"Eğitim",       href:"/yourpoodle/rehber" },
-  { label:"Sağlık",       href:"/yourpoodle/rehber" },
-  { label:"Bakım",        href:"/yourpoodle/rehber" },
+  { label:"Mama",          href:"/yourpoodle/mama" },
+  { label:"Eğitim",        href:"/yourpoodle/egitim" },
+  { label:"Sağlık",        href:"/yourpoodle/saglik" },
+  { label:"Bakım",         href:"/yourpoodle/bakim" },
+  { label:"Poodle Club",   href:"/yourpoodle/club" },
+  { label:"Etkinlikler",   href:"/yourpoodle/etkinlikler" },
 ];
 
 /* ─── Bottom Nav ────────────────────────────────────────── */
@@ -118,7 +119,7 @@ function BottomNav({ active }: { active:string }) {
         <div style={{ width:54, height:54, borderRadius:"50%", background:"linear-gradient(135deg,#9B59FF,#7C3AFF)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 6px 20px rgba(124,58,255,0.4)", position:"absolute", top:-24 }}>
           <ShoppingBag size={24} color="#fff" strokeWidth={2.2} />
         </div>
-        <span style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:"Inter,sans-serif", marginTop:32 }}>Sepet</span>
+        <span style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:"Inter,sans-serif", marginTop:32 }}>Mağaza</span>
       </button>
       {right.map(({ label, href, Icon }) => (
         <button key={label} onClick={() => navigate(href)}
@@ -153,7 +154,14 @@ function ArticleDetail({ article, onClose }: { article:Article; onClose:() => vo
             <button onClick={() => setLiked(l => !l)} style={{ background:"none", border:"none", cursor:"pointer" }}>
               <Heart size={20} color={liked ? "#FF4566" : "#bbb"} fill={liked ? "#FF4566" : "none"} strokeWidth={2} />
             </button>
-            <button style={{ background:"none", border:"none", cursor:"pointer" }}>
+            <button onClick={() => {
+              const url = window.location.origin + "/yourpoodle/rehber";
+              if (navigator.share) {
+                navigator.share({ title: article.title, text: article.body.slice(0, 120), url }).catch(()=>{});
+              } else {
+                navigator.clipboard?.writeText(url).catch(()=>{});
+              }
+            }} style={{ background:"none", border:"none", cursor:"pointer" }}>
               <Share2 size={20} color="#bbb" strokeWidth={2} />
             </button>
           </div>
@@ -257,7 +265,7 @@ export default function Rehber() {
             </div>
             {/* Sağ: Üye Girişi + Dil */}
             <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-              <button className="icon-btn" onClick={() => navigate(isLoggedIn ? "/" : "/yourpoodle/giris")}
+              <button className="icon-btn" onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
                 style={{ padding:"6px 13px", borderRadius:20, border:"2px solid", borderColor:isLoggedIn?"#22C55E":"#7C3AFF", background:isLoggedIn?"#F0FDF4":"#F5F0FF", color:isLoggedIn?"#16A34A":"#7C3AFF", fontSize:12, fontWeight:800, whiteSpace:"nowrap" }}>
                 {isLoggedIn ? "Hesabım 👤" : "Üye Girişi"}
               </button>

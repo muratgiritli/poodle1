@@ -1,0 +1,253 @@
+# yourpoodle.com Site Analiz Raporu
+
+Siteyi canlı tarayıcıda, teknik meta verilerde ve birçok alt sayfada inceledim. **yourpoodle.com**, iki farklı projeyi tek domain altında birleştirmiş görünüyor:
+
+1. **YourPoodle** — Poodle sahipleri için topluluk, rehber ve araçlar platformu  
+2. **Enuygun Pet Shop** — Samsun/Atakum odaklı yerel petshop e-ticaret sitesi  
+
+Bu birleşim ciddi marka, teknik ve SEO sorunlarına yol açıyor.
+
+---
+
+## Genel Değerlendirme
+
+| Alan | Durum |
+|------|--------|
+| Ana sayfa tasarımı (YourPoodle) | İyi — modern, mobil uyumlu |
+| Alt sayfa işlevselliği | Kritik — birçok sayfa boş veya hatalı |
+| E-ticaret | Eksik — ürün listesi görünmüyor |
+| SEO | Zayıf — yanlış marka, çift H1, boş sayfalar |
+| Yasal uyumluluk | Eksik — KVKK, sözleşmeler boş |
+| Teknik altyapı | Sorunlu — sitemap ve manifest 500 hatası |
+
+---
+
+## KRİTİK HATALAR (Acil Düzeltilmeli)
+
+### 1. Marka ve domain uyumsuzluğu
+- Domain: **yourpoodle.com**
+- Sayfa başlığı: *"Atakum Petshop & Samsun Pet Shop - Enuygun"*
+- Schema.org, canonical ve OG görselleri: **enuygunpet.com**
+- Mağaza logosu: **enuygunpet**
+- E-posta: **info@sizpa.com** (üçüncü bir marka)
+
+**Sonuç:** Kullanıcı kafası karışıyor, Google yanlış siteyi indeksliyor.
+
+**Öneri:** Tek bir ana marka seçin. Canonical, title, schema ve e-posta adreslerini **yourpoodle.com** ile hizalayın.
+
+---
+
+### 2. YourPoodle alt sayfaları çalışmıyor
+
+| URL | Durum |
+|-----|--------|
+| `/yourpoodle/rehber` | **"Bir hata oluştu"** hatası |
+| `/yourpoodle/bilgi` | Boş sayfa (sadece SEO footer) |
+| `/yourpoodle/magaza` | Boş sayfa |
+| `/yourpoodle/club` | Boş / yüklenmiyor |
+| `/yourpoodle/poodle-ekle` | Test edilmedi, muhtemelen aynı sorun |
+
+Ana sayfadaki Rehber, Bilgi Bankası, Club ve Mağaza linklerinin çoğu bu rotalara gidiyor; **temel navigasyon kırık**.
+
+---
+
+### 3. E-ticaret ürünleri görünmüyor
+- `/kategori/kopek` — "Kategori seçerek ürünleri keşfedin" yazıyor ama **ürün/kategori listesi yok**
+- `/kampanya`, `/blog`, `/markalar` — içerik yok
+- Ana sayfada **7 ürün görseli kırık** (`mamatoptancisi.com` hotlink engeli)
+
+**Öneri:** Ürün görsellerini kendi CDN'inize taşıyın; kategori ve ürün API'sini kontrol edin.
+
+---
+
+### 4. Sunucu hataları (500)
+- `https://yourpoodle.com/sitemap.xml` → **500 Internal Server Error**
+- `https://yourpoodle.com/manifest.json` → **500 Internal Server Error**
+
+Sitemap olmadan SEO zayıflar; manifest hatası PWA'yı bozar.
+
+---
+
+### 5. Yasal sayfalar boş (e-ticaret için zorunlu)
+
+Aşağıdaki sayfalar yalnızca genel SEO metni gösteriyor, gerçek içerik yok:
+
+- `/gizlilik-politikasi`
+- `/kvkk`
+- `/mesafeli-satis-sozlesmesi`
+- `/iade-politikasi`
+- `/iletisim`
+- `/hakkimizda`
+
+**5651, KVKK ve Mesafeli Satış Yönetmeliği** açısından ciddi eksiklik.
+
+---
+
+## SEO SORUNLARI
+
+### Çift H1 etiketi
+Birçok sayfada iki adet `<h1>` var:
+- Sayfa başlığı (ör. "Köpek Ürünleri Samsun")
+- Footer SEO bloğu ("Enuygun Pet Shop Samsun...")
+
+Google için karışıklık yaratır; footer bloğu `<h1>` olmamalı.
+
+### Canonical yanlış domain'e işaret ediyor
+```html
+<link rel="canonical" href="https://www.enuygunpet.com/" />
+```
+Google'a "asıl site başka yerde" mesajı veriyor; **yourpoodle.com'un SEO değeri aktarılıyor**.
+
+### Tüm YourPoodle sayfalarında aynı title
+`/yourpoodle/rehber`, `/yourpoodle/bilgi` vb. hepsi:
+*"Atakum Petshop & Samsun Pet Shop - Enuygun"*
+
+Sayfa bazlı benzersiz title/description olmalı.
+
+### SPA / SSR sorunu
+Birçok sayfa JavaScript yüklenmeden yalnızca footer SEO metnini gösteriyor. Arama motorları ve sosyal paylaşımlar için içerik eksik kalıyor.
+
+---
+
+## UX / KULLANICI DENEYİMİ SORUNLARI
+
+### Navigasyon karmaşası
+- YourPoodle menüsü: `/yourpoodle/magaza`
+- Footer mağaza linki: `/magaza` (Enuygun mağaza sayfası)
+- `/rehber` → Enuygun shop'a gidiyor; `/yourpoodle/rehber` → hata
+
+Kullanıcı hangi "Mağaza"ya gideceğini anlayamıyor.
+
+### Bilgi Bankası araçları çalışmıyor gibi
+"Mama Hesaplama" tıklandığında modal veya sayfa açılmıyor; yalnızca focus alıyor. 12 araçtan hiçbiri test edilemedi.
+
+### Güncel olmayan içerik
+- Etkinlikler: **18 OCA, 25 OCA, 03 ŞUB 2026** — bugün Temmuz 2026; 6 ay eski
+- "Haftanın Poodle'ı: Mocha" statik görünüyor
+
+### Tutarsız bilgiler
+| Konu | Değer 1 | Değer 2 |
+|------|---------|---------|
+| Çalışma saatleri | 09:00–21:00 (SEO metni) | 09:00–22:00 (mağaza sayfası) |
+| Marka adı | YourPoodle | Enuygun Pet / Sizpa |
+
+### Masaüstü navigasyon
+"Mağaza" menüde **"Mağ..."** olarak kesiliyor; responsive tasarım hatası.
+
+### Türkçe dil hataları
+- "Poodle**'iniz**" → "Poodle**'unuz**"
+- "poodlem için" → "poodle**'um** için"
+
+---
+
+## EKSİK / EKLENMESİ GEREKEN ÖZELLİKLER
+
+### Zorunlu (yasal & güven)
+- [ ] KVKK Aydınlatma Metni (gerçek içerik)
+- [ ] Gizlilik Politikası
+- [ ] Mesafeli Satış Sözleşmesi
+- [ ] İade ve Değişim Politikası
+- [ ] Çerez Politikası + banner
+- [ ] Kullanım Koşulları
+- [ ] İletişim formu
+- [ ] Şirket/MERSIS bilgileri (footer)
+
+### E-ticaret
+- [ ] Çalışan ürün kataloğu ve filtreleme
+- [ ] Sepet ve ödeme akışı testi
+- [ ] Stok/fiyat gösterimi
+- [ ] Sipariş takip sayfası (`/siparis-takip` robots'ta var ama test edilmedi)
+- [ ] Kargo/teslimat bilgi sayfası
+- [ ] Kapıda ödeme koşulları netleştirme
+
+### YourPoodle platformu
+- [ ] Club üyelik akışı (kayıt, profil, avantajlar)
+- [ ] "Poodle'ımı Ekle" profil oluşturma
+- [ ] Topluluk akışı (gerçek kullanıcı içeriği)
+- [ ] Rehber içerikleri (Mama, Eğitim, Sağlık, Bakım)
+- [ ] Bilgi Bankası araçlarının çalışır hale getirilmesi
+- [ ] Etkinlik yönetimi (tarih güncelleme)
+- [ ] Üye girişi / kayıt testi
+
+### SEO & teknik
+- [ ] Düzeltilmiş `sitemap.xml`
+- [ ] Düzeltilmiş `manifest.json` (PWA)
+- [ ] Sayfa bazlı meta title/description
+- [ ] Schema.org: YourPoodle için `WebApplication` veya `Organization`
+- [ ] Enuygun için ayrı subdomain veya path (`shop.yourpoodle.com`)
+- [ ] Sosyal medya linkleri (`sameAs` schema boş)
+- [ ] Open Graph görselleri yourpoodle.com'dan servis edilmeli
+
+### Güven & dönüşüm
+- [ ] Gerçek kullanıcı yorumları veya doğrulanabilir referanslar
+- [ ] SSL/güven rozetleri
+- [ ] WhatsApp / canlı destek entegrasyonu (mağaza sayfasında var, YourPoodle'da yok)
+- [ ] FAQ / SSS sayfası
+- [ ] Breadcrumb navigasyonu
+
+### Çok dilli destek
+Dil seçici var (TR, EN, DE, FR, RU, AR, ES, IT) ancak içerik çevirisi test edilmedi; muhtemelen yalnızca UI etiketleri.
+
+---
+
+## OLUMLU YÖNLER
+
+- YourPoodle ana sayfası modern ve mobil-first
+- 12 adet faydalı hesaplama aracı fikri güçlü (mama, aşı, kilo vb.)
+- Mağaza sayfası (`/magaza`) adres, harita, WhatsApp, çalışma saatleri iyi düzenlenmiş
+- `robots.txt` AI crawler'lar için düşünülmüş
+- Google Tag Manager entegrasyonu mevcut
+- Alt navigasyon (mobil tab bar) kullanışlı
+- "1000 TL üzeri ücretsiz kargo" mesajı net
+
+---
+
+## ÖNCELİKLENDİRİLMİŞ AKSIYON PLANI
+
+### Hafta 1 — Kritik
+1. Marka stratejisini netleştirin (YourPoodle mu, Enuygun mu, ikisi birlikte mi?)
+2. `/yourpoodle/*` rotalarındaki JS hatalarını düzeltin
+3. `sitemap.xml` ve `manifest.json` 500 hatalarını giderin
+4. Canonical ve schema URL'lerini `yourpoodle.com` yapın
+5. Yasal sayfaları gerçek içerikle doldurun
+
+### Hafta 2 — E-ticaret
+6. Ürün API / veritabanı bağlantısını kontrol edin
+7. Kırık görselleri kendi sunucunuza taşıyın
+8. Kategori sayfalarına ürün listesi ekleyin
+9. Sepet → ödeme akışını uçtan uca test edin
+
+### Hafta 3 — SEO & içerik
+10. Footer SEO bloğundaki `<h1>` etiketlerini `<h2>` veya `<p>` yapın
+11. Sayfa bazlı title/description ekleyin
+12. Etkinlik ve "Haftanın Poodle'ı" içeriklerini güncelleyin
+13. Bilgi Bankası araçlarını aktif hale getirin
+
+### Hafta 4 — Büyüme
+14. Club üyelik ve profil sistemi
+15. Blog ve rehber içerikleri
+16. Sosyal medya entegrasyonu
+17. Çok dilli içerik (en azından EN)
+
+---
+
+## Mimari Öneri
+
+İki markayı tek domainde tutacaksanız net bir ayrım şart:
+
+```
+yourpoodle.com/              → YourPoodle topluluk
+yourpoodle.com/shop/         → Enuygun e-ticaret
+yourpoodle.com/rehber/     → Rehber (yourpoodle prefix kaldırılmalı)
+```
+
+Ya da:
+
+```
+yourpoodle.com    → Topluluk platformu
+shop.yourpoodle.com veya enuygunpet.com → E-ticaret
+```
+
+---
+
+Kaynak koduna erişiminiz varsa, `/yourpoodle/rehber` hatası ve boş sayfalar için hata ayıklamaya başlayabilirim. Hangi bölümü önce ele almak istediğinizi söylemeniz yeterli.

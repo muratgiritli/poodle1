@@ -36,11 +36,16 @@ const LANGUAGES = [
 ];
 
 const DRAWER_LINKS = [
-  { label:"Ana Sayfa",    href:"/" },
-  { label:"Rehber",       href:"/yourpoodle/rehber" },
-  { label:"Bilgi Bankası",href:"/yourpoodle/bilgi" },
-  { label:"Mağaza",       href:"/yourpoodle/magaza" },
-  { label:"Club",         href:"/yourpoodle/club" },
+  { label:"Ana Sayfa",     href:"/" },
+  { label:"Rehber",        href:"/yourpoodle/rehber" },
+  { label:"Bilgi Bankası", href:"/yourpoodle/bilgi" },
+  { label:"Mağaza",        href:"/yourpoodle/magaza" },
+  { label:"Mama",          href:"/yourpoodle/mama" },
+  { label:"Eğitim",        href:"/yourpoodle/egitim" },
+  { label:"Sağlık",        href:"/yourpoodle/saglik" },
+  { label:"Bakım",         href:"/yourpoodle/bakim" },
+  { label:"Poodle Club",   href:"/yourpoodle/club" },
+  { label:"Etkinlikler",   href:"/yourpoodle/etkinlikler" },
 ];
 
 const TABS = [
@@ -100,7 +105,7 @@ function BottomNav() {
         <div style={{ width:54,height:54,borderRadius:"50%",background:"linear-gradient(135deg,#9B59FF,#7C3AFF)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 6px 20px rgba(124,58,255,0.4)",position:"absolute",top:-24 }}>
           <ShoppingBag size={24} color="#fff" strokeWidth={2.2}/>
         </div>
-        <span style={{ fontSize:10,fontWeight:700,color:"#aaa",fontFamily:"Inter,sans-serif",marginTop:32 }}>Sepet</span>
+        <span style={{ fontSize:10,fontWeight:700,color:"#aaa",fontFamily:"Inter,sans-serif",marginTop:32 }}>Mağaza</span>
       </button>
       {[{label:"Rehber",href:"/yourpoodle/rehber",icon:<BookOpen size={22} strokeWidth={2}/>},{label:"Bilgi",href:"/yourpoodle/bilgi",icon:<Monitor size={22} strokeWidth={2}/>}].map(({label,href,icon})=>(
         <button key={label} onClick={()=>navigate(href)} style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:3,flex:1,background:"none",border:"none",cursor:"pointer",color:"#aaa",fontFamily:"Inter,sans-serif" }}>
@@ -140,7 +145,14 @@ function PostCard({ post, onLike }: { post: Post; onLike: (id: string) => void }
           <MessageCircle size={18} strokeWidth={2} color="#aaa" />
           <span style={{ fontSize:12, fontWeight:700, color:"#aaa" }}>{post.comments}</span>
         </button>
-        <button className="post-action" style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 14px", borderRadius:10, border:"none", background:"none", cursor:"pointer", flex:1, justifyContent:"center", fontFamily:"Inter,sans-serif" }}>
+        <button className="post-action" onClick={() => {
+          const url = window.location.href;
+          if (navigator.share) {
+            navigator.share({ title:"YourPoodle Club", text: post.text.slice(0, 100), url }).catch(()=>{});
+          } else {
+            navigator.clipboard?.writeText(url).catch(()=>{});
+          }
+        }} style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 14px", borderRadius:10, border:"none", background:"none", cursor:"pointer", flex:1, justifyContent:"center", fontFamily:"Inter,sans-serif" }}>
           <Share2 size={18} strokeWidth={2} color="#aaa" />
           <span style={{ fontSize:12, fontWeight:700, color:"#aaa" }}>Paylaş</span>
         </button>
@@ -350,7 +362,7 @@ export default function Club() {
               </button>
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-              <button className="icon-btn" onClick={() => navigate(isLoggedIn ? "/" : "/yourpoodle/giris")}
+              <button className="icon-btn" onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
                 style={{ padding:"6px 13px", borderRadius:20, border:"2px solid", borderColor:isLoggedIn?"#22C55E":"#7C3AFF", background:isLoggedIn?"#F0FDF4":"#F5F0FF", color:isLoggedIn?"#16A34A":"#7C3AFF", fontSize:12, fontWeight:800, whiteSpace:"nowrap" }}>
                 {isLoggedIn ? "Hesabım 👤" : "Üye Girişi"}
               </button>
