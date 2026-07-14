@@ -356,10 +356,191 @@ export default function YourPoodleHome() {
             </div>
           </section>
 
-          {/* ── PLACEHOLDER ───────────────────────────── */}
-          <div style={{ margin:"8px 16px 24px", height:120, borderRadius:18, background:"#F9F9F9", display:"flex", alignItems:"center", justifyContent:"center", border:"1.5px dashed #e0e0e0" }}>
-            <p style={{ color:"#ccc", fontSize:13, fontWeight:600, textAlign:"center" }}>Sonraki bölümler sırayla eklenecek ↓</p>
+          {/* ── GÜNÜN İPUCU ───────────────────────────── */}
+          <div style={{ margin:"0 16px 0", background:"linear-gradient(135deg,#EDE8FF,#F5F0FF)", borderRadius:16, padding:"14px 16px", display:"flex", alignItems:"center", gap:12 }}>
+            <span style={{ fontSize:24, flexShrink:0 }}>💡</span>
+            <div>
+              <div style={{ fontSize:11, fontWeight:800, color:"#7C3AFF", letterSpacing:"0.06em", marginBottom:3, fontFamily:"'Inter',sans-serif" }}>GÜNÜN İPUCU</div>
+              <div style={{ fontSize:13, color:"#333", fontFamily:"'Inter',sans-serif", lineHeight:1.5 }}>
+                Toy Poodle'ların tüyleri sürekli uzar, 6-8 haftada bir tıraş rutini oluşturun.
+              </div>
+            </div>
           </div>
+
+          {/* ── SON REHBER YAZILARI ────────────────────── */}
+          <section style={{ padding:"24px 16px 8px" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ fontSize:18 }}>📖</span>
+                <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a", fontFamily:"'Inter',sans-serif" }}>Son Rehber Yazıları</span>
+              </div>
+              <a href="/rehber" style={{ fontSize:12, fontWeight:700, color:"#7C3AFF", textDecoration:"none", fontFamily:"'Inter',sans-serif" }}>Tümü →</a>
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              {[
+                { emoji:"🍖", tag:"Beslenme",  title:"Toy Poodle İçin En İyi Mama Markaları 2024",       min:"5 dk" },
+                { emoji:"🛁", tag:"Bakım",     title:"Evde Poodle Tıraşı: Adım Adım Rehber",             min:"8 dk" },
+                { emoji:"💊", tag:"Sağlık",    title:"Poodle'larda Görülen 10 Yaygın Sağlık Sorunu",     min:"6 dk" },
+              ].map(({ emoji, tag, title, min }) => (
+                <div key={title} style={{ display:"flex", gap:12, alignItems:"center", padding:"12px", background:"#FAFAFA", borderRadius:14, cursor:"pointer" }}>
+                  <div style={{ width:48, height:48, borderRadius:12, background:"#EDE8FF", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>{emoji}</div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:10, fontWeight:700, color:"#7C3AFF", marginBottom:4, fontFamily:"'Inter',sans-serif" }}>{tag}</div>
+                    <div style={{ fontSize:13, fontWeight:700, color:"#1a1a1a", fontFamily:"'Inter',sans-serif", lineHeight:1.4 }}>{title}</div>
+                  </div>
+                  <div style={{ fontSize:11, color:"#aaa", fontFamily:"'Inter',sans-serif", flexShrink:0 }}>{min}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── ÖNERILEN ÜRÜNLER ──────────────────────── */}
+          <section style={{ padding:"24px 16px 8px" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ fontSize:18 }}>🛍️</span>
+                <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a", fontFamily:"'Inter',sans-serif" }}>Öne Çıkan Ürünler</span>
+              </div>
+              <a href="/magaza" style={{ fontSize:12, fontWeight:700, color:"#7C3AFF", textDecoration:"none", fontFamily:"'Inter',sans-serif" }}>Tümü →</a>
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10 }}>
+              {[
+                { emoji:"🦴", name:"Royal Canin Poodle Adult", price:"₺485", badge:"En Çok Satan" },
+                { emoji:"✂️", name:"Slicker Tıraş Fırçası",    price:"₺129", badge:"" },
+                { emoji:"🎀", name:"Poodle Fiyonk Seti",        price:"₺79",  badge:"Yeni" },
+                { emoji:"💊", name:"Eklem Takviyesi Kapsül",    price:"₺320", badge:"" },
+                { emoji:"🛁", name:"Köpek Şampuanı 500ml",      price:"₺189", badge:"İndirim" },
+                { emoji:"🏠", name:"Taşıma Çantası Soft",       price:"₺599", badge:"" },
+                { emoji:"🧶", name:"Interaktif Oyuncak Set",    price:"₺149", badge:"Popüler" },
+                { emoji:"🪮", name:"Profesyonel Tarak Seti",    price:"₺219", badge:"" },
+                { emoji:"🎾", name:"Mini Tenis Topu 3'lü",      price:"₺59",  badge:"" },
+              ].map(({ emoji, name, price, badge }) => (
+                <div key={name} style={{ background:"#FAFAFA", borderRadius:14, overflow:"hidden", cursor:"pointer", display:"flex", flexDirection:"column" }}>
+                  <div style={{ background:"#F0ECFF", height:80, display:"flex", alignItems:"center", justifyContent:"center", fontSize:34, position:"relative" }}>
+                    {emoji}
+                    {badge && (
+                      <div style={{ position:"absolute", top:6, left:6, background:"#7C3AFF", borderRadius:6, padding:"2px 6px" }}>
+                        <span style={{ fontSize:8, fontWeight:800, color:"#fff", fontFamily:"'Inter',sans-serif" }}>{badge}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ padding:"8px 8px 10px" }}>
+                    <div style={{ fontSize:10.5, fontWeight:700, color:"#1a1a1a", fontFamily:"'Inter',sans-serif", lineHeight:1.3, marginBottom:4 }}>{name}</div>
+                    <div style={{ fontSize:12, fontWeight:900, color:"#7C3AFF", fontFamily:"'Inter',sans-serif" }}>{price}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── SON TOPLULUK PAYLASIMLARI ─────────────── */}
+          <section style={{ padding:"24px 16px 8px" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ fontSize:18 }}>👥</span>
+                <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a", fontFamily:"'Inter',sans-serif" }}>Topluluk Paylaşımları</span>
+              </div>
+              <a href="/topluluk" style={{ fontSize:12, fontWeight:700, color:"#7C3AFF", textDecoration:"none", fontFamily:"'Inter',sans-serif" }}>Tümü →</a>
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              {[
+                { avatar:"🐩", user:"poodlemom_ayse",   time:"2 saat önce",  text:"Bugün Mocha'nın ilk tıraşını yaptırdık! Muhteşem oldu 🎀",          likes:48 },
+                { avatar:"🐾", user:"toypoodle_club",   time:"5 saat önce",  text:"Yeni mama geçişimizde hiçbir sorun yaşamadık, ipuçları için teşekkürler!", likes:32 },
+                { avatar:"🤍", user:"poodle_istanbul",  time:"1 gün önce",   text:"Bebek Poodle'mın 6. ayında aşıları tamam, sağlıklı büyüyor 💜",     likes:91 },
+              ].map(({ avatar, user, time, text, likes }) => (
+                <div key={user} style={{ background:"#FAFAFA", borderRadius:14, padding:"12px 14px" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
+                    <div style={{ width:36, height:36, borderRadius:"50%", background:"#EDE8FF", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>{avatar}</div>
+                    <div>
+                      <div style={{ fontSize:12, fontWeight:800, color:"#1a1a1a", fontFamily:"'Inter',sans-serif" }}>@{user}</div>
+                      <div style={{ fontSize:10, color:"#aaa", fontFamily:"'Inter',sans-serif" }}>{time}</div>
+                    </div>
+                  </div>
+                  <p style={{ fontSize:13, color:"#333", fontFamily:"'Inter',sans-serif", lineHeight:1.5, margin:"0 0 8px" }}>{text}</p>
+                  <div style={{ display:"flex", alignItems:"center", gap:4 }}>
+                    <span style={{ fontSize:14 }}>💜</span>
+                    <span style={{ fontSize:11, color:"#888", fontFamily:"'Inter',sans-serif" }}>{likes} beğeni</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── HAFTANIN POODLE'I ─────────────────────── */}
+          <section style={{ padding:"24px 16px 8px" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
+              <span style={{ fontSize:18 }}>⭐</span>
+              <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a", fontFamily:"'Inter',sans-serif" }}>Haftanın Poodle'ı</span>
+            </div>
+            <div style={{ background:"linear-gradient(135deg,#B39DFF,#D4C4FF)", borderRadius:20, padding:"20px", display:"flex", gap:16, alignItems:"center" }}>
+              <div style={{ width:80, height:80, borderRadius:20, background:"rgba(255,255,255,0.3)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:42, flexShrink:0 }}>🐩</div>
+              <div>
+                <div style={{ fontSize:11, fontWeight:800, color:"rgba(255,255,255,0.8)", letterSpacing:"0.06em", marginBottom:4, fontFamily:"'Inter',sans-serif" }}>BU HAFTANIN YILDIZI</div>
+                <div style={{ fontSize:18, fontWeight:900, color:"#fff", fontFamily:"'Inter',sans-serif", marginBottom:4 }}>Mocha ✨</div>
+                <div style={{ fontSize:12, color:"rgba(255,255,255,0.9)", fontFamily:"'Inter',sans-serif", lineHeight:1.4 }}>3 yaşında, İstanbul'dan.<br />Topluluğun en sevilen poodlelerinden!</div>
+                <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:8 }}>
+                  <span style={{ fontSize:14 }}>💜</span>
+                  <span style={{ fontSize:12, color:"#fff", fontWeight:700, fontFamily:"'Inter',sans-serif" }}>1.243 beğeni</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ── YAKLAŞAN ETKİNLİKLER ─────────────────── */}
+          <section style={{ padding:"24px 16px 8px" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ fontSize:18 }}>📅</span>
+                <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a", fontFamily:"'Inter',sans-serif" }}>Yaklaşan Etkinlikler</span>
+              </div>
+              <a href="/etkinlikler" style={{ fontSize:12, fontWeight:700, color:"#7C3AFF", textDecoration:"none", fontFamily:"'Inter',sans-serif" }}>Tümü →</a>
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              {[
+                { day:"18", month:"OCA", title:"Poodle Buluşması — Kadıköy",    loc:"İstanbul",  color:"#FF7FA7" },
+                { day:"25", month:"OCA", title:"Online: Tıraş Teknikleri Webinarı", loc:"Zoom",  color:"#A77BFF" },
+                { day:"03", month:"ŞUB", title:"Poodle Agility Yarışması",       loc:"Ankara",   color:"#78BEFF" },
+              ].map(({ day, month, title, loc, color }) => (
+                <div key={title} style={{ display:"flex", gap:12, alignItems:"center", padding:"12px 14px", background:"#FAFAFA", borderRadius:14, cursor:"pointer" }}>
+                  <div style={{ width:44, height:44, borderRadius:12, background:color + "22", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <div style={{ fontSize:16, fontWeight:900, color, fontFamily:"'Inter',sans-serif", lineHeight:1 }}>{day}</div>
+                    <div style={{ fontSize:9, fontWeight:800, color, fontFamily:"'Inter',sans-serif" }}>{month}</div>
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:"#1a1a1a", fontFamily:"'Inter',sans-serif", lineHeight:1.3, marginBottom:3 }}>{title}</div>
+                    <div style={{ fontSize:11, color:"#888", fontFamily:"'Inter',sans-serif" }}>📍 {loc}</div>
+                  </div>
+                  <div style={{ fontSize:18 }}>›</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── ÜYE YORUMLARI ────────────────────────── */}
+          <section style={{ padding:"24px 16px 32px" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
+              <span style={{ fontSize:18 }}>💬</span>
+              <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a", fontFamily:"'Inter',sans-serif" }}>Üye Yorumları</span>
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              {[
+                { emoji:"🌸", name:"Zeynep K.",    stars:5, text:"YourPoodle sayesinde poodlem için doğru mamayı bulduk. Harika bir platform!" },
+                { emoji:"🐶", name:"Mert A.",      stars:5, text:"Bilgi bankası inanılmaz kapsamlı. Her sorunun cevabı burada." },
+                { emoji:"💜", name:"Selin T.",     stars:5, text:"Club üyeliği çok değerli, topluluktaki insanlar gerçekten yardımsever." },
+              ].map(({ emoji, name, stars, text }) => (
+                <div key={name} style={{ background:"#FAFAFA", borderRadius:16, padding:"14px 16px" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+                    <div style={{ width:36, height:36, borderRadius:"50%", background:"#EDE8FF", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>{emoji}</div>
+                    <div>
+                      <div style={{ fontSize:13, fontWeight:800, color:"#1a1a1a", fontFamily:"'Inter',sans-serif" }}>{name}</div>
+                      <div style={{ fontSize:12, color:"#F59E0B" }}>{"★".repeat(stars)}</div>
+                    </div>
+                  </div>
+                  <p style={{ fontSize:13, color:"#444", fontFamily:"'Inter',sans-serif", lineHeight:1.55, margin:0 }}>{text}</p>
+                </div>
+              ))}
+            </div>
+          </section>
 
         </div>
       </div>
