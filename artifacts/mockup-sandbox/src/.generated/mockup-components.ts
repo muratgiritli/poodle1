@@ -10,6 +10,7 @@ export const modules: ModuleMap = {
   "./components/mockups/yourpoodle/Bilgi.tsx": () => import("../components/mockups/yourpoodle/Bilgi.tsx"),
   "./components/mockups/yourpoodle/BilgiBankasi.tsx": () => import("../components/mockups/yourpoodle/BilgiBankasi.tsx"),
   "./components/mockups/yourpoodle/Club.tsx": () => import("../components/mockups/yourpoodle/Club.tsx"),
+  "./components/mockups/yourpoodle/HomePage.tsx": () => import("../components/mockups/yourpoodle/HomePage.tsx"),
   "./components/mockups/yourpoodle/Homepage.tsx": () => import("../components/mockups/yourpoodle/Homepage.tsx"),
   "./components/mockups/yourpoodle/Magaza.tsx": () => import("../components/mockups/yourpoodle/Magaza.tsx"),
   "./components/mockups/yourpoodle/Rehber.tsx": () => import("../components/mockups/yourpoodle/Rehber.tsx"),
