@@ -115,7 +115,7 @@ body { background: #fff; }
 
 /* ── DESKTOP ─────────────────────────────────────────── */
 .yp-center { width: 100%; }
-.yp-hero-section { padding: 32px 20px 28px; }
+.yp-hero-section { padding: 16px 20px 14px; }
 .yp-hero-content { position: relative; z-index: 2; }
 .yp-hero-row { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
 .yp-hero-img-wrap { flex-shrink: 0; width: 120px; height: 120px; }
@@ -140,7 +140,7 @@ body { background: #fff; }
   .yp-header-cats { max-width: 1280px; margin: 0 auto; padding: 6px 48px 10px; overflow: visible; border-top: 1px solid #f5f5f5; }
   .yp-header-cats-inner { gap: 8px; }
 
-  .yp-hero-section { padding: 64px 0 56px; }
+  .yp-hero-section { padding: 28px 0 24px; }
   .yp-hero-content { max-width: 1280px; margin: 0 auto; padding: 0 48px; display: grid; grid-template-columns: 1fr 480px; gap: 64px; align-items: center; }
   .yp-hero-row { flex-direction: column; align-items: flex-start; gap: 0; margin-bottom: 0; }
   .yp-hero-img-wrap { display: none; }
