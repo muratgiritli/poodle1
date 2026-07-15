@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import YPBottomNav from "@/components/YPBottomNav";
+import YPLayout from "@/components/yourpoodle/YPLayout";
 import YPBreadcrumb from "@/components/YPBreadcrumb";
 
 const BREADCRUMBS = [
@@ -39,7 +39,8 @@ export default function YPHakkindaPage() {
   const [, navigate] = useLocation();
 
   return (
-    <div style={{ fontFamily: "'Inter', -apple-system, sans-serif", background: "#FAFAF9", minHeight: "100vh", paddingBottom: 80 }}>
+    <YPLayout activeLink="/yourpoodle/hakkinda">
+    <div style={{ fontFamily: "'Inter', -apple-system, sans-serif", background: "#FAFAF9" }}>
       <YPBreadcrumb items={BREADCRUMBS} />
 
       {/* ── Hero ───────────────────────────────────────────────────────── */}
@@ -176,7 +177,7 @@ export default function YPHakkindaPage() {
         </div>
       </section>
 
-      <YPBottomNav />
     </div>
+    </YPLayout>
   );
 }

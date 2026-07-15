@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { ChevronLeft, Loader2, ShieldCheck, Search, X, ChevronDown } from "lucide-react";
 import { useCustomer } from "@/contexts/CustomerContext";
 import { apiRequest } from "@/lib/queryClient";
+import YPLayout from "@/components/yourpoodle/YPLayout";
 
 /* ─── Country codes ─────────────────────────────────────── */
 const COUNTRIES = [
@@ -296,14 +297,14 @@ export default function YPGiris() {
   const handleFacebook = () => setToast("Facebook girişi yakında aktif olacak 🚀");
 
   return (
-    <>
+    <YPLayout activeLink="/yourpoodle/giris" constrain={false}>
       <title>Giriş — YourPoodle</title>
       <style>{CSS}</style>
 
       {pickerOpen && <CountryPicker selected={country} onSelect={setCountry} onClose={() => setPickerOpen(false)} />}
       {toast && <Toast msg={toast} onDone={() => setToast("")} />}
 
-      <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"Inter,sans-serif", display:"flex", flexDirection:"column" }}>
+      <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"Inter,sans-serif", display:"flex", flexDirection:"column", maxWidth:480, margin:"0 auto" }}>
 
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", padding:"16px 16px 12px", borderBottom:"1px solid #f2f2f2" }}>
@@ -488,6 +489,6 @@ export default function YPGiris() {
           <span style={{ fontSize:11, color:"#aaa", fontWeight:600 }}>Bilgileriniz SSL ile korunmaktadır</span>
         </div>
       </div>
-    </>
+    </YPLayout>
   );
 }

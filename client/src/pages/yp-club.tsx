@@ -2,10 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import {
-  ChevronDown, Menu, X, Home, Users, BookOpen, Monitor,
-  Heart, MessageCircle, Share2, Plus, Camera, ShoppingBag,
+  Heart, MessageCircle, Share2, Plus, Camera, X,
   Edit3, Check, ChevronLeft, Bell, BellOff, Calendar,
 } from "lucide-react";
+import YPLayout from "@/components/yourpoodle/YPLayout";
 import { useCustomer } from "@/contexts/CustomerContext";
 
 /* ─── Types ─────────────────────────────────────────────── */
@@ -32,23 +32,6 @@ interface PoodleProfile {
 }
 
 /* ─── Constants ─────────────────────────────────────────── */
-const LANGUAGES = [
-  { code:"TR", flag:"🇹🇷" }, { code:"EN", flag:"🇺🇸" }, { code:"DE", flag:"🇩🇪" },
-];
-
-const DRAWER_LINKS = [
-  { label:"Ana Sayfa",     href:"/" },
-  { label:"Rehber",        href:"/yourpoodle/rehber" },
-  { label:"Bilgi Bankası", href:"/yourpoodle/bilgi" },
-  { label:"Mağaza",        href:"/yourpoodle/magaza" },
-  { label:"Mama",          href:"/yourpoodle/mama" },
-  { label:"Eğitim",        href:"/yourpoodle/egitim" },
-  { label:"Sağlık",        href:"/yourpoodle/saglik" },
-  { label:"Bakım",         href:"/yourpoodle/bakim" },
-  { label:"Poodle Club",   href:"/yourpoodle/club" },
-  { label:"Etkinlikler",   href:"/yourpoodle/etkinlikler" },
-];
-
 const TABS = [
   { id:"feed",      label:"📰 Akış" },
   { id:"my",        label:"🐩 Poodlem" },
@@ -92,31 +75,6 @@ const CSS = [
   ".fade-up { animation: fadeUp 0.28s ease both; }",
 ].join("\n");
 
-/* ─── Bottom Nav ────────────────────────────────────────── */
-function BottomNav() {
-  const [, navigate] = useLocation();
-  return (
-    <nav style={{ position:"fixed", bottom:0, left:0, right:0, background:"#fff", borderTop:"1px solid #f0f0f0", boxShadow:"0 -4px 20px rgba(0,0,0,0.08)", height:64, display:"flex", alignItems:"center", justifyContent:"space-around", zIndex:200, padding:"0 8px" }}>
-      {[{label:"Ana Sayfa",href:"/",icon:<Home size={22} strokeWidth={2}/>},{label:"Club",href:"/yourpoodle/club",icon:<Users size={22} strokeWidth={2}/>}].map(({label,href,icon})=>(
-        <button key={label} onClick={()=>navigate(href)} style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:3,flex:1,background:"none",border:"none",cursor:"pointer",color:label==="Club"?"#7C3AFF":"#aaa",fontFamily:"Inter,sans-serif" }}>
-          {icon}<span style={{ fontSize:10,fontWeight:800 }}>{label}</span>
-          {label==="Club"&&<div style={{ width:20,height:2.5,borderRadius:2,background:"#7C3AFF" }}/>}
-        </button>
-      ))}
-      <button onClick={()=>navigate("/yourpoodle/magaza")} style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:3,flex:1,position:"relative",background:"none",border:"none",cursor:"pointer" }}>
-        <div style={{ width:54,height:54,borderRadius:"50%",background:"linear-gradient(135deg,#9B59FF,#7C3AFF)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 6px 20px rgba(124,58,255,0.4)",position:"absolute",top:-24 }}>
-          <ShoppingBag size={24} color="#fff" strokeWidth={2.2}/>
-        </div>
-        <span style={{ fontSize:10,fontWeight:700,color:"#aaa",fontFamily:"Inter,sans-serif",marginTop:32 }}>Mağaza</span>
-      </button>
-      {[{label:"Rehber",href:"/yourpoodle/rehber",icon:<BookOpen size={22} strokeWidth={2}/>},{label:"Bilgi",href:"/yourpoodle/bilgi",icon:<Monitor size={22} strokeWidth={2}/>}].map(({label,href,icon})=>(
-        <button key={label} onClick={()=>navigate(href)} style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:3,flex:1,background:"none",border:"none",cursor:"pointer",color:"#aaa",fontFamily:"Inter,sans-serif" }}>
-          {icon}<span style={{ fontSize:10,fontWeight:700 }}>{label}</span>
-        </button>
-      ))}
-    </nav>
-  );
-}
 
 /* ─── Post Card ─────────────────────────────────────────── */
 function PostCard({ post, onLike }: { post: Post; onLike: (id: string) => void }) {
@@ -352,9 +310,6 @@ function urlBase64ToUint8Array(base64String: string) {
 export default function Club() {
   const [, navigate]   = useLocation();
   const { isLoggedIn } = useCustomer();
-  const [activeLang,   setActiveLang]   = useState(LANGUAGES[0]);
-  const [langOpen,     setLangOpen]     = useState(false);
-  const [drawerOpen,   setDrawerOpen]   = useState(false);
   const [activeTab,    setActiveTab]    = useState("feed");
   const [posts,        setPosts]        = useState<Post[]>(SEED_POSTS);
   const [showCompose,  setShowCompose]  = useState(false);
@@ -403,7 +358,7 @@ export default function Club() {
   };
 
   return (
-    <>
+    <YPLayout activeLink="/yourpoodle/club">
       <title>Club — YourPoodle</title>
       <style>{CSS}</style>
 
@@ -411,68 +366,17 @@ export default function Club() {
         <NewPostModal poodleName={profile.name} onClose={() => setShowCompose(false)} onSubmit={handleNewPost} />
       )}
 
-      <div style={{ minHeight:"100vh", background:"#F7F5FF", fontFamily:"Inter,sans-serif", paddingBottom:80 }}>
+      <div style={{ background:"#F7F5FF", fontFamily:"Inter,sans-serif" }}>
 
-        {/* DRAWER */}
-        {drawerOpen && <div onClick={() => setDrawerOpen(false)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.3)", zIndex:199 }}/>}
-        <div style={{ position:"fixed", top:0, left:0, height:"100%", width:280, background:"#fff", zIndex:200, transform:drawerOpen?"translateX(0)":"translateX(-100%)", transition:"transform 0.24s ease", boxShadow:"4px 0 24px rgba(0,0,0,0.12)" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"20px 18px 14px", borderBottom:"1px solid #f2f2f2" }}>
-            <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height:32, objectFit:"contain" }}/>
-            <button className="icon-btn" onClick={() => setDrawerOpen(false)}><X size={20} color="#444"/></button>
-          </div>
-          <nav>
-            {DRAWER_LINKS.map(({label,href}) => (
-              <button key={label} onClick={() => { setDrawerOpen(false); navigate(href); }}
-                style={{ display:"block", width:"100%", textAlign:"left", padding:"14px 20px", fontSize:15, fontWeight:600, color:"#222", background:"none", border:"none", borderBottom:"1px solid #fafafa", cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
-                {label}
-              </button>
-            ))}
-          </nav>
+        {/* Tab bar — page-level sub-nav */}
+        <div style={{ display:"flex", background:"#fff", borderBottom:"1px solid #f0f0f0", position:"sticky", top:0, zIndex:50 }}>
+          {TABS.map(t => (
+            <button key={t.id} className="tab-btn" onClick={() => setActiveTab(t.id)}
+              style={{ color:activeTab===t.id?"#7C3AFF":"#888", borderBottomColor:activeTab===t.id?"#7C3AFF":"transparent" }}>
+              {t.label}
+            </button>
+          ))}
         </div>
-
-        {/* HEADER */}
-        <header style={{ position:"sticky", top:0, zIndex:100, background:"#fff", borderBottom:"1px solid #f0f0f0" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <button className="icon-btn" onClick={() => setDrawerOpen(true)}><Menu size={22} color="#333" strokeWidth={2}/></button>
-              <button className="icon-btn" onClick={() => navigate("/")} style={{ padding:0 }}>
-                <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height:30, width:120, objectFit:"contain", objectPosition:"left center" }}/>
-              </button>
-            </div>
-            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-              <button className="icon-btn" onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
-                style={{ padding:"6px 13px", borderRadius:20, border:"2px solid", borderColor:isLoggedIn?"#22C55E":"#7C3AFF", background:isLoggedIn?"#F0FDF4":"#F5F0FF", color:isLoggedIn?"#16A34A":"#7C3AFF", fontSize:12, fontWeight:800, whiteSpace:"nowrap" }}>
-                {isLoggedIn ? "Hesabım 👤" : "Üye Girişi"}
-              </button>
-              <div style={{ position:"relative" }}>
-                <button className="icon-btn" onClick={() => setLangOpen(!langOpen)} style={{ gap:3, padding:"5px 6px" }}>
-                  <span style={{ fontSize:14 }}>{activeLang.flag}</span>
-                  <span style={{ fontSize:12, fontWeight:700, color:"#6C47FF" }}>{activeLang.code}</span>
-                  <ChevronDown size={12} color="#6C47FF" strokeWidth={2.5} style={{ transform:langOpen?"rotate(180deg)":"none", transition:"transform 0.18s" }}/>
-                </button>
-                {langOpen && (
-                  <div style={{ position:"absolute", right:0, top:36, background:"#fff", borderRadius:12, border:"1px solid #eee", boxShadow:"0 8px 28px rgba(0,0,0,0.12)", zIndex:150, minWidth:110, padding:"4px 0" }}>
-                    {LANGUAGES.map(l => (
-                      <button key={l.code} onClick={() => { setActiveLang(l); setLangOpen(false); }}
-                        style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:"9px 14px", border:"none", background:activeLang.code===l.code?"#F5F0FF":"transparent", cursor:"pointer", fontSize:13, fontWeight:700, color:activeLang.code===l.code?"#6C47FF":"#333", fontFamily:"Inter,sans-serif" }}>
-                        <span style={{ fontSize:16 }}>{l.flag}</span>{l.code}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-          {/* Tab bar */}
-          <div style={{ display:"flex", borderTop:"1px solid #f0f0f0", background:"#fff" }}>
-            {TABS.map(t => (
-              <button key={t.id} className="tab-btn" onClick={() => setActiveTab(t.id)}
-                style={{ color:activeTab===t.id?"#7C3AFF":"#888", borderBottomColor:activeTab===t.id?"#7C3AFF":"transparent" }}>
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </header>
 
         {/* HERO BANNER (feed tab only) */}
         {activeTab==="feed" && (
@@ -538,7 +442,7 @@ export default function Club() {
                   <button
                     onClick={pushState === "subscribed" ? pushUnsubscribe : pushSubscribe}
                     disabled={pushState === "loading"}
-                    style={{ padding:"8px 14px", borderRadius:12, border:"none", background: pushState==="subscribed"?"#F0FFF4":"#7C3AFF", color:pushState==="subscribed"?"#16A34A":"#fff", fontSize:12, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif", whiteSpace:"nowrap", border2:"2px solid currentColor" }}>
+                    style={{ padding:"8px 14px", borderRadius:12, border:"none", background: pushState==="subscribed"?"#F0FFF4":"#7C3AFF", color:pushState==="subscribed"?"#16A34A":"#fff", fontSize:12, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif", whiteSpace:"nowrap" }}>
                     {pushState === "loading" ? "…" : pushState === "subscribed" ? "Kapat" : "Aç"}
                   </button>
                 </div>
@@ -677,12 +581,11 @@ export default function Club() {
         {/* FAB — compose (logged in, feed tab) */}
         {isLoggedIn && activeTab==="feed" && (
           <button onClick={() => setShowCompose(true)}
-            style={{ position:"fixed", bottom:82, right:20, width:54, height:54, borderRadius:"50%", background:"linear-gradient(135deg,#7C3AFF,#A855F7)", border:"none", boxShadow:"0 6px 20px rgba(124,58,255,0.45)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", zIndex:150 }}>
+            style={{ position:"fixed", bottom:20, right:20, width:54, height:54, borderRadius:"50%", background:"linear-gradient(135deg,#7C3AFF,#A855F7)", border:"none", boxShadow:"0 6px 20px rgba(124,58,255,0.45)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", zIndex:150 }}>
             <Plus size={24} color="#fff" strokeWidth={2.5}/>
           </button>
         )}
       </div>
-      <BottomNav />
-    </>
+    </YPLayout>
   );
 }

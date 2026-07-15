@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { ArrowLeft, Send, Bot, User, AlertTriangle, ChevronDown } from "lucide-react";
-import YPBottomNav from "@/components/YPBottomNav";
+import YPLayout from "@/components/yourpoodle/YPLayout";
 
 interface Message {
   role: "user" | "assistant";
@@ -108,10 +108,13 @@ Kurallar:
   };
 
   return (
-    <div className="yp-ai-page">
-      <style>{CSS}</style>
+    <YPLayout activeLink="/yourpoodle/ai-asistan" constrain={false}>
+      <style>{`${CSS}
+        @media (min-width: 900px) { .yp-ai-input-bar { bottom: 0 !important; } }
+      `}</style>
+      <div className="yp-ai-page" style={{ minHeight:"unset" }}>
 
-      {/* Header */}
+      {/* Sub-header */}
       <header className="yp-ai-header">
         <button
           aria-label="Geri"
@@ -268,7 +271,7 @@ Kurallar:
         </button>
       </div>
 
-      <YPBottomNav />
-    </div>
+      </div>
+    </YPLayout>
   );
 }

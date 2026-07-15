@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Edit3, Plus, LogIn } from "lucide-react";
 import { useCustomer } from "@/contexts/CustomerContext";
-import YPBottomNav from "@/components/YPBottomNav";
+import YPLayout from "@/components/yourpoodle/YPLayout";
 import YPBreadcrumb from "@/components/YPBreadcrumb";
 
 const BREED_LABELS: Record<string, string> = {
@@ -72,7 +72,8 @@ export default function YPProfilPage() {
   }, [isLoggedIn]);
 
   return (
-    <div style={{ fontFamily: "'Inter', -apple-system, sans-serif", background: "#FAFAF9", minHeight: "100vh", paddingBottom: 80 }}>
+    <YPLayout activeLink="/yourpoodle/profil">
+    <div style={{ fontFamily: "'Inter', -apple-system, sans-serif", background: "#FAFAF9" }}>
       <YPBreadcrumb items={BREADCRUMBS} />
 
       {/* Header */}
@@ -200,7 +201,7 @@ export default function YPProfilPage() {
         )}
       </div>
 
-      <YPBottomNav />
     </div>
+    </YPLayout>
   );
 }

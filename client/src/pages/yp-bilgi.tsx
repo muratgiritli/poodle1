@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import {
-  Search, ShoppingBag, ChevronDown, Menu, X,
-  Home, Users, BookOpen, Monitor, ChevronLeft, RotateCcw,
+  Search, X,
+  ChevronLeft, RotateCcw,
   CheckCircle2, Circle, AlertTriangle,
 } from "lucide-react";
 import { useCustomer } from "@/contexts/CustomerContext";
+import YPLayout from "@/components/yourpoodle/YPLayout";
 
 /* ─── Shared style ──────────────────────────────────────── */
 const CSS = [
@@ -17,32 +18,6 @@ const CSS = [
   ".noscroll::-webkit-scrollbar { display: none; }",
   ".noscroll { -ms-overflow-style: none; scrollbar-width: none; }",
 ].join("\n");
-
-/* ─── Nav data ──────────────────────────────────────────── */
-const LANGUAGES = [
-  { code:"TR", flag:"🇹🇷" }, { code:"EN", flag:"🇺🇸" }, { code:"DE", flag:"🇩🇪" },
-  { code:"FR", flag:"🇫🇷" }, { code:"RU", flag:"🇷🇺" }, { code:"AR", flag:"🇸🇦" },
-];
-
-const DRAWER_LINKS = [
-  { label:"Ana Sayfa",     href:"/" },
-  { label:"Rehber",        href:"/yourpoodle/rehber" },
-  { label:"Bilgi Bankası", href:"/yourpoodle/bilgi" },
-  { label:"Mağaza",        href:"/yourpoodle/magaza" },
-  { label:"Mama",          href:"/yourpoodle/mama" },
-  { label:"Eğitim",        href:"/yourpoodle/egitim" },
-  { label:"Sağlık",        href:"/yourpoodle/saglik" },
-  { label:"Bakım",         href:"/yourpoodle/bakim" },
-  { label:"Poodle Club",   href:"/yourpoodle/club" },
-  { label:"Etkinlikler",   href:"/yourpoodle/etkinlikler" },
-];
-
-const TAB_LINKS = [
-  { label:"Ana Sayfa",    href:"/" },
-  { label:"Rehber",       href:"/yourpoodle/rehber" },
-  { label:"Bilgi Bankası",href:"/yourpoodle/bilgi" },
-  { label:"Mağaza",       href:"/yourpoodle/magaza" },
-];
 
 /* ─── Tool registry ─────────────────────────────────────── */
 const TOOLS = [
@@ -737,49 +712,9 @@ const TOOL_SCREENS: Record<string, React.ComponentType<{ onBack:()=>void }>> = {
   diski:    DiskiRehberi,
 };
 
-/* ─── Bottom Nav ────────────────────────────────────────── */
-function BottomNav() {
-  const [, navigate] = useLocation();
-  return (
-    <nav style={{ position:"fixed", bottom:0, left:0, right:0, background:"#fff", borderTop:"1px solid #f0f0f0", boxShadow:"0 -4px 20px rgba(0,0,0,0.08)", height:64, display:"flex", alignItems:"center", zIndex:200, padding:"0 8px" }}>
-      {[
-        { label:"Ana Sayfa", href:"/",                  Icon:Home    },
-        { label:"Club",      href:"/yourpoodle/club",    Icon:Users   },
-      ].map(({ label, href, Icon }) => (
-        <button key={label} onClick={() => navigate(href)}
-          style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"none", border:"none", cursor:"pointer", flex:1, color:"#aaa" }}>
-          <Icon size={22} strokeWidth={2} />
-          <span style={{ fontSize:10, fontWeight:700, fontFamily:"Inter,sans-serif" }}>{label}</span>
-        </button>
-      ))}
-      <button onClick={() => navigate("/yourpoodle/magaza")}
-        style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"none", border:"none", cursor:"pointer", flex:1, position:"relative" }}>
-        <div style={{ width:54, height:54, borderRadius:"50%", background:"linear-gradient(135deg,#9B59FF,#7C3AFF)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 6px 20px rgba(124,58,255,0.4)", position:"absolute", top:-24 }}>
-          <ShoppingBag size={24} color="#fff" strokeWidth={2.2} />
-        </div>
-        <span style={{ fontSize:10, fontWeight:700, color:"#aaa", fontFamily:"Inter,sans-serif", marginTop:32 }}>Mağaza</span>
-      </button>
-      {[
-        { label:"Rehber",        href:"/yourpoodle/rehber", Icon:BookOpen },
-        { label:"Bilgi Bankası", href:"/yourpoodle/bilgi",  Icon:Monitor  },
-      ].map(({ label, href, Icon }) => (
-        <button key={label} onClick={() => navigate(href)}
-          style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"none", border:"none", cursor:"pointer", flex:1, color: label==="Bilgi Bankası" ? "#7C3AFF" : "#aaa" }}>
-          <Icon size={22} strokeWidth={2} />
-          <span style={{ fontSize:10, fontWeight: label==="Bilgi Bankası" ? 800 : 700, fontFamily:"Inter,sans-serif" }}>{label}</span>
-          {label==="Bilgi Bankası" && <div style={{ width:20, height:2.5, borderRadius:2, background:"#7C3AFF" }} />}
-        </button>
-      ))}
-    </nav>
-  );
-}
-
 /* ─── Main Page ─────────────────────────────────────────── */
 export default function BilgiBankasi() {
   const [, navigate]  = useLocation();
-  const [activeLang, setActiveLang] = useState(LANGUAGES[0]);
-  const [langOpen,   setLangOpen]   = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeTool, setActiveTool] = useState<string|null>(null);
   const { isLoggedIn } = useCustomer();
   const [search,     setSearch]     = useState("");
@@ -789,74 +724,10 @@ export default function BilgiBankasi() {
   const ActiveScreen = activeTool ? TOOL_SCREENS[activeTool] : null;
 
   return (
-    <>
+    <YPLayout activeLink="/yourpoodle/bilgi">
       <title>Bilgi Bankası — YourPoodle</title>
       <style>{CSS}</style>
-
-      {/* DRAWER */}
-      {drawerOpen && <div onClick={() => setDrawerOpen(false)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.3)", zIndex:199 }} />}
-      <div style={{ position:"fixed", top:0, left:0, height:"100%", width:280, background:"#fff", zIndex:200, transform:drawerOpen?"translateX(0)":"translateX(-100%)", transition:"transform 0.24s ease", boxShadow:"4px 0 24px rgba(0,0,0,0.12)" }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"20px 18px 14px", borderBottom:"1px solid #f2f2f2" }}>
-          <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height:32, objectFit:"contain" }} />
-          <button className="icon-btn" onClick={() => setDrawerOpen(false)}><X size={20} color="#444" /></button>
-        </div>
-        <nav>
-          {DRAWER_LINKS.map(({ label, href }) => (
-            <button key={label} onClick={() => { setDrawerOpen(false); navigate(href); }}
-              style={{ display:"block", width:"100%", textAlign:"left", padding:"14px 20px", fontSize:15, fontWeight:600, color:"#222", background:"none", border:"none", borderBottom:"1px solid #fafafa", cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
-              {label}
-            </button>
-          ))}
-        </nav>
-      </div>
-
-      <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"Inter,sans-serif", paddingBottom:80 }}>
-
-        {/* HEADER */}
-        <header style={{ position:"sticky", top:0, zIndex:100, background:"#fff", borderBottom:"1px solid #f0f0f0" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px" }}>
-            {/* Sol: Hamburger + Logo */}
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <button className="icon-btn" onClick={() => setDrawerOpen(true)}><Menu size={22} color="#333" strokeWidth={2} /></button>
-              <button className="icon-btn" onClick={() => { if (activeTool) { setActiveTool(null); } else { navigate("/"); } }} style={{ padding:0 }}>
-                <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height:30, width:120, objectFit:"contain", objectPosition:"left center" }} />
-              </button>
-            </div>
-            {/* Sağ: Üye Girişi + Dil */}
-            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-              <button className="icon-btn" onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
-                style={{ padding:"6px 13px", borderRadius:20, border:"2px solid", borderColor:isLoggedIn?"#22C55E":"#7C3AFF", background:isLoggedIn?"#F0FDF4":"#F5F0FF", color:isLoggedIn?"#16A34A":"#7C3AFF", fontSize:12, fontWeight:800, whiteSpace:"nowrap" }}>
-                {isLoggedIn ? "Hesabım 👤" : "Üye Girişi"}
-              </button>
-              <div style={{ position:"relative" }}>
-                <button className="icon-btn" onClick={() => setLangOpen(!langOpen)} style={{ gap:3, padding:"5px 6px" }}>
-                  <span style={{ fontSize:14 }}>{activeLang.flag}</span>
-                  <span style={{ fontSize:12, fontWeight:700, color:"#6C47FF" }}>{activeLang.code}</span>
-                  <ChevronDown size={12} color="#6C47FF" strokeWidth={2.5} style={{ transform:langOpen?"rotate(180deg)":"none", transition:"transform 0.18s" }} />
-                </button>
-                {langOpen && (
-                  <div style={{ position:"absolute", right:0, top:36, background:"#fff", borderRadius:12, border:"1px solid #eee", boxShadow:"0 8px 28px rgba(0,0,0,0.12)", zIndex:150, minWidth:110, padding:"4px 0" }}>
-                    {LANGUAGES.map(l => (
-                      <button key={l.code} onClick={() => { setActiveLang(l); setLangOpen(false); }}
-                        style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:"9px 14px", border:"none", background: activeLang.code===l.code?"#F5F0FF":"transparent", cursor:"pointer", fontSize:13, fontWeight:700, color: activeLang.code===l.code?"#6C47FF":"#333", fontFamily:"Inter,sans-serif" }}>
-                        <span style={{ fontSize:16 }}>{l.flag}</span>{l.code}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-          {/* Tab bar */}
-          <div style={{ display:"flex", borderTop:"1px solid #f0f0f0" }}>
-            {TAB_LINKS.map(t => (
-              <button key={t.label} onClick={() => { setActiveTool(null); navigate(t.href); }}
-                style={{ flex:1, padding:"11px 4px", fontSize:13.5, fontWeight:t.label==="Bilgi Bankası"?700:500, color:t.label==="Bilgi Bankası"?"#6C47FF":"#555", background:"none", border:"none", borderBottomWidth:"2.5px", borderBottomStyle:"solid", borderBottomColor:t.label==="Bilgi Bankası"?"#6C47FF":"transparent", textAlign:"center", cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </header>
+      <div style={{ background:"#fff", fontFamily:"Inter,sans-serif" }}>
 
         {/* ACTIVE TOOL SCREEN */}
         {ActiveScreen ? (
@@ -888,7 +759,7 @@ export default function BilgiBankasi() {
                 <button onClick={() => setSearch("")} style={{ marginTop:16, padding:"10px 24px", borderRadius:20, background:"#7C3AFF", color:"#fff", border:"none", cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"Inter,sans-serif" }}>Tümünü Göster</button>
               </div>
             ) : (
-              <div style={{ padding:"0 16px 24px", display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"20px 8px" }}>
+              <div style={{ padding:"0 16px 40px", display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"20px 8px" }} className="yp-tools-grid">
                 {filtered.map(t => (
                   <button key={t.id} className="tool-card" onClick={() => { setActiveTool(t.id); window.scrollTo({ top:0, behavior:"smooth" }); }}
                     style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8, background:"none", border:"none", cursor:"pointer", padding:0, textAlign:"center" }}>
@@ -904,8 +775,6 @@ export default function BilgiBankasi() {
           </>
         )}
       </div>
-
-      <BottomNav />
-    </>
+    </YPLayout>
   );
 }

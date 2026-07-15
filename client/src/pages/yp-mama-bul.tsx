@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { ArrowLeft, ChevronRight, Check } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import YPBottomNav from "@/components/YPBottomNav";
+import YPLayout from "@/components/yourpoodle/YPLayout";
 
 const CSS = `
 *, *::before, *::after { box-sizing: border-box; }
@@ -185,8 +185,9 @@ export default function YPMamaBulPage() {
 
   if (done) {
     return (
-      <div className="mb-page">
+      <YPLayout activeLink="/yourpoodle/mama-bul">
         <style>{CSS}</style>
+        <div className="mb-page" style={{ minHeight:"unset" }}>
         <header className="mb-header">
           <button aria-label="Yeniden başla" onClick={() => { setStep(0); setAnswers({}); setDone(false); }}
             style={{ background: "#F5F0FF", border: "none", borderRadius: 10, width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
@@ -273,14 +274,15 @@ export default function YPMamaBulPage() {
             Yeniden Ara
           </button>
         </div>
-        <YPBottomNav />
-      </div>
+        </div>
+      </YPLayout>
     );
   }
 
   return (
-    <div className="mb-page">
+    <YPLayout activeLink="/yourpoodle/mama-bul">
       <style>{CSS}</style>
+      <div className="mb-page" style={{ minHeight:"unset" }}>
 
       <header className="mb-header">
         <button aria-label="Geri" onClick={handleBack}
@@ -342,7 +344,7 @@ export default function YPMamaBulPage() {
         </div>
       </div>
 
-      <YPBottomNav />
-    </div>
+      </div>
+    </YPLayout>
   );
 }
