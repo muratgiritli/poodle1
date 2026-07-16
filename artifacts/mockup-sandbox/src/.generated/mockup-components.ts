@@ -14,5 +14,8 @@ export const modules: ModuleMap = {
   "./components/mockups/yourpoodle/Homepage.tsx": () => import("../components/mockups/yourpoodle/Homepage.tsx"),
   "./components/mockups/yourpoodle/Magaza.tsx": () => import("../components/mockups/yourpoodle/Magaza.tsx"),
   "./components/mockups/yourpoodle/Rehber.tsx": () => import("../components/mockups/yourpoodle/Rehber.tsx"),
-  "./components/mockups/yourpoodle/YourPoodleHome.tsx": () => import("../components/mockups/yourpoodle/YourPoodleHome.tsx")
+  "./components/mockups/yourpoodle/YourPoodleHome.tsx": () => import("../components/mockups/yourpoodle/YourPoodleHome.tsx"),
+  "./components/mockups/yourpoodle-desktop/AIStudio.tsx": () => import("../components/mockups/yourpoodle-desktop/AIStudio.tsx"),
+  "./components/mockups/yourpoodle-desktop/EditorialMagazine.tsx": () => import("../components/mockups/yourpoodle-desktop/EditorialMagazine.tsx"),
+  "./components/mockups/yourpoodle-desktop/SplitWizard.tsx": () => import("../components/mockups/yourpoodle-desktop/SplitWizard.tsx")
 };
