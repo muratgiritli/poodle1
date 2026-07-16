@@ -94,15 +94,15 @@ export default function Magaza() {
   /* SEO */
   useEffect(()=>{
     const totalLabel = total > 0 ? `${total}+` : "Yükleniyor";
-    document.title = `Poodle Mağazası — ${totalLabel} Ürün, Aynı Gün Teslimat | YourPoodle`;
+    document.title = `Poodle Mağazası — ${totalLabel} Ürün | YourPoodle`;
     const m=(attr:string,key:string,val:string)=>{
       let el=document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement|null;
       if(!el){el=document.createElement("meta");el.setAttribute(attr,key);document.head.appendChild(el);}
       el.content=val;
     };
-    m("name","description","Toy Poodle mama, ödül, tasma, oyuncak ve bakım ürünleri. Royal Canin, Hill's, Pro Plan. Samsun Atakum'a aynı gün teslimat, kapıda ödeme.");
+    m("name","description","Toy Poodle mama, ödül, tasma, oyuncak ve bakım ürünleri. Royal Canin, Hill's, Pro Plan ve daha fazlası. Türkiye ve dünya geneline hızlı kargo, güvenli ödeme.");
     m("property","og:title","Poodle Mama Mağazası | YourPoodle");
-    m("property","og:description","Poodle mama, ödül ve aksesuar. Aynı gün teslimat, kapıda ödeme.");
+    m("property","og:description","Poodle mama, ödül ve aksesuar. Türkiye ve dünya geneline hızlı kargo, güvenli online ödeme.");
     m("property","og:type","website");
     m("property","og:url","https://www.yourpoodle.com/yourpoodle/magaza");
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -194,10 +194,10 @@ export default function Magaza() {
   const faqSchema = {
     "@context":"https://schema.org","@type":"FAQPage",
     "mainEntity":[
-      { "@type":"Question","name":"Samsun'da aynı gün teslimat var mı?",
-        "acceptedAnswer":{"@type":"Answer","text":"Evet, Samsun Atakum, İlkadım ve Canik ilçelerine saat 17:00'e kadar verilen siparişler aynı gün teslim edilir."} },
-      { "@type":"Question","name":"Kapıda ödeme kabul ediyor musunuz?",
-        "acceptedAnswer":{"@type":"Answer","text":"Evet, kapıda nakit veya kredi kartıyla ödeme yapabilirsiniz."} },
+      { "@type":"Question","name":"Türkiye dışına kargo yapıyor musunuz?",
+        "acceptedAnswer":{"@type":"Answer","text":"Evet, Türkiye ve dünya geneline kargo yapıyoruz. Uluslararası siparişler için info@yourpoodle.com adresinden bize ulaşabilirsiniz."} },
+      { "@type":"Question","name":"Hangi ödeme yöntemlerini kabul ediyorsunuz?",
+        "acceptedAnswer":{"@type":"Answer","text":"Kredi/banka kartı, havale/EFT ve online güvenli ödeme yöntemlerini kabul ediyoruz."} },
       { "@type":"Question","name":"İade politikanız nedir?",
         "acceptedAnswer":{"@type":"Answer","text":"Açılmamış ürünler 14 gün içinde iade edilebilir. Mama iadelerinde ürünün açılmamış olması şarttır."} },
       { "@type":"Question","name":"Hangi mama markalarını satıyorsunuz?",
@@ -254,7 +254,7 @@ export default function Magaza() {
           <div style={{ display:"flex", gap:18, flexWrap:"wrap" }}>
             {[
               [isLoading?"…":total>0?`${total}+`:"Yükleniyor","Ürün"],
-              ["Aynı Gün","Teslimat"],["Kapıda","Ödeme"],
+              ["Dünya","Geneli Kargo"],["Güvenli","Ödeme"],
             ].map(([n,l])=>(
               <div key={l}><div style={{ fontSize:14, fontWeight:900, color:"#fff" }}>{n}</div><div style={{ fontSize:10, color:"rgba(255,255,255,0.72)" }}>{l}</div></div>
             ))}
@@ -447,7 +447,7 @@ export default function Magaza() {
               {[
                 { emoji:"🍖", title:"Poodle Mamaları", desc:"Royal Canin Toy Poodle, Pro Plan Small & Mini, Hill's Science Plan. Toy ve Miniature Poodle'ın küçük çenesi ve hassas sindirimi için özel formüller." },
                 { emoji:"✨", title:"Bakım Ürünleri", desc:"Bio-Groom şampuan, Espree serisi, slicker fırça, tarak seti ve tıraş makası. Poodle tüyünü mat olmadan yumuşak tutun." },
-                { emoji:"🚚", title:"Teslimat ve Ödeme", desc:"Samsun Atakum, İlkadım ve Canik ilçelerine saat 17:00'e kadar siparişlerde aynı gün teslimat. Kapıda nakit veya kart ödeme." },
+                { emoji:"🚚", title:"Kargo ve Ödeme", desc:"Türkiye ve dünya geneline hızlı kargo. Kredi/banka kartı, havale ve güvenli online ödeme seçenekleri. Siparişler özenle paketlenir." },
               ].map(item=>(
                 <div key={item.title} style={{ background:"#F5F0FF", borderRadius:14, padding:"18px 18px 20px" }}>
                   <div style={{ fontSize:26, marginBottom:10 }}>{item.emoji}</div>
@@ -599,8 +599,8 @@ export default function Magaza() {
 
 /* ─── Static SSS component ──────────────────────────── */
 const SSS_LIST = [
-  { q:"Samsun'da aynı gün teslimat var mı?", a:"Evet, Atakum, İlkadım ve Canik ilçelerine saat 17:00'e kadar verilen siparişler aynı gün teslim edilir. Teslimat ücretsizdir." },
-  { q:"Kapıda ödeme kabul ediyor musunuz?", a:"Evet, kapıda nakit veya kredi/banka kartıyla ödeme yapılabilir. Online ödeme de mevcuttur." },
+  { q:"Türkiye dışına kargo yapıyor musunuz?", a:"Evet, Türkiye ve dünya geneline kargo yapıyoruz. Uluslararası siparişlerde teslimat süresi ve ücreti ülkeye göre değişir. Detaylar için info@yourpoodle.com adresine yazabilirsiniz." },
+  { q:"Hangi ödeme yöntemlerini kabul ediyorsunuz?", a:"Kredi/banka kartı, havale/EFT ve güvenli online ödeme yöntemlerini kabul ediyoruz. Tüm ödemeler 256-bit SSL ile şifrelenir." },
   { q:"İade politikanız nedir?", a:"Açılmamış ürünler 14 gün içinde iade edilebilir. Mama ürünlerinde açılmamış orijinal ambalaj şarttır. İade için info@yourpoodle.com adresine yazabilirsiniz." },
   { q:"Hangi mama markalarını satıyorsunuz?", a:"Royal Canin, Hill's Science Plan, Pro Plan, N&D, Econature, Reflex, Reflex Plus, Wanpy, LaVital, Felicia ve daha birçok marka mevcuttur." },
   { q:"Toy Poodle için en çok satan mama hangisi?", a:"Royal Canin Toy Poodle Adult ve Pro Plan Small & Mini Adult en çok tercih edilen mamalar arasındadır. Mama Bul sihirbazıyla kişiselleştirilmiş öneri alabilirsiniz." },

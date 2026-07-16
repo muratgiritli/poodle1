@@ -5,7 +5,7 @@ import YPBottomNav from "@/components/YPBottomNav";
 
 /* ─── SEO ─────────────────────────────────────────────── */
 const YP_TITLE = "YourPoodle — Toy Poodle Bakım, Mama ve Eğitim Platformu";
-const YP_DESC  = "Toy Poodle sahipleri için Türkiye'nin en kapsamlı bakım, beslenme, sağlık ve eğitim platformu. AI destekli mama önerisi, uzman rehberler ve topluluk.";
+const YP_DESC  = "Toy Poodle sahipleri için dünya genelinde kargo yapan e-ticaret ve uzman içerik platformu. AI destekli mama önerisi, veteriner onaylı rehberler ve aktif topluluk.";
 
 /* ─── DATA ───────────────────────────────────────────── */
 const NAV = [

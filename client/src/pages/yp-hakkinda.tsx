@@ -51,9 +51,10 @@ export default function YPHakkindaPage() {
         "@type": "Organization",
         "name": "YourPoodle",
         "url": "https://www.yourpoodle.com",
-        "description": "Toy Poodle sahipleri için Türkiye'nin en kapsamlı dijital platformu",
-        "email": "info@sizpa.com",
-        "address": { "@type": "PostalAddress", "streetAddress": "Yenimahalle Atatürk 3. Kısım Blv. No:113/A", "addressLocality": "Atakum, Samsun", "postalCode": "55200", "addressCountry": "TR" }
+        "description": "Toy Poodle sahipleri için dünya genelinde kargo yapan dijital platform ve e-ticaret mağazası",
+        "email": "info@yourpoodle.com",
+        "areaServed": "Worldwide",
+        "address": { "@type": "PostalAddress", "streetAddress": "Yenimahalle Atatürk 3. Kısım Blv. No:113/A", "addressLocality": "Samsun", "postalCode": "55200", "addressCountry": "TR" }
       }) }} />
     <div style={{ fontFamily: "'Inter', -apple-system, sans-serif", background: "#FAFAF9" }}>
       <YPBreadcrumb items={BREADCRUMBS} />
@@ -89,8 +90,7 @@ export default function YPHakkindaPage() {
           </div>
           <div style={{ background: "#fff", borderRadius: 16, padding: "20px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
             <p style={{ fontSize: 14, color: "#444", lineHeight: 1.8, margin: 0 }}>
-              Arkamızda Samsun'da faaliyet gösteren Sizpa İnternet Tic. Ltd. Şti. bulunmaktadır — 
-              köpek ürünleri alanında yıllarca edindiğimiz deneyimi dijital bir platforma taşıyoruz.
+              Arkamızda Sizpa İnternet Tic. Ltd. Şti. bulunmaktadır — köpek ürünleri alanında yıllarca edindiğimiz deneyimi global bir platforma taşıyoruz. Türkiye'den dünya geneline kargo yapıyoruz.
             </p>
           </div>
         </div>
@@ -149,7 +149,7 @@ export default function YPHakkindaPage() {
               <span style={{ fontSize: 22 }}>📧</span>
               <div>
                 <div style={{ fontSize: 12, color: "#999", fontWeight: 600 }}>E-posta</div>
-                <a href="mailto:info@sizpa.com" style={{ fontSize: 14, fontWeight: 700, color: "#7C3AFF", textDecoration: "none" }}>info@sizpa.com</a>
+                <a href="mailto:info@yourpoodle.com" style={{ fontSize: 14, fontWeight: 700, color: "#7C3AFF", textDecoration: "none" }}>info@yourpoodle.com</a>
               </div>
             </div>
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -163,7 +163,7 @@ export default function YPHakkindaPage() {
               <span style={{ fontSize: 22 }}>📍</span>
               <div>
                 <div style={{ fontSize: 12, color: "#999", fontWeight: 600 }}>Adres</div>
-                <div style={{ fontSize: 14, color: "#444", lineHeight: 1.5 }}>Yenimahalle Atatürk 3. Kısım Blv. No:113/A,<br />Atakum, Samsun (55200)</div>
+                <div style={{ fontSize: 14, color: "#444", lineHeight: 1.5 }}>Yenimahalle Atatürk 3. Kısım Blv. No:113/A,<br />Samsun, Türkiye (55200)</div>
               </div>
             </div>
           </div>

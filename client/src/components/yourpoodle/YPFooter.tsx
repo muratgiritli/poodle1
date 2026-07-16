@@ -35,6 +35,7 @@ const COLUMNS = [
     links: [
       { label: "Sık Sorulan Sorular",     href: "/yourpoodle/rehber" },
       { label: "Kargo ve Teslimat",       href: "/yourpoodle/rehber" },
+      { label: "Uluslararası Kargo",       href: "/yourpoodle/rehber" },
       { label: "İade ve Değişim",         href: "/yourpoodle/rehber" },
       { label: "Güvenli Alışveriş",       href: "/yourpoodle/rehber" },
       { label: "KVKK / Gizlilik",         href: "/yourpoodle/gizlilik-politikasi" },
@@ -64,10 +65,10 @@ const SOCIALS = [
 ];
 
 const CONTACT = [
-  { Icon: MapPin, content: "Yenimahalle Atatürk 3. Kısım Blv. No:113/A\nAtakum, Samsun", href: undefined },
   { Icon: Phone,  content: "0 850 840 3959", href: "tel:+908508403959" },
-  { Icon: Mail,   content: "info@sizpa.com",  href: "mailto:info@sizpa.com" },
+  { Icon: Mail,   content: "info@yourpoodle.com",  href: "mailto:info@yourpoodle.com" },
   { Icon: Clock,  content: "Hft. içi & Hft. sonu 09:00 – 22:00", href: undefined },
+  { Icon: MapPin, content: "Türkiye'den dünya geneline kargo", href: undefined },
 ];
 
 const orgSchema = {
@@ -76,14 +77,14 @@ const orgSchema = {
   "name": "YourPoodle",
   "url": "https://www.yourpoodle.com",
   "telephone": "+908508403959",
-  "email": "info@sizpa.com",
+  "email": "info@yourpoodle.com",
   "address": {
     "@type": "PostalAddress",
     "streetAddress": "Yenimahalle Atatürk 3. Kısım Blv. No:113/A",
-    "addressLocality": "Atakum",
-    "addressRegion": "Samsun",
+    "addressLocality": "Samsun",
     "addressCountry": "TR",
   },
+  "areaServed": "Worldwide",
   "sameAs": [
     "https://instagram.com/yourpoodle",
     "https://facebook.com/yourpoodle",
