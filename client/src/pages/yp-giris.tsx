@@ -458,9 +458,8 @@ export default function YPGiris() {
             <div style={{ position:"absolute", bottom:-60, left:-60, width:200, height:200, borderRadius:"50%", background:"rgba(255,255,255,0.05)" }} />
             <div style={{ position:"absolute", top:"40%", right:30, width:120, height:120, borderRadius:"50%", background:"rgba(255,255,255,0.04)" }} />
 
-            <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:48 }}>
-              <div style={{ width:52, height:52, borderRadius:14, background:"rgba(255,255,255,0.2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, backdropFilter:"blur(10px)" }}>🐩</div>
-              <span style={{ fontSize:26, fontWeight:900, color:"#fff", letterSpacing:"-0.5px" }}>YourPoodle</span>
+            <div style={{ marginBottom:48 }}>
+              <img src="/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 44, width: "auto", objectFit: "contain", background: "#fff", borderRadius: 12, padding: "6px 14px" }} />
             </div>
 
             {/* H2 — not H1 — for the branding headline */}
@@ -521,7 +520,7 @@ export default function YPGiris() {
                 style={{ background:"#F5F5F5", border:"none", borderRadius:10, width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", marginRight:10 }}>
                 <ChevronLeft size={18} color="#333" />
               </button>
-              <span style={{ fontSize:14, fontWeight:700, color:"#333" }}>YourPoodle</span>
+              <img src="/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 26, width: "auto", objectFit: "contain" }} />
             </div>
 
             <div className="giris-form-inner">

@@ -183,9 +183,8 @@ export default function YourPoodleHomePage() {
         transform: drawerOpen ? "translateX(0)" : "translateX(-100%)", transition: "transform 0.24s ease",
         boxShadow: "4px 0 28px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 18px 14px", borderBottom: "1px solid #f2f2f2" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg,#7C3AED,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>🐩</div>
-            <span style={{ fontSize: 16, fontWeight: 900, color: "#7C3AED" }}>YourPoodle</span>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <img src="/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 30, width: "auto", objectFit: "contain" }} />
           </div>
           <button onClick={() => setDrawerOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: "#666" }}>✕</button>
         </div>
@@ -216,9 +215,8 @@ export default function YourPoodleHomePage() {
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", display: "flex", alignItems: "center", gap: 32, height: 60 }}>
 
           {/* Logo */}
-          <button onClick={() => go("/")} style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", flexShrink: 0, padding: 0 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg,#7C3AED,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🐩</div>
-            <span style={{ fontSize: 17, fontWeight: 900, color: "#7C3AED", letterSpacing: "-0.5px", fontFamily: "inherit" }}>YourPoodle</span>
+          <button onClick={() => go("/")} style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", flexShrink: 0, padding: 0 }}>
+            <img src="/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 38, width: "auto", objectFit: "contain" }} />
           </button>
 
           {/* Desktop + Tablet Nav */}
@@ -255,7 +253,7 @@ export default function YourPoodleHomePage() {
               {isLoggedIn ? "Hesabım" : "Giriş Yap"}
             </button>
             <button onClick={() => setDrawerOpen(true)}
-              style={{ background: "none", border: "none", cursor: "pointer", padding: 6, fontSize: 22, color: "#333" }}>
+              style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", fontSize: 22, color: "#333" }}>
               ☰
             </button>
           </div>

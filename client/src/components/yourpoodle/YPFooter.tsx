@@ -1,4 +1,4 @@
-import { Truck, RefreshCcw, ShieldCheck, CreditCard, PawPrint, MapPin, Phone, Mail, Clock, Instagram, Facebook, Youtube, Twitter } from "lucide-react";
+import { Truck, RefreshCcw, ShieldCheck, CreditCard, MapPin, Phone, Mail, Clock, Instagram, Facebook, Youtube, Twitter } from "lucide-react";
 
 const TRUST = [
   { Icon: Truck,       title: "Hızlı Kargo",    sub: "Aynı gün kargoya verilir" },
@@ -130,16 +130,12 @@ export default function YPFooter() {
           <div className="md:col-span-2 flex flex-col gap-5">
 
             {/* Logo */}
-            <a href="/yourpoodle" className="flex items-center gap-2 w-fit">
-              <PawPrint
-                size={26}
-                strokeWidth={2}
-                style={{ color: "rgb(167,139,250)", fill: "rgba(167,139,250,0.18)" }}
+            <a href="/yourpoodle" className="flex items-center w-fit">
+              <img
+                src="/yourpoodle-logo.jpg"
+                alt="YourPoodle"
+                style={{ height: 36, width: "auto", objectFit: "contain", background: "#fff", borderRadius: 10, padding: "4px 12px" }}
               />
-              <span className="text-[22px] font-extrabold leading-none">
-                <span className="text-white">Your</span>
-                <span style={{ color: "rgb(167,139,250)" }}>Poodle</span>
-              </span>
             </a>
 
             {/* Description */}

@@ -83,9 +83,8 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
       }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", display: "flex", alignItems: "center", gap: 32, height: "100%", width: "100%" }}>
           <Link href="/">
-            <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", flexShrink: 0 }}>
-              <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg,#7C3AED,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🐩</div>
-              <span style={{ fontSize: 17, fontWeight: 900, color: "#7C3AED", letterSpacing: "-0.5px" }}>YourPoodle</span>
+            <div style={{ display: "flex", alignItems: "center", cursor: "pointer", flexShrink: 0 }}>
+              <img src="/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 38, width: "auto", objectFit: "contain" }} />
             </div>
           </Link>
 
@@ -149,9 +148,8 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
         boxShadow: "4px 0 28px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column"
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 18px 14px", borderBottom: "1px solid #f2f2f2" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg,#7C3AED,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>🐩</div>
-            <span style={{ fontSize: 16, fontWeight: 900, color: "#7C3AED" }}>YourPoodle</span>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <img src="/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 30, width: "auto", objectFit: "contain" }} />
           </div>
           <button onClick={() => setDrawerOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: "#666", padding: 6 }}>✕</button>
         </div>
@@ -182,18 +180,16 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
       }}>
         {authMode ? (
           <Link href="/yourpoodle">
-            <div style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
-              <div style={{ width: 26, height: 26, borderRadius: 6, background: "linear-gradient(135deg,#7C3AED,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🐩</div>
-              <span style={{ fontSize: 15, fontWeight: 900, color: "#7C3AED" }}>YourPoodle</span>
+            <div style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+              <img src="/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 32, width: "auto", objectFit: "contain" }} />
             </div>
           </Link>
         ) : (
           <>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <Link href="/">
-                <div style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
-                  <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg,#7C3AED,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🐩</div>
-                  <span style={{ fontSize: 17, fontWeight: 900, color: "#7C3AED", letterSpacing: "-0.5px" }}>YourPoodle</span>
+                <div style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+                  <img src="/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 34, width: "auto", objectFit: "contain" }} />
                 </div>
               </Link>
             </div>
