@@ -311,7 +311,7 @@ export default function YourPoodleHomePage() {
           <div className="yph-hero-right" style={{ position: "relative" }}>
             <div style={{ borderRadius: 28, overflow: "hidden", boxShadow: "0 24px 64px rgba(124,58,237,0.12), 0 4px 16px rgba(0,0,0,0.06)", position: "relative", aspectRatio: "4/4.5", background: "#fff", border: "1.5px solid #F3F0FF" }}>
               <img
-                src="/images/poodle-hero.jpg"
+                src="/images/poodle-hero_2.jpg"
                 alt="Toy Poodle"
                 style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
               />
