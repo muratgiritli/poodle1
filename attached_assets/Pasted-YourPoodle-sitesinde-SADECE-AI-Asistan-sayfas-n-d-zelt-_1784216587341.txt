@@ -1,0 +1,238 @@
+YourPoodle sitesinde SADECE AI Asistan sayfasını düzelt: /yourpoodle/ai-asistan
+Canlı URL: https://www.yourpoodle.com/yourpoodle/ai-asistan
+
+Masaüstü (1920px), tablet (1024px, 768px) ve mobil (390px) için test et.
+Diğer sayfalara dokunma; sadece bu sayfa ve bağlı bileşenleri.
+
+NOT: Chat çekirdek işlevi ÇALIŞIYOR — örnek sorular yanıt üretiyor, çok turlu konuşma OK.
+Bozma, üzerine SEO/UX/schema iyileştirmeleri ekle.
+
+---
+
+## P1 — KRİTİK DÜZELTMELER (önce bunları yap)
+
+### 1. Placeholder yazım hatası
+Input placeholder: "Poodle'ınızla ilgili sorun..."
+Olması gereken: "Poodle'ınızla ilgili sorunuzu yazın..." veya "Sorunuzu yazın..."
+
+### 2. H1 etiketi yok
+"Merhaba! Ben Poodle asistanın." şu an <div>, H1 değil (h1Count: 0).
+- Karşılama başlığını veya sayfa başlığını <h1>AI Poodle Asistanı</h1> yap
+- "Merhaba! Ben Poodle asistanın." alt başlık veya <p> olarak kalsın
+
+### 3. <title> ile og:title uyumsuz + çift meta
+Şu an:
+- <title>: "Toy Poodle Rehberi, Bakımı ve Mama Seçimi | YourPoodle" (genel)
+- og:title (1): "AI Poodle Asistanı: Anlık Poodle Uzman Desteği | YourPoodle"
+- og:title (2): "Poodle AI Asistanı | YourPoodle"
+- İki farklı meta description
+- og:type hem "article" hem "website"
+
+Düzelt — TEK SET meta:
+<title>AI Poodle Asistanı: Anlık Uzman Desteği | YourPoodle</title>
+<meta name="description" content="Toy Poodle hakkında AI asistana sorun. Mama, bakım, eğitim, sağlık ve davranış sorularına kişiselleştirilmiş anlık yanıtlar. Ücretsiz Poodle uzmanı." />
+<meta property="og:title" content="AI Poodle Asistanı: Anlık Uzman Desteği | YourPoodle" />
+<meta property="og:description" content="Toy Poodle hakkında AI asistana sorun. Mama, bakım, eğitim, sağlık ve davranış sorularına kişiselleştirilmiş anlık yanıtlar." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://www.yourpoodle.com/yourpoodle/ai-asistan" />
+<meta property="og:image" content="https://www.yourpoodle.com/images/ai-asistan-og.webp" />
+
+Çift/çakışan meta etiketlerini KALDIR.
+
+Canonical koru: https://www.yourpoodle.com/yourpoodle/ai-asistan
+
+### 4. Bottom nav yanlış aktif state (mobil/tablet)
+AI Asistan sayfasındayken bottom nav'da "Mağaza" highlight oluyor.
+Düzelt:
+- pathname === '/yourpoodle/ai-asistan' → "Bilgi" aktif olsun (veya özel AI ikonu ekle)
+
+### 5. Profil paneli masaüstünde gizli
+Mobilde "Poodle profilini göster" → Yaş, Kilo, Cinsiyet, Kısırlaştırma formu var.
+Masaüstünde bu panel görünmüyor — tutarsızlık.
+
+Düzelt: Masaüstünde de profil panelini göster (chat alanının üstünde veya yanında sidebar).
+Profil verisi localStorage'a kaydedilsin, sayfa yenilenince korunsun.
+
+---
+
+## P2 — UX İYİLEŞTİRMELERİ
+
+### 6. Typing indicator ekle
+AI yanıt beklerken kullanıcıya geri bildirim yok.
+- "Yazıyor..." animasyonu (3 nokta) ekle
+- Gönder butonunu yanıt gelene kadar disabled yap
+
+### 7. Yeni Sohbet butonu
+Konuşma başladıktan sonra sıfırlama seçeneği yok.
+- Chat header'a "Yeni Sohbet" veya çöp kutusu ikonu ekle
+- Tıklanınca sohbet geçmişi temizlensin, örnek sorular geri gelsin
+
+### 8. Örnek sorular kaybolmasın
+İlk mesajdan sonra 5 örnek soru butonu kayboluyor.
+- Sohbet başladıktan sonra örnek soruları daraltılabilir panel olarak tut
+- Veya "Örnek sorular" toggle butonu ekle
+
+### 9. Sohbet geçmişi kalıcılığı
+Sayfa yenilenince tüm konuşma kayboluyor.
+- localStorage ile son 20 mesajı kaydet
+- Sayfa açılınca geçmişi yükle
+- Giriş yapmış kullanıcılar için hesaba kaydet (isteğe bağlı)
+
+### 10. Mobil input + bottom nav çakışması
+Klavye açılınca input görünürlüğünü test et.
+- padding-bottom: 80px (bottom nav yüksekliği)
+- Input focus olduğunda bottom nav gizlenebilir (isteğe bağlı)
+
+### 11. Footer ekle
+AI Asistan sayfasında footer yok. Ana sayfadaki footer'ı ekle.
+© 2026 YourPoodle
+
+---
+
+## P3 — SEO VE STATİK İÇERİK (AI arama için kritik)
+
+### 12. Statik landing içeriği ekle (crawler/SEO için)
+Chat arayüzü JS-only — Google ve AI botları sayfayı boş görüyor.
+Chat alanının ÜSTÜNE veya ALTINA statik HTML içerik ekle:
+
+┌─────────────────────────────────────────────┐
+│ AI Poodle Asistanı Ne Yapabilir?            │
+│                                              │
+│ [🍖 Beslenme]  [✂️ Bakım]  [🎓 Eğitim]      │
+│ [❤️ Sağlık]    [🐾 Davranış]                │
+│                                              │
+│ Her kart: kısa açıklama + örnek soru        │
+└─────────────────────────────────────────────┘
+
+Bu bölüm SSR veya <noscript> ile render edilsin — crawler'lar görsün.
+
+### 13. SSS bölümü — statik cevaplar (FAQPage schema)
+Örnek soruların STATİK cevaplarını sayfaya ekle (accordion veya <details>):
+
+S: 4 aylık Poodle ne kadar mama yemeli?
+C: 4 aylık Toy Poodle günde 100-150 gram yavru maması, 3-4 öğün halinde yemelidir.
+
+S: Poodle göz altı neden kızarır?
+C: Gözyaşı kanalı tıkanıklığı, alerji veya enfeksiyon olabilir. Günlük temizlik ve veteriner kontrolü önerilir.
+
+S: Poodle evde yalnız kalınca neden havlar?
+C: Yalnız kalma kaygısı, dikkat isteme veya sıkıntı belirtisi. Kademeli ayrılma eğitimi önerilir.
+
+S: Poodle tüyü ne sıklıkla taranmalı?
+C: Haftada 3 kez slicker fırça ile tarama önerilir. Profesyonel tıraş 6-8 haftada bir.
+
+S: Poodle tuvalet eğitimine nasıl başlanır?
+C: Her yemekten 20-30 dk sonra dışarı çıkarın, başarıda hemen ödüllendirin. 2-4 haftada temel alışkanlık oluşur.
+
+### 14. FAQPage schema ekle
+Yukarıdaki 5 soru-cevap için FAQPage JSON-LD.
+
+### 15. WebApplication schema genişlet
+Mevcut WebApplication schema minimal. Ekle:
+{
+  "@type": "WebApplication",
+  "name": "AI Poodle Asistanı",
+  "applicationCategory": "LifestyleApplication",
+  "operatingSystem": "Web",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "TRY"},
+  "featureList": [
+    "Poodle beslenme danışmanlığı",
+    "Bakım ve tıraş önerileri",
+    "Eğitim ve davranış tavsiyeleri",
+    "Sağlık bilgilendirme",
+    "Kişiselleştirilmiş yanıtlar"
+  ],
+  "screenshot": "https://www.yourpoodle.com/images/ai-asistan-screenshot.webp"
+}
+
+### 16. Gizli SEO H2 bloklarını kaldır
+Sayfa altında 5 gizli H2 var (cloaking riski). Kaldır.
+
+---
+
+## P4 — EK ÖZELLİKLER
+
+### 17. AI yanıtlarında site içi deep link
+AI cevap verirken ilgili sayfalara link ekle:
+- Mama sorusu → "Mama Bul sihirbazını dene → /mama-bul"
+- Sağlık sorusu → "Sağlık rehberimizi incele → /saglik"
+- Bakım sorusu → "Bakım rehberi → /bakim"
+- Eğitim sorusu → "Eğitim rehberi → /egitim"
+
+### 18. Kategori sekmeleri (opsiyonel)
+Chat üstüne 5 kategori chip'i:
+Beslenme | Bakım | Eğitim | Sağlık | Davranış
+Tıklanınca ilgili örnek sorular gösterilsin.
+
+### 19. İlgili araçlar CTA bloğu
+Chat altına veya yanına:
+- Mama Bul sihirbazı
+- Tıraş zamanlama aracı
+- Sağlık belirti kontrolü
+- Eğitim programı
+
+### 20. Gizlilik / veri kullanımı notu
+"Veteriner uyarısı" altına kısa not:
+"Sohbetleriniz anonim olarak işlenir. Kişisel verileriniz üçüncü taraflarla paylaşılmaz."
++ Gizlilik Politikası linki
+
+### 21. Sayfaya özel OG görseli
+og-image.webp yerine ai-asistan-og.webp (chat arayüzü screenshot)
+
+### 22. Tablet breakpoint: 768px → 640px
+
+---
+
+## SAYFA YAPISI — HEDEF
+
+/yourpoodle/ai-asistan
+├── <h1> AI Poodle Asistanı
+├── [Statik landing - SEO/crawler]
+│   ├── Ne yapabilir? (5 kategori kart)
+│   └── SSS (FAQPage schema, statik cevaplar)
+├── [Dinamik chat]
+│   ├── Profil paneli (Yaş, Kilo, Cinsiyet, Kısırlaştırma) — tüm cihazlar
+│   ├── Sohbet geçmişi (localStorage)
+│   ├── Örnek sorular (kaybolmasın)
+│   ├── Typing indicator
+│   ├── Yeni Sohbet butonu
+│   ├── Input + Gönder
+│   └── Veteriner uyarısı + gizlilik notu
+├── İlgili araçlar CTA
+└── Footer
+
+---
+
+## TEST CHECKLIST
+
+Fonksiyonellik:
+- [ ] Örnek soru tıklanınca AI yanıt veriyor (mevcut — bozulmasın)
+- [ ] Manuel soru yazılıp gönderilebiliyor
+- [ ] Çok turlu konuşma çalışıyor
+- [ ] Typing indicator görünüyor
+- [ ] Yeni Sohbet konuşmayı sıfırlıyor
+- [ ] Profil verisi localStorage'da kalıyor
+- [ ] Giriş yapmadan kullanılabiliyor
+
+SEO & Schema:
+- [ ] H1 "AI Poodle Asistanı"
+- [ ] Title = og:title, çift meta yok
+- [ ] Statik landing içeriği var (crawler görsün)
+- [ ] FAQPage schema (5 soru)
+- [ ] WebApplication schema genişletilmiş
+- [ ] Gizli H2 kaldırıldı
+
+Mobil 390px:
+- [ ] Chat header "AI Poodle Asistanı" görünür
+- [ ] Profil paneli açılıyor
+- [ ] Bottom nav doğru aktif (Mağaza değil)
+- [ ] Input tıklanabilir, klavye ile çakışma yok
+- [ ] padding-bottom: 80px
+
+Masaüstü 1920px:
+- [ ] Profil paneli görünür
+- [ ] Chat ortalanmış, okunabilir
+- [ ] Footer var
+
+ÖNCELİK: P1 (1-5) → P2 (6-11) → P3 (12-16) → P4 (17-22)
+P1 bitmeden P2'ye geçme. Chat işlevselliğini BOZMA. 390px ve 1920px'te test et.
