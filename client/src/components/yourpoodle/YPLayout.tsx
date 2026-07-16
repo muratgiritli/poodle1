@@ -1,32 +1,32 @@
 import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useCustomer } from "@/contexts/CustomerContext";
-import { ShoppingBag, BookOpen, Bot, Users } from "lucide-react";
+import { ShoppingBag, BookOpen, Bot, Utensils, Wrench } from "lucide-react";
 import YPFooter from "./YPFooter";
 
-// Primary nav — 4 items shown everywhere
+// Primary nav — 5 items shown everywhere
 const NAV_LINKS = [
-  { label: "Mağaza",     href: "/yourpoodle/magaza",     Icon: ShoppingBag },
   { label: "Rehber",     href: "/yourpoodle/rehber",     Icon: BookOpen },
+  { label: "Mama Bul",   href: "/yourpoodle/mama-bul",   Icon: Utensils },
+  { label: "Ara\u00e7lar",    href: "/yourpoodle/bilgi",      Icon: Wrench },
   { label: "AI Asistan", href: "/yourpoodle/ai-asistan", Icon: Bot },
-  { label: "Club",       href: "/yourpoodle/club",       Icon: Users },
+  { label: "Ma\u011faza",     href: "/yourpoodle/magaza",     Icon: ShoppingBag },
 ];
 
 // Drawer — all links including secondary ones
 const DRAWER_LINKS = [
   { label: "Ana Sayfa",  href: "/" },
-  { label: "Mağaza",     href: "/yourpoodle/magaza" },
   { label: "Rehber",     href: "/yourpoodle/rehber" },
-  { label: "AI Asistan", href: "/yourpoodle/ai-asistan" },
-  { label: "Club",       href: "/yourpoodle/club" },
   { label: "Mama Bul",   href: "/yourpoodle/mama-bul" },
-  { label: "Sağlık",     href: "/yourpoodle/saglik" },
-  { label: "Bakım",      href: "/yourpoodle/bakim" },
-  { label: "Eğitim",     href: "/yourpoodle/egitim" },
+  { label: "Ara\u00e7lar",    href: "/yourpoodle/bilgi" },
+  { label: "AI Asistan", href: "/yourpoodle/ai-asistan" },
+  { label: "Ma\u011faza",     href: "/yourpoodle/magaza" },
+  { label: "Sa\u011fl\u0131k",     href: "/yourpoodle/saglik" },
+  { label: "Bak\u0131m",      href: "/yourpoodle/bakim" },
+  { label: "E\u011fitim",     href: "/yourpoodle/egitim" },
   { label: "Topluluk",   href: "/yourpoodle/topluluk" },
   { label: "Etkinlik",   href: "/yourpoodle/etkinlikler" },
-  { label: "Bilgi",      href: "/yourpoodle/bilgi" },
-  { label: "Poodle'ım",  href: "/yourpoodle/poodle-ekle" },
+  { label: "Poodle'\u0131m",  href: "/yourpoodle/poodle-ekle" },
 ];
 
 interface Props {
@@ -117,7 +117,7 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
                     color: isLoggedIn ? "#16A34A" : "#555",
                     cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit",
                   }}>
-                  {isLoggedIn ? "Hesabım" : "Giriş Yap"}
+                  {isLoggedIn ? "Hesab\u0131m" : "Giri\u015f Yap"}
                 </button>
                 {!isLoggedIn && (
                   <button onClick={() => navigate("/yourpoodle/poodle-ekle")}
@@ -166,7 +166,7 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
         <div style={{ padding: "16px 18px", borderTop: "1px solid #f2f2f2" }}>
           <button onClick={() => { navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/poodle-ekle"); setDrawerOpen(false); }}
             style={{ width: "100%", height: 46, borderRadius: 12, background: "linear-gradient(135deg,#7C3AED,#A855F7)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-            {isLoggedIn ? "👤 Hesabım" : "Ücretsiz Başla"}
+            {isLoggedIn ? "\ud83d\udc64 Hesab\u0131m" : "Ücretsiz Başla"}
           </button>
         </div>
       </nav>
@@ -199,7 +199,7 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
                   background: "#F5F0FF", color: "#7C3AED",
                   fontSize: 12, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit",
                 }}>
-                {isLoggedIn ? "Hesabım" : "Giriş Yap"}
+                {isLoggedIn ? "Hesab\u0131m" : "Giri\u015f Yap"}
               </button>
               <button onClick={() => setDrawerOpen(true)}
                 style={{ background: "none", border: "none", cursor: "pointer", padding: 6, fontSize: 22, color: "#333" }}>
@@ -224,15 +224,15 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
           position: "fixed", bottom: 0, left: 0, right: 0,
           background: "#fff", borderTop: "1px solid #f0f0f0",
           boxShadow: "0 -4px 20px rgba(0,0,0,0.08)",
-          height: 64, display: "flex", alignItems: "center", zIndex: 200, padding: "0 4px"
+          height: 64, display: "flex", alignItems: "center", zIndex: 200, padding: "0 2px"
         }}>
           {NAV_LINKS.map(({ label, href, Icon }) => {
             const isActive = effectiveBottomLink === href || effectiveBottomLink.startsWith(href);
             return (
               <button key={href} onClick={() => navigate(href)}
-                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, background: "none", border: "none", cursor: "pointer", flex: 1, color: isActive ? "#7C3AED" : "#aaa", transition: "color 0.15s" }}>
-                <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
-                <span style={{ fontSize: 10, fontWeight: isActive ? 800 : 600, fontFamily: "inherit" }}>{label}</span>
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, background: "none", border: "none", cursor: "pointer", flex: 1, color: isActive ? "#7C3AED" : "#aaa", transition: "color 0.15s", padding: "4px 2px" }}>
+                <Icon size={21} strokeWidth={isActive ? 2.5 : 2} />
+                <span style={{ fontSize: 9, fontWeight: isActive ? 800 : 600, fontFamily: "inherit", whiteSpace: "nowrap" }}>{label}</span>
               </button>
             );
           })}

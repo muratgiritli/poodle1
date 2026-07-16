@@ -10,10 +10,11 @@ const YP_DESC  = "Toy Poodle sahipleri için dünya genelinde kargo yapan e-tica
 
 /* ─── DATA ───────────────────────────────────────────── */
 const NAV = [
-  { label: "Mağaza",     href: "/yourpoodle/magaza" },
   { label: "Rehber",     href: "/yourpoodle/rehber" },
+  { label: "Mama Bul",   href: "/yourpoodle/mama-bul" },
+  { label: "Araçlar",    href: "/yourpoodle/bilgi" },
   { label: "AI Asistan", href: "/yourpoodle/ai-asistan" },
-  { label: "Club",       href: "/yourpoodle/club" },
+  { label: "Mağaza",     href: "/yourpoodle/magaza" },
 ];
 
 interface YPProduct {
@@ -192,7 +193,6 @@ export default function YourPoodleHomePage() {
           {[
             { label: "Ana Sayfa",  href: "/" },
             ...NAV,
-            { label: "Mama Bul",   href: "/yourpoodle/mama-bul" },
             { label: "Sağlık",     href: "/yourpoodle/saglik" },
             { label: "Bakım",      href: "/yourpoodle/bakim" },
             { label: "Eğitim",     href: "/yourpoodle/egitim" },

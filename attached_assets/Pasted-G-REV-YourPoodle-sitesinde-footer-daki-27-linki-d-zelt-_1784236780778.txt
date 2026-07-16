@@ -1,0 +1,204 @@
+GÖREV: YourPoodle sitesinde footer’daki 27 linki düzelt — yanlış hedefleri gider, eksik sayfaları oluştur, mevcut tasarım sistemine uy. Önce projeyi tara: Footer component, routing (React Router / route config), mevcut statik sayfalar (GizlilikPolitikasi, KullanimSartlari, Hakkinda), SEO/meta helper, sitemap endpoint. Mevcut kodu yeniden kullan, sıfırdan yazma.
+
+═══════════════════════════════════════
+BAĞLAM — FOOTER AUDIT SONUÇLARI
+═══════════════════════════════════════
+
+Footer component’te şu an tespit edilen sorunlar:
+
+KURUMSAL
+✅ Hakkımızda → /yourpoodle/hakkinda (çalışıyor)
+✅ Blog & Rehber → /yourpoodle/rehber (çalışıyor)
+⚠️ Fotoğraf Yarışması → /yourpoodle/club?tab=akis (club akışı, yarışma sayfası değil)
+⚠️ Kariyer → /yourpoodle/hakkinda (Hakkımızda ile aynı URL)
+⚠️ Bayi Başvurusu → /yourpoodle/hakkinda (Hakkımızda ile aynı URL)
+
+MAĞAZA
+✅ Tüm Ürünler → /yourpoodle/magaza
+✅ Mamalar → ?kategori=mama
+✅ Bakım Ürünleri → ?kategori=bakim
+✅ Oyuncaklar → ?kategori=oyuncak
+✅ Kıyafetler → ?kategori=kiyafet
+✅ Kampanyalar → ?kategori=kampanya
+⚠️ Özel Tasarım → /yourpoodle/magaza (genel mağaza, özel sayfa yok)
+
+DESTEK — KRİTİK
+❌ Sık Sorulan Sorular → /yourpoodle/rehber (YANLIŞ)
+❌ Kargo ve Teslimat → /yourpoodle/rehber (YANLIŞ)
+❌ Uluslararası Kargo → /yourpoodle/rehber (YANLIŞ)
+❌ İade ve Değişim → /yourpoodle/rehber (YANLIŞ)
+❌ Güvenli Alışveriş → /yourpoodle/rehber (YANLIŞ)
+❌ Mesafeli Satış Sözl. → /yourpoodle/rehber (YANLIŞ)
+✅ KVKK / Gizlilik → /yourpoodle/gizlilik-politikasi (çalışıyor)
+✅ Kullanım Koşulları → /yourpoodle/kullanim-sartlari (çalışıyor)
+⚠️ Çerez Politikası → /yourpoodle/gizlilik-politikasi (KVKK ile aynı sayfa)
+
+TOPLULUK
+✅ Topluluk Akışı → /yourpoodle/club?tab=akis
+⚠️ Köpek Dizini → /yourpoodle/club?tab=topluluk (tab boş)
+✅ YourPoodle Club → /yourpoodle/club
+✅ Sağlık Asistanı → /yourpoodle/ai-asistan
+✅ Poodle Rehberi → /yourpoodle/rehber
+✅ Etkinlikler → /yourpoodle/etkinlikler (6 etkinlik kartı, çalışıyor)
+
+Eksik route’lar (SPA’da 404):
+/yourpoodle/sss, /kargo, /uluslararasi-kargo, /iade, /guvenli-alisveris, /mesafeli-satis, /cerez-politikasi, /kariyer, /bayi-basvurusu, /ozel-tasarim, /fotograf-yarismasi
+
+═══════════════════════════════════════
+P0 — KRİTİK (ÖNCELİK)
+═══════════════════════════════════════
+
+1) ORTAK STATİK SAYFA ŞABLONU
+Mevcut /yourpoodle/gizlilik-politikasi ve /yourpoodle/kullanim-sartlari sayfalarının layout/stilini baz al.
+Yeniden kullanılabilir bir component oluştur (ör: StaticPageLayout veya LegalPage):
+- Breadcrumb: Ana Sayfa > {Bölüm} > {Sayfa}
+- H1 başlık
+- Son güncelleme tarihi (opsiyonel)
+- Prose içerik alanı (max-width, okunabilir tipografi)
+- Footer ve header mevcut global layout ile aynı
+- Her sayfa için usePageMeta / SEO helper ile title, description, canonical
+
+2) EKSİK DESTEK SAYFALARINI OLUŞTUR
+Her biri kendi route’unda, kendi H1’i ve meta’sı ile:
+
+/yourpoodle/sss
+- H1: "Sık Sorulan Sorular"
+- Accordion yapısı (AI Asistan ve Mağaza sayfasındaki SSS bileşenini reuse et)
+- Bölümler: Genel, Mağaza & Sipariş, Kargo, İade, Üyelik & Club, AI Asistan
+- Mağaza sayfasındaki mevcut SSS sorularını buraya taşı/kopyala (duplicate kalmasın, mağazada kısa özet + "Tüm SSS" linki bırak)
+
+/yourpoodle/kargo
+- H1: "Kargo ve Teslimat"
+- İçerik: teslimat süreleri, kargo firmaları, takip, paketleme, Türkiye içi ücretlendirme tablosu (placeholder rakamlar kabul)
+
+/yourpoodle/uluslararasi-kargo
+- H1: "Uluslararası Kargo"
+- İçerik: gönderim ülkeleri, süre, gümrük notu, minimum sipariş, iletişim
+
+/yourpoodle/iade
+- H1: "İade ve Değişim"
+- İçerik: 14 gün iade koşulları, adımlar (1-2-3), istisnalar (açılmış mama vb.), iade formu/iletişim CTA
+
+/yourpoodle/guvenli-alisveris
+- H1: "Güvenli Alışveriş"
+- İçerik: SSL, 3D Secure, ödeme yöntemleri, veri koruma, alıcı güvencesi
+
+/yourpoodle/mesafeli-satis
+- H1: "Mesafeli Satış Sözleşmesi"
+- İçerik: yasal zorunlu maddeler (satıcı bilgisi, cayma hakkı, teslimat, uyuşmazlık) — placeholder şirket bilgisi footer’daki iletişimden alınsın
+
+/yourpoodle/cerez-politikasi
+- H1: "Çerez Politikası"
+- Gizlilik politikasından AYRI sayfa (KVKK ≠ Çerez)
+- İçerik: çerez türleri, amaç, süre, devre dışı bırakma, üçüncü taraf çerezler
+
+3) FOOTER HREF’LERİNİ DÜZELT
+Footer component’te (tüm sayfalarda tek kaynak) href’leri güncelle:
+
+KURUMSAL:
+- Hakkımızda → /yourpoodle/hakkinda
+- Blog & Rehber → /yourpoodle/rehber
+- Fotoğraf Yarışması → /yourpoodle/fotograf-yarismasi (yeni sayfa, P1)
+- Kariyer → /yourpoodle/kariyer (yeni sayfa, P1)
+- Bayi Başvurusu → /yourpoodle/bayi-basvurusu (yeni sayfa, P1)
+
+MAĞAZA:
+- Özel Tasarım → /yourpoodle/ozel-tasarim (yeni sayfa, P1) veya ?kategori=ozel-tasarim (mağaza filtresi varsa)
+- Diğer mağaza linkleri olduğu gibi kalsın
+
+DESTEK:
+- SSS → /yourpoodle/sss
+- Kargo ve Teslimat → /yourpoodle/kargo
+- Uluslararası Kargo → /yourpoodle/uluslararasi-kargo
+- İade ve Değişim → /yourpoodle/iade
+- Güvenli Alışveriş → /yourpoodle/guvenli-alisveris
+- KVKK / Gizlilik → /yourpoodle/gizlilik-politikasi
+- Kullanım Koşulları → /yourpoodle/kullanim-sartlari
+- Çerez Politikası → /yourpoodle/cerez-politikasi
+- Mesafeli Satış Sözl. → /yourpoodle/mesafeli-satis
+
+TOPLULUK: mevcut href’ler doğru, değiştirme.
+
+4) ROUTER’A TÜM YENİ ROUTE’LARI EKLE
+React Router / route config’e ekle; doğrudan URL ile açıldığında SPA mount olmalı (404 fallback yok).
+Test URL’leri:
+/yourpoodle/sss
+/yourpoodle/kargo
+/yourpoodle/uluslararasi-kargo
+/yourpoodle/iade
+/yourpoodle/guvenli-alisveris
+/yourpoodle/mesafeli-satis
+/yourpoodle/cerez-politikasi
+
+5) SITEMAP GÜNCELLE
+sitemap.xml’e yeni statik sayfaları ekle (500 hatası varsa düzelt):
+- /yourpoodle/sss
+- /yourpoodle/kargo
+- /yourpoodle/uluslararasi-kargo
+- /yourpoodle/iade
+- /yourpoodle/guvenli-alisveris
+- /yourpoodle/mesafeli-satis
+- /yourpoodle/cerez-politikasi
+- /yourpoodle/gizlilik-politikasi
+- /yourpoodle/kullanim-sartlari
+- /yourpoodle/hakkinda
+- /yourpoodle/etkinlikler
+
+═══════════════════════════════════════
+P1 — EKSİK KURUMSAL & MAĞAZA SAYFALARI
+═══════════════════════════════════════
+
+6) /yourpoodle/kariyer
+- H1: "Kariyer"
+- Kısa intro + açık pozisyonlar listesi (şimdilik "Şu an açık pozisyon yok" empty state veya 2-3 placeholder: İçerik Editörü, Topluluk Yöneticisi, E-ticaret Uzmanı)
+- "Başvuru için info@yourpoodle.com" CTA
+- Hakkımızda sayfasından farklı, kendi canonical’ı
+
+7) /yourpoodle/bayi-basvurusu
+- H1: "Bayi Başvurusu"
+- Bayi programı avantajları (3-4 madde)
+- Basit başvuru formu: Ad, E-posta, Şehir, Mağaza/İşletme adı, Mesaj
+- Form submit → mevcut contact/API endpoint veya mailto fallback
+- Form validation + başarı mesajı
+
+8) /yourpoodle/fotograf-yarismasi
+- H1: "Fotoğraf Yarışması"
+- Aktif/yaklaşan yarışma bilgisi (placeholder: "Sonbahar Poodle Fotoğraf Yarışması")
+- Katılım kuralları, ödüller, son katılım tarihi
+- CTA: "Club’a katıl ve paylaş" → /yourpoodle/club?tab=akis
+- İleride gerçek yarışma modülü için placeholder yapı bırak
+
+9) /yourpoodle/ozel-tasarim
+- H1: "Özel Tasarım"
+- Kişiselleştirilmiş tasma, kıyafet, aksesuar tanıtımı
+- "Talep oluştur" CTA veya mağazada özel tasarım ürün grid’i
+- Mağaza ?kategori=ozel-tasarim filtresi yoksa ekle; varsa footer bu filtreye gitsin
+
+10) KÖPEK DİZİNİ — CLUB TOPLULUK TAB
+Footer linki /yourpoodle/club?tab=topluluk kalabilir ama tab boş olmamalı:
+- Minimum: "Yakında" yerine 6-8 placeholder Poodle profil kartı (isim, şehir, foto placeholder)
+- Arama/filtre: şehir dropdown
+- "Profilini ekle" CTA → üyelik akışı
+
+═══════════════════════════════════════
+P2 — İYİLEŞTİRMELER (ZAMAN VARSA)
+═══════════════════════════════════════
+
+11) CROSS-LINK
+Destek sayfalarının altına ilgili linkler:
+- Kargo sayfası → Uluslararası Kargo, İade
+- SSS → ilgili destek sayfalarına anchor linkler
+- Mesafeli Satış → Kullanım Koşulları, İade
+
+12) FAQ SCHEMA
+/yourpoodle/sss sayfasına JSON-LD FAQPage schema ekle (accordion sorularından otomatik)
+
+13) FOOTER TEK KAYNAK
+Footer link listesini tek bir config dosyasında topla (footerLinks.ts):
+```ts
+export const footerLinks = {
+  kurumsal: [...],
+  magaza: [...],
+  destek: [...],
+  topluluk: [...]
+}
