@@ -413,6 +413,16 @@ const ARTICLES: Article[] = [
 
 const ARTICLES_PER_PAGE = 8;
 
+/* ─── Tab/URL helpers ──────────────────────────────────── */
+const TAB_MAP: Record<string, string> = {
+  tumu: "Tümü", saglik: "Sağlık", bakim: "Bakım",
+  egitim: "Eğitim", beslenme: "Beslenme", davranis: "Davranış", ureme: "Üreme",
+};
+const CAT_TO_TAB: Record<string, string> = {
+  "Tümü": "tumu", "Sağlık": "saglik", "Bakım": "bakim",
+  "Eğitim": "egitim", "Beslenme": "beslenme", "Davranış": "davranis", "Üreme": "ureme",
+};
+
 /* ─── TOC helper ─────────────────────────────────────── */
 function buildTOC(article: Article) {
   return article.sections.filter(s => s.heading).map(s => s.heading!);
@@ -425,36 +435,52 @@ function ArticleDetail({ article, onClose, allArticles }: { article: Article; on
   });
   const [, navigate] = useLocation();
 
-  const toggleLike = () => {
-    const next = !liked;
-    setLiked(next);
-    try { next ? localStorage.setItem("yp_liked_" + article.slug, "1") : localStorage.removeItem("yp_liked_" + article.slug); } catch {}
-  };
+  /* ── Dynamic SEO: title, canonical, og tags ── */
+  useEffect(() => {
+    const prevTitle = document.title;
+    const desc = article.intro.slice(0, 155);
+    const canonical = `https://www.yourpoodle.com/yourpoodle/rehber/${article.slug}`;
 
-  const share = () => {
-    const url = window.location.origin + "/yourpoodle/rehber?a=" + article.slug;
-    if (navigator.share) {
-      navigator.share({ title: article.title, url }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(url).then(() => alert("Bağlantı kopyalandı!")).catch(() => {});
-    }
-  };
+    document.title = `${article.title} | YourPoodle`;
 
-  const catStyle = CAT_COLORS[article.cat] || { bg: "#F5F0FF", color: "#7C3AED" };
-  const related = allArticles.filter(a => article.related.includes(a.slug)).slice(0, 3);
-  const toc = buildTOC(article);
+    const setMeta = (attr: string, key: string, val: string) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
+      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
+      el.content = val;
+    };
+    setMeta("name", "description", desc);
+    setMeta("property", "og:title", `${article.title} | YourPoodle`);
+    setMeta("property", "og:description", desc);
+    setMeta("property", "og:url", canonical);
 
-  // Article schema
+    let canonEl = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    const prevHref = canonEl?.href ?? "";
+    if (!canonEl) { canonEl = document.createElement("link"); canonEl.setAttribute("rel", "canonical"); document.head.appendChild(canonEl); }
+    canonEl.href = canonical;
+
+    return () => {
+      document.title = prevTitle;
+      if (canonEl) canonEl.href = prevHref;
+      setMeta("name", "description", PAGE_DESC);
+      setMeta("property", "og:title", PAGE_TITLE);
+      setMeta("property", "og:description", PAGE_DESC);
+      setMeta("property", "og:url", "https://www.yourpoodle.com/yourpoodle/rehber");
+    };
+  }, [article]);
+
+  /* ── JSON-LD Article schema ── */
   useEffect(() => {
     const schema = {
       "@context": "https://schema.org",
       "@type": "Article",
       "headline": article.title,
+      "description": article.intro.slice(0, 155),
       "author": { "@type": "Person", "name": article.author, "jobTitle": article.role },
       "datePublished": article.date,
       "dateModified": article.updated,
       "publisher": { "@type": "Organization", "name": "YourPoodle", "url": "https://www.yourpoodle.com" },
-      "url": window.location.origin + "/yourpoodle/rehber?a=" + article.slug,
+      "url": `https://www.yourpoodle.com/yourpoodle/rehber/${article.slug}`,
+      "mainEntityOfPage": { "@type": "WebPage", "@id": `https://www.yourpoodle.com/yourpoodle/rehber/${article.slug}` },
     };
     const el = document.getElementById("yp-article-schema");
     if (el) el.textContent = JSON.stringify(schema);
@@ -467,6 +493,25 @@ function ArticleDetail({ article, onClose, allArticles }: { article: Article; on
     return () => { document.getElementById("yp-article-schema")?.remove(); };
   }, [article]);
 
+  const toggleLike = () => {
+    const next = !liked;
+    setLiked(next);
+    try { next ? localStorage.setItem("yp_liked_" + article.slug, "1") : localStorage.removeItem("yp_liked_" + article.slug); } catch {}
+  };
+
+  const share = () => {
+    const url = `${window.location.origin}/yourpoodle/rehber/${article.slug}`;
+    if (navigator.share) {
+      navigator.share({ title: article.title, url }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url).then(() => alert("Bağlantı kopyalandı!")).catch(() => {});
+    }
+  };
+
+  const catStyle = CAT_COLORS[article.cat] || { bg: "#F5F0FF", color: "#7C3AED" };
+  const related = allArticles.filter(a => article.related.includes(a.slug)).slice(0, 3);
+  const toc = buildTOC(article);
+
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />
@@ -478,16 +523,16 @@ function ArticleDetail({ article, onClose, allArticles }: { article: Article; on
             <ArrowLeft size={15} strokeWidth={2.5} /> Geri
           </button>
           {/* Breadcrumb */}
-          <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#aaa" }}>
-            <span style={{ cursor: "pointer", color: "#7C3AED" }} onClick={onClose}>Rehber</span>
+          <nav aria-label="breadcrumb" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#aaa" }}>
+            <a href="/yourpoodle/rehber" onClick={e => { e.preventDefault(); onClose(); }} style={{ cursor: "pointer", color: "#7C3AED", textDecoration: "none" }}>Rehber</a>
             <ChevronRight size={10} />
             <span style={{ background: catStyle.bg, color: catStyle.color, padding: "2px 8px", borderRadius: 20, fontWeight: 700 }}>{article.cat}</span>
-          </div>
+          </nav>
           <div style={{ display: "flex", gap: 6 }}>
-            <button onClick={toggleLike} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }} title="Beğen">
+            <button onClick={toggleLike} aria-label={liked ? "Beğenildi" : "Beğen"} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
               <Heart size={20} color={liked ? "#FF4566" : "#ccc"} fill={liked ? "#FF4566" : "none"} strokeWidth={2} />
             </button>
-            <button onClick={share} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }} title="Paylaş">
+            <button onClick={share} aria-label="Paylaş" style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
               <Share2 size={20} color="#ccc" strokeWidth={2} />
             </button>
           </div>
@@ -499,7 +544,7 @@ function ArticleDetail({ article, onClose, allArticles }: { article: Article; on
           <div style={{ background: `linear-gradient(135deg,${catStyle.bg},#fff)`, borderRadius: 16, padding: "24px 20px 20px", marginBottom: 20, textAlign: "center" }}>
             <div style={{ fontSize: 52, marginBottom: 10 }}>{article.emoji}</div>
             <span style={{ display: "inline-block", background: catStyle.bg, color: catStyle.color, fontSize: 11, fontWeight: 800, borderRadius: 20, padding: "4px 13px", marginBottom: 12 }}>{article.cat}</span>
-            <h2 style={{ fontSize: 20, fontWeight: 900, color: "#111", lineHeight: 1.35, marginBottom: 0 }}>{article.title}</h2>
+            <h1 style={{ fontSize: 20, fontWeight: 900, color: "#111", lineHeight: 1.35, marginBottom: 0 }}>{article.title}</h1>
           </div>
 
           {/* Meta */}
@@ -534,8 +579,8 @@ function ArticleDetail({ article, onClose, allArticles }: { article: Article; on
           {/* Sections */}
           {article.sections.map((sec, i) => (
             <div key={i} style={{ marginBottom: 24 }}>
-              {sec.heading && <h3 style={{ fontSize: 16, fontWeight: 800, color: "#111", marginBottom: 10, paddingBottom: 6, borderBottom: "2px solid " + catStyle.bg }}>{sec.heading}</h3>}
-              {sec.subheading && <h4 style={{ fontSize: 14, fontWeight: 700, color: "#444", marginBottom: 8 }}>{sec.subheading}</h4>}
+              {sec.heading && <h2 style={{ fontSize: 16, fontWeight: 800, color: "#111", marginBottom: 10, paddingBottom: 6, borderBottom: "2px solid " + catStyle.bg }}>{sec.heading}</h2>}
+              {sec.subheading && <h3 style={{ fontSize: 14, fontWeight: 700, color: "#444", marginBottom: 8 }}>{sec.subheading}</h3>}
               {sec.content && <p style={{ fontSize: 14, color: "#555", lineHeight: 1.8, marginBottom: sec.list ? 10 : 0 }}>{sec.content}</p>}
               {sec.list && (
                 <ul style={{ margin: 0, paddingLeft: 0, listStyle: "none" }}>
@@ -560,22 +605,29 @@ function ArticleDetail({ article, onClose, allArticles }: { article: Article; on
             </div>
           ))}
 
+          {/* Medical disclaimer */}
+          <div style={{ margin: "20px 0", padding: "12px 16px", background: "#FFF7ED", borderRadius: 10, borderLeft: "3px solid #F59E0B", fontSize: 12, color: "#92400E" }}>
+            ⚕️ <strong>Bilgilendirme:</strong> Bu içerik bilgilendirme amaçlıdır. Acil durumlarda veya sağlık sorunlarında veteriner hekiminize başvurun.
+          </div>
+
           {/* Related */}
           {related.length > 0 && (
             <div style={{ marginTop: 32, paddingTop: 24, borderTop: "1px solid #f2f2f2" }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: "#333", marginBottom: 14 }}>📖 İlgili Makaleler</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {related.map(r => (
-                  <button key={r.slug}
-                    style={{ display: "flex", gap: 12, alignItems: "center", padding: "12px", background: "#FAFAFA", borderRadius: 12, cursor: "pointer", border: "1.5px solid #F3F4F6", textAlign: "left", width: "100%" }}
-                    onClick={() => { const evt = new CustomEvent("yp-open-article", { detail: r.slug }); window.dispatchEvent(evt); onClose(); }}>
+                  <a key={r.slug}
+                    href={"/yourpoodle/rehber/" + r.slug}
+                    aria-label={`${r.title} makalesini oku`}
+                    onClick={e => { e.preventDefault(); navigate("/yourpoodle/rehber/" + r.slug); onClose(); }}
+                    style={{ display: "flex", gap: 12, alignItems: "center", padding: "12px", background: "#FAFAFA", borderRadius: 12, cursor: "pointer", border: "1.5px solid #F3F4F6", textDecoration: "none" }}>
                     <div style={{ fontSize: 24, width: 44, height: 44, background: "#EDE8FF", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{r.emoji}</div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 10.5, fontWeight: 700, color: "#7C3AED", marginBottom: 3 }}>{r.cat}</div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: "#111", lineHeight: 1.4 }}>{r.title}</div>
                     </div>
                     <ChevronRight size={14} color="#ccc" />
-                  </button>
+                  </a>
                 ))}
               </div>
             </div>
@@ -587,16 +639,23 @@ function ArticleDetail({ article, onClose, allArticles }: { article: Article; on
 }
 
 /* ─── Main Page ──────────────────────────────────────── */
-export default function Rehber() {
-  const [location, navigate] = useLocation();
-  const [activeCat, setActiveCat] = useState("Tümü");
-  const [search, setSearch]     = useState("");
+export default function Rehber({ routeSlug }: { routeSlug?: string } = {}) {
+  const [, navigate] = useLocation();
+  const [activeCat, setActiveCat] = useState(() => {
+    const p = new URLSearchParams(window.location.search);
+    return TAB_MAP[p.get("tab") || ""] || "Tümü";
+  });
+  const [query, setQuery] = useState(() => {
+    const p = new URLSearchParams(window.location.search);
+    return p.get("q") || "";
+  });
   const [selected, setSelected] = useState<Article | null>(null);
   const [page, setPage]         = useState(1);
   const catScrollRef = useRef<HTMLDivElement>(null);
 
-  /* SEO */
+  /* SEO — hub (only when no article is open) */
   useEffect(() => {
+    if (selected) return;
     document.title = PAGE_TITLE;
     const setMeta = (attr: string, key: string, val: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
@@ -606,51 +665,74 @@ export default function Rehber() {
     setMeta("property", "og:title", PAGE_TITLE);
     setMeta("name", "description", PAGE_DESC);
     setMeta("property", "og:description", PAGE_DESC);
-  }, []);
+  }, [selected]);
 
-  /* URL param: ?a=slug */
+  /* Handle routeSlug from URL (direct navigation to /yourpoodle/rehber/:slug) */
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const slug = params.get("a");
-    if (slug) {
-      const found = ARTICLES.find(a => a.slug === slug);
-      if (found) setSelected(found);
+    if (routeSlug) {
+      const found = ARTICLES.find(a => a.slug === routeSlug);
+      setSelected(found ?? null);
+    } else {
+      // Backwards compat: ?a=slug → redirect to clean URL
+      const params = new URLSearchParams(window.location.search);
+      const oldSlug = params.get("a");
+      if (oldSlug) {
+        navigate("/yourpoodle/rehber/" + oldSlug);
+      } else {
+        setSelected(null);
+      }
     }
-  }, []);
+  }, [routeSlug]);
 
   /* Custom event from related articles */
   useEffect(() => {
     const handler = (e: Event) => {
       const slug = (e as CustomEvent).detail as string;
-      const found = ARTICLES.find(a => a.slug === slug);
-      if (found) { setSelected(found); window.history.pushState({}, "", "/yourpoodle/rehber?a=" + slug); }
+      navigate("/yourpoodle/rehber/" + slug);
     };
     window.addEventListener("yp-open-article", handler);
     return () => window.removeEventListener("yp-open-article", handler);
-  }, []);
+  }, [navigate]);
 
   const openArticle = useCallback((a: Article) => {
     setSelected(a);
-    window.history.pushState({}, "", "/yourpoodle/rehber?a=" + a.slug);
-  }, []);
+    navigate("/yourpoodle/rehber/" + a.slug);
+  }, [navigate]);
 
   const closeArticle = useCallback(() => {
     setSelected(null);
-    window.history.pushState({}, "", "/yourpoodle/rehber");
-  }, []);
+    navigate("/yourpoodle/rehber");
+  }, [navigate]);
 
   const filtered = ARTICLES.filter(a =>
     (activeCat === "Tümü" || a.cat === activeCat) &&
-    (search === "" || a.title.toLowerCase().includes(search.toLowerCase()) || a.author.toLowerCase().includes(search.toLowerCase()))
+    (query === "" || a.title.toLowerCase().includes(query.toLowerCase()) || a.author.toLowerCase().includes(query.toLowerCase()))
   );
 
   const featuredArticle = ARTICLES.find(a => a.featured);
-  const listArticles = filtered.filter(a => !(a.featured && activeCat === "Tümü" && search === ""));
+  const listArticles = filtered.filter(a => !(a.featured && activeCat === "Tümü" && query === ""));
   const totalPages = Math.ceil(listArticles.length / ARTICLES_PER_PAGE);
   const pageItems = listArticles.slice((page - 1) * ARTICLES_PER_PAGE, page * ARTICLES_PER_PAGE);
 
-  const changeCategory = (cat: string) => { setActiveCat(cat); setPage(1); };
-  const changeSearch = (val: string) => { setSearch(val); setPage(1); };
+  const changeCategory = (cat: string) => {
+    setActiveCat(cat); setPage(1);
+    const tab = CAT_TO_TAB[cat] || "tumu";
+    const qs = new URLSearchParams();
+    if (tab !== "tumu") qs.set("tab", tab);
+    if (query) qs.set("q", query);
+    const qStr = qs.toString();
+    window.history.replaceState({}, "", "/yourpoodle/rehber" + (qStr ? "?" + qStr : ""));
+  };
+
+  const changeQuery = (val: string) => {
+    setQuery(val); setPage(1);
+    const tab = CAT_TO_TAB[activeCat] || "tumu";
+    const qs = new URLSearchParams();
+    if (tab !== "tumu") qs.set("tab", tab);
+    if (val) qs.set("q", val);
+    const qStr = qs.toString();
+    window.history.replaceState({}, "", "/yourpoodle/rehber" + (qStr ? "?" + qStr : ""));
+  };
 
   return (
     <YPLayout activeLink="/yourpoodle/rehber">
@@ -693,18 +775,26 @@ export default function Rehber() {
         </div>
       </div>
 
+      {/* Breadcrumb (hub) */}
+      <nav aria-label="breadcrumb" style={{ padding: "10px 16px 0", display: "flex", gap: 4, alignItems: "center", fontSize: 12, color: "#aaa" }}>
+        <a href="/yourpoodle" style={{ color: "#7C3AED", textDecoration: "none", fontWeight: 600 }}>Ana Sayfa</a>
+        <ChevronRight size={11} />
+        <span style={{ color: "#555", fontWeight: 600 }}>Rehber</span>
+      </nav>
+
       {/* Search */}
-      <div style={{ padding: "14px 16px 0" }}>
+      <div style={{ padding: "10px 16px 0" }}>
         <div style={{ display: "flex", alignItems: "center", background: "#F7F7F7", border: "1.5px solid #ececec", borderRadius: 14, height: 50, overflow: "hidden" }}>
           <div style={{ paddingLeft: 14, color: "#bbb", display: "flex" }}><Search size={18} strokeWidth={2} /></div>
           <input
-            value={search}
-            onChange={e => changeSearch(e.target.value)}
+            value={query}
+            onChange={e => changeQuery(e.target.value)}
             placeholder="Makale ara..."
+            aria-label="Makale ara"
             style={{ flex: 1, border: "none", outline: "none", fontSize: 14, fontWeight: 600, color: "#333", background: "transparent", padding: "0 12px" }}
           />
-          {search && (
-            <button onClick={() => changeSearch("")} style={{ background: "none", border: "none", cursor: "pointer", paddingRight: 12, color: "#bbb" }}>
+          {query && (
+            <button onClick={() => changeQuery("")} aria-label="Aramayı temizle" style={{ background: "none", border: "none", cursor: "pointer", paddingRight: 12, color: "#bbb" }}>
               <X size={16} strokeWidth={2} />
             </button>
           )}
@@ -716,7 +806,7 @@ export default function Rehber() {
         <div className="cat-scroll-wrap" style={{ position: "relative" }}>
           <div ref={catScrollRef} className="noscroll-reh" style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2, paddingRight: 40 }}>
             {CATS.map(c => (
-              <button key={c} onClick={() => changeCategory(c)}
+              <button key={c} onClick={() => changeCategory(c)} aria-pressed={activeCat === c}
                 style={{ flexShrink: 0, padding: "7px 16px", borderRadius: 20, border: "1.5px solid", borderColor: activeCat === c ? "#7C3AFF" : "#e8e8e8", background: activeCat === c ? "#7C3AFF" : "#fff", color: activeCat === c ? "#fff" : "#555", fontSize: 12.5, fontWeight: 700, cursor: "pointer" }}>
                 {c}
               </button>
@@ -726,10 +816,13 @@ export default function Rehber() {
       </div>
 
       {/* Featured */}
-      {activeCat === "Tümü" && search === "" && featuredArticle && (
+      {activeCat === "Tümü" && query === "" && featuredArticle && (
         <div style={{ padding: "16px 16px 0" }}>
-          <button onClick={() => openArticle(featuredArticle)} className="reh-featured-inner"
-            style={{ width: "100%", background: "linear-gradient(135deg,#EDE8FF,#F5F0FF)", borderRadius: 18, padding: "20px", display: "flex", gap: 16, alignItems: "center", cursor: "pointer", border: "none", textAlign: "left" }}>
+          <a href={"/yourpoodle/rehber/" + featuredArticle.slug}
+            onClick={e => { e.preventDefault(); openArticle(featuredArticle); }}
+            aria-label={`Öne çıkan: ${featuredArticle.title}`}
+            className="reh-featured-inner"
+            style={{ width: "100%", background: "linear-gradient(135deg,#EDE8FF,#F5F0FF)", borderRadius: 18, padding: "20px", display: "flex", gap: 16, alignItems: "center", cursor: "pointer", textDecoration: "none" }}>
             <div style={{ width: 72, height: 72, borderRadius: 18, background: CAT_COLORS[featuredArticle.cat]?.bg || "#F5F0FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, flexShrink: 0, border: "2px solid rgba(124,58,237,0.15)" }}>
               {featuredArticle.emoji}
             </div>
@@ -743,7 +836,7 @@ export default function Rehber() {
               </div>
             </div>
             <ChevronRight size={18} color="#7C3AFF" />
-          </button>
+          </a>
         </div>
       )}
 
@@ -753,10 +846,10 @@ export default function Rehber() {
           <div style={{ textAlign: "center", padding: "48px 24px", color: "#aaa" }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
             <div style={{ fontSize: 15, fontWeight: 700, color: "#555", marginBottom: 6 }}>
-              {search ? `"${search}" için makale bulunamadı` : "Bu kategoride henüz makale yok"}
+              {query ? `"${query}" için makale bulunamadı` : "Bu kategoride henüz makale yok"}
             </div>
             <div style={{ fontSize: 13 }}>Farklı bir kategori veya arama terimi deneyin.</div>
-            <button onClick={() => { changeSearch(""); changeCategory("Tümü"); }}
+            <button onClick={() => { changeQuery(""); changeCategory("Tümü"); }}
               style={{ marginTop: 16, padding: "10px 24px", borderRadius: 20, background: "#7C3AFF", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
               Tümünü Göster
             </button>
@@ -766,8 +859,12 @@ export default function Rehber() {
             {pageItems.map(a => {
               const cs = CAT_COLORS[a.cat] || { bg: "#F5F0FF", color: "#7C3AED" };
               return (
-                <button key={a.slug} className="art-row-reh" onClick={() => openArticle(a)}
-                  style={{ display: "flex", gap: 14, alignItems: "center", padding: "14px", background: "#FAFAFA", borderRadius: 14, cursor: "pointer", border: "1.5px solid #F3F4F6", textAlign: "left", width: "100%", transition: "all 0.15s" }}>
+                <a key={a.slug}
+                  href={"/yourpoodle/rehber/" + a.slug}
+                  aria-label={`${a.title} makalesini oku`}
+                  className="art-row-reh"
+                  onClick={e => { e.preventDefault(); openArticle(a); }}
+                  style={{ display: "flex", gap: 14, alignItems: "center", padding: "14px", background: "#FAFAFA", borderRadius: 14, cursor: "pointer", border: "1.5px solid #F3F4F6", textDecoration: "none", transition: "all 0.15s" }}>
                   <div style={{ width: 58, height: 58, borderRadius: 14, background: cs.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, flexShrink: 0 }}>
                     {a.emoji}
                   </div>
@@ -781,7 +878,7 @@ export default function Rehber() {
                     </div>
                   </div>
                   <ChevronRight size={16} color="#ccc" style={{ flexShrink: 0 }} />
-                </button>
+                </a>
               );
             })}
           </div>

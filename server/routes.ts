@@ -904,6 +904,25 @@ export async function registerRoutes(
           .replace(/-+/g, "-")
           .replace(/^-|-$/g, "");
 
+      // Static article pages for /yourpoodle/rehber/:slug
+      const articleSlugs = [
+        "toy-poodle-en-iyi-mama-markalari-2026",
+        "evde-poodle-tirasi-adim-adim-rehber",
+        "poodle-saglik-sorunlari",
+        "temel-komut-egitimi",
+        "poodle-anksiyetesi",
+        "poodle-kalca-displazisi-erken-teshis",
+        "poodle-tuy-bakimi-haftalik-rutin",
+        "yavru-poodle-beslenmesi-ilk-12-ay",
+        "clicker-egitimi",
+        "poodle-kizginlik-ciftlestirme",
+        "poodle-yavrulara-ilk-gunlerde-bakim",
+        "tuvalet-egitimi",
+        "poodle-goz-yasi-lekesi-temizleme",
+        "poodle-beslenme-alerjisi",
+        "poodle-dis-bakim-rehberi",
+      ];
+
       // Dynamic: fetch active dog products from DB for /yourpoodle/urun/:id/:slug
       let productRows: Array<{ id: number; name: string }> = [];
       try {
@@ -931,6 +950,18 @@ export async function registerRoutes(
         xml += `    <changefreq>${p.changefreq}</changefreq>\n`;
         xml += `    <priority>${p.priority}</priority>\n`;
         xml += `    <xhtml:link rel="alternate" hreflang="tr" href="${SITE}${p.url}" />\n`;
+        xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}/" />\n`;
+        xml += `  </url>\n`;
+      }
+
+      // Article pages
+      for (const slug of articleSlugs) {
+        xml += `  <url>\n`;
+        xml += `    <loc>${SITE}/yourpoodle/rehber/${slug}</loc>\n`;
+        xml += `    <lastmod>${today}</lastmod>\n`;
+        xml += `    <changefreq>monthly</changefreq>\n`;
+        xml += `    <priority>0.8</priority>\n`;
+        xml += `    <xhtml:link rel="alternate" hreflang="tr" href="${SITE}/yourpoodle/rehber/${slug}" />\n`;
         xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}/" />\n`;
         xml += `  </url>\n`;
       }

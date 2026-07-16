@@ -33,15 +33,15 @@ const COLUMNS = [
   {
     title: "Destek",
     links: [
-      { label: "Sık Sorulan Sorular",     href: "/yourpoodle/rehber" },
-      { label: "Kargo ve Teslimat",       href: "/yourpoodle/rehber" },
-      { label: "Uluslararası Kargo",       href: "/yourpoodle/rehber" },
-      { label: "İade ve Değişim",         href: "/yourpoodle/rehber" },
-      { label: "Güvenli Alışveriş",       href: "/yourpoodle/rehber" },
+      { label: "Sık Sorulan Sorular",     href: "/yourpoodle/bilgi" },
+      { label: "Kargo ve Teslimat",       href: "/yourpoodle/hakkinda" },
+      { label: "Uluslararası Kargo",       href: "/yourpoodle/hakkinda" },
+      { label: "İade ve Değişim",         href: "/yourpoodle/kullanim-sartlari" },
+      { label: "Güvenli Alışveriş",       href: "/yourpoodle/kullanim-sartlari" },
       { label: "KVKK / Gizlilik",         href: "/yourpoodle/gizlilik-politikasi" },
       { label: "Kullanım Koşulları",      href: "/yourpoodle/kullanim-sartlari" },
       { label: "Çerez Politikası",        href: "/yourpoodle/gizlilik-politikasi" },
-      { label: "Mesafeli Satış Sözl.",    href: "/yourpoodle/rehber" },
+      { label: "Mesafeli Satış Sözl.",    href: "/yourpoodle/kullanim-sartlari" },
     ],
   },
   {

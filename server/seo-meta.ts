@@ -591,8 +591,48 @@ function buildYPSchema(meta: YPMeta, canonical: string): string {
   return schemas.map(s => `<script type="application/ld+json">${JSON.stringify(s)}</script>`).join("\n  ");
 }
 
+/** Slug → {title, desc} for /yourpoodle/rehber/:slug pages (SSR meta) */
+const YP_ARTICLE_SLUGS: Record<string, { title: string; desc: string }> = {
+  "toy-poodle-en-iyi-mama-markalari-2026": { title: "Toy Poodle İçin En İyi Mama Markaları 2026", desc: "2026 yılının en iyi Toy Poodle mama markaları: bağımsız analizler ve veteriner görüşleri ışığında değerlendirme." },
+  "evde-poodle-tirasi-adim-adim-rehber": { title: "Evde Poodle Tıraşı: Adım Adım Eksiksiz Rehber", desc: "Evde Poodle tıraşı için gerekli ekipmanlar, banyo, tarama ve Teddy Bear kesim teknikleri adım adım." },
+  "poodle-saglik-sorunlari": { title: "Poodle'larda Görülen 10 Yaygın Sağlık Sorunu", desc: "Poodle'larda sık görülen sağlık sorunları: patellar luksasyon, PRA, Addison hastalığı ve erken tespit yöntemleri." },
+  "temel-komut-egitimi": { title: "Poodle'ınıza Temel Komutları Nasıl Öğretirsiniz?", desc: "Pozitif pekiştirme ile Poodle'a otur, gel, dur ve bırak komutlarını adım adım öğretin." },
+  "poodle-anksiyetesi": { title: "Poodle Anksiyetesi: Belirtiler, Nedenleri ve Çözüm Yolları", desc: "Poodle ayrılık anksiyetesi belirtileri, ev içi çözümler ve desensitizasyon protokolü." },
+  "poodle-kalca-displazisi-erken-teshis": { title: "Poodle'larda Kalça Displazisi: Belirtiler ve Erken Teşhis", desc: "Poodle kalça displazisi belirtileri, teşhis yöntemleri ve konservatif ile cerrahi tedavi seçenekleri." },
+  "poodle-tuy-bakimi-haftalik-rutin": { title: "Poodle Tüy Bakımı: Haftalık Rutin Rehberi", desc: "Poodle tüy bakımı için günlük, haftada 3 kez, 2 haftada bir ve aylık rutin önerileri." },
+  "yavru-poodle-beslenmesi-ilk-12-ay": { title: "Yavru Poodle Beslenmesi: İlk 12 Ay Rehberi", desc: "Yavru Poodle için süt döneminden 12. aya kadar beslenme rehberi, porsiyon ve mama geçiş tavsiyeleri." },
+  "clicker-egitimi": { title: "Clicker Eğitimi ile Hızlı Öğrenme Teknikleri", desc: "Poodle için clicker eğitimi: şartlandırma, yakalama ve şekillendirme teknikleri ile sık yapılan hatalar." },
+  "poodle-kizginlik-ciftlestirme": { title: "Poodle'da İlk Kızgınlık ve Doğru Çiftleştirme Zamanı", desc: "Poodle kızgınlık belirtileri, ovulasyon testi ve sağlık testleri ile sorumlu çiftleştirme rehberi." },
+  "poodle-yavrulara-ilk-gunlerde-bakim": { title: "Poodle Yavrularına İlk Günlerde Bakım", desc: "Yeni doğan Poodle yavrularına neonatal dönemden sosyalizasyon penceresine kadar bakım rehberi." },
+  "tuvalet-egitimi": { title: "Poodle Tuvalet Eğitimi: 2 Haftada Başarıya Ulaşın", desc: "Poodle tuvalet eğitimi için zamanlama, ödül bazlı yerleştirme ve kafes eğitimi ipuçları." },
+  "poodle-goz-yasi-lekesi-temizleme": { title: "Poodle Göz Yaşı Lekesi: Neden Olur ve Nasıl Temizlenir?", desc: "Poodle göz altı lekeleri nedenleri, günlük temizlik rutini, beslenme değişikliği ve veteriner tedavileri." },
+  "poodle-beslenme-alerjisi": { title: "Poodle'larda Besin Alerjisi: Belirti ve Eliminasyon Diyeti", desc: "Poodle besin alerjisi belirtileri, en yaygın alerjenler ve 8-12 haftalık eliminasyon diyeti protokolü." },
+  "poodle-dis-bakim-rehberi": { title: "Poodle Diş Bakımı: Periodontal Hastalığı Önleyin", desc: "Poodle diş fırçalama teknikleri, dental ürünler ve profesyonel diş taşı temizliği rehberi." },
+};
+
 function injectYPMeta(html: string, urlPath: string, _store: StoreConfig): string {
-  const meta = YP_ROUTE_META[urlPath] ?? YP_ROUTE_META["/yourpoodle"];
+  // Article detail pages: /yourpoodle/rehber/:slug
+  const artMatch = urlPath.match(/^\/yourpoodle\/rehber\/(.+)$/);
+  let meta: YPMeta;
+  if (artMatch) {
+    const slug = artMatch[1];
+    const art = YP_ARTICLE_SLUGS[slug];
+    meta = art
+      ? {
+          title: `${art.title} | YourPoodle`,
+          description: art.desc,
+          keywords: `poodle, ${slug.replace(/-/g, " ")}, poodle rehber`,
+          schemaType: "guide" as const,
+          breadcrumb: [
+            { name: "Ana Sayfa", href: "/" },
+            { name: "Rehber", href: "/yourpoodle/rehber" },
+            { name: art.title, href: urlPath },
+          ],
+        }
+      : (YP_ROUTE_META["/yourpoodle/rehber"] ?? YP_ROUTE_META["/yourpoodle"]!);
+  } else {
+    meta = YP_ROUTE_META[urlPath] ?? YP_ROUTE_META["/yourpoodle"]!;
+  }
   const canonical = `${YP_BASE}${urlPath}`;
   const title = escapeHtml(meta.title);
   const description = escapeHtml(meta.description);

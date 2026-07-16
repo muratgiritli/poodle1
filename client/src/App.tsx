@@ -15,6 +15,12 @@ import { CURRENT_STORE } from "@/lib/store";
 const Landing = lazy(() => import("@/pages/landing"));
 const AdLanding = lazy(() => import("@/pages/ad-landing"));
 
+function Redirect({ to }: { to: string }) {
+  const [, nav] = useLocation();
+  useEffect(() => { nav(to, { replace: true }); }, [to]);
+  return null;
+}
+
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; errorMsg: string }> {
   state = { hasError: false, errorMsg: "" };
   static getDerivedStateFromError(error: Error) { return { hasError: true, errorMsg: error?.message || "" }; }
@@ -173,6 +179,9 @@ function Router() {
         <Route path="/demo2" component={Demo2Page} />
         <Route path="/demo-anasayfa" component={DemoAnasayfaPage as any} />
         <Route path="/yourpoodle"                component={YourPoodleHomePage} />
+        <Route path="/yourpoodle/rehber/:slug">
+          {(params) => <YPRehberPage routeSlug={params?.slug} />}
+        </Route>
         <Route path="/yourpoodle/rehber"         component={YPRehberPage} />
         <Route path="/yourpoodle/club"           component={YPClubPage} />
         <Route path="/yourpoodle/bilgi"          component={YPBilgiPage} />
@@ -181,9 +190,9 @@ function Router() {
         <Route path="/yourpoodle/poodle-ekle"    component={YPPoodleEklePage} />
         <Route path="/yourpoodle/topluluk"       component={YPToplulukPage} />
         <Route path="/yourpoodle/mama"           component={YPMamaPage} />
-        <Route path="/yourpoodle/egitim"         component={YPEgitimPage} />
-        <Route path="/yourpoodle/saglik"         component={YPSaglikPage} />
-        <Route path="/yourpoodle/bakim"          component={YPBakimPage} />
+        <Route path="/yourpoodle/egitim">{() => <Redirect to="/yourpoodle/rehber?tab=egitim" />}</Route>
+        <Route path="/yourpoodle/saglik">{() => <Redirect to="/yourpoodle/rehber?tab=saglik" />}</Route>
+        <Route path="/yourpoodle/bakim">{() => <Redirect to="/yourpoodle/rehber?tab=bakim" />}</Route>
         <Route path="/yourpoodle/etkinlikler"    component={YPEtkinliklerPage} />
         <Route path="/yourpoodle/ai-asistan"     component={YPAiAsistanPage} />
         <Route path="/yourpoodle/mama-bul"       component={YPMamaBulPage} />
