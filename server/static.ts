@@ -57,7 +57,16 @@ export function serveStatic(app: Express) {
       res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
       res.status(200).end(html);
     } catch (e) {
-      next(e);
+      // Fallback: serve raw template without meta injection so healthcheck
+      // never gets a 500 (e.g. DB not ready on cold start). React still mounts.
+      console.error("[static] injectAllMeta failed, serving raw template:", (e as Error)?.message);
+      try {
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.status(200).end(getTemplate());
+      } catch (e2) {
+        next(e2);
+      }
     }
   });
 }

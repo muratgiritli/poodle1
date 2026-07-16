@@ -659,7 +659,14 @@ export async function injectAllMeta(html: string, urlPath: string, host?: string
   let out = applyGlobalBranding(html, store);
   // DB'de admin tarafından girilmiş google config varsa statik koda gömülü
   // değeri tamamen ezer (boş bile olsa); yoksa statik koda gömülü değere düşülür.
-  const dbGoogle = await getStoreGoogleConfig(store.id);
+  // Wrapped in try-catch: DB may not be ready on cold start; fall back to
+  // static config so the healthcheck never sees a 500.
+  let dbGoogle: Awaited<ReturnType<typeof getStoreGoogleConfig>> = null;
+  try {
+    dbGoogle = await getStoreGoogleConfig(store.id);
+  } catch {
+    // non-fatal — use static config
+  }
   out = injectGoogleTags(out, dbGoogle ? { ...store, google: dbGoogle } : store);
 
   const cleanPath = urlPath.split("?")[0].split("#")[0];

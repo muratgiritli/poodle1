@@ -1,0 +1,298 @@
+GÖREV: YourPoodle sitesinde /yourpoodle/club sayfasını incele ve Toy Poodle sahipleri için sade, premium, kaliteli ve kullanışlı bir kulüp deneyimine dönüştür. Önce projeyi tara: ClubPage/component'lerini, tab routing'i, feed/post veri kaynağını, Poodle profil sistemini, etkinlik verisini, auth/üyelik akışını, stil sistemini ve footer component'lerini bul. Mevcut kodu yeniden kullan, sıfırdan yazma.
+
+═══════════════════════════════════════
+BAĞLAM — MEVCUT DURUM
+═══════════════════════════════════════
+URL: /yourpoodle/club
+Tab'lar: ?tab=akis | poodlem | topluluk | etkinlik
+
+Mevcut bölümler:
+- Mor hero banner (500+ üye, 1200+ paylaşım, 50+ şehir, Ücretsiz Katıl)
+- 4 sekme: Akış, Poodlem, Topluluk, Etkinlik
+- Akış: arama, bildirim CTA, paylaşım CTA, sosyal feed (5 post)
+- Poodlem: boş state + "Profil oluştur" CTA
+- Topluluk: boş state + "Katıl" CTA
+- Etkinlik: 4 yaklaşan etkinlik kartı
+- Her sekmenin altında tekrarlayan SEO blokları (Club Nedir, SSS, Son Paylaşımlardan)
+- E-ticaret footer (Hızlı Kargo, Kolay İade vb.)
+
+Bilinen sorunlar:
+- Çok fazla tekrar (4x Katıl CTA, SEO blokları her sekmede)
+- Poodlem ve Topluluk sekmeleri boş
+- Hero banner feed'i aşağı itiyor
+- Emoji yoğun tab isimleri (📰 Akış, 🐩 Poodlem)
+- E-ticaret footer topluluk sayfasında alakasız
+- Üye sayısı tutarsız (ana sayfa 50K, club 500)
+- SPA bazen mount olmuyor
+- Hashtag linkleri kırık (#)
+- Yorumlar expand edilmiyor
+
+═══════════════════════════════════════
+HEDEF VİZYON
+═══════════════════════════════════════
+"Toy Poodle sahiplerinin özel kulübü" — Instagram klonu değil.
+Sade, premium, kullanışlı. Strava/Apple Support Communities tarzı minimal UI.
+3 sekme: Ana Sayfa (feed) | Poodlem (profil dizini) | Etkinlik
+
+═══════════════════════════════════════
+P0 — SADELEŞTİRME (KRİTİK)
+═══════════════════════════════════════
+
+1) SEKME YAPISINI 4'TEN 3'E İNDİR
+- [Ana Sayfa] (eski Akış) → ?tab=akis veya default /club
+- [Poodlem] → ?tab=poodlem
+- [Etkinlik] → ?tab=etkinlik
+- Topluluk sekmesini KALDIR
+- Eski ?tab=topluluk → 301 redirect ?tab=poodlem
+- Tab isimlerinden emoji kaldır: "Akış" → "Ana Sayfa", sade metin
+
+2) HERO BANNER'I KALDIR / MİNİ YAP
+Eski: 300px mor banner, büyük istatistikler, Ücretsiz Katıl butonu
+Yeni: Kompakt 1 satırlık header (max 80px):
+  "Poodle Club" · 500 üye · Ücretsiz
+  Sağda: [Profil oluştur] veya giriş yapmışsa [Merhaba, {isim} 👋]
+İstatistikler (500+ üye, 1200+ paylaşım, 50+ şehir) mini pill olarak tek satırda veya kaldır.
+
+3) TEKRARLAYAN SEO BLOKLARINI KALDIR
+Her sekmenin altındaki şu bölümleri UI'dan kaldır:
+- "Poodle Club Nedir?" + 3 adımlı liste
+- "Sık Sorulan Sorular" accordion
+- "Son Paylaşımlardan" tekrar kartları
+Bu içerikleri ayrı sayfaya taşı: /yourpoodle/club/hakkimizda (SEO için)
+Club ana sayfasında sadece feed/etkinlik/profil içeriği kalsın.
+
+4) CLUB FOOTER (E-TİCARET FOOTER YERİNE)
+Club sayfasında e-ticaret trust bar'ı (Hızlı Kargo, Kolay İade, SSL) gösterme.
+Minimal club footer:
+  YourPoodle Club · Gizlilik · Kullanım Koşulları · İletişim · Hakkımızda
+Diğer sayfalardaki footer'a dokunma.
+
+5) KATIL CTA TEKRARINI AZALT
+Tek primary CTA kalsın: header'daki "Profil oluştur" veya "Ücretsiz Katıl"
+Kaldır:
+- Hero'daki büyük Ücretsiz Katıl (hero zaten kaldırılıyor)
+- Akış'taki ayrı "Siz de paylaşın! Katıl" kartı → hızlı aksiyon bar'a taşı
+- Topluluk sekmesi (zaten kaldırılıyor)
+
+6) SPA ROUTING
+/club ve /club?tab=* doğrudan URL ile her zaman mount olmalı.
+Test: hard refresh, yeni sekme.
+
+═══════════════════════════════════════
+P1 — ANA SAYFA (FEED) YENİDEN YAPILANDIR
+═══════════════════════════════════════
+
+7) HIZLI AKSIYON BAR
+Hero yerine, feed üstünde tek satır 4 aksiyon:
+[📸 Paylaş] [❓ Soru sor] [📅 Etkinlikler] [🤖 AI'ya sor]
+- Paylaş → paylaşım modal/form (giriş gerekiyorsa login'e yönlendir)
+- Soru sor → AI Asistan'a git veya soru modu paylaşım
+- Etkinlikler → ?tab=etkinlik
+- AI'ya sor → /yourpoodle/ai-asistan
+
+8) FEED KATEGORİ FİLTRELERİ
+Feed üstünde pill filtreler:
+[Tümü] [Tıraş & Bakım] [Mama] [Sağlık] [Eğitim] [Oyun arkadaşı]
+Filtre URL'ye yansısın: ?tab=akis&kategori=tiras
+"Oyun arkadaşı" = yaşıt Poodle bulma intent'i
+
+9) FEED KART TASARIMI (PREMIUM)
+Mevcut post kartlarını sadeleştir:
+- Emoji azalt (kullanıcı avatarında emoji yerine gerçek foto veya initials)
+- Poodle adı badge koru (Mocha, Luna) ama daha ince stil
+- Meta satır: @kullanici · Poodle adı, yaş · Şehir · zaman
+- Fotoğraf: rounded-lg, max-height sınırla
+- Aksiyonlar: ❤️ sayı · 💬 sayı (tıklanabilir) · Paylaş
+- Beğeni/yorum butonları çalışsın
+
+10) YORUM EXPAND
+Yorum sayısına tıklayınca yorumlar inline açılsın (accordion veya slide-down).
+Basit yorum listesi + yorum yazma input (giriş gerekli).
+MVP: statik/mock yorumlar bile olsa UI çalışsın.
+
+11) HASHTAG DÜZELT
+Postlardaki # linkleri çalışsın:
+#tiras → ?tab=akis&kategori=tiras veya ?tab=akis&tag=tiras
+#mama → kategori filtresi
+Boş "#" link olmasın.
+
+12) BİLDİRİM CTA KARTINI KALDIR
+"Bildirimler Al 🔔" ayrı kartını kaldır.
+Bildirim izni: ilk paylaşım sonrası soft prompt veya profil ayarlarında.
+
+13) ARAMA KORU
+"Paylaşım ara..." search bar kalsın, çalışsın (kullanıcı, poodle adı, metin).
+
+═══════════════════════════════════════
+P1 — POODLEM SEKMESİ (ASIL FARK YARATAN)
+═══════════════════════════════════════
+
+14) POODLE PROFİL GRİD
+Boş CTA yerine feed'deki Poodle'lardan profil kartları göster:
+
+Grid (responsive: 4 col desktop, 2 col mobil):
+┌──────────┐
+│ [foto]   │
+│ Mocha    │
+│ 2 yaş    │
+│ İstanbul │
+│ 3.2 kg   │
+│ Toy      │
+└──────────┘
+
+Veri kaynağı: feed postlarındaki Poodle bilgileri + Poodle'ım profil sistemi.
+En az 8-12 profil kartı (feed'deki 5 Poodle + mock data).
+
+15) POODLEM FİLTRE & ARAMA
+- Arama: isim, şehir
+- Filtre pill: [Toy] [Miniature] [Yavru 0-1] [Yetişkin] [Yaşlı 7+]
+- Şehir dropdown veya pill: [İstanbul] [Ankara] [İzmir] [Tümü]
+
+16) POODLE PROFİL DETAY
+Karta tıklayınca profil detay (modal veya /club/poodle/{slug}):
+- Büyük fotoğraf
+- İsim, yaş, kilo, ırk, şehir
+- Mama markası (varsa)
+- Sahibin paylaşımları (feed'den filtre)
+- "Benzer Poodle'lar" (aynı yaş ±3 ay veya aynı şehir, max 4 kart)
+- CTA: "Mesaj gönder" (giriş gerekli) veya "Profili paylaş"
+
+17) KENDİ PROFİL OLUŞTUR CTA
+Grid altında veya boş state:
+[+ Poodle'ınızı ekleyin]
+→ Mevcut Poodle'ım / profil oluşturma akışına yönlendir
+Alanlar: isim, foto, doğum tarihi, kilo, ırk (Toy/Miniature), şehir, mama markası
+
+═══════════════════════════════════════
+P1 — ETKİNLİK SEKMESİ
+═══════════════════════════════════════
+
+18) ETKİNLİK LİSTESİ İYİLEŞTİR
+Mevcut 4 etkinliği koru, kartları zenginleştir:
+- Tarih + saat (net format: "20 Temmuz 2026, 10:00")
+- Konum (şehir + mekan)
+- Tip badge: [Yüz yüze] veya [Online]
+- Katılımcı sayısı + avatar stack (social proof): "23 kişi katılıyor" + 3 mini avatar
+- [Katıl] butonu (giriş gerekli)
+- [Detaylar →] → etkinlik detay modal/sayfa
+
+19) ŞEHİR FİLTRESİ
+Etkinlik üstünde: 📍 [Tüm şehirler ▼] veya pill: [İstanbul] [Ankara] [Online]
+Filtre URL: ?tab=etkinlik&sehir=istanbul
+
+20) ÖNE ÇIKAN ETKİNLİK
+İlk etkinlik full-width featured card, diğerleri liste formatında (daha kompakt).
+
+21) TAKVİME EKLE
+Etkinlik detayında "Google Calendar'a ekle" linki (ics veya google calendar URL).
+
+═══════════════════════════════════════
+P2 — PREMİUM TASARIM
+═══════════════════════════════════════
+
+22) RENK & TİPOGRAFİ
+Premium palet uygula (mevcut mor temayı koru ama sadeleştir):
+- Arka plan: #FAFAF8 (warm white)
+- Kart: #FFFFFF, border: 1px #E5E7EB, shadow: subtle
+- Primary: #7C3AED (mevcut mor)
+- Text: #1A1A1A, muted: #6B7280
+- Emoji kullanımını %70 azalt (tab, başlık, meta alanlarında)
+- Kart padding artır (16px → 20px)
+- Kart arası gap artır (12px → 24px)
+
+23) PAYLAŞIM MODLARI
+Paylaşım yaparken 2 tip seç:
+- 📸 Fotoğraf paylaş (showcase) — normal feed kartı
+- ❓ Soru sor — farklı kart stili (mavi/sol border, soru ikonu)
+Soru kartları AI Asistan'a da yönlendirilebilir.
+
+24) ÜYE SAYISI TUTARLILIĞI
+Site genelinde tek sayı kullan:
+- Club'da gerçek sayı: 500+ → "500+ Poodle sahibi"
+- Ana sayfadaki 50K+ → "500+ üye" ile uyumlu hale getir VEYA
+- Club'da "500+ aktif üye" + ana sayfada "50K+ ziyaretçi" gibi farklı metrikler kullan ama tutarlı ol
+
+25) MOBİL OPTİMİZASYON
+- Tab bar: sticky bottom (mobil) veya sticky top
+- Feed: tek sütun, full-width kartlar
+- Poodlem grid: 2 sütun
+- Hızlı aksiyon bar: horizontal scroll veya 2x2 grid
+- Hero zaten kaldırıldığı için feed fold içinde
+
+26) GİRİŞ / ÜYELİK AKIŞI
+Paylaşım, yorum, etkinliğe katılma, profil oluşturma → giriş gerektirir.
+Giriş yapmamış kullanıcı:
+- Feed'i görebilir (read-only)
+- Etkinlikleri görebilir
+- Poodlem profillerini görebilir
+- Paylaşım/yorum/katıl tıklayınca → login modal veya /giris?redirect=/club
+
+═══════════════════════════════════════
+P2 — ENTEGRASYONLAR
+═══════════════════════════════════════
+
+27) AI ASİSTAN BAĞLANTISI
+- Hızlı aksiyon bar'da "AI'ya sor"
+- Soru tipi paylaşımlarda "AI Asistan'a yönlendir" linki
+- Feed'de soru kartlarında otomatik AI öneri badge
+
+28) MAMA BUL / REHBER BAĞLANTISI
+Feed'de mama/tıraş/sağlık postlarında ilgili araç linki:
+- Mama postu → Mama Bul
+- Tıraş postu → Rehber?tab=bakim
+- Sağlık postu → AI Asistan
+
+29) POODLE PROFİLİ ↔ CLUB ENTEGRASYONU
+Poodle'ım profil sistemi ile Club Poodlem aynı veri kaynağı:
+- Profil oluşturunca otomatik Poodlem'de görünsün
+- Club profil fotoğrafı = Poodle'ım fotoğrafı
+- Mama markası, kilo, yaş senkron
+
+30) SEO
+- /yourpoodle/club title/meta korunsun
+- /yourpoodle/club/hakkimizda yeni sayfa: Club Nedir + SSS (taşınan SEO içeriği)
+- Eski SEO H2 duplicate blokları DOM'dan kaldır
+- sitemap.xml'e /club ve /club/hakkimizda ekle
+
+═══════════════════════════════════════
+TEKNİK KURALLAR
+═══════════════════════════════════════
+- Mevcut stil sistemi, component library, renk token'ları koru
+- TypeScript/React/Vite
+- Tab lazy load: sadece aktif sekme içeriği render
+- Feed pagination veya infinite scroll (mevcut 5 post + load more)
+- Performans: profil fotoğrafları lazy load
+- Accessibility: tab'lar role="tablist", feed role="feed", kartlar article
+- Mevcut mock feed verisini koru, genişlet
+
+═══════════════════════════════════════
+TEST LİSTESİ
+═══════════════════════════════════════
+✓ /yourpoodle/club hard refresh ile açılıyor
+✓ 3 sekme: Ana Sayfa, Poodlem, Etkinlik (Topluluk yok)
+✓ Hero banner yok / mini header var
+✓ SEO blokları UI'da yok (hakkimizda sayfasında var)
+✓ Club footer (e-ticaret footer yok)
+✓ Feed kategori filtreleri çalışıyor
+✓ Yorum expand çalışıyor
+✓ Hashtag linkleri çalışıyor
+✓ Poodlem grid'de profil kartları var (min 8)
+✓ Poodle profil detay açılıyor
+✓ Etkinlik şehir filtresi çalışıyor
+✓ Katılımcı sayısı + avatar stack görünüyor
+✓ Hızlı aksiyon bar 4 buton çalışıyor
+✓ Giriş gerektiren aksiyonlar login'e yönlendiriyor
+✓ ?tab=topluluk → ?tab=poodlem redirect
+✓ Mobil: feed fold içinde, tab bar sticky
+
+═══════════════════════════════════════
+ÇIKTI RAPORU
+═══════════════════════════════════════
+Tamamlandığında raporla:
+1. Değiştirilen dosyalar listesi
+2. Yeni sekme yapısı
+3. Poodlem profil grid (kaç profil, filtreler)
+4. Kaldırılan bölümler listesi
+5. Yeni /club/hakkimizda sayfası
+6. Test sonuçları
+7. Bilinen kalan sorunlar
