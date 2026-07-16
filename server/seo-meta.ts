@@ -610,6 +610,30 @@ const YP_ARTICLE_SLUGS: Record<string, { title: string; desc: string }> = {
   "poodle-dis-bakim-rehberi": { title: "Poodle Diş Bakımı: Periodontal Hastalığı Önleyin", desc: "Poodle diş fırçalama teknikleri, dental ürünler ve profesyonel diş taşı temizliği rehberi." },
 };
 
+/** Replace the generic jetgo/local #seo-static block with a YP-specific one */
+function buildYPSeoStaticBlock(meta: YPMeta, urlPath: string): string {
+  const title = escapeHtml(meta.title.replace(/\s*\|\s*YourPoodle$/i, ""));
+  const desc  = escapeHtml(meta.description);
+  const navLinks = [
+    { href: "/yourpoodle",           label: "YourPoodle ana sayfa" },
+    { href: "/yourpoodle/rehber",    label: "Poodle bakım rehberleri" },
+    { href: "/yourpoodle/mama-bul",  label: "Poodle mama bulma sihirbazı" },
+    { href: "/yourpoodle/ai-asistan",label: "AI Poodle asistanı" },
+    { href: "/yourpoodle/bilgi",     label: "Poodle araçları ve hesaplama" },
+    { href: "/yourpoodle/magaza",    label: "Poodle ürünleri mağazası" },
+    { href: "/yourpoodle/club",      label: "Poodle topluluğu" },
+  ].filter(l => l.href !== urlPath);
+  return (
+    `<div id="seo-static" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0;padding:0;margin:-1px;">\n` +
+    `      <h1>${title}</h1>\n` +
+    `      <p>${desc}</p>\n` +
+    `      <nav aria-label="YourPoodle site haritası"><ul>\n` +
+    navLinks.map(l => `        <li><a href="${l.href}">${l.label}</a></li>`).join("\n") + "\n" +
+    `      </ul></nav>\n` +
+    `    </div>`
+  );
+}
+
 function injectYPMeta(html: string, urlPath: string, _store: StoreConfig): string {
   // Article detail pages: /yourpoodle/rehber/:slug
   const artMatch = urlPath.match(/^\/yourpoodle\/rehber\/(.+)$/);
@@ -659,6 +683,11 @@ function injectYPMeta(html: string, urlPath: string, _store: StoreConfig): strin
       ? `<meta name="robots" content="noindex, nofollow" />`
       : `<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />`
   );
+
+  // ── Replace generic #seo-static block with YP page-specific one ─────────
+  // The client/index.html seo-static div has generic petshop/JetGo H2s;
+  // all YP routes need their own page-scoped H1 + description instead.
+  out = out.replace(/<div id="seo-static"[^>]*>[\s\S]*?<\/div>/i, buildYPSeoStaticBlock(meta, urlPath));
 
   // ── Remove previous YP extended block (idempotent) ──────────────────────
   out = out.replace(/\n?\s*<!-- yp-seo-ext-start -->[\s\S]*?<!-- yp-seo-ext-end -->/g, "");
