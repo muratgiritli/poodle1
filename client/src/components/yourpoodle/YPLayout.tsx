@@ -1,10 +1,23 @@
 import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useCustomer } from "@/contexts/CustomerContext";
-import { Menu, X, ShoppingBag, BookOpen, Monitor, Home, Users } from "lucide-react";
+import { ShoppingBag, BookOpen, Monitor, Home, Users } from "lucide-react";
 import YPFooter from "./YPFooter";
 
+// Desktop nav — 7 primary links (matches homepage header)
 const NAV_LINKS = [
+  { label: "Rehber",     href: "/yourpoodle/rehber" },
+  { label: "Mama Bul",   href: "/yourpoodle/mama-bul" },
+  { label: "Sağlık",     href: "/yourpoodle/saglik" },
+  { label: "Bakım",      href: "/yourpoodle/bakim" },
+  { label: "Eğitim",     href: "/yourpoodle/egitim" },
+  { label: "AI Asistan", href: "/yourpoodle/ai-asistan" },
+  { label: "Topluluk",   href: "/yourpoodle/topluluk" },
+];
+
+// Drawer — all links including secondary ones
+const DRAWER_LINKS = [
+  { label: "Ana Sayfa",  href: "/" },
   { label: "Rehber",     href: "/yourpoodle/rehber" },
   { label: "Mama Bul",   href: "/yourpoodle/mama-bul" },
   { label: "Sağlık",     href: "/yourpoodle/saglik" },
@@ -16,6 +29,7 @@ const NAV_LINKS = [
   { label: "Etkinlik",   href: "/yourpoodle/etkinlikler" },
   { label: "Bilgi",      href: "/yourpoodle/bilgi" },
   { label: "Club",       href: "/yourpoodle/club" },
+  { label: "Poodle'ım",  href: "/yourpoodle/poodle-ekle" },
 ];
 
 interface Props {
@@ -63,51 +77,71 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
       {/* ──────────── DESKTOP HEADER ──────────── */}
       <header className="yp-desktop-hdr" style={{
         position: "sticky", top: 0, zIndex: 200,
-        background: "#fff", borderBottom: "1px solid #eee",
-        alignItems: "center", justifyContent: "space-between",
-        padding: "0 48px", height: 64,
-        boxShadow: "0 1px 12px rgba(0,0,0,0.05)"
+        background: "#fff", borderBottom: "1px solid #F0F0F0",
+        alignItems: "center",
+        height: 60,
       }}>
-        <Link href="/">
-          <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
-            <div style={{ width: 34, height: 34, borderRadius: 9, background: "linear-gradient(135deg,#7C3AED,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🐩</div>
-            <span style={{ fontSize: 18, fontWeight: 900, color: "#7C3AED", letterSpacing: "-0.3px" }}>YourPoodle</span>
-          </div>
-        </Link>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", display: "flex", alignItems: "center", gap: 32, height: "100%", width: "100%" }}>
+          <Link href="/">
+            <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", flexShrink: 0 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg,#7C3AED,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🐩</div>
+              <span style={{ fontSize: 17, fontWeight: 900, color: "#7C3AED", letterSpacing: "-0.5px" }}>YourPoodle</span>
+            </div>
+          </Link>
 
-        {!authMode && (
-          <>
-            <nav style={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "nowrap" }}>
-              {NAV_LINKS.map(l => (
-                <Link key={l.href} href={l.href}>
-                  <span style={{
-                    display: "inline-block", padding: "6px 10px", borderRadius: 8,
-                    fontSize: 12.5, fontWeight: activeLink === l.href ? 700 : 500,
-                    cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap",
-                    color: activeLink === l.href ? "#7C3AED" : "#555",
-                    background: activeLink === l.href ? "#F5F0FF" : "transparent",
-                  }}>{l.label}</span>
-                </Link>
-              ))}
-            </nav>
-            <button onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
-              style={{
-                padding: "9px 22px", borderRadius: 20, border: "2px solid",
-                borderColor: isLoggedIn ? "#22C55E" : "#7C3AED",
-                background: isLoggedIn ? "#F0FDF4" : "#7C3AED",
-                color: isLoggedIn ? "#16A34A" : "#fff",
-                fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
-              }}>
-              {isLoggedIn ? "Hesabım 👤" : "Giriş Yap"}
-            </button>
-          </>
-        )}
+          {!authMode && (
+            <>
+              <nav style={{ display: "flex", gap: 2, flex: 1, overflow: "hidden", alignItems: "center" }}>
+                {NAV_LINKS.map(l => {
+                  const isActive = activeLink === l.href || activeLink.startsWith(l.href);
+                  return (
+                    <Link key={l.href} href={l.href}>
+                      <span
+                        style={{
+                          display: "inline-block", padding: "6px 13px", borderRadius: 20,
+                          fontSize: 13.5, fontWeight: 600,
+                          cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap",
+                          color: isActive ? "#7C3AED" : "#555",
+                          background: isActive ? "#F5F3FF" : "transparent",
+                        }}
+                        onMouseEnter={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = "#F9F9F9"; (e.currentTarget as HTMLElement).style.color = "#333"; } }}
+                        onMouseLeave={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#555"; } }}
+                      >{l.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+              <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
+                <button onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
+                  style={{
+                    padding: "7px 18px", borderRadius: 20, border: "1.5px solid #E5E7EB",
+                    background: "#fff", fontSize: 13.5, fontWeight: 700,
+                    color: isLoggedIn ? "#16A34A" : "#555",
+                    cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit",
+                  }}>
+                  {isLoggedIn ? "Hesabım" : "Giriş Yap"}
+                </button>
+                {!isLoggedIn && (
+                  <button onClick={() => navigate("/yourpoodle/poodle-ekle")}
+                    style={{
+                      padding: "7px 18px", borderRadius: 20, border: "none",
+                      background: "linear-gradient(135deg,#7C3AED,#A855F7)",
+                      fontSize: 13.5, fontWeight: 700, color: "#fff",
+                      cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit",
+                    }}>
+                    Ücretsiz Başla
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </header>
 
       {/* ──────────── MOBILE DRAWER ──────────── */}
       {drawerOpen && (
         <div onClick={() => setDrawerOpen(false)}
-          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 299 }} />
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 299, backdropFilter: "blur(2px)" }} />
       )}
       <nav style={{
         position: "fixed", top: 0, left: 0, height: "100%", width: 280, background: "#fff", zIndex: 300,
@@ -116,33 +150,35 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 18px 14px", borderBottom: "1px solid #f2f2f2" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 7, background: "linear-gradient(135deg,#7C3AED,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15 }}>🐩</div>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg,#7C3AED,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>🐩</div>
             <span style={{ fontSize: 16, fontWeight: 900, color: "#7C3AED" }}>YourPoodle</span>
           </div>
-          <button onClick={() => setDrawerOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: 6 }}>
-            <X size={20} color="#666" />
-          </button>
+          <button onClick={() => setDrawerOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: "#666", padding: 6 }}>✕</button>
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: "8px 0" }}>
-          {[{ label: "Ana Sayfa", href: "/" }, ...NAV_LINKS,
-            { label: "Poodle'ım", href: "/yourpoodle/poodle-ekle" },
-          ].map(l => (
+          {DRAWER_LINKS.map(l => (
             <button key={l.href} onClick={() => { navigate(l.href); setDrawerOpen(false); }}
               style={{
-                display: "block", width: "100%", padding: "13px 20px", fontSize: 14, fontWeight: 600,
-                color: activeLink === l.href ? "#7C3AED" : "#222",
-                background: activeLink === l.href ? "#F5F0FF" : "transparent",
-                border: "none", borderBottom: "1px solid #fafafa", cursor: "pointer", textAlign: "left", fontFamily: "inherit",
+                display: "block", width: "100%", padding: "13px 20px", fontSize: 15, fontWeight: 600,
+                color: activeLink === l.href || activeLink.startsWith(l.href) ? "#7C3AED" : "#222",
+                background: activeLink === l.href || activeLink.startsWith(l.href) ? "#F5F0FF" : "transparent",
+                border: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit",
               }}>{l.label}</button>
           ))}
+        </div>
+        <div style={{ padding: "16px 18px", borderTop: "1px solid #f2f2f2" }}>
+          <button onClick={() => { navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/poodle-ekle"); setDrawerOpen(false); }}
+            style={{ width: "100%", height: 46, borderRadius: 12, background: "linear-gradient(135deg,#7C3AED,#A855F7)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+            {isLoggedIn ? "👤 Hesabım" : "Ücretsiz Başla"}
+          </button>
         </div>
       </nav>
 
       {/* ──────────── MOBILE HEADER ──────────── */}
       <header className="yp-mobile-hdr" style={{
         position: "sticky", top: 0, zIndex: 100, background: "#fff",
-        borderBottom: "1px solid #f0f0f0", alignItems: "center",
-        justifyContent: authMode ? "center" : "space-between", padding: "10px 14px", height: 56,
+        borderBottom: "1px solid #F0F0F0", alignItems: "center",
+        justifyContent: authMode ? "center" : "space-between", padding: "10px 14px", height: 60,
       }}>
         {authMode ? (
           <Link href="/yourpoodle">
@@ -154,26 +190,27 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
         ) : (
           <>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <button onClick={() => setDrawerOpen(true)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", padding: 6 }}>
-                <Menu size={22} color="#333" strokeWidth={2} />
-              </button>
               <Link href="/">
                 <div style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
-                  <div style={{ width: 26, height: 26, borderRadius: 6, background: "linear-gradient(135deg,#7C3AED,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🐩</div>
-                  <span style={{ fontSize: 15, fontWeight: 900, color: "#7C3AED" }}>YourPoodle</span>
+                  <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg,#7C3AED,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🐩</div>
+                  <span style={{ fontSize: 17, fontWeight: 900, color: "#7C3AED", letterSpacing: "-0.5px" }}>YourPoodle</span>
                 </div>
               </Link>
             </div>
-            <button onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
-              style={{
-                padding: "6px 13px", borderRadius: 20, border: "2px solid",
-                borderColor: isLoggedIn ? "#22C55E" : "#7C3AED",
-                background: isLoggedIn ? "#F0FDF4" : "#F5F0FF",
-                color: isLoggedIn ? "#16A34A" : "#7C3AED",
-                fontSize: 12, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap",
-              }}>
-              {isLoggedIn ? "Hesabım 👤" : "Giriş Yap"}
-            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
+              <button onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
+                style={{
+                  padding: "6px 13px", borderRadius: 20, border: "1.5px solid #7C3AED",
+                  background: "#F5F0FF", color: "#7C3AED",
+                  fontSize: 12, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit",
+                }}>
+                {isLoggedIn ? "Hesabım" : "Giriş Yap"}
+              </button>
+              <button onClick={() => setDrawerOpen(true)}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 6, fontSize: 22, color: "#333" }}>
+                ☰
+              </button>
+            </div>
           </>
         )}
       </header>
