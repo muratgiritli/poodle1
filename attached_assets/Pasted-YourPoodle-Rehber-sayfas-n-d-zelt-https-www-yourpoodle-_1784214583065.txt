@@ -1,0 +1,157 @@
+YourPoodle Rehber sayfasını düzelt (https://www.yourpoodle.com/yourpoodle/rehber).
+Mevcut tasarımı, renkleri ve component yapısını koru.
+Sadece /yourpoodle/rehber sayfasına dokun, başka sayfalara dokunma.
+
+═══════════════════════════════════════════
+REHBER SAYFASI DÜZELTMELERİ
+═══════════════════════════════════════════
+
+1) MAKALE İÇERİĞİ ÇOK KISA (KRİTİK)
+Sorun: Makalelere tıklanınca sadece 1 paragraf (~500 karakter) açılıyor.
+"5 dk okuma" yazıyor ama içerik 30 saniyede bitiyor.
+
+Yapılacaklar:
+- Her makale en az 800-1500 kelime tam rehber içeriği olsun
+- Başlıklar (H2, H3), madde işaretleri, adım adım bölümler ekle
+- "UZMAN TAVSİYESİ" kutusunun altına devam eden içerik olsun
+- İçindekiler tablosu (TOC) ekle uzun makalelere
+- Makale sonuna "İlgili Makaleler" bölümü ekle (aynı kategoriden 3 makale)
+
+2) MAKALE URL'LERİ YOK — SEO SORUNU (KRİTİK)
+Sorun: Makaleler modal/overlay olarak açılıyor, URL değişmiyor.
+Tüm makaleler /yourpoodle/rehber adresinde kalıyor.
+Google indeksleyemez, paylaşılamaz.
+
+Yapılacaklar:
+- Her makaleye benzersiz URL ver:
+  /yourpoodle/rehber/toy-poodle-en-iyi-mama-markalari
+  /yourpoodle/rehber/poodle-saglik-sorunlari
+  vb. (slug formatında)
+- Makale tıklanınca bu URL'ye git (modal yerine sayfa veya modal + URL güncelle)
+- Her makale sayfasında kendi <title> ve meta description olsun
+- Breadcrumb ekle: Ana Sayfa > Rehber > [Kategori] > [Makale Başlığı]
+- Schema.org Article markup ekle (author, datePublished, dateModified)
+
+3) "50+ MAKALE" YALANI (KRİTİK)
+Sorun: Banner'da "50+ Makale" yazıyor ama sadece 10 makale var.
+
+Yapılacaklar:
+- Ya gerçekten 50+ makale ekle
+- Ya da banner'daki sayıyı gerçek makale sayısına güncelle ("10 Makale" veya dinamik sayaç)
+- "Tümünü Göster" butonu kaldırılsın veya tüm makaleler baştan görünsün
+- Sayfalama (pagination) ekle: makale sayısı 10'u geçince "1 2 3 ... Sonraki"
+
+4) ARAMA KUTUSU BUG'I
+Sorun: Arama kutusuna tıklanınca "undefined" değeri görünüyor.
+
+Yapılacaklar:
+- Arama input'unun value'sunu düzelt (boş string olmalı, "undefined" olmamalı)
+- Arama fonksiyonunu çalışır hale getir:
+  * Başlık ve yazar adında canlı filtreleme
+  * Sonuç bulunamazsa "Sonuç bulunamadı" empty state göster
+  * Arama terimini URL'ye yansıt: ?q=tuvalet
+
+5) GÖRÜNTÜLENME SAYILARI GERÇEKÇİ DEĞİL
+Sorun: 2.4M, 3.1M gibi şişirilmiş görüntülenme sayıları güvenilirliği düşürüyor.
+
+Yapılacaklar:
+- Gerçek view counter kullan veya kaldır
+- Makul sayılar göster (ör. 1.2K, 3.5K) veya hiç gösterme
+- "Veteriner onaylı" iddiasına kanıt ekle (yazar profili linki, onay badge'i)
+
+6) TARİH GÜNCELLEMESİ
+Sorun: Öne çıkan makale "2024" diyor, ana sayfada "2025" geçiyor, şu an 2026.
+
+Yapılacaklar:
+- Tüm makale tarihlerini 2025-2026'ya güncelle
+- Makale kartlarında yayın/güncelleme tarihi göster
+- "Toy Poodle İçin En İyi Mama Markaları 2024" → "2026" yap
+
+7) FOOTER EKSİK
+Sorun: Rehber sayfasında footer yok (ana sayfada var).
+
+Yapılacaklar:
+- Ana sayfadaki footer component'ini rehber sayfasına da ekle
+- PLATFORM, DESTEK, YASAL linkleri ve copyright olsun
+
+8) MAKALE GÖRSELLERİ YOK
+Sorun: Hiçbir makalede kapak görseli yok, sadece emoji ikon var.
+
+Yapılacaklar:
+- Her makaleye kapak görseli ekle (thumbnail)
+- Liste kartlarında sol tarafta emoji yerine gerçek görsel göster
+- Makale detayında hero görsel olsun
+- Görsel yoksa kategoriye göre varsayılan illüstrasyon kullan
+
+9) KATEGORİ FİLTRE İYİLEŞTİRMESİ
+Mevcut: Tümü, Beslenme, Sağlık, Bakım, Eğitim, Davranış, Üreme
+
+Yapılacaklar:
+- Filtre çalışıyor (iyi) ama Beslenme'de sadece 2 makale var — daha fazla beslenme makalesi ekle
+- Aktif filtre URL'ye yansısın: /yourpoodle/rehber?kategori=beslenme
+- Mobilde yatay scroll pill'lere scroll ipucu ekle (gradient fade veya ok ikonu)
+- Filtre sonucu 0 ise: "Bu kategoride henüz makale yok" mesajı
+
+10) MOBİL / TABLET RESPONSIVE
+
+Mobil (<768px):
+- Hero banner iyi, koru
+- Makale kartları tek sütun, iyi
+- Alt navigasyon içeriği engellemesin (padding-bottom ekle)
+- Filtre pill'leri yatay scroll'da son pill'ler görünmüyor — scroll hint ekle
+- Makale modal'ı tam ekran olsun mobilde
+
+Tablet (768-1024px):
+- Masaüstü layout kullan (alt mobil nav gösterme)
+- Makale grid 2 sütun olsun
+- Hero banner tam genişlik
+
+11) SEO DÜZELTMELERİ
+- Sayfa <title>: "Poodle Rehberi — Bakım, Beslenme, Eğitim ve Sağlık | YourPoodle"
+- og:title ile <title> aynı olsun
+- Sayfa altındaki gizli H2 SEO bloklarını kaldır:
+  "YourPoodle — Toy Poodle Bakım..."
+  "Poodle Mama Rehberi ve Mama Hesaplama"
+  "Poodle Bakım ve Tıraş Rehberi"
+  vb.
+- Site haritası nav'ı sr-only yap
+- Rehber sayfası için WebPage + ItemList schema.org ekle
+
+12) MAKALE DETAY İYİLEŞTİRMELERİ
+Makale açıldığında:
+- Beğen (kalp) butonu çalışsın (localStorage veya backend)
+- Paylaş butonu çalışsın (Web Share API veya kopyala linki)
+- Yazar profiline tıklanabilsin (yazar sayfası veya tooltip)
+- "AI Asistan'a sor" CTA butonu ekle (UZMAN TAVSİYESİ kutusunda)
+- Geri butonu liste görünümüne dönsün
+
+13) KÜÇÜK DÜZELTMELER
+- Header'da 11 menü öğesi çok kalabalık — "Etkinlik", "Bilgi", "Club" alt menüye taşı
+- Onboarding drawer sadece ilk ziyarette gösterilsin (localStorage)
+- Öne çıkan makale filtrelendiğinde "ÖNE ÇIKAN" badge'i kaybolmasın
+
+═══════════════════════════════════════════
+TEST — Düzeltmeden sonra kontrol et:
+═══════════════════════════════════════════
+
+İçerik:
+- 10+ makale listeleniyor mu (veya 50+ eklendiyse hepsi)
+- Makale tıklanınca en az 800 kelime içerik açılıyor mu
+- Her makalenin benzersiz URL'si var mı (/yourpoodle/rehber/slug)
+- Arama "tuvalet" yazınca ilgili makaleleri filtreliyor mu
+- Arama kutusunda "undefined" görünmüyor mu
+
+Kategori:
+- Beslenme filtresi sadece beslenme makalelerini gösteriyor mu
+- Boş kategori için empty state var mı
+
+Responsive:
+- 1920px: 2 sütunlu makale grid, footer var, alt nav yok
+- 768px: 2 sütun grid, alt nav yok, hero tam genişlik
+- 390px: tek sütun, alt nav var, modal tam ekran, filtre scroll çalışıyor
+
+SEO:
+- <title> sayfaya özel
+- Gizli H2 blokları yok
+- Makale sayfalarında Article schema var
+- Breadcrumb görünüyor
