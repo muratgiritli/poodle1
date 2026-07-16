@@ -120,7 +120,7 @@ export default function YourPoodleHomePage() {
   const go = (href: string) => { navigate(href); setDrawerOpen(false); };
 
   return (
-    <div style={{ fontFamily: "'Inter',-apple-system,sans-serif", background: "#FAFAFA", minHeight: "100vh", color: "#111" }}>
+    <div style={{ fontFamily: "'Inter',-apple-system,sans-serif", background: "#fff", minHeight: "100vh", color: "#111" }}>
 
       {/* ─── CSS ──────────────────────────────────────────── */}
       <style>{`
@@ -311,7 +311,7 @@ export default function YourPoodleHomePage() {
 
           {/* Right — hidden on mobile, visible on tablet+ */}
           <div className="yph-hero-right" style={{ position: "relative" }}>
-            <div style={{ borderRadius: 28, overflow: "hidden", boxShadow: "0 24px 64px rgba(124,58,237,0.12), 0 4px 16px rgba(0,0,0,0.06)", position: "relative", aspectRatio: "4/4.5", background: "#fff", border: "1.5px solid #F3F0FF" }}>
+            <div style={{ borderRadius: 28, overflow: "hidden", boxShadow: "0 8px 32px rgba(0,0,0,0.08)", position: "relative", aspectRatio: "4/4.5", background: "#fff" }}>
               <img
                 src="/images/poodle-hero_2.jpg"
                 alt="Toy Poodle"
@@ -344,7 +344,7 @@ export default function YourPoodleHomePage() {
       </section>
 
       {/* ─── NE ARIYORSUNUZ ──────────────────────────────── */}
-      <section style={{ background: "#FAFAFA", padding: "56px 24px" }}>
+      <section style={{ background: "#fff", padding: "56px 24px", borderTop: "1px solid #F3F4F6" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 36 }}>
             <h2 style={{ fontSize: 28, fontWeight: 900, letterSpacing: "-0.5px", marginBottom: 6 }}>Bugün ne arıyorsunuz?</h2>
@@ -423,7 +423,7 @@ export default function YourPoodleHomePage() {
       </section>
 
       {/* ─── HIZLI ARAÇLAR ───────────────────────────────── */}
-      <section style={{ background: "#FAFAFA", padding: "56px 24px", borderTop: "1px solid #F3F4F6" }}>
+      <section style={{ background: "#fff", padding: "56px 24px", borderTop: "1px solid #F3F4F6" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 28 }}>
             <div>
@@ -470,9 +470,9 @@ export default function YourPoodleHomePage() {
                   { emoji: "🎯", tag: "Eğitim",   title: "2 Haftada Tuvalet Eğitimini Tamamlayın", min: "6 dk", href: "/yourpoodle/egitim" },
                 ].map(g => (
                   <button key={g.title} onClick={() => go(g.href)}
-                    style={{ display: "flex", gap: 14, alignItems: "center", padding: "14px", background: "#FAFAFA", borderRadius: 16, cursor: "pointer", border: "1.5px solid #F3F4F6", fontFamily: "inherit", textAlign: "left", transition: "all 0.2s", width: "100%" }}
+                    style={{ display: "flex", gap: 14, alignItems: "center", padding: "14px", background: "#fff", borderRadius: 16, cursor: "pointer", border: "1.5px solid #F3F4F6", fontFamily: "inherit", textAlign: "left", transition: "all 0.2s", width: "100%" }}
                     onMouseEnter={e => { e.currentTarget.style.background = "#F5F3FF"; e.currentTarget.style.borderColor = "#E9D5FF"; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = "#FAFAFA"; e.currentTarget.style.borderColor = "#F3F4F6"; }}>
+                    onMouseLeave={e => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.borderColor = "#F3F4F6"; }}>
                     <div style={{ width: 44, height: 44, borderRadius: 14, background: "linear-gradient(135deg,#7C3AED,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{g.emoji}</div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 10.5, fontWeight: 800, color: "#7C3AED", marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.05em" }}>{g.tag}</div>
@@ -487,7 +487,7 @@ export default function YourPoodleHomePage() {
             {/* Yaşa göre */}
             <div>
               <h2 style={{ fontSize: 20, fontWeight: 900, marginBottom: 20 }}>🐾 Yaşa Göre Rehber</h2>
-              <div style={{ display: "flex", background: "#F9FAFB", borderRadius: 14, padding: 4, marginBottom: 16, border: "1px solid #F3F4F6" }}>
+              <div style={{ display: "flex", background: "#F3F4F6", borderRadius: 14, padding: 4, marginBottom: 16 }}>
                 {(["yavru", "yetiskin", "yasli"] as const).map(tab => (
                   <button key={tab} onClick={() => setAgeTab(tab)}
                     style={{ flex: 1, height: 36, borderRadius: 10, border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 700, transition: "all 0.2s",
@@ -500,9 +500,9 @@ export default function YourPoodleHomePage() {
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {AGE_GUIDES[ageTab].map(item => (
                   <button key={item.title} onClick={() => go("/yourpoodle/rehber")}
-                    style={{ display: "flex", gap: 14, alignItems: "center", padding: "14px", background: "#FAFAFA", borderRadius: 16, cursor: "pointer", border: "1.5px solid #F3F4F6", fontFamily: "inherit", textAlign: "left", transition: "all 0.2s", width: "100%" }}
+                    style={{ display: "flex", gap: 14, alignItems: "center", padding: "14px", background: "#fff", borderRadius: 16, cursor: "pointer", border: "1.5px solid #F3F4F6", fontFamily: "inherit", textAlign: "left", transition: "all 0.2s", width: "100%" }}
                     onMouseEnter={e => { e.currentTarget.style.background = "#F5F3FF"; e.currentTarget.style.borderColor = "#E9D5FF"; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = "#FAFAFA"; e.currentTarget.style.borderColor = "#F3F4F6"; }}>
+                    onMouseLeave={e => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.borderColor = "#F3F4F6"; }}>
                     <div style={{ width: 44, height: 44, borderRadius: 14, background: "#EDE9FE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{item.emoji}</div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 10.5, fontWeight: 800, color: "#7C3AED", marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.05em" }}>{item.tag}</div>
@@ -518,7 +518,7 @@ export default function YourPoodleHomePage() {
       </section>
 
       {/* ─── MAMA BULMA BANNER ───────────────────────────── */}
-      <section style={{ background: "linear-gradient(135deg,#FFFBEB,#FEF3C7)", padding: "56px 24px", borderTop: "1px solid #FDE68A" }}>
+      <section style={{ background: "#fff", padding: "56px 24px", borderTop: "1px solid #F3F4F6" }}>
         <div className="yph-mama-row" style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", gap: 40 }}>
           <div style={{ fontSize: 64, lineHeight: 1, flexShrink: 0 }}>🔍</div>
           <div style={{ flex: 1 }}>
@@ -538,7 +538,7 @@ export default function YourPoodleHomePage() {
       </section>
 
       {/* ─── ÜRÜNLER (static curated) ────────────────────── */}
-      <section style={{ background: "#FAFAFA", padding: "56px 24px", borderTop: "1px solid #F3F4F6" }}>
+      <section style={{ background: "#fff", padding: "56px 24px", borderTop: "1px solid #F3F4F6" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24 }}>
             <div>
@@ -596,7 +596,7 @@ export default function YourPoodleHomePage() {
           </div>
           <div className="yph-grid-3r" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 18 }}>
             {REVIEWS.map(r => (
-              <div key={r.name} style={{ background: "#FAFAFA", borderRadius: 20, padding: 24, border: "1.5px solid #F3F4F6" }}>
+              <div key={r.name} style={{ background: "#fff", borderRadius: 20, padding: 24, border: "1.5px solid #F3F4F6" }}>
                 <div style={{ display: "flex", gap: 3, marginBottom: 14 }}>
                   {Array.from({ length: r.stars }).map((_, i) => <span key={i} style={{ color: "#FBBF24", fontSize: 16 }}>★</span>)}
                 </div>
@@ -615,7 +615,7 @@ export default function YourPoodleHomePage() {
       </section>
 
       {/* ─── SSS + EMAIL ─────────────────────────────────── */}
-      <section style={{ background: "#FAFAFA", padding: "56px 24px", borderTop: "1px solid #F3F4F6" }}>
+      <section style={{ background: "#fff", padding: "56px 24px", borderTop: "1px solid #F3F4F6" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div className="yph-faq-grid" style={{ display: "grid", gridTemplateColumns: "3fr 2fr", gap: 56 }}>
             <div>

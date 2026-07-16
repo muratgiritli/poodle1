@@ -242,7 +242,7 @@ export default function Magaza() {
         @media (max-width:640px)  { .magaza-sort-row { overflow-x:auto; flex-wrap:nowrap !important; } }
       `}</style>
 
-      <div style={{ background:"#F8F8F8", minHeight:"100vh" }}>
+      <div style={{ background:"#fff", minHeight:"100vh" }}>
 
         {/* ── Hero ── */}
         <div style={{ background:"linear-gradient(135deg,#7C3AFF,#A855F7)", padding:"24px 20px 28px", position:"relative", overflow:"hidden" }}>
@@ -330,7 +330,7 @@ export default function Magaza() {
         </div>
 
         {/* ── Sort + count ── */}
-        <div style={{ padding:"10px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8, background:"#F8F8F8" }}>
+        <div style={{ padding:"10px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8, background:"#fff", borderBottom:"1px solid #f0f0f0" }}>
           <span style={{ fontSize:12, color:"#888" }}>
             {isLoading ? "Yükleniyor…" : search ? `"${search}" için ${filtered.length} sonuç` : `${filtered.length} ürün`}
           </span>
