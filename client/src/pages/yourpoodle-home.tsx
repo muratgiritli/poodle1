@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useCustomer } from "@/contexts/CustomerContext";
-import { useQuery } from "@tanstack/react-query";
 import YPBottomNav from "@/components/YPBottomNav";
+
+/* ─── SEO ─────────────────────────────────────────────── */
+const YP_TITLE = "YourPoodle — Toy Poodle Bakım, Mama ve Eğitim Platformu";
+const YP_DESC  = "Toy Poodle sahipleri için Türkiye'nin en kapsamlı bakım, beslenme, sağlık ve eğitim platformu. AI destekli mama önerisi, uzman rehberler ve topluluk.";
 
 /* ─── DATA ───────────────────────────────────────────── */
 const NAV = [
@@ -13,6 +16,18 @@ const NAV = [
   { label: "Eğitim",     href: "/yourpoodle/egitim" },
   { label: "AI Asistan", href: "/yourpoodle/ai-asistan" },
   { label: "Topluluk",   href: "/yourpoodle/topluluk" },
+];
+
+/* Curated Toy/Mini Poodle products — local images only */
+const FEATURED_PRODUCTS = [
+  { id: 1,  name: "Royal Canin Poodle Adult 500g",              price: 289,  img: "/product-images/product-1.webp"  },
+  { id: 2,  name: "Royal Canin Poodle Adult 3 kg",              price: 849,  img: "/product-images/product-2.webp"  },
+  { id: 3,  name: "Pro Plan Small & Mini Adult Somonlu 3 kg",   price: 799,  img: "/product-images/product-3.webp"  },
+  { id: 4,  name: "Pro Plan Toy & Mini Puppy 3 kg",             price: 749,  img: "/product-images/product-4.webp"  },
+  { id: 5,  name: "Hill's Science Plan Small & Miniature 3 kg", price: 899,  img: "/product-images/product-5.webp"  },
+  { id: 6,  name: "Acana Small Breed Tavuk & Balık 2 kg",       price: 689,  img: "/product-images/product-6.webp"  },
+  { id: 7,  name: "Farmina N&D Toy & Mini Adult Tavuk 2 kg",    price: 729,  img: "/product-images/product-7.webp"  },
+  { id: 8,  name: "Orijen Small Breed Köpek Maması 2 kg",       price: 899,  img: "/product-images/product-8.webp"  },
 ];
 
 const NEEDS = [
@@ -78,15 +93,86 @@ export default function YourPoodleHomePage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { isLoggedIn } = useCustomer();
 
-  const { data: products = [] } = useQuery<any[]>({
-    queryKey: ["/api/products"],
-    staleTime: 5 * 60 * 1000,
-  });
+  /* SEO: set title + og:title */
+  useEffect(() => {
+    document.title = YP_TITLE;
+    const setMeta = (attr: string, key: string, val: string) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
+      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
+      el.content = val;
+    };
+    setMeta("property", "og:title", YP_TITLE);
+    setMeta("name", "description", YP_DESC);
+    setMeta("property", "og:description", YP_DESC);
+    setMeta("property", "og:type", "website");
+  }, []);
+
+  /* Onboarding drawer: auto-open once on first visit */
+  useEffect(() => {
+    if (!localStorage.getItem("onboarding_seen")) {
+      setDrawerOpen(true);
+      localStorage.setItem("onboarding_seen", "true");
+    }
+  }, []);
 
   const go = (href: string) => { navigate(href); setDrawerOpen(false); };
 
   return (
     <div style={{ fontFamily: "'Inter',-apple-system,sans-serif", background: "#FAFAFA", minHeight: "100vh", color: "#111" }}>
+
+      {/* ─── CSS ──────────────────────────────────────────── */}
+      <style>{`
+        /* ── Desktop ≥1024px ── */
+        @media (min-width: 1024px) {
+          .yph-mobile-only  { display: none !important; }
+          .yph-desktop-only { display: flex !important; }
+          .yph-btm-nav      { display: none !important; }
+          .yph-hero-right   { display: block !important; }
+          .yph-hero-grid    { grid-template-columns: 1fr 1fr !important; }
+          .yph-grid-4       { grid-template-columns: repeat(4,1fr) !important; }
+          .yph-grid-8       { grid-template-columns: repeat(4,1fr) !important; }
+          .yph-grid-3r      { grid-template-columns: repeat(3,1fr) !important; }
+          .yph-grid-5p      { grid-template-columns: repeat(5,1fr) !important; }
+          .yph-guides-grid  { grid-template-columns: 1fr 1fr !important; }
+          .yph-ai-grid      { grid-template-columns: 1fr 1fr !important; }
+          .yph-faq-grid     { grid-template-columns: 3fr 2fr !important; }
+          .yph-footer-grid  { grid-template-columns: 2fr 1fr 1fr 1fr !important; }
+        }
+        /* ── Tablet 768-1023px ── */
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .yph-mobile-only  { display: none !important; }
+          .yph-desktop-only { display: flex !important; }
+          .yph-btm-nav      { display: none !important; }
+          .yph-hero-right   { display: block !important; }
+          .yph-hero-grid    { grid-template-columns: 1fr 1fr !important; gap: 32px !important; }
+          .yph-grid-4       { grid-template-columns: repeat(2,1fr) !important; }
+          .yph-grid-8       { grid-template-columns: repeat(2,1fr) !important; }
+          .yph-grid-3r      { grid-template-columns: repeat(2,1fr) !important; }
+          .yph-grid-5p      { grid-template-columns: repeat(3,1fr) !important; }
+          .yph-guides-grid  { grid-template-columns: 1fr !important; }
+          .yph-ai-grid      { grid-template-columns: 1fr 1fr !important; }
+          .yph-faq-grid     { grid-template-columns: 1fr !important; }
+          .yph-footer-grid  { grid-template-columns: 1fr 1fr !important; }
+          .yph-mama-row     { flex-direction: row !important; }
+        }
+        /* ── Mobile <768px ── */
+        @media (max-width: 767px) {
+          .yph-desktop-only { display: none !important; }
+          .yph-btm-nav      { display: block !important; }
+          .yph-hero-right   { display: none !important; }
+          .yph-hero-grid    { grid-template-columns: 1fr !important; }
+          .yph-grid-4       { grid-template-columns: repeat(2,1fr) !important; }
+          .yph-grid-8       { grid-template-columns: repeat(2,1fr) !important; }
+          .yph-grid-3r      { grid-template-columns: 1fr !important; }
+          .yph-grid-5p      { grid-template-columns: repeat(2,1fr) !important; }
+          .yph-guides-grid  { grid-template-columns: 1fr !important; }
+          .yph-ai-grid      { grid-template-columns: 1fr !important; }
+          .yph-faq-grid     { grid-template-columns: 1fr !important; }
+          .yph-footer-grid  { grid-template-columns: 1fr 1fr !important; }
+          .yph-mama-row     { flex-direction: column !important; gap: 20px !important; }
+          .yph-page-pad     { padding-bottom: 80px !important; }
+        }
+      `}</style>
 
       {/* ─── MOBILE DRAWER ───────────────────────────────── */}
       {drawerOpen && (
@@ -105,7 +191,7 @@ export default function YourPoodleHomePage() {
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: "8px 0" }}>
           {[{ label: "Ana Sayfa", href: "/" }, ...NAV,
-            { label: "Market", href: "/yourpoodle/magaza" },
+            { label: "Mağaza", href: "/yourpoodle/magaza" },
             { label: "Poodle'ım", href: "/yourpoodle/poodle-ekle" },
           ].map(l => (
             <button key={l.href} onClick={() => go(l.href)}
@@ -135,7 +221,7 @@ export default function YourPoodleHomePage() {
             <span style={{ fontSize: 17, fontWeight: 900, color: "#7C3AED", letterSpacing: "-0.5px", fontFamily: "inherit" }}>YourPoodle</span>
           </button>
 
-          {/* Desktop Nav */}
+          {/* Desktop + Tablet Nav */}
           <nav style={{ display: "flex", gap: 2, flex: 1, overflow: "hidden" }} className="yph-desktop-only">
             {NAV.map(n => (
               <button key={n.href} onClick={() => go(n.href)}
@@ -150,7 +236,7 @@ export default function YourPoodleHomePage() {
             ))}
           </nav>
 
-          {/* Desktop Actions */}
+          {/* Desktop + Tablet Actions */}
           <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }} className="yph-desktop-only">
             <button onClick={() => go(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
               style={{ padding: "7px 18px", borderRadius: 20, border: "1.5px solid #E5E7EB", background: "#fff", fontSize: 13.5, fontWeight: 700, color: "#555", cursor: "pointer", fontFamily: "inherit" }}>
@@ -162,53 +248,23 @@ export default function YourPoodleHomePage() {
             </button>
           </div>
 
-          {/* Mobile Hamburger */}
-          <button onClick={() => setDrawerOpen(true)} className="yph-mobile-only"
-            style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", padding: 6, fontSize: 22, color: "#333" }}>
-            ☰
-          </button>
-        </div>
-
-        {/* Mobile Category Scroll */}
-        <div className="yph-mobile-only" style={{ overflowX: "auto", display: "flex", gap: 6, padding: "6px 12px 8px", borderTop: "1px solid #f5f5f5", scrollbarWidth: "none" }}>
-          {NAV.map(n => (
-            <button key={n.href} onClick={() => go(n.href)}
-              style={{ whiteSpace: "nowrap", padding: "6px 13px", borderRadius: 20, border: "1.5px solid",
-                borderColor: location.startsWith(n.href) ? "#7C3AED" : "#ebebeb",
-                background: location.startsWith(n.href) ? "#7C3AED" : "#fff",
-                color: location.startsWith(n.href) ? "#fff" : "#444",
-                fontSize: 12.5, fontWeight: 700, cursor: "pointer", flexShrink: 0, fontFamily: "inherit" }}>
-              {n.label}
+          {/* Mobile: Hamburger + Giriş Yap */}
+          <div className="yph-mobile-only" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
+            <button onClick={() => go(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
+              style={{ padding: "6px 13px", borderRadius: 20, border: "1.5px solid #7C3AED", background: "#F5F0FF", fontSize: 12, fontWeight: 800, color: "#7C3AED", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+              {isLoggedIn ? "Hesabım" : "Giriş Yap"}
             </button>
-          ))}
+            <button onClick={() => setDrawerOpen(true)}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 6, fontSize: 22, color: "#333" }}>
+              ☰
+            </button>
+          </div>
         </div>
-
-        <style>{`
-          @media (min-width: 900px) { .yph-mobile-only { display: none !important; } }
-          @media (max-width: 899px) { .yph-desktop-only { display: none !important; } }
-          .yph-grid-4  { grid-template-columns: repeat(4,1fr) !important; }
-          .yph-grid-8  { grid-template-columns: repeat(4,1fr) !important; }
-          .yph-grid-3r { grid-template-columns: repeat(3,1fr) !important; }
-          .yph-grid-5p { grid-template-columns: repeat(5,1fr) !important; }
-          @media (max-width: 899px) {
-            .yph-grid-4  { grid-template-columns: repeat(2,1fr) !important; }
-            .yph-grid-8  { grid-template-columns: repeat(2,1fr) !important; }
-            .yph-grid-3r { grid-template-columns: repeat(1,1fr) !important; }
-            .yph-grid-5p { grid-template-columns: repeat(3,1fr) !important; }
-            .yph-hero-grid   { grid-template-columns: 1fr !important; }
-            .yph-ai-grid     { grid-template-columns: 1fr !important; }
-            .yph-guides-grid { grid-template-columns: 1fr !important; }
-            .yph-faq-grid    { grid-template-columns: 1fr !important; }
-            .yph-footer-grid { grid-template-columns: 1fr 1fr !important; }
-            .yph-hero-right  { display: none !important; }
-            .yph-mama-row    { flex-direction: column !important; gap: 20px !important; }
-          }
-          @media (max-width: 599px) {
-            .yph-grid-5p { grid-template-columns: repeat(2,1fr) !important; }
-            .yph-footer-grid { grid-template-columns: 1fr !important; }
-          }
-        `}</style>
+        {/* NOTE: Horizontal pill nav removed — hamburger + bottom tab bar sufficient on mobile */}
       </header>
+
+      {/* ─── PAGE CONTENT ────────────────────────────────── */}
+      <div className="yph-page-pad">
 
       {/* ─── HERO ────────────────────────────────────────── */}
       <section style={{ background: "#fff", borderBottom: "1px solid #F0F0F0" }}>
@@ -221,7 +277,7 @@ export default function YourPoodleHomePage() {
               <span style={{ fontSize: 12, fontWeight: 700, color: "#7C3AED" }}>Türkiye'nin #1 Poodle Platformu</span>
             </div>
 
-            <h1 style={{ fontSize: 50, fontWeight: 900, lineHeight: 1.1, letterSpacing: "-2px", marginBottom: 18, color: "#0F0F0F" }}>
+            <h1 style={{ fontSize: "clamp(32px,5vw,50px)", fontWeight: 900, lineHeight: 1.1, letterSpacing: "-2px", marginBottom: 18, color: "#0F0F0F" }}>
               Toy Poodle'ınız<br />
               <span style={{ background: "linear-gradient(135deg,#7C3AED,#EC4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>için her şey</span><br />
               tek yerde
@@ -242,26 +298,25 @@ export default function YourPoodleHomePage() {
               </button>
             </div>
 
-            <div style={{ display: "flex", gap: 32 }}>
-              {[["50K+", "Aktif üye"], ["500+", "Rehber yazısı"], ["4.9★", "Kullanıcı puanı"]].map(([n, l]) => (
-                <div key={l}>
-                  <div style={{ fontSize: 22, fontWeight: 900, color: "#111", letterSpacing: "-0.5px" }}>{n}</div>
+            {/* Stats — flex-wrap so they never overflow on mobile */}
+            <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+              {[["50K+", "Aktif üye"], ["500+", "Rehber"], ["4.9★", "Puan"]].map(([n, l]) => (
+                <div key={l} style={{ minWidth: 60 }}>
+                  <div style={{ fontSize: 20, fontWeight: 900, color: "#111", letterSpacing: "-0.5px" }}>{n}</div>
                   <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 600, marginTop: 2 }}>{l}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Right */}
+          {/* Right — hidden on mobile, visible on tablet+ */}
           <div className="yph-hero-right" style={{ position: "relative" }}>
-            {/* Real Poodle Photo */}
             <div style={{ borderRadius: 28, overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.14)", position: "relative", aspectRatio: "4/4.5" }}>
               <img
                 src="/images/poodle-real-hero.jpg"
                 alt="Toy Poodle"
                 style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
               />
-              {/* Gradient overlay at bottom */}
               <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "40%", background: "linear-gradient(to top, rgba(124,58,237,0.7), transparent)", borderRadius: "0 0 28px 28px" }} />
               <div style={{ position: "absolute", bottom: 20, left: 20, right: 20 }}>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -271,8 +326,6 @@ export default function YourPoodleHomePage() {
                 </div>
               </div>
             </div>
-
-            {/* Floating badges */}
             <div style={{ position: "absolute", top: -14, left: -14, background: "#fff", borderRadius: 16, padding: "10px 16px", boxShadow: "0 8px 24px rgba(0,0,0,0.1)", display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 22 }}>🎓</span>
               <div>
@@ -412,7 +465,7 @@ export default function YourPoodleHomePage() {
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {[
-                  { emoji: "🥇", tag: "Beslenme", title: "Toy Poodle İçin En İyi Mama Markaları 2025", min: "5 dk", href: "/yourpoodle/mama-bul" },
+                  { emoji: "🥇", tag: "Beslenme", title: "Toy Poodle İçin En İyi Mama Markaları 2026", min: "5 dk", href: "/yourpoodle/mama-bul" },
                   { emoji: "✂️", tag: "Bakım",    title: "Evde Poodle Tıraşı: Adım Adım Eksiksiz Rehber", min: "8 dk", href: "/yourpoodle/bakim" },
                   { emoji: "👁️", tag: "Sağlık",   title: "Göz Altı Kızarıklığı: Neden Olur, Nasıl Geçer?", min: "4 dk", href: "/yourpoodle/saglik" },
                   { emoji: "🎯", tag: "Eğitim",   title: "2 Haftada Tuvalet Eğitimini Tamamlayın", min: "6 dk", href: "/yourpoodle/egitim" },
@@ -485,45 +538,42 @@ export default function YourPoodleHomePage() {
         </div>
       </section>
 
-      {/* ─── ÜRÜNLER ─────────────────────────────────────── */}
-      {products.length > 0 && (
-        <section style={{ background: "#FAFAFA", padding: "56px 24px", borderTop: "1px solid #F3F4F6" }}>
-          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24 }}>
-              <div>
-                <h2 style={{ fontSize: 26, fontWeight: 900, letterSpacing: "-0.5px", marginBottom: 4 }}>🛍️ Poodle Sahiplerinin Tercihleri</h2>
-                <p style={{ fontSize: 14, color: "#6B7280" }}>En çok tercih edilen ürünler</p>
-              </div>
-              <button onClick={() => go("/yourpoodle/magaza")} style={{ fontSize: 13.5, fontWeight: 700, color: "#7C3AED", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
-                Tümünü Gör →
-              </button>
+      {/* ─── ÜRÜNLER (static curated) ────────────────────── */}
+      <section style={{ background: "#FAFAFA", padding: "56px 24px", borderTop: "1px solid #F3F4F6" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24 }}>
+            <div>
+              <h2 style={{ fontSize: 26, fontWeight: 900, letterSpacing: "-0.5px", marginBottom: 4 }}>🛍️ Poodle Sahiplerinin Tercihleri</h2>
+              <p style={{ fontSize: 14, color: "#6B7280" }}>Toy & Miniature Poodle için önerilen ürünler</p>
             </div>
-            <div className="yph-grid-5p" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12 }}>
-              {products.slice(0, 10).map((p: any) => (
-                <button key={p.id} onClick={() => go(`/urun/${p.id}`)}
-                  style={{ background: "#fff", borderRadius: 16, overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column", border: "1.5px solid #F3F4F6", padding: 0, fontFamily: "inherit", textAlign: "left", transition: "all 0.2s" }}
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.1)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}>
-                  <div style={{ background: "#F5F3FF", aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
-                    {p.img
-                      ? <img src={p.img} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      : <span style={{ fontSize: 32 }}>🐾</span>}
-                    {p.originalPrice && p.originalPrice > p.price && (
-                      <div style={{ position: "absolute", top: 8, left: 8, background: "#EF4444", borderRadius: 8, padding: "2px 7px" }}>
-                        <span style={{ fontSize: 10, fontWeight: 800, color: "#fff" }}>İND.</span>
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ padding: "10px 12px 14px" }}>
-                    <div style={{ fontSize: 11.5, fontWeight: 700, color: "#111", lineHeight: 1.35, marginBottom: 6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as any, overflow: "hidden" }}>{p.name}</div>
-                    <div style={{ fontSize: 14, fontWeight: 900, color: "#7C3AED" }}>₺{Number(p.price).toLocaleString("tr-TR", { minimumFractionDigits: 0 })}</div>
-                  </div>
-                </button>
-              ))}
-            </div>
+            <button onClick={() => go("/yourpoodle/magaza")} style={{ fontSize: 13.5, fontWeight: 700, color: "#7C3AED", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+              Tümünü Gör →
+            </button>
           </div>
-        </section>
-      )}
+          <div className="yph-grid-5p" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+            {FEATURED_PRODUCTS.map(p => (
+              <button key={p.id} onClick={() => go("/yourpoodle/magaza")}
+                style={{ background: "#fff", borderRadius: 16, overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column", border: "1.5px solid #F3F4F6", padding: 0, fontFamily: "inherit", textAlign: "left", transition: "all 0.2s" }}
+                onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.1)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+                onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}>
+                <div style={{ background: "#F5F3FF", aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                  <img
+                    src={p.img}
+                    alt={p.name}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    onError={e => { e.currentTarget.style.display = "none"; (e.currentTarget.nextSibling as HTMLElement).style.display = "flex"; }}
+                  />
+                  <span style={{ fontSize: 32, display: "none", width: "100%", height: "100%", alignItems: "center", justifyContent: "center" }}>🐾</span>
+                </div>
+                <div style={{ padding: "10px 12px 14px" }}>
+                  <div style={{ fontSize: 11.5, fontWeight: 700, color: "#111", lineHeight: 1.35, marginBottom: 6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as any, overflow: "hidden" }}>{p.name}</div>
+                  <div style={{ fontSize: 14, fontWeight: 900, color: "#7C3AED" }}>₺{p.price.toLocaleString("tr-TR")}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ─── YORUMLAR ────────────────────────────────────── */}
       <section style={{ background: "#fff", padding: "56px 24px", borderTop: "1px solid #F3F4F6" }}>
@@ -616,7 +666,7 @@ export default function YourPoodleHomePage() {
               <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.7, maxWidth: 240 }}>Toy Poodle sahipleri için Türkiye'nin en kapsamlı bakım, beslenme ve eğitim platformu.</p>
             </div>
             {[
-              { title: "Platform", links: [["Rehber", "/yourpoodle/rehber"], ["Mama Bul", "/yourpoodle/mama-bul"], ["AI Asistan", "/yourpoodle/ai-asistan"], ["Topluluk", "/yourpoodle/topluluk"], ["Market", "/yourpoodle/magaza"]] },
+              { title: "Platform", links: [["Rehber", "/yourpoodle/rehber"], ["Mama Bul", "/yourpoodle/mama-bul"], ["AI Asistan", "/yourpoodle/ai-asistan"], ["Topluluk", "/yourpoodle/topluluk"], ["Mağaza", "/yourpoodle/magaza"]] },
               { title: "Destek",   links: [["SSS", "/sss"], ["İletişim", "/iletisim"], ["Sipariş Takip", "/siparis-takip"], ["Yardım", "/iletisim"]] },
               { title: "Yasal",   links: [["Kullanım Koşulları", "/kullanim-kosullari"], ["Gizlilik", "/gizlilik"], ["KVKK", "/kvkk"], ["Çerez", "/cerez-politikasi"]] },
             ].map(col => (
@@ -634,7 +684,7 @@ export default function YourPoodleHomePage() {
             ))}
           </div>
           <div style={{ borderTop: "1px solid #1F2937", paddingTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
-            <span style={{ fontSize: 12, color: "#4B5563" }}>© 2025 Sizpa İnternet Tic. Ltd. Şti. · info@yourpoodle.com</span>
+            <span style={{ fontSize: 12, color: "#4B5563" }}>© 2026 Sizpa İnternet Tic. Ltd. Şti. · info@yourpoodle.com</span>
             <div style={{ display: "flex", gap: 20 }}>
               {[["Gizlilik", "/gizlilik"], ["Çerezler", "/cerez-politikasi"], ["KVKK", "/kvkk"]].map(([l, h]) => (
                 <button key={l} onClick={() => go(h)} style={{ fontSize: 12, color: "#4B5563", cursor: "pointer", background: "none", border: "none", fontFamily: "inherit", transition: "color 0.15s" }}
@@ -648,8 +698,10 @@ export default function YourPoodleHomePage() {
         </div>
       </footer>
 
+      </div>{/* yph-page-pad */}
+
       {/* ─── MOBILE BOTTOM NAV ───────────────────────────── */}
-      <div className="yph-mobile-only">
+      <div className="yph-btm-nav">
         <YPBottomNav />
       </div>
 

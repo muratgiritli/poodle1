@@ -1,0 +1,118 @@
+YourPoodle ana sayfasını (https://www.yourpoodle.com/) düzelt.
+Mevcut tasarımı, renkleri ve component yapısını koru.
+Sadece ana sayfa ile ilgili sorunları düzelt, başka sayfalara dokunma.
+
+═══════════════════════════════════════════
+ANA SAYFA DÜZELTMELERİ
+═══════════════════════════════════════════
+
+1) KIRIK ÜRÜN GÖRSELLERİ (KRİTİK)
+Bölüm: "🛍️ Poodle Sahiplerinin Tercihleri"
+
+Sorun: 11 üründen 8'inin görseli yüklenmiyor.
+Kaynak: harici mamato ptancisi.com URL'leri.
+
+Yapılacaklar:
+- Tüm ürün görsellerini kendi CDN'ine taşı (/product-images/ klasörü)
+- Harici mamato ptancisi.com image URL'lerini tamamen kaldır
+- Görsel yüklenemezse düzgün placeholder göster (kırık img ikonu olmasın)
+- Ürün adı ile görsel tutarlı olsun (yanlış marka/görsel eşleşmesi olmasın)
+
+2) ÜRÜN LİSTESİ FİLTRESİ (KRİTİK)
+Bölüm: "🛍️ Poodle Sahiplerinin Tercihleri"
+
+Sorun: Toy Poodle sitesinde alakasız ürünler gösteriliyor:
+- Royal Canin Giant 15 kg
+- Royal Canin Yorkshire Terrier
+- Pro Plan Large Athletic 14 kg
+- Pro Plan Large Puppy 12 kg
+
+Yapılacaklar:
+- Ana sayfada sadece Toy/Miniature Poodle'a uygun ürünler göster
+- Öncelik: small, mini, xs, poodle ırk mamaları
+- Giant, large, yorkshire gibi alakasız ürünleri bu bölümden çıkar
+- En az 6 ürün göster, hepsinin görseli çalışsın
+
+3) TABLET BREAKPOINT (768px–1024px)
+Sorun: 768px'te site mobil layout'a düşüyor, hero görseli kayboluyor.
+
+Yapılacaklar:
+- 768px–1024px için ayrı tablet layout tanımla:
+  * Hero: 2 sütun kalsın (metin + görsel), görsel küçülsün ama GİZLENMESİN
+  * Konu kartları: 2x2 grid
+  * Alt mobil navigasyon GÖSTERİLMESİN
+  * Üst navigasyon tam menü olarak kalsın
+- 1024px+: mevcut masaüstü layout
+- <768px: mobil layout
+
+4) MOBİL DÜZELTMELER (<768px)
+
+a) Hero istatistik metni kesiliyor
+- "500+ Rehber yazısı" → "Rehber v..." olarak görünüyor
+- font-size küçült veya flex-wrap ekle, metin taşmasın
+
+b) Alt navigasyon içeriği engelliyor
+- Alt nav bar FAQ ve footer tıklamalarını bloke ediyor
+- body'ye padding-bottom: alt-nav-height ekle
+- z-index düzenle, içerik tıklanabilir olsun
+
+c) Mobilde "Giriş Yap" yok
+- Header'a mobilde de "Giriş Yap" butonu ekle
+
+d) Yatay pill navigasyon gereksiz
+- Mobilde hamburger + alt bar yeterli
+- Header altındaki yatay pill navigasyonu (Rehber, Mama Bul, Sağlık...) KALDIR
+
+5) NAVİGASYON TUTARLILIĞI
+- "Mağaza" / "Market" isim tutarsızlığını düzelt → her yerde "Mağaza" kullan
+- Onboarding drawer sadece ilk ziyarette gösterilsin (localStorage: onboarding_seen = true)
+- Onboarding drawer ile hamburger menüyü görsel olarak ayırt et
+
+6) SEO DÜZELTMELERİ
+- Ana sayfa <title> şu olsun:
+  "YourPoodle — Toy Poodle Bakım, Mama ve Eğitim Platformu"
+- og:title ile <title> aynı olsun
+- Sayfa altındaki gizli/tekrarlı H2 SEO bloklarını kaldır:
+  "YourPoodle — Toy Poodle Bakım, Mama, Eğitim ve Sağlık Platformu"
+  "Poodle Mama Rehberi ve Mama Hesaplama"
+  "Poodle Bakım ve Tıraş Rehberi"
+  "Poodle Eğitim ve Davranış Rehberi"
+  "Poodle Sağlık Rehberi ve Araçlar"
+- Site haritası nav'ı sr-only yap veya footer'a taşı
+- Ana sayfada tek görünür H1 kalsın: "Toy Poodle'ınız için her şey tek yerde"
+
+7) KÜÇÜK DÜZELTMELER
+- Footer copyright: © 2025 → © 2026
+- SSS accordion'lar mobilde tıklanabilir olsun (alt nav engellemesin)
+- Newsletter formu çalıştığını doğrula
+
+═══════════════════════════════════════════
+TEST — Düzeltmeden sonra kontrol et:
+═══════════════════════════════════════════
+
+1920px (masaüstü):
+- Hero 2 sütun (metin + poodle görseli)
+- 4 sütunlu konu kartları
+- Alt mobil nav YOK
+- Ürün görsellerinin tamamı yüklensin
+- Ürünler Toy/Miniature Poodle'a uygun olsun
+
+1024px (tablet yatay):
+- Hero 2 sütun, görsel görünsün
+- Alt mobil nav YOK
+
+768px (tablet dikey):
+- Hero 2 sütun, görsel GİZLENMESİN
+- 2x2 konu kartları
+- Alt mobil nav YOK
+
+390px (mobil):
+- Hero tek sütun, istatistik metni kesilmesin
+- Alt nav VAR ama FAQ/footer tıklanabilsin
+- Yatay pill nav YOK
+- Header'da "Giriş Yap" VAR
+- Hamburger menü çalışsın
+
+Ürün bölümü:
+- Tüm görseller yüklensin (0 kırık görsel)
+- Giant, Yorkshire, Large gibi alakasız ürünler olmasın
