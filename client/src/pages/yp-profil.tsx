@@ -143,7 +143,7 @@ export default function YPProfilPage() {
                 )}
 
                 <button
-                  onClick={() => navigate("/yourpoodle/poodle-ekle")}
+                  onClick={() => navigate("/yourpoodle/giris")}
                   style={{ width: "100%", height: 48, borderRadius: 14, background: "#7C3AFF", border: "none", color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontFamily: "'Inter', sans-serif" }}
                 >
                   <Edit3 size={18} />
@@ -183,11 +183,11 @@ export default function YPProfilPage() {
             </p>
 
             <button
-              onClick={() => navigate("/yourpoodle/poodle-ekle")}
+              onClick={() => navigate("/yourpoodle/giris")}
               style={{ height: 52, borderRadius: 16, background: "#7C3AFF", border: "none", color: "#fff", fontSize: 16, fontWeight: 800, padding: "0 32px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "'Inter', sans-serif", marginBottom: 14 }}
             >
               <Plus size={20} />
-              Poodle Ekle
+              Ücretsiz Başla
             </button>
 
             {!isLoggedIn && (

@@ -889,7 +889,6 @@ export async function registerRoutes(
         { url: "/yourpoodle/club/hakkimizda",        priority: "0.6", changefreq: "monthly" },
         { url: "/yourpoodle/topluluk",               priority: "0.7", changefreq: "weekly" },
         { url: "/yourpoodle/etkinlikler",            priority: "0.6", changefreq: "weekly" },
-        { url: "/yourpoodle/poodle-ekle",            priority: "0.6", changefreq: "monthly" },
         { url: "/yourpoodle/hakkinda",               priority: "0.5", changefreq: "monthly" },
         { url: "/yourpoodle/profil",                 priority: "0.4", changefreq: "monthly" },
         { url: "/yourpoodle/kullanim-sartlari",      priority: "0.3", changefreq: "yearly" },

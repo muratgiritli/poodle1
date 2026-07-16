@@ -94,7 +94,6 @@ const YPClubHakkimizdaPage= lazy(() => import("@/pages/yp-club-hakkimizda"));
 const YPBilgiPage         = lazy(() => import("@/pages/yp-bilgi"));
 const YPMagazaPage        = lazy(() => import("@/pages/yp-magaza"));
 const YPGirisPage         = lazy(() => import("@/pages/yp-giris"));
-const YPPoodleEklePage    = lazy(() => import("@/pages/yp-poodle-ekle"));
 const YPToplulukPage      = lazy(() => import("@/pages/yp-topluluk"));
 const YPMamaPage          = lazy(() => import("@/pages/yp-mama"));
 const YPEgitimPage        = lazy(() => import("@/pages/yp-egitim"));
@@ -200,7 +199,6 @@ function Router() {
         <Route path="/yourpoodle/bilgi"          component={YPBilgiPage} />
         <Route path="/yourpoodle/magaza"         component={YPMagazaPage} />
         <Route path="/yourpoodle/giris"          component={YPGirisPage} />
-        <Route path="/yourpoodle/poodle-ekle"    component={YPPoodleEklePage} />
         <Route path="/yourpoodle/topluluk"       component={YPToplulukPage} />
         <Route path="/yourpoodle/mama"           component={YPMamaPage} />
         <Route path="/yourpoodle/egitim">{() => <Redirect to="/yourpoodle/rehber?tab=egitim" />}</Route>

@@ -26,7 +26,6 @@ const DRAWER_LINKS = [
   { label: "E\u011fitim",     href: "/yourpoodle/egitim" },
   { label: "Topluluk",   href: "/yourpoodle/topluluk" },
   { label: "Etkinlik",   href: "/yourpoodle/etkinlikler" },
-  { label: "Poodle'\u0131m",  href: "/yourpoodle/poodle-ekle" },
 ];
 
 interface Props {
@@ -120,7 +119,7 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
                   {isLoggedIn ? "Hesab\u0131m" : "Giri\u015f Yap"}
                 </button>
                 {!isLoggedIn && (
-                  <button onClick={() => navigate("/yourpoodle/poodle-ekle")}
+                  <button onClick={() => navigate("/yourpoodle/giris")}
                     style={{
                       padding: "7px 18px", borderRadius: 20, border: "none",
                       background: "linear-gradient(135deg,#7C3AED,#A855F7)",
@@ -164,7 +163,7 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
           ))}
         </div>
         <div style={{ padding: "16px 18px", borderTop: "1px solid #f2f2f2" }}>
-          <button onClick={() => { navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/poodle-ekle"); setDrawerOpen(false); }}
+          <button onClick={() => { navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris"); setDrawerOpen(false); }}
             style={{ width: "100%", height: 46, borderRadius: 12, background: "linear-gradient(135deg,#7C3AED,#A855F7)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
             {isLoggedIn ? "\ud83d\udc64 Hesab\u0131m" : "Ücretsiz Başla"}
           </button>

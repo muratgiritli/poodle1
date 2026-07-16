@@ -18,7 +18,7 @@ const YP_COMMUNITY_LINKS = [
   { label: "Poodle Club", href: "/yourpoodle/club", icon: Users },
   { label: "Etkinlikler", href: "/yourpoodle/etkinlikler", icon: Users },
   { label: "Topluluk", href: "/yourpoodle/topluluk", icon: Users },
-  { label: "Profil Oluştur", href: "/yourpoodle/poodle-ekle", icon: Users },
+  { label: "Profil Oluştur", href: "/yourpoodle/profil", icon: Users },
 ];
 
 const SUPPORT_LINKS = [

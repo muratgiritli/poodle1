@@ -197,7 +197,6 @@ export default function YourPoodleHomePage() {
             { label: "Bakım",      href: "/yourpoodle/bakim" },
             { label: "Eğitim",     href: "/yourpoodle/egitim" },
             { label: "Topluluk",   href: "/yourpoodle/topluluk" },
-            { label: "Poodle'ım",  href: "/yourpoodle/poodle-ekle" },
           ].map(l => (
             <button key={l.href} onClick={() => go(l.href)}
               style={{ display: "block", width: "100%", padding: "13px 20px", fontSize: 15, fontWeight: 600,
@@ -246,7 +245,7 @@ export default function YourPoodleHomePage() {
               style={{ padding: "7px 18px", borderRadius: 20, border: "1.5px solid #E5E7EB", background: "#fff", fontSize: 13.5, fontWeight: 700, color: "#555", cursor: "pointer", fontFamily: "inherit" }}>
               {isLoggedIn ? "Hesabım" : "Giriş Yap"}
             </button>
-            <button onClick={() => go("/yourpoodle/poodle-ekle")}
+            <button onClick={() => go("/yourpoodle/giris")}
               style={{ padding: "7px 18px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#7C3AED,#A855F7)", fontSize: 13.5, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>
               Ücretsiz Başla
             </button>
@@ -417,7 +416,7 @@ export default function YourPoodleHomePage() {
                   ))}
                 </div>
               </div>
-              <button onClick={() => go("/yourpoodle/poodle-ekle")}
+              <button onClick={() => go("/yourpoodle/giris")}
                 style={{ width: "100%", height: 50, borderRadius: 14, background: "#EC4899", border: "none", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 16px rgba(236,72,153,0.3)" }}>
                 Ücretsiz Profil Oluştur →
               </button>
