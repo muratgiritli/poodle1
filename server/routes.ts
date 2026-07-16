@@ -904,6 +904,7 @@ export async function registerRoutes(
         { url: "/yourpoodle/kariyer",                 priority: "0.4", changefreq: "monthly" },
         { url: "/yourpoodle/bayi-basvurusu",          priority: "0.4", changefreq: "monthly" },
         { url: "/yourpoodle/fotograf-yarismasi",      priority: "0.6", changefreq: "weekly" },
+        { url: "/yourpoodle/ozel-tasarim",            priority: "0.5", changefreq: "monthly" },
         // /yourpoodle/giris is noindex — excluded
       ];
 

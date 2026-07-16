@@ -14,7 +14,7 @@ const COLUMNS = [
       { label: "Hakkımızda",          href: "/yourpoodle/hakkinda" },
       { label: "Kariyer",             href: "/yourpoodle/kariyer" },
       { label: "Bayi Başvurusu",      href: "/yourpoodle/bayi-basvurusu" },
-      { label: "Fotoğraf Yarışması",  href: "/yourpoodle/fotograf-yarismasi" },
+      { label: "Fotoğraf Yarışması",  href: "/yourpoodle/club?tab=poodlem" },
     ],
   },
   {
@@ -25,7 +25,7 @@ const COLUMNS = [
       { label: "Bakım Ürünleri",  href: "/yourpoodle/magaza?kategori=bakim" },
       { label: "Oyuncaklar",      href: "/yourpoodle/magaza?kategori=oyuncak" },
       { label: "Kıyafetler",      href: "/yourpoodle/magaza?kategori=kiyafet" },
-      { label: "Özel Tasarım",    href: "/yourpoodle/magaza?kategori=ozel-tasarim" },
+      { label: "Özel Tasarım",    href: "/yourpoodle/ozel-tasarim" },
       { label: "Kampanyalar",     href: "/yourpoodle/magaza?kategori=kampanya" },
     ],
   },
