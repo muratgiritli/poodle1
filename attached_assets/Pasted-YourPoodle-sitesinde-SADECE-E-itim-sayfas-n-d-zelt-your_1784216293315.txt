@@ -1,0 +1,258 @@
+YourPoodle sitesinde SADECE Eğitim sayfasını düzelt: /yourpoodle/egitim
+Canlı URL: https://www.yourpoodle.com/yourpoodle/egitim
+
+Masaüstü (1920px), tablet (1024px, 768px) ve mobil (390px) için test et.
+Diğer sayfalara dokunma; sadece bu sayfa ve bağlı bileşenleri.
+
+---
+
+## P1 — KRİTİK HATALAR (önce bunları düzelt)
+
+### 1. Yaş filtresi makaleleri filtrelemiyor
+"Yaşa Göre Eğitim" sekmeleri (Yavru / Genç / Yetişkin) sadece üstteki konu listesini değiştiriyor.
+Alttaki 6 makale HER ZAMAN aynı kalıyor — bu yanıltıcı.
+
+Düzelt (iki seçenek):
+A) Yaş sekmesi makaleleri de filtrelesin:
+   - Yavru: Tuvalet Eğitimi, Sosyalleşme, Bakım Rutinine Alıştırma
+   - Genç: Temel Komutlar, Clicker Eğitimi, Sosyalleşme
+   - Yetişkin: Agility, Clicker (ileri), Temel Komutlar (pekiştirme)
+B) Filtreleme yoksa sekme altına not ekle: "Tüm yaş grupları için geçerli makaleler"
+
+Tercih: A — gerçek filtreleme.
+
+### 2. Yaş konuları tıklanabilir değil
+"Tuvalet eğitimi", "Isırma kontrolü", "Çevre güvenliği" vb. statik metin.
+Her konu tıklanınca ilgili makaleye veya anchor'a gitsin:
+- Tuvalet eğitimi → /egitim/tuvalet-egitimi veya makale modal/slug
+- Isırma kontrolü → /egitim/isirma-kontrolu (yeni makale)
+- Havlama → /egitim/havlama-kontrolu (yeni makale)
+
+### 3. Meta'da vaat edilen içerikler eksik
+Meta description: "havlama ve yalnız kalma sorunları"
+Gizli SEO: "havlama ve ısırma davranışları"
+Sayfada bu konularda makale YOK.
+
+Ekle (min. 3 yeni makale):
+- /egitim/poodle-havlama-kontrolu
+- /egitim/yalniz-kalma-kaygisi
+- /egitim/isirma-davranisi-cozumu
+
+### 4. H1 etiketi yok
+"Bğitim Rehberi" şu an <div>, semantik H1 değil (h1Count: 0).
+- Hero başlığını <h1>Poodle Eğitim Rehberi</h1> yap
+- Alt başlık <p> olarak kalsın
+
+### 5. <title> ile og:title uyumsuz + çift meta
+Şu an:
+- <title>: "Toy Poodle Rehberi, Bakımı ve Mama Seçimi | YourPoodle" (genel)
+- og:title (1): "Toy Poodle Eğitimi: Komutlar ve Davranış | YourPoodle"
+- og:title (2): "Poodle Eğitim Rehberi | YourPoodle"
+- İki farklı meta description
+- og:type hem "article" hem "website"
+
+Düzelt — TEK SET meta:
+<title>Poodle Eğitim Rehberi: Komutlar, Tuvalet ve Davranış | YourPoodle</title>
+<meta name="description" content="Toy Poodle eğitim rehberi: otur, gel, bırak komutları, tuvalet eğitimi, clicker eğitimi, havlama ve yalnız kalma çözümleri. Adım adım ödül bazlı eğitim." />
+<meta property="og:title" content="Poodle Eğitim Rehberi: Komutlar, Tuvalet ve Davranış | YourPoodle" />
+<meta property="og:description" content="Toy Poodle eğitim rehberi: otur, gel, bırak komutları, tuvalet eğitimi, clicker eğitimi, havlama ve yalnız kalma çözümleri." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://www.yourpoodle.com/yourpoodle/egitim" />
+<meta property="og:image" content="https://www.yourpoodle.com/images/egitim-og.webp" />
+
+Çift/çakışan meta etiketlerini KALDIR.
+
+Canonical koru: https://www.yourpoodle.com/yourpoodle/egitim
+
+### 6. Bölüm başlıkları semantik değil
+"Yaşa Göre Eğitim", "Eğitim Yazıları" şu an DIV.
+<h2>Yaşa Göre Eğitim</h2>
+<h2>Eğitim Yazıları</h2>
+
+### 7. Bottom nav yanlış aktif state (mobil/tablet)
+Eğitim sayfasındayken bottom nav'da "Mağaza" highlight oluyor.
+- pathname === '/yourpoodle/egitim' → "Rehber" veya "Bilgi" aktif olsun
+
+### 8. Mobil alt padding
+"Club'a Git" butonu bottom nav ile çakışabilir.
+- padding-bottom: 80px ekle
+
+---
+
+## P2 — İÇERİK VE YAPI
+
+### 9. Makaleler modal yerine slug URL
+Her makale için slug URL:
+- /yourpoodle/egitim/temel-komutlar
+- /yourpoodle/egitim/clicker-egitimi
+- /yourpoodle/egitim/tuvalet-egitimi
+- /yourpoodle/egitim/sosyallesme
+- /yourpoodle/egitim/agility-egitimi
+- /yourpoodle/egitim/bakim-rutini-egitimi
+- /yourpoodle/egitim/poodle-havlama-kontrolu (YENİ)
+- /yourpoodle/egitim/yalniz-kalma-kaygisi (YENİ)
+- /yourpoodle/egitim/isirma-davranisi-cozumu (YENİ)
+
+Makale sayfası:
+- Breadcrumb: Ana Sayfa > Eğitim > [Başlık]
+- H1, kategori, seviye rozeti, okuma süresi, tarih
+- Min. 800 kelime, H2/H3, numaralı adımlar (HowTo uyumlu)
+- İlgili Makaleler
+- CTA: Club veya AI Asistan
+
+### 10. Makale içeriklerini genişlet
+"Tuvalet Eğitimi: Adım Adım" şu an tek paragraf (~150 kelime).
+
+Minimum yapı (tuvalet eğitimi örneği):
+1. Giriş (neden önemli, kaç hafta sürer)
+2. Hazırlık (tasma, ödül, çıkış noktası)
+3. Adım 1: Rutin oluştur (yemekten 20-30 dk sonra)
+4. Adım 2: Ödüllendirme (anında, pozitif)
+5. Adım 3: Kaza yönetimi (asla cezalandırma)
+6. Adım 4: Gece rutini
+7. Adım 5: İlerleme takibi
+8. Sık yapılan hatalar
+9. Ne zaman profesyonel eğitmen
+
+"Temel Komutlar" için: Otur, Gel, Bırak, Bekle, Dur — her biri ayrı alt başlık + adımlar.
+
+### 11. "Hızlı Cevaplar" bölümü (AI arama + SEO)
+Hero ile yaş sekmeleri arasına:
+
+S: Toy Poodle tuvalet eğitimi ne kadar sürer?
+C: Genellikle 2-4 hafta içinde temel alışkanlık oluşur.
+
+S: Poodle günde ne kadar eğitim yapılmalı?
+C: 10 dakikalık kısa ve pozitif seanslar idealdir.
+
+S: Poodle kaç haftada temel komutları öğrenir?
+C: Otur, gel, bırak komutları 4 haftalık programla öğretilebilir.
+
+S: Poodle neden çok havlar?
+C: Dikkat, kaygı veya sıkıntı belirtisi olabilir.
+
+S: Poodle yalnız kalamıyor ne yapmalıyım?
+C: Kademeli ayrılma eğitimi ve yalnız kalma kaygısı rehberimizi inceleyin.
+
+### 12. "Davranış Sorunları" bölümü ekle
+Eğitim Yazıları ile Club CTA arasına:
+
+┌─────────────────────────────────────────────┐
+│ ⚠️ Davranış Sorunları                        │
+│                                              │
+│ [Havlama Kontrolü]  [Yalnız Kalma Kaygısı]  │
+│ [Isırma Davranışı]  [Aşırı Havlama]         │
+└─────────────────────────────────────────────┘
+
+Her kart ilgili makale slug'ına gitsin.
+
+### 13. 4 Haftalık Temel Komut Programı (hero vaadi)
+Hero'da "4 hafta Temel Komutlar" yazıyor ama program yok.
+
+Ekle:
+- Hafta 1: Otur + İsim tanıma
+- Hafta 2: Gel + Bırak
+- Hafta 3: Bekle + Dur
+- Hafta 4: Pekiştirme + yeni ortam
+
+İnteraktif: hangi haftadasınız seçici veya checklist.
+Course schema ile işaretle.
+
+### 14. Footer ekle
+Ana sayfadaki footer'ı bu sayfaya da ekle. © 2026 YourPoodle.
+
+### 15. Zorluk filtresi ekle
+Makalelerde Başlangıç/Orta/İleri rozetleri var ama filtre yok.
+Filtre butonları: Tümü | Başlangıç | Orta | İleri
+
+---
+
+## P3 — SCHEMA.ORG VE AI ARAMA
+
+### 16. HowTo schema (tuvalet + temel komutlar)
+Tuvalet eğitimi makalesine HowTo schema (5+ adım).
+Temel komutlar makalesine HowTo schema (otur, gel, bırak adımları).
+
+### 17. Course schema (4 haftalık program)
+{
+  "@type": "Course",
+  "name": "Toy Poodle 4 Haftalık Temel Komut Programı",
+  "description": "Otur, gel, bırak komutlarını 4 haftada öğretin",
+  "provider": {"@type": "Organization", "name": "YourPoodle"},
+  "hasCourseInstance": {
+    "@type": "CourseInstance",
+    "courseMode": "online",
+    "duration": "P4W"
+  }
+}
+
+### 18. ItemList schema (makale listesi)
+9 makale için ItemList (6 mevcut + 3 yeni).
+
+### 19. FAQPage schema (Hızlı Cevaplar)
+5 soru-cevap için FAQPage schema.
+
+### 20. Mevcut schema düzeltmeleri
+- Sayfa düzeyi Article schema KALDIR (hub sayfası)
+- WebPage'e datePublished, dateModified ekle
+- BreadcrumbList KORU
+- Her makale sayfasına ayrı Article schema
+
+### 21. Gizli SEO H2 bloklarını kaldır
+Sayfa altındaki 5 gizli H2'yi kaldır (cloaking riski).
+
+---
+
+## P4 — UX VE RESPONSIVE
+
+### 22. Tablet breakpoint: 768px → 640px
+### 23. Arama kutusu: "Eğitim konusu ara..."
+### 24. Kategori filtresi: Tümü | Temel | Yavru | Sosyalleşme | Spor | Davranış
+### 25. Makale kapak görselleri (şu an 0 görsel)
+### 26. Makale modal mobilde full-screen
+### 27. AI Asistan CTA: "Eğitim sorunuzu AI'a sorun →" (/yourpoodle/ai-asistan)
+### 28. Eğitim ürünleri CTA: Clicker, ödül maması → /magaza?kategori=egitim
+
+---
+
+## SAYFA YAPISI — HEDEF
+
+/yourpoodle/egitim
+├── <h1> Poodle Eğitim Rehberi
+├── Hero (yeşil + istatistikler)
+├── Hızlı Cevaplar (FAQPage)
+├── <h2> Yaşa Göre Eğitim (filtre + tıklanabilir konular)
+├── <h2> Eğitim Yazıları (arama + seviye + kategori filtresi)
+│   └── /egitim/[slug] + HowTo
+├── <h2> Davranış Sorunları (YENİ)
+├── 4 Haftalık Komut Programı (Course schema) (YENİ)
+├── Topluluğa Katıl → /club
+└── Footer
+
+---
+
+## TEST CHECKLIST
+
+Masaüstü 1920px:
+- [ ] H1 "Poodle Eğitim Rehberi"
+- [ ] Title = og:title, çift meta yok
+- [ ] Yaş sekmesi makaleleri filtreliyor
+- [ ] Yaş konuları tıklanabilir
+- [ ] Havlama, yalnız kalma, isırma makaleleri var
+- [ ] Makaleler slug URL açıyor
+- [ ] Hızlı Cevaplar + Davranış Sorunları bölümleri var
+- [ ] 4 haftalık program var
+- [ ] Footer var
+
+Mobil 390px:
+- [ ] Bottom nav doğru aktif (Mağaza değil)
+- [ ] Club butonu tıklanabilir
+- [ ] padding-bottom: 80px
+
+SEO & Schema:
+- [ ] HowTo, Course, ItemList, FAQPage schema
+- [ ] Gizli H2 kaldırıldı
+- [ ] Her makale unique URL + Article schema
+
+ÖNCELİK: P1 (1-8) → P2 (9-15) → P3 (16-21) → P4 (22-28)
+P1 bitmeden P2'ye geçme. 390px ve 1920px'te test et.
