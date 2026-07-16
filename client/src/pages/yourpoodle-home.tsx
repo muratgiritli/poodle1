@@ -559,13 +559,13 @@ export default function YourPoodleHomePage() {
                 style={{ background: "#fff", borderRadius: 16, overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column", border: "1.5px solid #F3F4F6", padding: 0, fontFamily: "inherit", textAlign: "left", transition: "all 0.2s" }}
                 onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.1)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
                 onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}>
-                <div style={{ background: "#F5F3FF", aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                <div style={{ background: "#fff", aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: 8 }}>
                   {p.img
                     ? <>
                         <img
                           src={p.img}
                           alt={p.name}
-                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                          style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
                           onError={e => {
                             e.currentTarget.style.display = "none";
                             const sib = e.currentTarget.nextElementSibling as HTMLElement | null;
