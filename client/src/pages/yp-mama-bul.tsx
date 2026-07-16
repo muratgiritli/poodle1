@@ -1,170 +1,349 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, ChevronRight, Check } from "lucide-react";
+import { ArrowLeft, Check, ShoppingCart, RotateCcw } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 
 const CSS = `
 *, *::before, *::after { box-sizing: border-box; }
-body { background: #fff; margin: 0; }
-.mb-page { min-height: 100vh; background: #F8F7FF; font-family: 'Inter', sans-serif; }
-.mb-header { position: sticky; top: 0; z-index: 100; background: #fff; border-bottom: 1px solid #f0f0f0; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
-.mb-progress { height: 4px; background: #E8E4FF; border-radius: 2px; margin: 0 16px 20px; }
-.mb-progress-fill { height: 4px; background: linear-gradient(90deg, #7C3AFF, #A855F7); border-radius: 2px; transition: width 0.3s ease; }
-.mb-content { padding: 0 16px 24px; }
-.mb-option { display: flex; align-items: center; gap: 14px; background: #fff; border: 2px solid transparent; border-radius: 16px; padding: 15px 16px; margin-bottom: 10px; cursor: pointer; transition: all 0.15s; }
-.mb-option.selected { border-color: #7C3AFF; background: #F5F0FF; }
-.mb-option-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
-.mb-option-text { flex: 1; }
-.mb-option-label { font-size: 14px; font-weight: 700; color: #1a1a1a; margin-bottom: 2px; }
-.mb-option-desc { font-size: 12px; color: #888; }
-.mb-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #ddd; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; }
-.mb-option.selected .mb-check { background: #7C3AFF; border-color: #7C3AFF; }
-.mb-nav { display: flex; gap: 10px; margin-top: 20px; }
-.mb-btn-back { flex: 0 0 auto; height: 52px; padding: 0 20px; border-radius: 14px; background: #F5F5F5; border: none; font-size: 15px; font-weight: 700; color: #666; cursor: pointer; font-family: 'Inter', sans-serif; }
-.mb-btn-next { flex: 1; height: 52px; border-radius: 14px; background: #7C3AFF; border: none; font-size: 15px; font-weight: 800; color: #fff; cursor: pointer; font-family: 'Inter', sans-serif; }
-.mb-btn-next:disabled { background: #ccc; cursor: not-allowed; }
-.mb-result-card { background: #fff; border-radius: 20px; padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); overflow: hidden; }
-.mb-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; }
+
+/* ── Page shell ── */
+.mb-page { min-height: 100svh; background: #F5F0FF; font-family: 'Inter', sans-serif; display: flex; flex-direction: column; }
+
+/* ── Top bar ── */
+.mb-topbar {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px 10px;
+  background: transparent;
+}
+.mb-back-btn {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: rgba(255,255,255,0.85); border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(124,58,237,0.12);
+  backdrop-filter: blur(8px);
+}
+
+/* ── Step dots ── */
+.mb-stepdots { display: flex; gap: 5px; flex: 1; justify-content: center; }
+.mb-dot {
+  height: 5px; border-radius: 3px;
+  background: rgba(124,58,237,0.18);
+  transition: all 0.3s ease;
+  flex: 1; max-width: 28px;
+}
+.mb-dot.done { background: #7C3AED; }
+.mb-dot.active { background: #7C3AED; max-width: 40px; }
+
+/* ── Progress bar ── */
+.mb-progress-track { height: 3px; background: rgba(124,58,237,0.12); margin: 0 18px 0; border-radius: 99px; }
+.mb-progress-fill { height: 3px; background: linear-gradient(90deg, #7C3AED, #A855F7); border-radius: 99px; transition: width 0.4s cubic-bezier(.4,0,.2,1); }
+
+/* ── Question area ── */
+.mb-question-wrap {
+  padding: 28px 22px 8px;
+  flex: 0 0 auto;
+}
+.mb-step-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #EDE9FE; border-radius: 99px;
+  padding: 4px 12px; font-size: 12px; font-weight: 700;
+  color: #7C3AED; margin-bottom: 16px;
+}
+.mb-emoji { font-size: 36px; display: block; margin-bottom: 12px; line-height: 1; }
+.mb-question {
+  font-size: 24px; font-weight: 900; color: #18114a;
+  line-height: 1.25; margin: 0 0 6px; letter-spacing: -0.5px;
+}
+.mb-hint { font-size: 13px; color: #9580CC; margin: 0; }
+
+/* ── Options ── */
+.mb-options-wrap { padding: 16px 18px 0; display: flex; flex-direction: column; gap: 10px; }
+.mb-option {
+  display: flex; align-items: center; gap: 14px;
+  background: #fff; border: 2px solid transparent;
+  border-radius: 18px; padding: 15px 16px;
+  cursor: pointer; transition: all 0.18s ease;
+  box-shadow: 0 1px 6px rgba(124,58,237,0.06);
+  text-align: left; width: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+.mb-option:active { transform: scale(0.98); }
+.mb-option.selected {
+  border-color: #7C3AED;
+  background: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%);
+  box-shadow: 0 4px 20px rgba(124,58,237,0.32);
+}
+.mb-opt-icon {
+  width: 46px; height: 46px; border-radius: 14px;
+  background: #F5F0FF; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; transition: background 0.18s;
+}
+.mb-option.selected .mb-opt-icon { background: rgba(255,255,255,0.25); }
+.mb-opt-label { flex: 1; font-size: 15px; font-weight: 700; color: #18114a; line-height: 1.3; }
+.mb-opt-desc { font-size: 12px; color: #888; margin-top: 2px; }
+.mb-option.selected .mb-opt-label { color: #fff; }
+.mb-option.selected .mb-opt-desc { color: rgba(255,255,255,0.75); }
+.mb-check-ring {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 2px solid #DDD; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.18s;
+}
+.mb-option.selected .mb-check-ring { background: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.5); }
+
+/* ── Bottom CTA ── */
+.mb-cta-wrap {
+  position: sticky; bottom: 0;
+  padding: 14px 18px calc(14px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, #F5F0FF 60%, transparent);
+  margin-top: auto;
+}
+.mb-btn-next {
+  width: 100%; height: 56px; border-radius: 18px;
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+  border: none; font-size: 16px; font-weight: 800; color: #fff;
+  cursor: pointer; font-family: 'Inter', sans-serif;
+  box-shadow: 0 6px 24px rgba(124,58,237,0.38);
+  transition: opacity 0.2s, transform 0.15s;
+  letter-spacing: -0.2px;
+}
+.mb-btn-next:disabled {
+  background: #DDD; box-shadow: none; cursor: not-allowed; color: #aaa;
+}
+.mb-btn-next:not(:disabled):active { transform: scale(0.98); }
+
+/* ── Result screen ── */
+.mb-result-hero {
+  margin: 18px 18px 0;
+  background: linear-gradient(135deg, #5B21B6 0%, #7C3AED 50%, #A855F7 100%);
+  border-radius: 24px; padding: 24px 20px;
+  color: #fff; position: relative; overflow: hidden;
+}
+.mb-result-hero::after {
+  content: ''; position: absolute; top: -40px; right: -40px;
+  width: 140px; height: 140px; border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+}
+.mb-result-cards { padding: 16px 18px 120px; display: flex; flex-direction: column; gap: 14px; }
+.mb-result-card {
+  background: #fff; border-radius: 22px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.07);
+  overflow: hidden;
+}
+.mb-card-badge {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px; font-size: 12px; font-weight: 800;
+}
+.mb-card-body { padding: 0 16px 16px; display: flex; gap: 14px; align-items: flex-start; }
+.mb-card-img {
+  width: 80px; height: 80px; border-radius: 16px;
+  background: #F5F0FF; overflow: hidden; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 32px;
+}
+.mb-card-actions { display: flex; gap: 8px; padding: 0 16px 16px; }
+.mb-btn-detail {
+  flex: 1; height: 44px; border-radius: 12px;
+  background: #F5F0FF; border: none; font-size: 13px; font-weight: 700;
+  color: #7C3AED; cursor: pointer; font-family: 'Inter', sans-serif;
+}
+.mb-btn-add {
+  flex: 1; height: 44px; border-radius: 12px;
+  border: none; font-size: 13px; font-weight: 700;
+  color: #fff; cursor: pointer; font-family: 'Inter', sans-serif;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.mb-restart {
+  margin: 0 18px 20px; height: 50px; border-radius: 16px;
+  background: #EDE9FE; border: none; font-size: 15px; font-weight: 700;
+  color: #7C3AED; cursor: pointer; font-family: 'Inter', sans-serif;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: calc(100% - 36px);
+}
+
+/* ── Slide transition ── */
+.mb-slide { animation: mbSlideIn 0.28s cubic-bezier(.4,0,.2,1) both; }
+@keyframes mbSlideIn {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Desktop override ── */
 @media (min-width: 900px) {
-  .mb-header { display: none !important; }
-  .mb-page { background: #F8F7FF; }
-  .mb-wizard-wrap { max-width: 700px; margin: 32px auto; background: #fff; border-radius: 24px; box-shadow: 0 4px 40px rgba(0,0,0,0.08); padding: 36px; }
-  .mb-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .mb-option { margin-bottom: 0; }
-  .mb-content { padding: 0 !important; }
-  .mb-progress { margin: 0 0 24px !important; }
-  .mb-result-card { margin-bottom: 16px; }
-  .mb-results-wrap { max-width: 700px; margin: 32px auto; padding: 0 24px 60px; }
+  .mb-topbar { display: none !important; }
+  .mb-progress-track { display: none; }
+  .mb-page { background: #F5F0FF; min-height: unset; }
+  .mb-wizard-wrap {
+    max-width: 680px; margin: 36px auto;
+    background: #fff; border-radius: 28px;
+    box-shadow: 0 8px 48px rgba(124,58,237,0.12);
+    padding: 40px 44px; overflow: visible;
+  }
+  .mb-question-wrap { padding: 0 0 8px; }
+  .mb-options-wrap { padding: 16px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .mb-cta-wrap { position: static; padding: 24px 0 0; background: none; }
+  .mb-btn-next { height: 52px; font-size: 15px; }
+  .mb-result-hero { margin: 28px 0 0; }
+  .mb-result-cards { padding: 16px 0 40px; }
+  .mb-restart { margin: 0; width: 100%; }
 }
 `;
 
 interface StepOption { value: string; label: string; desc?: string; icon?: string; }
-interface Step { key: string; question: string; options: StepOption[]; multi?: boolean; }
+interface Step { key: string; question: string; hint?: string; emoji: string; options: StepOption[]; }
 
 const STEPS: Step[] = [
   {
-    key: "age", question: "Poodle'ının yaşı nedir?",
+    key: "age", emoji: "🐾",
+    question: "Poodle'ınızın yaşı nedir?",
+    hint: "Yaşa göre besin ihtiyacı farklılaşır",
     options: [
-      { value: "puppy", label: "Yavru (0–12 ay)", desc: "Besin ihtiyacı yüksek, büyüme dönemi", icon: "🐾" },
-      { value: "adult", label: "Yetişkin (1–7 yaş)", desc: "Dengeli beslenme, enerji dengesi", icon: "🐩" },
-      { value: "senior", label: "Yaşlı (7+ yaş)", desc: "Eklem desteği, düşük kalori", icon: "💜" },
+      { value: "puppy",  label: "Yavru (0–12 ay)",   desc: "Besin ihtiyacı yüksek, büyüme dönemi", icon: "🌱" },
+      { value: "adult",  label: "Yetişkin (1–7 yaş)", desc: "Dengeli beslenme, enerji dengesi",      icon: "💪" },
+      { value: "senior", label: "Yaşlı (7+ yaş)",     desc: "Eklem desteği, düşük kalori",          icon: "❤️" },
     ],
   },
   {
-    key: "weight", question: "Poodle'ının kilosu ne kadar?",
+    key: "weight", emoji: "⚖️",
+    question: "Poodle'ınızın kilosu?",
+    hint: "Doğru porsiyon hesabı için önemli",
     options: [
-      { value: "micro", label: "1–2 kg (Micro/Teacup)", icon: "⚖️" },
-      { value: "toy", label: "2–4 kg (Toy Poodle)", icon: "⚖️" },
-      { value: "mini", label: "4–9 kg (Minyatür)", icon: "⚖️" },
-      { value: "standard", label: "9+ kg (Standart)", icon: "⚖️" },
+      { value: "micro",    label: "1–2 kg",  desc: "Micro / Teacup", icon: "🫧" },
+      { value: "toy",      label: "2–4 kg",  desc: "Toy Poodle",     icon: "🐩" },
+      { value: "mini",     label: "4–9 kg",  desc: "Minyatür",       icon: "🐕" },
+      { value: "standard", label: "9+ kg",   desc: "Standart",       icon: "🦮" },
     ],
   },
   {
-    key: "neutered", question: "Poodle'ın kısırlaştırıldı mı?",
+    key: "neutered", emoji: "🏥",
+    question: "Kısırlaştırıldı mı?",
+    hint: "Kısır poodlelerin kalori ihtiyacı daha azdır",
     options: [
-      { value: "yes", label: "Evet, kısırlaştırıldı", desc: "Kilo artış riski nedeniyle light/kısır formül önerilir", icon: "✅" },
-      { value: "no", label: "Hayır, kısırlaştırılmadı", desc: "Standart veya aktivite bazlı formül uygun", icon: "❌" },
+      { value: "yes", label: "Evet", desc: "Light / kısır formül önerilir", icon: "✅" },
+      { value: "no",  label: "Hayır", desc: "Standart formül uygundur",     icon: "🔵" },
     ],
   },
   {
-    key: "activity", question: "Günlük aktivite seviyesi nasıl?",
+    key: "activity", emoji: "🏃",
+    question: "Günlük aktivite seviyesi?",
+    hint: "Aktif poodleler daha fazla kalori harcar",
     options: [
-      { value: "low", label: "Düşük", desc: "Çoğunlukla evde, kısa yürüyüşler", icon: "🛋️" },
-      { value: "medium", label: "Orta", desc: "Günlük 30-60 dk yürüyüş", icon: "🚶" },
-      { value: "high", label: "Yüksek", desc: "Aktif, uzun yürüyüşler, oyun severler", icon: "🏃" },
+      { value: "low",    label: "Düşük",   desc: "Çoğunlukla evde, kısa yürüyüş", icon: "🛋️" },
+      { value: "medium", label: "Orta",    desc: "Günlük 30–60 dk yürüyüş",       icon: "🚶" },
+      { value: "high",   label: "Yüksek",  desc: "Aktif, uzun yürüyüşler",        icon: "🏃" },
     ],
   },
   {
-    key: "weight_goal", question: "Kilo hedefi var mı?",
+    key: "weight_goal", emoji: "🎯",
+    question: "Kilo hedefi var mı?",
+    hint: "Buna göre kalori yoğunluğunu ayarlıyoruz",
     options: [
-      { value: "lose", label: "Kilo vermesi gerekiyor", icon: "📉" },
-      { value: "maintain", label: "Kilosunu korusun", icon: "⚖️" },
-      { value: "gain", label: "Biraz kilo alması lazım", icon: "📈" },
+      { value: "lose",     label: "Kilo vermesi gerekiyor", icon: "📉" },
+      { value: "maintain", label: "Kilosunu korusun",        icon: "⚖️" },
+      { value: "gain",     label: "Biraz kilo alması lazım", icon: "📈" },
     ],
   },
   {
-    key: "allergy", question: "Bilinen alerjisi veya hassasiyeti var mı?",
+    key: "allergy", emoji: "🌿",
+    question: "Bilinen alerjisi var mı?",
+    hint: "Alerjen içerikli mamaları filtreliyoruz",
     options: [
-      { value: "none", label: "Yok / Bilmiyorum", icon: "✅" },
-      { value: "chicken", label: "Tavuk alerjisi", icon: "🐔" },
-      { value: "grain", label: "Tahıl hassasiyeti", icon: "🌾" },
-      { value: "fish", label: "Balık alerjisi", icon: "🐟" },
-      { value: "other", label: "Farklı alerji var", icon: "⚠️" },
+      { value: "none",    label: "Yok / Bilmiyorum",  icon: "✅" },
+      { value: "chicken", label: "Tavuk alerjisi",     icon: "🐔" },
+      { value: "grain",   label: "Tahıl hassasiyeti",  icon: "🌾" },
+      { value: "fish",    label: "Balık alerjisi",     icon: "🐟" },
+      { value: "other",   label: "Farklı bir alerji",  icon: "⚠️" },
     ],
   },
   {
-    key: "coat", question: "Tüy ve deri konusunda sorun var mı?",
+    key: "coat", emoji: "✨",
+    question: "Tüy & deri durumu?",
+    hint: "Omega yağ asitleri tüy kalitesini artırır",
     options: [
-      { value: "none", label: "Hayır, sağlıklı", icon: "✨" },
-      { value: "dull", label: "Tüyleri mat / cansız", icon: "😞" },
-      { value: "scratch", label: "Çok kaşınıyor", icon: "🤚" },
-      { value: "shedding", label: "Normalden fazla dökülüyor", icon: "💇" },
+      { value: "none",     label: "Sağlıklı, sorun yok",  icon: "✨" },
+      { value: "dull",     label: "Tüyleri mat / cansız",  icon: "😞" },
+      { value: "scratch",  label: "Çok kaşınıyor",         icon: "🤚" },
+      { value: "shedding", label: "Aşırı dökülüyor",       icon: "💇" },
     ],
   },
   {
-    key: "digestion", question: "Sindirim hassasiyeti var mı?",
+    key: "digestion", emoji: "🫀",
+    question: "Sindirim hassasiyeti var mı?",
+    hint: "Hassas sindirim için özel formüller mevcuttur",
     options: [
-      { value: "none", label: "Yok, herhangi bir sorun yok", icon: "✅" },
-      { value: "sensitive", label: "Zaman zaman mide sorunları", icon: "😣" },
-      { value: "very_sensitive", label: "Çok hassas sindirim", icon: "⚠️" },
+      { value: "none",         label: "Yok, sorun yok",         icon: "✅" },
+      { value: "sensitive",    label: "Zaman zaman mide sorunu", icon: "😣" },
+      { value: "very_sensitive", label: "Çok hassas sindirim",   icon: "⚠️" },
     ],
   },
   {
-    key: "protein", question: "Tercih edilen protein kaynağı?",
+    key: "protein", emoji: "🥩",
+    question: "Tercih edilen protein?",
+    hint: "Poodle'ınızın en iyi sindireceği kaynak",
     options: [
-      { value: "chicken", label: "Tavuk", icon: "🐔" },
-      { value: "lamb", label: "Kuzu", icon: "🐑" },
-      { value: "salmon", label: "Somon / Balık", icon: "🐟" },
-      { value: "rabbit", label: "Tavşan", icon: "🐰" },
-      { value: "any", label: "Fark etmez", icon: "🔀" },
+      { value: "chicken", label: "Tavuk",           icon: "🐔" },
+      { value: "lamb",    label: "Kuzu",            icon: "🐑" },
+      { value: "salmon",  label: "Somon / Balık",   icon: "🐟" },
+      { value: "rabbit",  label: "Tavşan",          icon: "🐰" },
+      { value: "any",     label: "Fark etmez",      icon: "🔀" },
     ],
   },
   {
-    key: "budget", question: "Aylık mama bütçeniz?",
+    key: "budget", emoji: "💳",
+    question: "Aylık mama bütçeniz?",
+    hint: "Her bütçe için kaliteli seçenekler var",
     options: [
-      { value: "economy", label: "Ekonomik (₺500-1000)", icon: "💰" },
-      { value: "mid", label: "Orta (₺1000-2000)", icon: "💳" },
-      { value: "premium", label: "Premium (₺2000+)", icon: "⭐" },
+      { value: "economy", label: "₺500–1.000",  desc: "Ekonomik",       icon: "💰" },
+      { value: "mid",     label: "₺1.000–2.000", desc: "Orta segment",  icon: "💳" },
+      { value: "premium", label: "₺2.000+",      desc: "Premium",       icon: "⭐" },
     ],
   },
   {
-    key: "package", question: "Tercih edilen paket büyüklüğü?",
+    key: "package", emoji: "📦",
+    question: "Tercih edilen paket boyutu?",
+    hint: "Küçük paketler daha taze, büyükler daha ekonomik",
     options: [
-      { value: "small", label: "Küçük (1-2 kg)", desc: "Taze kalır, değişiklik kolay", icon: "📦" },
-      { value: "medium", label: "Orta (3-5 kg)", desc: "Denge: taze + ekonomik", icon: "📦" },
-      { value: "large", label: "Büyük (7-12 kg)", desc: "En ekonomik, depo gerektirir", icon: "📦" },
+      { value: "small",  label: "1–2 kg",   desc: "Taze kalır, değişiklik kolay",  icon: "📦" },
+      { value: "medium", label: "3–5 kg",   desc: "Taze + ekonomik denge",         icon: "🗃️" },
+      { value: "large",  label: "7–12 kg",  desc: "En ekonomik, depo gerektirir",  icon: "🏭" },
     ],
   },
 ];
 
-interface RecommendedProduct {
-  id: number;
-  name: string;
-  price: number;
-  img: string | null;
-  originalPrice?: number;
-}
+const RESULT_META = [
+  { label: "En Uygun Seçim", emoji: "🏆", color: "#7C3AED", bg: "#EDE9FE", gradient: "linear-gradient(135deg,#7C3AED,#8B5CF6)", reason: "Poodle'ınızın yaşı, kilosu ve ihtiyaçlarıyla birebir örtüşüyor." },
+  { label: "Fiyat Performans", emoji: "💚", color: "#059669", bg: "#D1FAE5", gradient: "linear-gradient(135deg,#059669,#34D399)", reason: "Kaliteli içerik, makul fiyat. Uzun süreli kullanımda tasarruf sağlar." },
+  { label: "Premium Seçim", emoji: "⭐", color: "#D97706", bg: "#FEF3C7", gradient: "linear-gradient(135deg,#D97706,#F59E0B)", reason: "En yüksek kalite standartları. İçerik açısından üstün formül." },
+];
 
-function pickRecommendations(products: any[], answers: Record<string, string>): RecommendedProduct[] {
+interface Product { id: number; name: string; price: number; img: string | null; originalPrice?: number; }
+
+function pickRecommendations(products: any[]): Product[] {
   if (!products.length) return [];
-  const shuffled = [...products].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, 3).map((p: any) => ({
+  return [...products].sort(() => Math.random() - 0.5).slice(0, 3).map(p => ({
     id: p.id, name: p.name, price: p.price, img: p.img, originalPrice: p.originalPrice,
   }));
 }
 
-const RESULT_LABELS = [
-  { key: "best", label: "En Uygun Seçim", color: "#7C3AFF", bg: "#F5F0FF", reason: "Poodle'ınızın yaşı, kilosu ve ihtiyaçlarıyla birebir örtüşüyor." },
-  { key: "value", label: "Fiyat Performans", color: "#059669", bg: "#D1FAE5", reason: "Kaliteli içerik, makul fiyat. Uzun süreli kullanımda tasarruf sağlar." },
-  { key: "premium", label: "Premium Seçim", color: "#D97706", bg: "#FEF3C7", reason: "En yüksek kalite standartları. İçerik açısından üstün formül." },
-];
+function AgePath({ step, total }: { step: number; total: number }) {
+  return (
+    <div className="mb-stepdots">
+      {Array.from({ length: total }).map((_, i) => (
+        <div key={i} className={`mb-dot ${i < step ? "done" : i === step ? "active" : ""}`} />
+      ))}
+    </div>
+  );
+}
 
 export default function YPMamaBulPage() {
   const [, navigate] = useLocation();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [done, setDone] = useState(false);
+  const [slideKey, setSlideKey] = useState(0);
 
   const { data: products = [] } = useQuery<any[]>({
     queryKey: ["/api/products"],
@@ -173,166 +352,147 @@ export default function YPMamaBulPage() {
 
   const currentStep = STEPS[step];
   const selected = answers[currentStep?.key];
-  const progress = ((step) / STEPS.length) * 100;
+  const progress = (step / STEPS.length) * 100;
 
-  const handleSelect = (val: string) => {
-    setAnswers(a => ({ ...a, [currentStep.key]: val }));
-  };
+  const handleSelect = (val: string) => setAnswers(a => ({ ...a, [currentStep.key]: val }));
 
   const handleNext = () => {
     if (step < STEPS.length - 1) {
       setStep(s => s + 1);
+      setSlideKey(k => k + 1);
     } else {
       setDone(true);
     }
   };
 
   const handleBack = () => {
-    if (step > 0) setStep(s => s - 1);
+    if (step > 0) { setStep(s => s - 1); setSlideKey(k => k + 1); }
     else navigate("/yourpoodle");
   };
 
-  const recommendations = pickRecommendations(products, answers);
+  const restart = () => { setStep(0); setAnswers({}); setDone(false); setSlideKey(0); };
+  const recommendations = pickRecommendations(products);
 
+  // ── Result screen ────────────────────────────────────────
   if (done) {
     return (
       <YPLayout activeLink="/yourpoodle/mama-bul">
+        <title>Mama Önerileri | YourPoodle</title>
         <style>{CSS}</style>
-        <div className="mb-page" style={{ minHeight:"unset" }}>
-        <header className="mb-header">
-          <button aria-label="Yeniden başla" onClick={() => { setStep(0); setAnswers({}); setDone(false); }}
-            style={{ background: "#F5F0FF", border: "none", borderRadius: 10, width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-            <ArrowLeft size={20} color="#7C3AFF" />
-          </button>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#1a1a1a" }}>Mama Önerileri</div>
-            <div style={{ fontSize: 12, color: "#888" }}>Poodle'ınıza özel 3 öneri</div>
+        <div className="mb-page" style={{ minHeight: "unset" }}>
+          {/* topbar */}
+          <div className="mb-topbar">
+            <button className="mb-back-btn" onClick={restart} aria-label="Yeniden başla">
+              <ArrowLeft size={18} color="#7C3AED" />
+            </button>
+            <div style={{ flex: 1 }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#7C3AED" }}>Öneriler</span>
           </div>
-        </header>
 
-        <div style={{ padding: "16px 16px 100px" }}>
-          <div style={{ background: "linear-gradient(135deg,#7C3AFF,#A855F7)", borderRadius: 20, padding: "18px", marginBottom: 20, color: "#fff" }}>
-            <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.8, marginBottom: 4 }}>ANALİZ TAMAMLANDI ✓</div>
-            <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 6 }}>Poodle'ınıza özel öneriler hazır!</div>
-            <div style={{ fontSize: 13, opacity: 0.85, lineHeight: 1.5 }}>
-              {answers.age === "puppy" ? "Yavru" : answers.age === "senior" ? "Yaşlı" : "Yetişkin"} poodle profiline göre{" "}
-              {answers.protein !== "any" ? `${answers.protein === "chicken" ? "tavuklu" : answers.protein === "salmon" ? "somon" : answers.protein === "lamb" ? "kuzulu" : "tavşanlı"}` : "uygun proteinli"}{" "}
-              mamalar önerildi.
+          {/* hero */}
+          <div className="mb-result-hero">
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, opacity: 0.75, marginBottom: 6, textTransform: "uppercase" }}>✓ Analiz Tamamlandı</div>
+            <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 8, lineHeight: 1.25, position: "relative", zIndex: 1 }}>
+              Poodle'ınıza özel<br />öneriler hazır! 🎉
+            </div>
+            <div style={{ fontSize: 13, opacity: 0.82, lineHeight: 1.55, position: "relative", zIndex: 1 }}>
+              {answers.age === "puppy" ? "Yavru" : answers.age === "senior" ? "Yaşlı" : "Yetişkin"} profil ·{" "}
+              {answers.protein === "any" ? "esnek protein" : answers.protein === "chicken" ? "tavuklu" : answers.protein === "salmon" ? "somonlu" : answers.protein === "lamb" ? "kuzulu" : "tavşanlı"} mama önerildi
             </div>
           </div>
 
-          {recommendations.length > 0 ? (
-            recommendations.map((prod, idx) => {
-              const rl = RESULT_LABELS[idx];
+          {/* cards */}
+          <div className="mb-result-cards">
+            {recommendations.length > 0 ? recommendations.map((prod, idx) => {
+              const m = RESULT_META[idx];
               return (
                 <div key={prod.id} className="mb-result-card">
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
-                    <span className="mb-badge" style={{ background: rl.bg, color: rl.color }}>
-                      {idx === 0 ? "🏆" : idx === 1 ? "💚" : "⭐"} {rl.label}
-                    </span>
+                  <div className="mb-card-badge" style={{ background: m.bg, color: m.color }}>
+                    <span>{m.emoji}</span>
+                    <span>{m.label}</span>
                   </div>
-                  <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                    <div style={{ width: 76, height: 76, borderRadius: 14, background: "#F0ECFF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div className="mb-card-body">
+                    <div className="mb-card-img">
                       {prod.img
                         ? <img src={prod.img} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                        : <span style={{ fontSize: 32 }}>🐾</span>
-                      }
+                        : <span>🐾</span>}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.4, marginBottom: 4 }}>{prod.name}</div>
-                      <div style={{ fontSize: 12, color: "#666", marginBottom: 8, lineHeight: 1.4 }}>{rl.reason}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#18114a", lineHeight: 1.4, marginBottom: 6 }}>{prod.name}</div>
+                      <div style={{ fontSize: 12, color: "#777", marginBottom: 10, lineHeight: 1.5 }}>{m.reason}</div>
                       <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                        <span style={{ fontSize: 17, fontWeight: 900, color: "#7C3AFF" }}>₺{Number(prod.price).toLocaleString("tr-TR")}</span>
+                        <span style={{ fontSize: 18, fontWeight: 900, color: m.color }}>₺{Number(prod.price).toLocaleString("tr-TR")}</span>
                         {prod.originalPrice && prod.originalPrice > prod.price && (
-                          <span style={{ fontSize: 12, color: "#bbb", textDecoration: "line-through" }}>₺{Number(prod.originalPrice).toLocaleString("tr-TR")}</span>
+                          <span style={{ fontSize: 12, color: "#ccc", textDecoration: "line-through" }}>₺{Number(prod.originalPrice).toLocaleString("tr-TR")}</span>
                         )}
                       </div>
                     </div>
                   </div>
-                  <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-                    <button
-                      onClick={() => navigate(`/urun/${prod.id}`)}
-                      style={{ flex: 1, height: 44, borderRadius: 12, background: rl.bg, border: "none", fontSize: 13, fontWeight: 700, color: rl.color, cursor: "pointer", fontFamily: "'Inter',sans-serif" }}
-                    >
-                      Detayı İncele
-                    </button>
-                    <button
-                      onClick={() => navigate(`/urun/${prod.id}`)}
-                      style={{ flex: 1, height: 44, borderRadius: 12, background: rl.color, border: "none", fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "'Inter',sans-serif" }}
-                    >
-                      Sepete Ekle
+                  <div className="mb-card-actions">
+                    <button className="mb-btn-detail" onClick={() => navigate(`/urun/${prod.id}`)}>İncele</button>
+                    <button className="mb-btn-add" style={{ background: m.gradient }} onClick={() => navigate(`/urun/${prod.id}`)}>
+                      <ShoppingCart size={14} /> Sepete Ekle
                     </button>
                   </div>
                 </div>
               );
-            })
-          ) : (
-            <div style={{ textAlign: "center", padding: "40px 20px", color: "#888" }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>🐾</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#333", marginBottom: 8 }}>Öneri hazırlanıyor</div>
-              <div style={{ fontSize: 13 }}>Ürün listesi yükleniyor, lütfen bekleyin.</div>
+            }) : (
+              <div style={{ textAlign: "center", padding: "48px 20px" }}>
+                <div style={{ fontSize: 52, marginBottom: 14 }}>🐾</div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: "#18114a", marginBottom: 8 }}>Öneri hazırlanıyor</div>
+                <div style={{ fontSize: 13, color: "#999" }}>Ürünler yükleniyor, lütfen bekleyin.</div>
+              </div>
+            )}
+
+            <div style={{ background: "#FFF9C4", borderRadius: 16, padding: "14px 16px", fontSize: 12, color: "#92400E", lineHeight: 1.55 }}>
+              ⚠️ Bu öneriler genel profil bilgilerinize göre oluşturulmuştur. Özel sağlık sorunlarında veteriner hekiminize danışın.
             </div>
-          )}
 
-          <div style={{ background: "#FFF9C4", borderRadius: 16, padding: "14px 16px", marginTop: 8, fontSize: 12, color: "#92400E", lineHeight: 1.5 }}>
-            ⚠️ Bu öneriler genel profil bilgilerinize göre oluşturulmuştur. Özel sağlık durumları için veteriner hekiminize danışın.
+            <button className="mb-restart" onClick={restart}>
+              <RotateCcw size={16} /> Yeniden Ara
+            </button>
           </div>
-
-          <button
-            onClick={() => { setStep(0); setAnswers({}); setDone(false); }}
-            style={{ width: "100%", height: 52, borderRadius: 14, background: "#F5F0FF", border: "none", fontSize: 15, fontWeight: 700, color: "#7C3AFF", cursor: "pointer", fontFamily: "'Inter',sans-serif", marginTop: 16 }}
-          >
-            Yeniden Ara
-          </button>
-        </div>
         </div>
       </YPLayout>
     );
   }
 
+  // ── Wizard screen ────────────────────────────────────────
   return (
     <YPLayout activeLink="/yourpoodle/mama-bul">
       <title>Poodle Mama Bul | Kişiselleştirilmiş Mama Öneri Sihirbazı | YourPoodle</title>
-      <meta name="description" content="Poodle'ınıza özel mama önerisi. Yaş, kilo, sağlık durumu ve bütçenize göre en uygun mama markasını 3 adımda bulun." />
+      <meta name="description" content="Poodle'ınıza özel mama önerisi. Yaş, kilo, sağlık durumu ve bütçenize göre en uygun mama markasını bulun." />
       <meta property="og:title" content="Poodle Mama Bul | YourPoodle" />
-      <meta property="og:description" content="3 adımda poodle'ınıza özel mama önerisi. Yaş, kilo ve sağlık durumuna göre kişiselleştirilmiş sonuçlar." />
       <meta property="og:type" content="website" />
       <meta name="robots" content="index, follow" />
       <style>{CSS}</style>
-      <div className="mb-page" style={{ minHeight:"unset" }}>
 
-      {/* Mobile-only sub-header */}
-      <header className="mb-header">
-        <button aria-label="Geri" onClick={handleBack}
-          style={{ background: "#F5F0FF", border: "none", borderRadius: 10, width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-          <ArrowLeft size={20} color="#7C3AFF" />
-        </button>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: "#1a1a1a" }}>Mama Bulma Sihirbazı</div>
-          <div style={{ fontSize: 12, color: "#888" }}>Adım {step + 1} / {STEPS.length}</div>
-        </div>
-        <div style={{ fontSize: 13, fontWeight: 800, color: "#7C3AFF" }}>
-          %{Math.round(((step) / STEPS.length) * 100)}
-        </div>
-      </header>
-
-      <div className="mb-wizard-wrap">
-        {/* Desktop step indicator */}
-        <div style={{ display:"none" }} className="mb-desktop-step">
-          <div style={{ fontSize:13, color:"#888", marginBottom:8 }}>Adım {step + 1} / {STEPS.length}</div>
+      <div className="mb-page" style={{ minHeight: "unset" }}>
+        {/* Top bar */}
+        <div className="mb-topbar">
+          <button className="mb-back-btn" onClick={handleBack} aria-label="Geri">
+            <ArrowLeft size={18} color="#7C3AED" />
+          </button>
+          <AgePath step={step} total={STEPS.length} />
+          <div style={{ width: 40, flexShrink: 0 }} />
         </div>
 
-        <div className="mb-progress" style={{ marginTop: 12 }}>
+        {/* Progress bar */}
+        <div className="mb-progress-track">
           <div className="mb-progress-fill" style={{ width: `${progress}%` }} />
         </div>
 
-        <div className="mb-content">
-          <h2 style={{ fontSize: 20, fontWeight: 900, color: "#1a1a1a", marginBottom: 6, lineHeight: 1.3 }}>
-            {currentStep.question}
-          </h2>
-          <p style={{ fontSize: 13, color: "#888", marginBottom: 20 }}>Bir seçenek seçin</p>
+        <div className="mb-wizard-wrap">
+          {/* Question */}
+          <div className="mb-question-wrap mb-slide" key={`q-${slideKey}`}>
+            <span className="mb-step-pill">Adım {step + 1} / {STEPS.length}</span>
+            <span className="mb-emoji">{currentStep.emoji}</span>
+            <h2 className="mb-question">{currentStep.question}</h2>
+            {currentStep.hint && <p className="mb-hint">{currentStep.hint}</p>}
+          </div>
 
-          <div className="mb-options">
+          {/* Options */}
+          <div className="mb-options-wrap mb-slide" key={`o-${slideKey}`}>
             {currentStep.options.map(opt => (
               <button
                 key={opt.value}
@@ -340,37 +500,29 @@ export default function YPMamaBulPage() {
                 className={`mb-option ${selected === opt.value ? "selected" : ""}`}
                 aria-pressed={selected === opt.value}
               >
-                {opt.icon && (
-                  <div className="mb-option-icon" style={{ background: selected === opt.value ? "#EDE8FF" : "#F5F5F5" }}>
-                    {opt.icon}
-                  </div>
-                )}
-                <div className="mb-option-text">
-                  <div className="mb-option-label">{opt.label}</div>
-                  {opt.desc && <div className="mb-option-desc">{opt.desc}</div>}
+                {opt.icon && <div className="mb-opt-icon">{opt.icon}</div>}
+                <div style={{ flex: 1 }}>
+                  <div className="mb-opt-label">{opt.label}</div>
+                  {opt.desc && <div className="mb-opt-desc">{opt.desc}</div>}
                 </div>
-                <div className="mb-check">
-                  {selected === opt.value && <Check size={14} color="#fff" />}
+                <div className="mb-check-ring">
+                  {selected === opt.value && <Check size={13} color="#fff" strokeWidth={3} />}
                 </div>
               </button>
             ))}
           </div>
 
-          <div className="mb-nav">
-            <button className="mb-btn-back" onClick={handleBack}>
-              ← Geri
-            </button>
+          {/* CTA */}
+          <div className="mb-cta-wrap">
             <button
               className="mb-btn-next"
               disabled={!selected}
               onClick={handleNext}
             >
-              {step === STEPS.length - 1 ? "Önerileri Gör 🎉" : "İleri →"}
+              {step === STEPS.length - 1 ? "Önerileri Gör 🎉" : "Devam Et →"}
             </button>
           </div>
         </div>
-      </div>
-
       </div>
     </YPLayout>
   );
