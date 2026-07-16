@@ -309,17 +309,16 @@ export default function YourPoodleHomePage() {
 
           {/* Right — hidden on mobile, visible on tablet+ */}
           <div className="yph-hero-right" style={{ position: "relative" }}>
-            <div style={{ borderRadius: 28, overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.14)", position: "relative", aspectRatio: "4/4.5" }}>
+            <div style={{ borderRadius: 28, overflow: "hidden", boxShadow: "0 24px 64px rgba(124,58,237,0.12), 0 4px 16px rgba(0,0,0,0.06)", position: "relative", aspectRatio: "4/4.5", background: "#fff", border: "1.5px solid #F3F0FF" }}>
               <img
-                src="/images/poodle-real-hero.jpg"
+                src="/images/poodle-hero.jpg"
                 alt="Toy Poodle"
                 style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
               />
-              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "40%", background: "linear-gradient(to top, rgba(124,58,237,0.7), transparent)", borderRadius: "0 0 28px 28px" }} />
-              <div style={{ position: "absolute", bottom: 20, left: 20, right: 20 }}>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <div style={{ position: "absolute", bottom: 16, left: 16, right: 16 }}>
+                <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
                   {["🍽️ Kişisel mama planı", "✂️ Bakım takvimi", "💊 Sağlık takibi"].map(f => (
-                    <span key={f} style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: "rgba(255,255,255,0.15)", backdropFilter: "blur(6px)", borderRadius: 20, padding: "5px 11px", border: "1px solid rgba(255,255,255,0.25)" }}>{f}</span>
+                    <span key={f} style={{ fontSize: 11, fontWeight: 700, color: "#5B21B6", background: "rgba(255,255,255,0.92)", backdropFilter: "blur(8px)", borderRadius: 20, padding: "5px 11px", border: "1px solid #E9D5FF", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}>{f}</span>
                   ))}
                 </div>
               </div>

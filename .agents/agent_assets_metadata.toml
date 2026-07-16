@@ -167,3 +167,27 @@ id = "ZTwMmEgKd340JamvhLFCj"
 uri = "file://jetgo-sitemaps.zip"
 type = "unspecified"
 title = "Tüm domainlerin sitemap'leri (9 site)"
+
+[[outputs]]
+id = "jwEBvx_awxfUPYg29LtO0"
+uri = "file://attached_assets/poodle_candidates/cand-2.jpg"
+type = "image"
+title = "cand-2.jpg"
+
+[[outputs]]
+id = "fkRaclLF1DKFIjUkRsOfd"
+uri = "file://attached_assets/poodle_candidates/cand-3.jpg"
+type = "image"
+title = "cand-3.jpg"
+
+[[outputs]]
+id = "k8_KMeCT5Oeb0--1VIRM0"
+uri = "file://attached_assets/poodle_candidates/cand-4.jpg"
+type = "image"
+title = "cand-4.jpg"
+
+[[outputs]]
+id = "_WTCmxAEG5zkxsC9IwYnN"
+uri = "file://attached_assets/poodle_candidates/cand-5.jpg"
+type = "image"
+title = "cand-5.jpg"
