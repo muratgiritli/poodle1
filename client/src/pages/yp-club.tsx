@@ -3,8 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Heart, MessageCircle, Share2, Plus, Camera, X,
-  Edit3, Check, ChevronLeft, Bell, BellOff, Calendar,
+  Heart, MessageCircle, Share2, Plus, Camera, X, Search,
+  Edit3, Check, ChevronLeft, ChevronRight, Bell, BellOff, Calendar,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { useCustomer } from "@/contexts/CustomerContext";
@@ -34,10 +34,10 @@ interface PoodleProfile {
 
 /* ─── Constants ─────────────────────────────────────────── */
 const TABS = [
-  { id:"feed",      label:"📰 Akış" },
-  { id:"my",        label:"🐩 Poodlem" },
-  { id:"people",    label:"👥 Topluluk" },
-  { id:"events",    label:"🎉 Etkinlik" },
+  { id:"akis",      label:"📰 Akış" },
+  { id:"poodlem",   label:"🐩 Poodlem" },
+  { id:"topluluk",  label:"👥 Topluluk" },
+  { id:"etkinlik",  label:"🎉 Etkinlik" },
 ];
 
 const SEED_POSTS: Post[] = [
@@ -56,6 +56,24 @@ const MEMBERS = [
   { emoji:"⭐", name:"poodle_istanbul", city:"İstanbul", poodle:"Mochi",   age:"2 yaş",  color:"Gri" },
   { emoji:"🎀", name:"toy_lover_ece",   city:"Antalya",  poodle:"Şeker",   age:"5 yaş",  color:"Krem" },
 ];
+
+const FALLBACK_EVENTS = [
+  { id:1, day:"26", month:"TEM", title:"Poodle Buluşması — Kadıköy",        location:"İstanbul", desc:"İstanbul poodle severler Kadıköy Moda sahilinde buluşuyor. Poodlenizi getirin!", color:"#FF7FA7", type:"Buluşma",  free:true  },
+  { id:2, day:"09", month:"AĞU", title:"Online: Tıraş Teknikleri Webinarı", location:"Zoom",      desc:"Uzman groomer Selin Demir ile ev ortamında tıraş teknikleri webinarı.",          color:"#A77BFF", type:"Online",   free:true  },
+  { id:3, day:"23", month:"AĞU", title:"Poodle Agility Yarışması",          location:"Ankara",    desc:"Poodle'ınızın çevikliğini sınayın! Tüm yaş grupları için ayrı kategoriler.",     color:"#78BEFF", type:"Yarışma",  free:false },
+  { id:4, day:"06", month:"EYL", title:"Poodle Fotoğraf Günü",              location:"İzmir",     desc:"Profesyonel fotoğrafçı eşliğinde poodlenizle anılarınızı ölümsüzleştirin.",      color:"#34D399", type:"Etkinlik", free:false },
+];
+
+const DEMO_PROFILES = [
+  { name:"Mocha",   avatar:"🐩", breed:"Toy Poodle",       age:"3 yaş", city:"İstanbul", bio:"Çikolata rengi toy poodle. Oyun oynamayı ve tıraş günlerini sever." },
+  { name:"Luna",    avatar:"🐾", breed:"Toy Poodle",       age:"2 yaş", city:"Ankara",   bio:"Siyah toy poodle. Enerjik, sosyal ve diğer poodlelerle iyi anlaşıyor." },
+  { name:"Biscuit", avatar:"💜", breed:"Miniature Poodle", age:"1 yaş", city:"İzmir",    bio:"Kırmızı-kahve miniature poodle. Her gün yeni bir şey öğreniyor!" },
+];
+
+const DEMO_COMMENTS: Record<string, {author:string; text:string}[]> = {
+  "1": [{ author:"toypoodle_mert", text:"Çok güzel! Hangi kuaföre gidiyor?" }, { author:"poodle_selin", text:"Mocha süper görünüyor 😍" }],
+  "3": [{ author:"miniaturist_can", text:"Mutlu yıllar Biscuit! 🎂" }, { author:"poodle_istanbul", text:"Pastadan bir şeyler kaldı mı? 😂" }],
+};
 
 const BREEDS = ["Toy Poodle","Miniature Poodle","Standard Poodle","Moyen Poodle"];
 const COLORS = ["Beyaz","Siyah","Bej/Krem","Kahverengi","Gri/Gümüş","Kırmızı","Kayısı","Mavi","Bicolor"];
@@ -78,47 +96,78 @@ const CSS = [
 
 
 /* ─── Post Card ─────────────────────────────────────────── */
-function PostCard({ post, onLike }: { post: Post; onLike: (id: string) => void }) {
+function PostCard({ post, onLike, isLoggedIn, onJoin }: {
+  post: Post; onLike: (id: string) => void; isLoggedIn: boolean; onJoin: () => void;
+}) {
+  const [, navigate] = useLocation();
+  const [showComments, setShowComments] = useState(false);
+  const postComments = DEMO_COMMENTS[post.id] ?? [];
+
   return (
-    <div className="card fade-up" style={{ marginBottom:14 }}>
+    <article className="card fade-up" style={{ marginBottom:14 }}>
       {/* Author row */}
       <div style={{ display:"flex", alignItems:"center", gap:10, padding:"14px 16px 10px" }}>
         <div style={{ width:42, height:42, borderRadius:"50%", background:"linear-gradient(135deg,#EDE8FF,#D4C4FF)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, flexShrink:0 }}>{post.avatar}</div>
         <div style={{ flex:1 }}>
           <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-            <span style={{ fontSize:13, fontWeight:800, color:"#1a1a1a" }}>@{post.author}</span>
+            <button onClick={() => navigate(`/yourpoodle/club/profil/${post.author}`)}
+              style={{ background:"none", border:"none", cursor:"pointer", fontSize:13, fontWeight:800, color:"#1a1a1a", fontFamily:"Inter,sans-serif", padding:0 }}>@{post.author}</button>
             <span style={{ fontSize:11, background:"#EDE8FF", color:"#7C3AFF", borderRadius:6, padding:"1px 7px", fontWeight:700 }}>🐩 {post.poodle}</span>
           </div>
           <span style={{ fontSize:11, color:"#aaa" }}>{post.time}</span>
         </div>
+        <a href={`/yourpoodle/club/post/${post.id}`} style={{ fontSize:11, color:"#ccc", textDecoration:"none", padding:"4px 6px" }} title="Gönderi linki">#</a>
       </div>
       {/* Text */}
       <p style={{ fontSize:13.5, color:"#333", lineHeight:1.65, padding:"0 16px 12px", fontFamily:"Inter,sans-serif" }}>{post.text}</p>
       {/* Image */}
-      {post.img && <img src={post.img} alt="" style={{ width:"100%", maxHeight:220, objectFit:"cover", display:"block" }} />}
+      {post.img && <img src={post.img} alt={`${post.poodle} fotoğrafı`} loading="lazy" style={{ width:"100%", maxHeight:220, objectFit:"cover", display:"block" }} />}
       {/* Actions */}
       <div style={{ display:"flex", borderTop:"1px solid #f5f5f5", padding:"4px 8px" }}>
-        <button className="post-action" onClick={() => onLike(post.id)} style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 14px", borderRadius:10, border:"none", background:"none", cursor:"pointer", flex:1, justifyContent:"center", fontFamily:"Inter,sans-serif" }}>
+        <button className="post-action" onClick={() => { if (!isLoggedIn) { onJoin(); return; } onLike(post.id); }}
+          style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 14px", borderRadius:10, border:"none", background:"none", cursor:"pointer", flex:1, justifyContent:"center", fontFamily:"Inter,sans-serif" }}>
           <Heart size={18} strokeWidth={2} color={post.liked?"#E75480":"#aaa"} fill={post.liked?"#E75480":"none"} />
           <span style={{ fontSize:12, fontWeight:700, color:post.liked?"#E75480":"#aaa" }}>{post.likes + (post.liked?1:0)}</span>
         </button>
-        <button className="post-action" style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 14px", borderRadius:10, border:"none", background:"none", cursor:"pointer", flex:1, justifyContent:"center", fontFamily:"Inter,sans-serif" }}>
-          <MessageCircle size={18} strokeWidth={2} color="#aaa" />
-          <span style={{ fontSize:12, fontWeight:700, color:"#aaa" }}>{post.comments}</span>
+        <button className="post-action" onClick={() => setShowComments(s => !s)}
+          style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 14px", borderRadius:10, border:"none", background:"none", cursor:"pointer", flex:1, justifyContent:"center", fontFamily:"Inter,sans-serif" }}>
+          <MessageCircle size={18} strokeWidth={2} color={showComments?"#7C3AFF":"#aaa"} />
+          <span style={{ fontSize:12, fontWeight:700, color:showComments?"#7C3AFF":"#aaa" }}>{post.comments}</span>
         </button>
         <button className="post-action" onClick={() => {
-          const url = window.location.href;
-          if (navigator.share) {
-            navigator.share({ title:"YourPoodle Club", text: post.text.slice(0, 100), url }).catch(()=>{});
-          } else {
-            navigator.clipboard?.writeText(url).catch(()=>{});
-          }
+          const url = `${window.location.origin}/yourpoodle/club/post/${post.id}`;
+          if (navigator.share) { navigator.share({ title:"YourPoodle Club", text: post.text.slice(0,100), url }).catch(()=>{}); }
+          else { navigator.clipboard?.writeText(url).catch(()=>{}); }
         }} style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 14px", borderRadius:10, border:"none", background:"none", cursor:"pointer", flex:1, justifyContent:"center", fontFamily:"Inter,sans-serif" }}>
           <Share2 size={18} strokeWidth={2} color="#aaa" />
           <span style={{ fontSize:12, fontWeight:700, color:"#aaa" }}>Paylaş</span>
         </button>
       </div>
-    </div>
+      {/* Inline comment section */}
+      {showComments && (
+        <div style={{ padding:"12px 16px 16px", borderTop:"1px solid #f5f5f5", background:"#fafafa" }}>
+          {postComments.map(c => (
+            <div key={c.author} style={{ display:"flex", gap:8, alignItems:"flex-start", marginBottom:10 }}>
+              <div style={{ width:28, height:28, borderRadius:"50%", background:"linear-gradient(135deg,#EDE8FF,#D4C4FF)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, flexShrink:0 }}>🐩</div>
+              <div style={{ background:"#fff", borderRadius:12, padding:"8px 12px", flex:1 }}>
+                <span style={{ fontSize:11, fontWeight:800, color:"#7C3AFF" }}>@{c.author} </span>
+                <span style={{ fontSize:12, color:"#333" }}>{c.text}</span>
+              </div>
+            </div>
+          ))}
+          {isLoggedIn ? (
+            <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+              <div style={{ width:28, height:28, borderRadius:"50%", background:"linear-gradient(135deg,#7C3AFF,#A855F7)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, flexShrink:0 }}>🐩</div>
+              <input placeholder="Yorum yaz..." style={{ flex:1, height:36, borderRadius:10, border:"1.5px solid #eee", padding:"0 12px", fontSize:13, fontFamily:"Inter,sans-serif", outline:"none", background:"#fff" }} />
+            </div>
+          ) : (
+            <button onClick={onJoin} style={{ width:"100%", padding:"10px", borderRadius:12, border:"1.5px solid #EDE8FF", background:"#fff", color:"#7C3AFF", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
+              💬 Yorum yapmak için ücretsiz katıl →
+            </button>
+          )}
+        </div>
+      )}
+    </article>
   );
 }
 
@@ -311,46 +360,69 @@ function urlBase64ToUint8Array(base64String: string) {
 export default function Club() {
   const [, navigate]   = useLocation();
   const { isLoggedIn } = useCustomer();
-  const [activeTab,    setActiveTab]    = useState("feed");
+
+  // Tab from URL param — lazy initializer so it's correct on first render
+  const [activeTab, setActiveTab] = useState(() => {
+    const slug = new URLSearchParams(window.location.search).get("tab");
+    return slug && TABS.find(t => t.id === slug) ? slug : "akis";
+  });
   const [posts,        setPosts]        = useState<Post[]>(SEED_POSTS);
   const [showCompose,  setShowCompose]  = useState(false);
+  const [search,       setSearch]       = useState("");
   const [poodle,       setPoodle]       = useState<PoodleProfile>(() => {
     try { return JSON.parse(localStorage.getItem("yp_poodle")||"{}"); } catch { return {}; }
   });
   const { state: pushState, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushSubscription();
 
-  // Fetch events from API
-  const { data: events = [] } = useQuery<any[]>({
+  const { data: apiEvents = [] } = useQuery<any[]>({
     queryKey: ["/api/yp-events"],
-    queryFn: async () => {
-      const res = await fetch("/api/yp-events");
-      if (!res.ok) return [];
-      return res.json();
-    },
+    queryFn: async () => { const res = await fetch("/api/yp-events"); if (!res.ok) return []; return res.json(); },
     staleTime: 5 * 60 * 1000,
   });
 
   const emptyPoodle: PoodleProfile = { name:"", breed:"", age:"", color:"", about:"", photo:"" };
   const profile: PoodleProfile = { ...emptyPoodle, ...poodle };
 
+  // Tab switch + URL sync
+  const switchTab = (id: string) => {
+    setActiveTab(id);
+    setSearch("");
+    window.history.pushState(null, "", `?tab=${id}`);
+  };
+
+  // Browser back/forward
+  useEffect(() => {
+    const handler = () => {
+      const slug = new URLSearchParams(window.location.search).get("tab");
+      setActiveTab(slug && TABS.find(t => t.id === slug) ? slug : "akis");
+    };
+    window.addEventListener("popstate", handler);
+    return () => window.removeEventListener("popstate", handler);
+  }, []);
+
+  // Single-set SEO via useEffect — no duplicate meta tags in render
+  useEffect(() => {
+    document.title = "Poodle Club — 500+ Üye Sosyal Topluluk | YourPoodle";
+    const setMeta = (attr: string, key: string, val: string) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
+      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
+      el.content = val;
+    };
+    setMeta("name",     "description",   "YourPoodle Club: poodle sahiplerinin ücretsiz sosyal platformu. Fotoğraf paylaşın, deneyim aktarın, etkinliklere katılın. 50+ şehirden 500+ üye.");
+    setMeta("property", "og:title",      "Poodle Club | YourPoodle");
+    setMeta("property", "og:description","Poodle sahiplerinin sosyal topluluğu. Paylaş, bağlan, katıl.");
+    setMeta("property", "og:type",       "website");
+    setMeta("property", "og:url",        "https://www.yourpoodle.com/yourpoodle/club");
+    setMeta("name",     "robots",        "index, follow");
+  }, []);
+
   const handleLike = (id: string) =>
     setPosts(ps => ps.map(p => p.id===id ? { ...p, liked:!p.liked } : p));
 
   const handleNewPost = (text: string, img: string) => {
-    const p: Post = {
-      id: Date.now().toString(),
-      author: "sen",
-      poodle: profile.name || "Poodlem",
-      avatar: "🐩",
-      time: "Az önce",
-      text,
-      img: img||undefined,
-      likes: 0,
-      comments: 0,
-      liked: false,
-    };
+    const p: Post = { id:Date.now().toString(), author:"sen", poodle:profile.name||"Poodlem", avatar:"🐩", time:"Az önce", text, img:img||undefined, likes:0, comments:0, liked:false };
     setPosts(ps => [p, ...ps]);
-    setActiveTab("feed");
+    switchTab("akis");
   };
 
   const handleSavePoodle = (p: PoodleProfile) => {
@@ -358,46 +430,67 @@ export default function Club() {
     localStorage.setItem("yp_poodle", JSON.stringify(p));
   };
 
+  const filteredPosts = search
+    ? posts.filter(p => p.text.toLowerCase().includes(search.toLowerCase()) || p.author.toLowerCase().includes(search.toLowerCase()) || p.poodle.toLowerCase().includes(search.toLowerCase()))
+    : posts;
+
+  const displayEvents = (apiEvents as any[]).length > 0 ? apiEvents : FALLBACK_EVENTS;
+  const activeTabLabel = TABS.find(t => t.id === activeTab)?.label.replace(/^[^\s]+\s/, "") ?? "";
+
+  // Schemas
+  const webPageSchema = { "@context":"https://schema.org","@type":"WebPage","name":"Poodle Club","description":"Türkiye'nin poodle sahipleri sosyal topluluğu","url":"https://www.yourpoodle.com/yourpoodle/club" };
+  const faqSchema = { "@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+    { "@type":"Question","name":"YourPoodle Club nedir?","acceptedAnswer":{ "@type":"Answer","text":"YourPoodle Club, Türkiye'nin poodle sahiplerini bir araya getiren ücretsiz sosyal platformdur." } },
+    { "@type":"Question","name":"Club'a katılım ücretsiz mi?","acceptedAnswer":{ "@type":"Answer","text":"Evet, tamamen ücretsizdir. Gizli ücret yoktur." } },
+    { "@type":"Question","name":"Kimler katılabilir?","acceptedAnswer":{ "@type":"Answer","text":"Poodle sahibi olan veya poodle'lara ilgi duyan herkes katılabilir." } },
+    { "@type":"Question","name":"Ne tür içerik paylaşılabilir?","acceptedAnswer":{ "@type":"Answer","text":"Poodle fotoğrafları, bakım deneyimleri, mama önerileri ve sağlık soruları paylaşılabilir." } },
+  ]};
+  const socialPostingsSchema = SEED_POSTS.map(p => ({ "@context":"https://schema.org","@type":"SocialMediaPosting","author":{"@type":"Person","name":p.author},"articleBody":p.text,"url":`https://www.yourpoodle.com/yourpoodle/club/post/${p.id}` }));
+
   return (
-    <YPLayout activeLink="/yourpoodle/club">
-      <title>YourPoodle Club | Poodle Sosyal Topluluğu ve Paylaşım Platformu</title>
-      <meta name="description" content="YourPoodle Club: poodle sahiplerinin buluştuğu sosyal platform. Gönderi paylaşın, etkinliklere katılın, poodle profilinizi gösterin ve topluluğa dahil olun." />
-      <meta property="og:title" content="YourPoodle Club | Poodle Sosyal Topluluğu" />
-      <meta property="og:description" content="Poodle sahiplerinin sosyal platformu. Paylaş, bağlan, topluluğa katıl." />
-      <meta property="og:type" content="website" />
-      <meta name="robots" content="index, follow" />
-      <style>{CSS}</style>
+    <YPLayout activeLink="/yourpoodle/club" bottomNavActive="/yourpoodle/club">
+      <style>{CSS}{`
+        .club-wrap { padding-bottom: 80px; }
+        @media(min-width:768px){ .club-wrap { padding-bottom: 32px; } }
+      `}</style>
+
+      {/* Schemas */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      {socialPostingsSchema.map((s, i) => (
+        <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />
+      ))}
 
       {showCompose && isLoggedIn && (
         <NewPostModal poodleName={profile.name} onClose={() => setShowCompose(false)} onSubmit={handleNewPost} />
       )}
 
-      <div style={{ background:"#F7F5FF", fontFamily:"Inter,sans-serif" }}>
+      <div className="club-wrap" style={{ background:"#F7F5FF", fontFamily:"Inter,sans-serif" }}>
 
-        {/* Tab bar — page-level sub-nav */}
+        {/* Tab bar */}
         <div style={{ display:"flex", background:"#fff", borderBottom:"1px solid #f0f0f0", position:"sticky", top:0, zIndex:50 }}>
           {TABS.map(t => (
-            <button key={t.id} className="tab-btn" onClick={() => setActiveTab(t.id)}
+            <button key={t.id} className="tab-btn" onClick={() => switchTab(t.id)}
               style={{ color:activeTab===t.id?"#7C3AFF":"#888", borderBottomColor:activeTab===t.id?"#7C3AFF":"transparent" }}>
               {t.label}
             </button>
           ))}
         </div>
 
-        {/* HERO BANNER (feed tab only) */}
-        {activeTab==="feed" && (
+        {/* HERO BANNER (akis tab only) */}
+        {activeTab==="akis" && (
           <div style={{ background:"linear-gradient(135deg,#7C3AFF,#9B59FF)", padding:"20px 20px 22px", position:"relative", overflow:"hidden" }}>
             <div style={{ position:"absolute", top:-30, right:-30, width:120, height:120, borderRadius:"50%", background:"rgba(255,255,255,0.07)" }}/>
             <div style={{ display:"flex", alignItems:"center", gap:12 }}>
               <div style={{ fontSize:36 }}>🐩</div>
               <div>
                 <div style={{ fontSize:10, fontWeight:800, color:"rgba(255,255,255,0.65)", letterSpacing:"0.1em", marginBottom:3 }}>YourPoodle</div>
-                <div style={{ fontSize:18, fontWeight:900, color:"#fff", lineHeight:1.2 }}>Poodle Club</div>
-                <div style={{ fontSize:12, color:"rgba(255,255,255,0.82)", marginTop:3 }}>✅ Ücretsiz · 🐾 Poodle sahibi herkese açık</div>
+                <h1 style={{ fontSize:20, fontWeight:900, color:"#fff", lineHeight:1.2, margin:0 }}>Poodle Club</h1>
+                <p style={{ fontSize:12, color:"rgba(255,255,255,0.82)", marginTop:3, marginBottom:0 }}>✅ Ücretsiz · 🐾 Poodle sahibi herkese açık</p>
               </div>
             </div>
             <div style={{ display:"flex", gap:16, marginTop:16 }}>
-              {[["10.000+","Üye"],["500+","Paylaşım"],["50+","Şehir"]].map(([n,l])=>(
+              {[["500+","Üye"],["1.200+","Paylaşım"],["50+","Şehir"]].map(([n,l])=>(
                 <div key={l} style={{ textAlign:"center" }}>
                   <div style={{ fontSize:16, fontWeight:900, color:"#fff" }}>{n}</div>
                   <div style={{ fontSize:10, color:"rgba(255,255,255,0.65)" }}>{l}</div>
@@ -413,12 +506,33 @@ export default function Club() {
           </div>
         )}
 
+        {/* Breadcrumb */}
+        <nav aria-label="Breadcrumb" style={{ display:"flex", alignItems:"center", gap:5, padding:"10px 16px", background:"#fff", borderBottom:"1px solid #f5f5f5" }}>
+          <button onClick={() => navigate("/yourpoodle")} style={{ background:"none", border:"none", cursor:"pointer", color:"#888", fontSize:12, fontFamily:"Inter,sans-serif", padding:0 }}>Ana Sayfa</button>
+          <ChevronRight size={12} color="#bbb" />
+          <button onClick={() => switchTab("akis")} style={{ background:"none", border:"none", cursor:"pointer", color:activeTab==="akis"?"#333":"#7C3AFF", fontSize:12, fontFamily:"Inter,sans-serif", padding:0, fontWeight:700 }}>Poodle Club</button>
+          {activeTab !== "akis" && (
+            <>
+              <ChevronRight size={12} color="#bbb" />
+              <span style={{ fontSize:12, color:"#333", fontWeight:700, fontFamily:"Inter,sans-serif" }}>{activeTabLabel}</span>
+            </>
+          )}
+        </nav>
+
         {/* CONTENT */}
         <div style={{ padding:"16px 14px 0" }}>
 
-          {/* ══ FEED TAB ══ */}
-          {activeTab==="feed" && (
+          {/* ══ AKIŞ TAB ══ */}
+          {activeTab==="akis" && (
             <div>
+              {/* Search */}
+              <div style={{ display:"flex", alignItems:"center", background:"#fff", border:"1.5px solid #ececec", borderRadius:14, height:44, overflow:"hidden", marginBottom:14 }}>
+                <div style={{ paddingLeft:12, color:"#bbb", display:"flex" }}><Search size={17} strokeWidth={2} /></div>
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Paylaşım ara... (kullanıcı, poodle adı, metin)"
+                  style={{ flex:1, border:"none", outline:"none", fontSize:13, fontWeight:600, color:"#333", background:"transparent", padding:"0 10px", fontFamily:"Inter,sans-serif" }} />
+                {search && <button onClick={() => setSearch("")} style={{ background:"none", border:"none", cursor:"pointer", paddingRight:12, color:"#bbb" }}><X size={15} strokeWidth={2}/></button>}
+              </div>
+
               {/* Compose bar (logged in) */}
               {isLoggedIn && (
                 <button onClick={() => setShowCompose(true)}
@@ -433,23 +547,15 @@ export default function Club() {
 
               {/* Push notification opt-in */}
               {pushState !== "denied" && (
-                <div style={{ background: pushState === "subscribed" ? "#F0FFF4" : "#fff", borderRadius:16, padding:"14px 16px", marginBottom:14, border:`1.5px solid ${pushState==="subscribed"?"#BBF7D0":"#EDE8FF"}`, display:"flex", alignItems:"center", gap:12 }}>
-                  {pushState === "subscribed"
-                    ? <Bell size={22} color="#16A34A" />
-                    : <Bell size={22} color="#7C3AFF" />}
+                <div style={{ background:pushState==="subscribed"?"#F0FFF4":"#fff", borderRadius:16, padding:"14px 16px", marginBottom:14, border:`1.5px solid ${pushState==="subscribed"?"#BBF7D0":"#EDE8FF"}`, display:"flex", alignItems:"center", gap:12 }}>
+                  <Bell size={22} color={pushState==="subscribed"?"#16A34A":"#7C3AFF"} />
                   <div style={{ flex:1 }}>
-                    <div style={{ fontSize:13, fontWeight:800, color:"#1a1a1a" }}>
-                      {pushState === "subscribed" ? "Bildirimler Aktif ✅" : "Bildirimler Al 🔔"}
-                    </div>
-                    <div style={{ fontSize:11, color:"#888" }}>
-                      {pushState === "subscribed" ? "Yeni etkinlik ve içeriklerden haberdar oluyorsunuz" : "Yeni etkinlik ve içeriklerden anında haberdar ol"}
-                    </div>
+                    <div style={{ fontSize:13, fontWeight:800, color:"#1a1a1a" }}>{pushState==="subscribed"?"Bildirimler Aktif ✅":"Bildirimler Al 🔔"}</div>
+                    <div style={{ fontSize:11, color:"#888" }}>{pushState==="subscribed"?"Yeni etkinlik ve içeriklerden haberdar oluyorsunuz":"Yeni etkinlik ve içeriklerden anında haberdar ol"}</div>
                   </div>
-                  <button
-                    onClick={pushState === "subscribed" ? pushUnsubscribe : pushSubscribe}
-                    disabled={pushState === "loading"}
-                    style={{ padding:"8px 14px", borderRadius:12, border:"none", background: pushState==="subscribed"?"#F0FFF4":"#7C3AFF", color:pushState==="subscribed"?"#16A34A":"#fff", fontSize:12, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif", whiteSpace:"nowrap" }}>
-                    {pushState === "loading" ? "…" : pushState === "subscribed" ? "Kapat" : "Aç"}
+                  <button onClick={pushState==="subscribed"?pushUnsubscribe:pushSubscribe} disabled={pushState==="loading"}
+                    style={{ padding:"8px 14px", borderRadius:12, border:"none", background:pushState==="subscribed"?"#F0FFF4":"#7C3AFF", color:pushState==="subscribed"?"#16A34A":"#fff", fontSize:12, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif", whiteSpace:"nowrap" }}>
+                    {pushState==="loading"?"…":pushState==="subscribed"?"Kapat":"Aç"}
                   </button>
                 </div>
               )}
@@ -470,25 +576,42 @@ export default function Club() {
               )}
 
               {/* Posts */}
-              {posts.map(post => (
-                <PostCard key={post.id} post={post} onLike={handleLike} />
-              ))}
+              {filteredPosts.length === 0 ? (
+                <div style={{ textAlign:"center", padding:"40px 0" }}>
+                  <div style={{ fontSize:36, marginBottom:12 }}>🔍</div>
+                  <div style={{ fontSize:14, fontWeight:700, color:"#555" }}>"{search}" için paylaşım bulunamadı</div>
+                  <button onClick={() => setSearch("")} style={{ marginTop:16, padding:"10px 24px", borderRadius:20, background:"#7C3AFF", color:"#fff", border:"none", cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"Inter,sans-serif" }}>Tümünü Göster</button>
+                </div>
+              ) : (
+                filteredPosts.map(post => (
+                  <PostCard key={post.id} post={post} onLike={handleLike} isLoggedIn={isLoggedIn} onJoin={() => navigate("/yourpoodle/giris")} />
+                ))
+              )}
             </div>
           )}
 
-          {/* ══ MY POODLE TAB ══ */}
-          {activeTab==="my" && (
+          {/* ══ POODLEM TAB ══ */}
+          {activeTab==="poodlem" && (
             <div className="fade-up">
               {!isLoggedIn ? (
-                <div style={{ textAlign:"center", paddingTop:40, paddingBottom:40 }}>
-                  <div style={{ fontSize:56, marginBottom:16 }}>🐩</div>
-                  <div style={{ fontSize:18, fontWeight:900, color:"#1a1a1a", marginBottom:8 }}>Poodle Profilini Oluştur</div>
-                  <p style={{ fontSize:13, color:"#888", lineHeight:1.7, marginBottom:24, maxWidth:260, margin:"0 auto 24px" }}>
-                    Poodle'ınız için bir profil oluşturun, fotoğraf ve bilgilerini ekleyin.
-                  </p>
+                <div>
+                  <h2 style={{ fontSize:16, fontWeight:800, color:"#1a1a1a", marginBottom:6 }}>Poodle Profilleri</h2>
+                  <p style={{ fontSize:13, color:"#888", marginBottom:16, lineHeight:1.6 }}>Profilinizi oluşturun, poodle'ınızı topluluğa tanıtın.</p>
+                  <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:24 }}>
+                    {DEMO_PROFILES.map(dp => (
+                      <div key={dp.name} style={{ background:"#fff", borderRadius:18, padding:"16px", display:"flex", alignItems:"center", gap:14, boxShadow:"0 2px 12px rgba(0,0,0,0.06)" }}>
+                        <div style={{ width:54, height:54, borderRadius:"50%", background:"linear-gradient(135deg,#EDE8FF,#D4C4FF)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, flexShrink:0 }}>{dp.avatar}</div>
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontSize:15, fontWeight:900, color:"#1a1a1a" }}>{dp.name}</div>
+                          <div style={{ fontSize:12, color:"#888", marginTop:2 }}>{dp.breed} · {dp.age} · {dp.city}</div>
+                          <div style={{ fontSize:12, color:"#555", marginTop:4, lineHeight:1.5 }}>{dp.bio}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                   <button onClick={() => navigate("/yourpoodle/giris")}
-                    style={{ height:50, borderRadius:14, border:"none", background:"linear-gradient(135deg,#7C3AFF,#A855F7)", color:"#fff", fontSize:14, fontWeight:800, padding:"0 32px", cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
-                    Ücretsiz Üye Ol 🐾
+                    style={{ width:"100%", height:50, borderRadius:14, border:"none", background:"linear-gradient(135deg,#7C3AFF,#A855F7)", color:"#fff", fontSize:14, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
+                    Kendi Poodle Profilinizi Oluşturun 🐾
                   </button>
                 </div>
               ) : (
@@ -503,55 +626,24 @@ export default function Club() {
             </div>
           )}
 
-          {/* ══ EVENTS TAB ══ */}
-          {activeTab==="events" && (
+          {/* ══ TOPLULUK TAB ══ */}
+          {activeTab==="topluluk" && (
             <div className="fade-up">
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
-                <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a" }}>🎉 Etkinlikler</span>
-              </div>
-              {events.length === 0 ? (
-                <div style={{ textAlign:"center", padding:"40px 0", color:"#aaa" }}>
-                  <Calendar size={40} style={{ marginBottom:12, opacity:0.3 }} />
-                  <div style={{ fontSize:14, fontWeight:700 }}>Yakında etkinlik duyurulacak</div>
-                  <div style={{ fontSize:12, marginTop:4 }}>Bildirimleri açarak ilk öğrenen siz olun!</div>
-                  {pushState !== "denied" && pushState !== "subscribed" && (
-                    <button onClick={pushSubscribe}
-                      style={{ marginTop:16, padding:"10px 22px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#7C3AFF,#A855F7)", color:"#fff", fontSize:13, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
-                      🔔 Bildirim Aç
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-                  {events.map((ev: any) => (
-                    <div key={ev.id} className="card" style={{ padding:"18px 16px" }}>
-                      {ev.image && <img src={ev.image} alt={ev.title} style={{ width:"100%", height:140, objectFit:"cover", borderRadius:12, marginBottom:12, display:"block" }} />}
-                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-                        <span style={{ fontSize:11, background:"#EDE8FF", color:"#7C3AFF", borderRadius:6, padding:"2px 8px", fontWeight:700 }}>🎉 Etkinlik</span>
-                        {ev.date && <span style={{ fontSize:11, color:"#aaa" }}>{new Date(ev.date).toLocaleDateString("tr-TR", { day:"numeric", month:"long", year:"numeric" })}</span>}
-                      </div>
-                      <div style={{ fontSize:15, fontWeight:900, color:"#1a1a1a", marginBottom:6 }}>{ev.title}</div>
-                      {ev.description && <p style={{ fontSize:13, color:"#555", lineHeight:1.65, fontFamily:"Inter,sans-serif" }}>{ev.description}</p>}
-                      {ev.location && <div style={{ fontSize:12, color:"#888", marginTop:8 }}>📍 {ev.location}</div>}
-                      {ev.link && (
-                        <a href={ev.link} target="_blank" rel="noopener noreferrer"
-                          style={{ display:"inline-block", marginTop:12, padding:"9px 18px", borderRadius:12, background:"linear-gradient(135deg,#7C3AFF,#A855F7)", color:"#fff", fontSize:13, fontWeight:800, textDecoration:"none" }}>
-                          Detaylar →
-                        </a>
-                      )}
+              <h2 style={{ fontSize:15, fontWeight:800, color:"#1a1a1a", marginBottom:12 }}>50+ Şehirden Poodle Sahipleri</h2>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:20 }}>
+                {[["İstanbul","🏙️","180"],["Ankara","🏛️","72"],["İzmir","🌊","54"],["Samsun","⚓","38"],["Bursa","🌿","29"],["Antalya","🌴","22"]].map(([city,emoji,count]) => (
+                  <div key={city} style={{ background:"#fff", borderRadius:14, padding:"12px 14px", display:"flex", alignItems:"center", gap:10 }}>
+                    <span style={{ fontSize:22 }}>{emoji}</span>
+                    <div>
+                      <div style={{ fontSize:13, fontWeight:800, color:"#1a1a1a" }}>{city}</div>
+                      <div style={{ fontSize:11, color:"#7C3AFF", fontWeight:700 }}>{count}+ üye</div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ══ COMMUNITY TAB ══ */}
-          {activeTab==="people" && (
-            <div className="fade-up">
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
-                <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a" }}>👥 Club Üyeleri</span>
-                <span style={{ fontSize:12, color:"#7C3AFF", fontWeight:700 }}>{MEMBERS.length + 9994} üye</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
+                <span style={{ fontSize:14, fontWeight:800, color:"#1a1a1a" }}>👥 Üyeler</span>
+                <span style={{ fontSize:12, color:"#7C3AFF", fontWeight:700 }}>{MEMBERS.length + 494} üye</span>
               </div>
               <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                 {MEMBERS.map(m => (
@@ -567,8 +659,6 @@ export default function Club() {
                   </div>
                 ))}
               </div>
-
-              {/* Join banner for guests */}
               {!isLoggedIn && (
                 <div style={{ marginTop:20, background:"linear-gradient(135deg,#7C3AFF,#A855F7)", borderRadius:20, padding:"22px", textAlign:"center" }}>
                   <div style={{ fontSize:32, marginBottom:10 }}>🐾</div>
@@ -582,12 +672,118 @@ export default function Club() {
               )}
             </div>
           )}
+
+          {/* ══ ETKİNLİK TAB ══ */}
+          {activeTab==="etkinlik" && (
+            <div className="fade-up">
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
+                <h2 style={{ fontSize:16, fontWeight:800, color:"#1a1a1a", margin:0 }}>🎉 Yaklaşan Etkinlikler</h2>
+                <button onClick={() => navigate("/yourpoodle/etkinlikler")} style={{ background:"none", border:"none", cursor:"pointer", color:"#7C3AFF", fontSize:12, fontWeight:700, fontFamily:"Inter,sans-serif" }}>Tümü →</button>
+              </div>
+              <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                {(displayEvents as any[]).map((ev: any) => (
+                  <div key={ev.id} className="card" style={{ padding:"16px" }}>
+                    <div style={{ display:"flex", gap:12, alignItems:"flex-start" }}>
+                      <div style={{ width:52, height:52, borderRadius:14, background:ev.color||"#EDE8FF", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <div style={{ fontSize:15, fontWeight:900, color:"#fff", lineHeight:1.1 }}>{ev.day||"—"}</div>
+                        <div style={{ fontSize:9, fontWeight:800, color:"rgba(255,255,255,0.85)" }}>{ev.month||""}</div>
+                      </div>
+                      <div style={{ flex:1 }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4, flexWrap:"wrap" }}>
+                          <span style={{ fontSize:10, background:"#EDE8FF", color:"#7C3AFF", borderRadius:6, padding:"2px 7px", fontWeight:700 }}>{ev.type||"Etkinlik"}</span>
+                          {ev.free && <span style={{ fontSize:10, background:"#DCFCE7", color:"#16A34A", borderRadius:6, padding:"2px 7px", fontWeight:700 }}>Ücretsiz</span>}
+                        </div>
+                        <div style={{ fontSize:14, fontWeight:900, color:"#1a1a1a", marginBottom:4 }}>{ev.title}</div>
+                        {ev.location && <div style={{ fontSize:12, color:"#888" }}>📍 {ev.location}</div>}
+                        {ev.desc && <p style={{ fontSize:12, color:"#555", lineHeight:1.55, marginTop:6, fontFamily:"Inter,sans-serif" }}>{ev.desc}</p>}
+                        <button onClick={() => navigate("/yourpoodle/etkinlikler")}
+                          style={{ marginTop:10, padding:"8px 16px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#7C3AFF,#A855F7)", color:"#fff", fontSize:12, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
+                          Detaylar →
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {pushState !== "denied" && pushState !== "subscribed" && (
+                <div style={{ marginTop:16, background:"#fff", borderRadius:16, padding:"16px", border:"1.5px solid #EDE8FF", display:"flex", alignItems:"center", gap:12 }}>
+                  <Bell size={22} color="#7C3AFF" />
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13, fontWeight:800, color:"#1a1a1a" }}>Etkinlik Bildirimleri</div>
+                    <div style={{ fontSize:11, color:"#888" }}>Yeni etkinliklerden ilk öğrenen siz olun</div>
+                  </div>
+                  <button onClick={pushSubscribe}
+                    style={{ padding:"8px 14px", borderRadius:12, border:"none", background:"#7C3AFF", color:"#fff", fontSize:12, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif", whiteSpace:"nowrap" }}>
+                    🔔 Aç
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* FAB — compose (logged in, feed tab) */}
-        {isLoggedIn && activeTab==="feed" && (
+        {/* Static SEO section — crawler-visible */}
+        <section style={{ padding:"32px 16px 0", borderTop:"1px solid #f0f0f0", marginTop:24 }}>
+          <h2 style={{ fontSize:17, fontWeight:800, color:"#1a1a1a", marginBottom:10 }}>Poodle Club Nedir?</h2>
+          <p style={{ fontSize:13, color:"#555", lineHeight:1.7, marginBottom:16 }}>
+            YourPoodle Club, Türkiye'nin en büyük poodle sahipleri sosyal platformudur. 50+ şehirden 500+ üye fotoğraf paylaşır, deneyim aktarır ve etkinliklere katılır. Tamamen ücretsizdir.
+          </p>
+          <ol style={{ paddingLeft:20, marginBottom:20 }}>
+            <li style={{ fontSize:13, color:"#555", marginBottom:8, lineHeight:1.6 }}><strong>Üye Olun</strong> — "Ücretsiz Katıl" butonuyla saniyeler içinde kayıt olun.</li>
+            <li style={{ fontSize:13, color:"#555", marginBottom:8, lineHeight:1.6 }}><strong>Poodle Profilinizi Oluşturun</strong> — Poodle'ınızın adı, fotoğrafı ve bilgilerini ekleyin.</li>
+            <li style={{ fontSize:13, color:"#555", lineHeight:1.6 }}><strong>Topluluğa Katılın</strong> — Paylaşım yapın, etkinliklere katılın, deneyim aktarın.</li>
+          </ol>
+
+          <h2 style={{ fontSize:16, fontWeight:800, color:"#1a1a1a", marginBottom:12 }}>Sık Sorulan Sorular</h2>
+          {[
+            ["YourPoodle Club nedir?","YourPoodle Club, Türkiye'nin poodle sahiplerini bir araya getiren ücretsiz sosyal platformdur."],
+            ["Katılım ücretsiz mi?","Evet, tamamen ücretsizdir. Gizli ücret yoktur."],
+            ["Kimler katılabilir?","Poodle sahibi olan veya poodle'lara ilgi duyan herkes katılabilir."],
+            ["Ne tür içerik paylaşılabilir?","Poodle fotoğrafları, bakım deneyimleri, mama önerileri ve sağlık soruları paylaşılabilir."],
+          ].map(([q,a]) => (
+            <div key={q} style={{ marginBottom:12, background:"#fff", borderRadius:13, padding:"14px 16px" }}>
+              <div style={{ fontSize:13.5, fontWeight:800, color:"#1a1a1a", marginBottom:5 }}>❓ {q}</div>
+              <div style={{ fontSize:13, color:"#555", lineHeight:1.65 }}>{a}</div>
+            </div>
+          ))}
+
+          {/* Crawler-visible post excerpts */}
+          <div aria-label="Son paylaşımlar" style={{ marginTop:16 }}>
+            <h2 style={{ fontSize:15, fontWeight:800, color:"#1a1a1a", marginBottom:10 }}>Son Paylaşımlardan</h2>
+            {SEED_POSTS.slice(0,3).map(p => (
+              <div key={p.id} style={{ marginBottom:8, padding:"10px 14px", background:"#fff", borderRadius:13 }}>
+                <div style={{ fontSize:11, color:"#7C3AFF", fontWeight:700, marginBottom:3 }}>@{p.author} · {p.poodle}</div>
+                <p style={{ fontSize:13, color:"#444", lineHeight:1.55, margin:0, fontFamily:"Inter,sans-serif" }}>{p.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer style={{ background:"#111", padding:"28px 20px 24px", marginTop:24 }}>
+          <div style={{ display:"flex", gap:32, flexWrap:"wrap", marginBottom:20 }}>
+            {([
+              ["Platform", [["Ana Sayfa","/yourpoodle"],["Mağaza","/yourpoodle/magaza"],["Rehber","/yourpoodle/rehber"],["Bilgi","/yourpoodle/bilgi"]]],
+              ["Topluluk", [["Club","/yourpoodle/club"],["Etkinlikler","/yourpoodle/etkinlikler"],["Akış","/yourpoodle/club?tab=akis"],["Üyeler","/yourpoodle/club?tab=topluluk"]]],
+              ["Yasal",    [["Gizlilik & KVKK","/yourpoodle"],["Topluluk Kuralları","/yourpoodle"],["Kullanım Şartları","/yourpoodle"]]],
+            ] as [string,[string,string][]][]).map(([title, links]) => (
+              <div key={title}>
+                <div style={{ fontSize:11, fontWeight:800, color:"#888", marginBottom:10, letterSpacing:"0.08em", textTransform:"uppercase" }}>{title}</div>
+                {links.map(([label,href]) => (
+                  <button key={label} onClick={() => navigate(href)} style={{ display:"block", background:"none", border:"none", cursor:"pointer", color:"#bbb", fontSize:12, fontFamily:"Inter,sans-serif", marginBottom:7, padding:0, textAlign:"left" }}>{label}</button>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize:11, color:"#555", borderTop:"1px solid #222", paddingTop:16 }}>
+            © 2026 YourPoodle · Toy Poodle sahipleri için Türkiye'nin ilk dijital platformu
+          </div>
+        </footer>
+
+        {/* FAB — compose (logged in, akis tab) */}
+        {isLoggedIn && activeTab==="akis" && (
           <button onClick={() => setShowCompose(true)}
-            style={{ position:"fixed", bottom:20, right:20, width:54, height:54, borderRadius:"50%", background:"linear-gradient(135deg,#7C3AFF,#A855F7)", border:"none", boxShadow:"0 6px 20px rgba(124,58,255,0.45)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", zIndex:150 }}>
+            style={{ position:"fixed", bottom:80, right:20, width:54, height:54, borderRadius:"50%", background:"linear-gradient(135deg,#7C3AFF,#A855F7)", border:"none", boxShadow:"0 6px 20px rgba(124,58,255,0.45)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", zIndex:150 }}>
             <Plus size={24} color="#fff" strokeWidth={2.5}/>
           </button>
         )}
