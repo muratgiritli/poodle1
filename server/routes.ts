@@ -1997,6 +1997,45 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
+  // YourPoodle storefront: products joined with brand_categories for animal + subcategory
+  app.get("/api/yp-products", async (req, res) => {
+    try {
+      const result = await sharedPool.query(`
+        SELECT p.id, p.name, p.price, p.original_price AS "originalPrice",
+               p.img, p.stock, p.is_active AS "isActive", p.mama_type AS "mamaType",
+               p.barcode, p.preorder_enabled AS "preorderEnabled",
+               p.long_description AS "longDescription",
+               bc.animal, bc.subcategory, bc.brand_name AS "brandName", bc.brand_slug AS "brandSlug"
+        FROM products p
+        LEFT JOIN brand_categories bc ON p.brand_category_id = bc.id
+        WHERE p.is_active = true
+        ORDER BY p.id DESC
+      `);
+      res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+      res.json(result.rows);
+    } catch (e: any) {
+      console.error("[/api/yp-products]", e?.message);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // YourPoodle: dog product categories (from subcategories table)
+  app.get("/api/categories", async (req, res) => {
+    try {
+      const result = await sharedPool.query(`
+        SELECT id, slug, display_name AS "displayName", color, sort_order AS "sortOrder"
+        FROM subcategories
+        WHERE animal = 'kopek' AND is_active = true
+        ORDER BY sort_order ASC
+      `);
+      res.setHeader("Cache-Control", "public, max-age=300");
+      res.json(result.rows);
+    } catch (e: any) {
+      console.error("[/api/categories]", e?.message);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.get("/api/admin/missing-products", requireAdmin, async (_req, res) => {
     const all = await storage.getAllProducts();
     const noImage = all.filter(p => !p.img || p.img === "");

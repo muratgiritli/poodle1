@@ -187,6 +187,7 @@ function Router() {
         <Route path="/yourpoodle/mama-bul"       component={YPMamaBulPage} />
         <Route path="/yourpoodle/hakkinda"       component={YPHakkindaPage} />
         <Route path="/yourpoodle/profil"         component={YPProfilPage} />
+        <Route path="/yourpoodle/urun/:id/:slug?" component={lazy(() => import("@/pages/product-detail"))} />
         <Route path="/demo-kampanya" component={DemoKampanyaPage} />
         <Route path="/demo-kampanya/urun/:id" component={DemoKampanyaUrunPage} />
         <Route path="/kampanya" component={CampaignPage} />

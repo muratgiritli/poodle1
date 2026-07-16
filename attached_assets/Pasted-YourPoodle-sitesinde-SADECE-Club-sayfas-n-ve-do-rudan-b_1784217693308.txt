@@ -1,0 +1,333 @@
+YourPoodle sitesinde SADECE Club sayfasını ve doğrudan bağlı topluluk bileşenlerini düzelt.
+Canlı URL: https://www.yourpoodle.com/yourpoodle/club
+
+Masaüstü (1920px), tablet (1024px, 768px) ve mobil (390px) için test et.
+Diğer sayfalara dokunma; sadece /yourpoodle/club ve ilgili route'lar.
+NOT: /topluluk ile Club arasındaki ilişkiyi bu prompt kapsamında düzelt (redirect veya birleştirme).
+
+Mevcut tasarımı, mor renk paletini (#6B3480) ve component yapısını koru.
+Gereksiz refactor yapma; sadece belirtilen sorunları düzelt.
+
+═══════════════════════════════════════════
+P1 — KRİTİK HATALAR (önce bunları düzelt)
+═══════════════════════════════════════════
+
+### 1. H1 eksik
+Sorun: Hero'da "Poodle Club" görünür ama <h1> etiketi yok.
+Topluluk sayfasında (/topluluk) H1 var ("Poodle Topluluğu") ama Club'ta yok.
+
+Düzelt:
+- Hero başlığını <h1>Poodle Club</h1> yap
+- Sayfada tek H1 olsun
+- Alt başlık (Ücretsiz · Poodle sahibi herkese açık) <p> veya hero alt metin olarak kalsın
+
+### 2. Club vs Topluluk — içerik ve navigasyon karmaşası
+Sorun: İki ayrı topluluk sayfası var, aynı demo gönderiler tekrarlanıyor:
+- /yourpoodle/club → 5 gönderi, sekmeler, hero (H1 yok)
+- /yourpoodle/topluluk → 8 gönderi, H1 var, "Club'da Daha Fazla Gör" butonu
+
+Üst nav'da hem "Topluluk" hem "Club" ayrı link.
+Club içinde de "Topluluk" sekmesi var.
+Kullanıcı hangisinin asıl topluluk olduğunu anlayamıyor.
+
+Düzelt (birini seç ve uygula):
+
+SEÇENEK A — Birleştir (önerilen):
+- /yourpoodle/topluluk → 301 redirect → /yourpoodle/club?tab=akis
+- Üst nav "Topluluk" linkini /club?tab=akis'e yönlendir VEYA Topluluk'u kaldır
+- Club = tek topluluk merkezi
+- /topluluk'taki 8 gönderiyi Club akışına taşı (veya tek kaynak kullan)
+- /topluluk'taki "Paylaşım ara..." aramasını Club'a ekle
+
+SEÇENEK B — Net ayrım:
+- /topluluk = halka açık feed önizleme (read-only)
+- /club = üye alanı (giriş gerekli)
+- Her iki sayfada net CTA: "Tam deneyim için Club'a katıl"
+- Demo gönderiler tek kaynaktan (API) gelsin, iki kez hardcode edilmesin
+
+Minimum: Demo gönderi listesi tek component/shared data olsun.
+
+### 3. Mobil bottom nav yanlış aktif
+Sorun: /club sayfasında bottom nav'da Mağaza aktif (mor daire).
+Club sayfasında Club aktif olmalı.
+
+Düzelt:
+- pathname === '/yourpoodle/club' (veya /club/*) → Club aktif
+- Mağaza aktif state'ini kaldır
+- Diğer sayfalardaki bottom nav mantığını bozma
+
+### 4. Feed etkileşim butonları mobilde tıklanamıyor
+Sorun: Yorum/beğeni butonları bottom nav'ın altında kalıyor; tıklama engelleniyor.
+
+Düzelt:
+- Feed container'a padding-bottom ekle (bottom nav yüksekliği + 16px)
+- Son gönderinin etkileşim butonları nav üstünde kalsın
+- scroll-padding-bottom CSS ile anchor scroll düzelt
+
+### 5. Üyelik akışı yarım
+Sorun:
+- "Ücretsiz Katıl" → /giris (sadece giriş)
+- Kayıt / ücretsiz üyelik akışı net değil
+- Beğeni girişsiz çalışıyor (48→49) ama yorum/paylaşım üyelik istiyor — tutarsız
+
+Düzelt:
+- "Ücretsiz Katıl" → kayıt formu veya /kayit (ad, e-posta, şifre minimum)
+- Giriş yapmamış kullanıcı beğeni tıklayınca: "Beğenmek için katıl" modal
+- Giriş yapmamış yorum/paylaşım: login wall (mevcut "Katıl" CTA ile tutarlı)
+- Üye olunca geri /club'a dön (returnUrl)
+
+### 6. Etkinlik sekmesi boş
+Sorun: Etkinlik sekmesinde sadece "Bildirim Aç" var; etkinlik listesi yok.
+Üst nav /etkinlik ayrı sayfa — Club içi sekme ile bağlantısız.
+
+Düzelt (minimum):
+- Etkinlik sekmesinde en az 2-3 örnek etkinlik kartı:
+  * Poodle Buluşması — Samsun, [tarih]
+  * Aylık Fotoğraf Yarışması — [ay]
+  * Online Eğitim Webinarı — [tarih]
+- Her kart: başlık, tarih, konum/online, "Katıl" veya "Detay" butonu
+- /etkinlik sayfasındaki etkinliklerle senkron veya /etkinlik'e link
+- "Bildirim Aç" → push/e-posta tercih formu veya açıklama
+
+═══════════════════════════════════════════
+P2 — SEO, SCHEMA VE UX
+═══════════════════════════════════════════
+
+### 7. Title ve meta etiketleri düzelt
+Sorun:
+- <title> genel site title: "Toy Poodle Rehberi, Bakımı ve Mama Seçimi | YourPoodle"
+- İki farklı meta description
+- og:title çift (farklı değerler)
+- og:type çift: "article" VE "website"
+
+Düzelt — SADECE şunlar kalsın (tek set):
+<title>Poodle Club — 10.000+ Üye Sosyal Topluluk | YourPoodle</title>
+<meta name="description" content="YourPoodle Club: poodle sahiplerinin sosyal platformu. Fotoğraf paylaşın, deneyim aktarın, etkinliklere katılın. Ücretsiz, 50+ şehirden üye.">
+<meta property="og:title" content="Poodle Club | YourPoodle">
+<meta property="og:description" content="Poodle sahiplerinin sosyal topluluğu. Paylaş, bağlan, katıl.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.yourpoodle.com/yourpoodle/club">
+<link rel="canonical" href="https://www.yourpoodle.com/yourpoodle/club">
+
+Çift/çakışan meta etiketlerini kaldır.
+Üye sayısını dinamik yap: gerçekte 500 üye varsa "500+ Üye" yaz.
+
+### 8. Schema / Structured Data ekle
+Mevcut (koru):
+- BreadcrumbList ✓
+
+Ekle — WebPage + Organization (Club):
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Poodle Club",
+  "description": "Türkiye'nin poodle sahipleri sosyal topluluğu",
+  "url": "https://www.yourpoodle.com/yourpoodle/club",
+  "mainEntity": {
+    "@type": "Organization",
+    "name": "YourPoodle Club",
+    "url": "https://www.yourpoodle.com/yourpoodle/club",
+    "memberOf": { "@id": "https://www.yourpoodle.com/#organization" }
+  }
+}
+
+Ekle — SocialMediaPosting (her gönderi için, en az akıştaki 5 gönderi):
+{
+  "@type": "SocialMediaPosting",
+  "author": { "@type": "Person", "name": "poodlemom_ayse", "alternateName": "@poodlemom_ayse" },
+  "datePublished": "2026-07-16",
+  "articleBody": "Mocha bugün tıraş oldu...",
+  "image": "[görsel URL varsa]",
+  "url": "https://www.yourpoodle.com/yourpoodle/club/post/[id]"
+}
+
+Ekle — FAQPage:
+- "YourPoodle Club nedir?"
+- "Club'a nasıl katılırım?"
+- "Katılım ücretsiz mi?"
+- "Kimler katılabilir?"
+- "Ne tür içerik paylaşılabilir?"
+
+Etkinlik sekmesi doldurulunca Event schema ekle.
+
+### 9. Alt SEO bloklarını düzelt
+Sorun: Sayfa altında 5 alakasız H2 blok görünür (Mama Rehberi, Bakım, Eğitim...).
+
+Yapılacaklar:
+- Bu genel SEO bloklarını Club sayfasından KALDIR
+- Yerine Club'a özel statik içerik ekle (görünür, kullanıcı dostu):
+  * "Poodle Club Nedir?" — 2-3 cümle açıklama
+  * Katılım adımları (3 madde)
+  * SSS bölümü (FAQPage schema ile eşleşsin)
+
+### 10. Footer ekle
+Sorun: Club sayfasında footer yok.
+
+Ekle:
+- İletişim, Hakkımızda
+- Topluluk kuralları / gizlilik
+- "© 2026 YourPoodle"
+- Ana sayfadaki footer component'ini reuse et
+
+### 11. Breadcrumb UI ekle
+Schema var ama görünür breadcrumb yok.
+
+Ekle: Ana Sayfa > Poodle Club
+Sekme/deep-link'te: Ana Sayfa > Poodle Club > [Sekme Adı]
+
+### 12. Sekme deep-link — tüm sekmeler
+Mevcut: ?tab=akis çalışıyor ✓
+
+Ekle/ düzelt:
+- ?tab=akis → Akış (feed)
+- ?tab=poodlem → Poodlem profil sekmesi
+- ?tab=topluluk → Topluluk sekmesi
+- ?tab=etkinlik → Etkinlik sekmesi
+- Sekme değişince URL güncellensin (history.pushState)
+- Sayfa yenilendiğinde sekme korunsun
+
+### 13. Poodlem sekmesi — minimum içerik
+Sorun: Girişsiz sadece "Profil oluşturun" CTA; giriş sonrası içerik belirsiz.
+
+Düzelt (girişsiz):
+- Örnek poodle profilleri showcase (3 kart): Mocha, Luna, Biscuit
+- "Kendi poodle profilinizi oluşturun → Ücretsiz Katıl" CTA
+- Her profil kartı: fotoğraf, isim, yaş, şehir, kısa bio
+
+Düzelt (girişli):
+- Kullanıcının Poodle profil düzenleme formu
+- veya /poodle-im sayfasına yönlendirme
+
+### 14. Topluluk sekmesi — minimum içerik
+Sorun: Girişsiz boş; "Ücretsiz üye ol" mesajı.
+
+Düzelt (girişsiz):
+- Şehir bazlı üye sayısı özeti (İstanbul 2.400, Ankara 890, Samsun 340...)
+- "50+ şehirden poodle sahibi" harita veya liste
+- Üye ol CTA
+
+Düzelt (girişli):
+- Üye listesi veya gruplar
+- veya şehir filtreli üye arama
+
+### 15. Gönderi permalink ve profil linkleri
+Sorun:
+- Gönderi detay URL yok (/club/post/123)
+- @poodlemom_ayse tıklanabilir değil
+
+Ekle:
+- Her gönderi kartı → /club/post/:id veya /club/gonderi/:slug
+- Kullanıcı adı → /club/@username veya /club/profil/:username
+- Gönderi detay sayfası: tam metin, yorumlar, beğeni listesi
+- Paylaş butonu → kopyala link veya native share
+
+### 16. Yorum sistemi
+Sorun: Yorum butonu var (sayı: 12, 7, 23...) ama panel açılmıyor.
+
+Düzelt:
+- Yorum butonu tıklanınca: inline yorum listesi veya drawer açılsın
+- Girişsiz: "Yorum yapmak için katıl" + CTA
+- Girişli: yorum yazma input + gönder
+- Demo yorumlar göster (en az 2-3 örnek yorum ilk gönderide)
+
+### 17. Arama (Club akışında)
+Sorun: /topluluk'ta "Paylaşım ara..." var, Club'ta yok.
+
+Ekle:
+- Akış sekmesi üstüne arama kutusu: "Paylaşım ara..."
+- Kullanıcı adı, poodle adı, gönderi metninde arama
+- Debounce 300ms
+
+### 18. İstatistikler — gerçek veya dinamik
+Sorun: Hero "10.000+ Ürün, 500+ Paylaşım, 50+ Şehir" — doğrulanamaz.
+
+Düzelt:
+- API'den gerçek sayılar: GET /api/club/stats → { members, posts, cities }
+- API yoksa: demo modda "500+ Üye" gibi gerçekçi sayılar, abartılı 10.000+ yazma
+- veya "Büyüyen topluluk" gibi nitel ifade
+
+═══════════════════════════════════════════
+P3 — RESPONSIVE, AI ARAMA, İYİLEŞTİRMELER
+═══════════════════════════════════════════
+
+### 19. 768px breakpoint düzelt
+Sorun: 768px'te mobil layout (bottom nav + hamburger).
+
+Breakpoint:
+- ≥1280px: feed orta kolon, yan sidebar opsiyonel
+- 1024-1279px: feed orta kolon
+- 768-1023px: üst nav koru, bottom nav GİZLE
+- <768px: bottom nav göster, feed tam genişlik
+
+### 20. Gönderi içerik kalitesi
+Sorun: 5 statik demo gönderi; 4/5'inde görsel yok.
+
+İyileştir:
+- Her gönderiye görsel ekle (veya metin-only gönderiler için placeholder)
+- Gönderiler semantic HTML: <article> etiketi
+- Gönderi metni, kullanıcı, tarih crawler-friendly
+- Sonsuz scroll veya "Daha fazla yükle" (pagination)
+
+### 21. AI arama uyumu — statik içerik
+Crawler ve AI botları JS olmadan içerik görmeli.
+
+Ekle (SSR veya pre-render, sayfa kaynağında görünür HTML):
+- "Poodle Club Nedir?" paragrafı
+- Katılım adımları (3-5 madde)
+- Öne çıkan 3 gönderi özeti (metin)
+- FAQ bölümü
+- Etkinlik özeti (en az 2 etkinlik metni)
+
+### 22. Bildirimler
+"Bildirimler Al" / "Aç" butonları:
+- Ne yapıyor netleştir (push notification, e-posta digest)
+- Tercih formu: etkinlik, yeni gönderi, yorum, mention
+- veya "Yakında" ise dürüst mesaj
+
+### 23. Paylaş butonu
+- Native Web Share API (mobil)
+- Kopyala link (masaüstü)
+- WhatsApp / Twitter paylaşım (opsiyonel)
+
+### 24. Topluluk kuralları ve moderasyon
+- Club kuralları linki (footer veya hero altı)
+- Gönderi raporlama butonu (girişli üyeler)
+- Uygunsuz içerik uyarısı
+
+### 25. Performans
+- Gönderi görselleri lazy load
+- WebP format
+- Sekme lazy load (sadece aktif sekme render)
+- Feed virtualization (çok gönderi varsa)
+
+═══════════════════════════════════════════
+TEST PLANI (tümünü geçmeden bitirme)
+═══════════════════════════════════════════
+
+1. <h1>Poodle Club</h1> mevcut
+2. <title> sayfaya özel, çift meta YOK
+3. /topluluk → /club redirect veya net ayrım (birleştirme yapıldıysa 301)
+4. ?tab=akis, ?tab=poodlem, ?tab=etkinlik çalışıyor
+5. Etkinlik sekmesinde en az 2 etkinlik kartı
+6. Poodlem sekmesinde örnek profiller veya profil formu
+7. 390px: bottom nav'da Club aktif (Mağaza DEĞİL)
+8. 390px: yorum/beğeni butonları tıklanabilir (nav altında kalmıyor)
+9. "Ücretsiz Katıl" → kayıt veya net giriş/kayıt akışı
+10. Yorum butonu → panel veya login wall
+11. WebPage + SocialMediaPosting + FAQPage schema mevcut
+12. Footer görünür
+13. Breadcrumb UI: Ana Sayfa > Poodle Club
+14. Gönderi → /club/post/:id link çalışıyor
+15. @username → profil link çalışıyor
+16. WebFetch/crawler: Club açıklaması + en az 1 gönderi metni HTML'de
+17. 1024px: üst nav, bottom nav yok
+18. Alt SEO blokları (Mama Rehberi vb.) Club'tan kaldırıldı
+
+═══════════════════════════════════════════
+DOKUNMA
+═══════════════════════════════════════════
+- Diğer sayfalar (Sağlık, Bakım, Eğitim, Mağaza, Bilgi, AI Asistan, Mama Bul)
+- Genel tema/renk sistemi
+- Mevcut hero banner ve feed kart tasarımı
+- Demo gönderi metinlerini tamamen silme — gerçek API gelene kadar showcase olarak kalsın
+- /etkinlik sayfasının tam redesign'ı (sadece Club sekmesi ile entegre et)

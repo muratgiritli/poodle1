@@ -1,0 +1,357 @@
+YourPoodle sitesinde SADECE Bilgi sayfasını ve doğrudan bağlı araç bileşenlerini düzelt.
+Canlı URL: https://www.yourpoodle.com/yourpoodle/bilgi
+
+Masaüstü (1920px), tablet (1024px, 768px) ve mobil (390px) için test et.
+Diğer sayfalara dokunma; sadece /yourpoodle/bilgi ve araç route'ları.
+
+Mevcut tasarımı, mor renk paletini (#6B3480) ve component yapısını koru.
+Gereksiz refactor yapma; sadece belirtilen sorunları düzelt.
+
+═══════════════════════════════════════════
+P1 — KRİTİK HATALAR (önce bunları düzelt)
+═══════════════════════════════════════════
+
+### 1. Araç deep-link çalışmıyor
+Sorun: URL parametreleri araç panelini açmıyor.
+Test: /yourpoodle/bilgi?tool=mama-hesaplama → hâlâ 12 araç grid'i görünüyor.
+
+Bu kritik çünkü:
+- Sağlık sayfası "Belirti Kontrol Aracı" → /bilgi (belirti açılmıyor)
+- Bakım sayfası "Tıraş Zamanlama Aracı" → /bilgi (tıraş açılmıyor)
+- Kullanıcı 12 araç arasından tekrar bulmak zorunda
+
+Yapılacaklar:
+- ?tool= URL parametresi ilgili aracı otomatik açsın
+- Desteklenecek parametreler:
+  * ?tool=mama-hesaplama
+  * ?tool=su-hesaplama
+  * ?tool=aktivite-hesabi
+  * ?tool=yas-hesaplama
+  * ?tool=insan-yasi-tablosu
+  * ?tool=asi-takvimi
+  * ?tool=ideal-kilo
+  * ?tool=tiras-zamani
+  * ?tool=odul-hesabi
+  * ?tool=belirti-kontrol
+  * ?tool=dis-sagligi
+  * ?tool=diski-rehberi
+- Araç açılınca URL güncellensin (history.pushState)
+- Geri butonu grid'e dönsün ve URL /bilgi olsun
+- İdeal: slug URL desteği (/bilgi/mama-hesaplama) — en azından ?tool= çalışsın
+
+Test:
+- /bilgi?tool=belirti-kontrol → Belirti Kontrolü paneli açık
+- /bilgi?tool=tiras-zamani → Tıraş Zamanı paneli açık
+- /bilgi?tool=mama-hesaplama → Mama Hesaplama paneli açık
+
+### 2. Arama algoritması hatalı (substring bug)
+Sorun: "aşı" arandığında yanlış sonuçlar geliyor:
+- ✅ Aşı Takvimi (doğru)
+- ❌ Yaş Hesaplama (yanlış — "Yaş" içinde "aş" substring eşleşmesi)
+- ❌ İnsan Yaşı Tablosu (yanlış — aynı neden)
+
+Düzelt:
+- Token/kelime bazlı arama kullan (substring değil)
+- Türkçe karakter normalize et (ı/i, ş/s, ğ/g) ama yanlış eşleşme yapma
+- "aşı" sadece "Aşı Takvimi" döndürmeli
+- "mama" → Mama Hesaplama, Ödül Hesabı (mama içerenler)
+- "yaş" → Yaş Hesaplama, İnsan Yaşı Tablosu
+- Boş arama → tüm 12 araç
+- Eşleşme yoksa: "Araç bulunamadı" mesajı
+
+### 3. Mobil bottom nav yanlış aktif
+Sorun: /bilgi sayfasında bottom nav'da Mağaza aktif (mor daire).
+Bilgi sayfasında Bilgi aktif olmalı.
+
+Düzelt:
+- pathname === '/yourpoodle/bilgi' (veya /bilgi/*) → Bilgi aktif
+- Mağaza aktif state'i kaldır
+- Diğer sayfalardaki bottom nav mantığını bozma
+
+### 4. Belirti Kontrolü — veteriner uyarısı ve ACİL CTA
+Sorun: Araç çalışıyor (12 belirti, risk seviyeleri) ama:
+- Tıbbi sorumluluk reddi görünürlüğü zayıf olabilir
+- ACİL durumda (Nefes darlığı, Titreme, İshal kanlı vb.) net veteriner/112 CTA yok
+
+Yapılacaklar:
+- Panel üstünde sabit uyarı: "Bu araç tıbbi tavsiye yerine geçmez. Ciddi belirtilerde veterinerinize başvurun."
+- Risk seviyesi !!! seçilince kırmızı banner: "ACİL — Hemen veterinere gidin"
+- Risk seviyesi !! için sarı: "24 saat içinde veteriner kontrolü önerilir"
+- "AI Asistana Sor" ve "En Yakın Veteriner" (veya telefon) CTA butonları
+- Sağlık sayfasındaki 6 acil belirti listesi ile aynı terminoloji kullan
+
+═══════════════════════════════════════════
+P2 — SEO, SCHEMA VE UX
+═══════════════════════════════════════════
+
+### 5. Title ve meta etiketleri düzelt
+Sorun:
+- <title> genel site title: "Toy Poodle Rehberi, Bakımı ve Mama Seçimi | YourPoodle"
+- İki farklı meta description
+- og:title çift (farklı değerler)
+- og:type çift: "article" VE "website"
+
+Düzelt — SADECE şunlar kalsın (tek set):
+<title>Poodle Bilgi Bankası — 12 Ücretsiz Hesaplama Aracı | YourPoodle</title>
+<meta name="description" content="Toy Poodle için 12 pratik araç: mama hesaplama, su ihtiyacı, yaş çevirici, aşı takvimi, ideal kilo, belirti kontrolü, tıraş zamanı. Ücretsiz, anlık sonuç.">
+<meta property="og:title" content="Poodle Bilgi Bankası | YourPoodle">
+<meta property="og:description" content="12 ücretsiz poodle aracı: mama, yaş, aşı, belirti kontrolü ve daha fazlası.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.yourpoodle.com/yourpoodle/bilgi">
+<link rel="canonical" href="https://www.yourpoodle.com/yourpoodle/bilgi">
+
+Çift/çakışan meta etiketlerini kaldır.
+
+### 6. Schema / Structured Data ekle ve genişlet
+Mevcut (koru):
+- BreadcrumbList ✓
+- WebApplication ✓ (genişlet)
+- WebSite SearchAction ✓ (/bilgi?q= zaten doğru — koru)
+
+WebApplication genişlet:
+{
+  "@type": "WebApplication",
+  "name": "Poodle Bilgi Bankası",
+  "applicationCategory": "HealthApplication",
+  "operatingSystem": "Web",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "TRY" },
+  "featureList": [
+    "Mama Hesaplama", "Su Hesaplama", "Aktivite Hesabı",
+    "Yaş Hesaplama", "Aşı Takvimi", "İdeal Kilo",
+    "Tıraş Zamanı", "Belirti Kontrolü", "Diş Sağlığı", "Dışkı Rehberi"
+  ]
+}
+
+Ekle — ItemList (12 araç):
+{
+  "@type": "ItemList",
+  "name": "Poodle Hesaplama Araçları",
+  "numberOfItems": 12,
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Mama Hesaplama",
+      "description": "Günlük mama miktarını hesapla",
+      "url": "https://www.yourpoodle.com/yourpoodle/bilgi?tool=mama-hesaplama"
+    }
+    // ... 12 araç
+  ]
+}
+
+Ekle — HowTo (en az Mama Hesaplama ve Belirti Kontrolü):
+{
+  "@type": "HowTo",
+  "name": "Toy Poodle Mama Miktarı Nasıl Hesaplanır?",
+  "step": [
+    { "@type": "HowToStep", "text": "Poodle'ın kilosunu (kg) girin" },
+    { "@type": "HowToStep", "text": "Yaş grubunu seçin (Yavru/Yetişkin/Yaşlı)" },
+    { "@type": "HowToStep", "text": "Aktivite seviyesini seçin" },
+    { "@type": "HowToStep", "text": "Hesapla butonuna tıklayın" }
+  ]
+}
+
+Ekle — FAQPage:
+- "Toy poodle günde ne kadar mama yer?"
+- "Poodle yaşını insan yaşına nasıl çeviririm?"
+- "Poodle aşı takvimi nasıl olmalı?"
+- "Poodle belirtileri ne zaman tehlikelidir?"
+
+### 7. Açık araç panelinde H2 başlık ekle
+Sorun: Araç açılınca (Mama Hesaplama, Belirti Kontrolü vb.) panelde H2 yok.
+SEO ve erişilebilirlik için her açık araçta H2 olmalı.
+
+Ekle:
+- Mama Hesaplama paneli → <h2>Mama Hesaplama</h2>
+- Belirti Kontrolü paneli → <h2>Belirti Kontrolü</h2>
+- Aşı Takvimi paneli → <h2>Aşı Takvimi</h2>
+- (tüm 12 araç için)
+
+### 8. Alt SEO bloklarını düzelt
+Sorun: Sayfa altında 5 alakasız H2 blok görünür:
+- "Poodle Mama Rehberi ve Mama Hesaplama"
+- "Poodle Bakım ve Tıraş Rehberi"
+- vb.
+
+Bunlar bilgi sayfasıyla ilgisiz.
+
+Yapılacaklar:
+- Bu genel SEO bloklarını bilgi sayfasından KALDIR
+- Yerine bilgiye özel statik içerik ekle (görünür, kullanıcı dostu):
+  * "Poodle Hesaplama Araçları" — kısa giriş paragrafı
+  * 12 aracın adı + 1 cümle açıklama (HTML listesi — crawler-friendly)
+  * SSS bölümü (3-5 soru, FAQPage schema ile eşleşsin)
+
+### 9. Footer ekle
+Sorun: Bilgi sayfasında footer yok.
+
+Ekle:
+- İletişim, Hakkımızda
+- Gizlilik & KVKK
+- "© 2026 YourPoodle"
+- Ana sayfadaki footer component'ini reuse et
+
+### 10. Breadcrumb UI ekle
+Schema var ama görünür breadcrumb yok.
+
+Ekle: Ana Sayfa > Bilgi Bankası
+Araç açıkken: Ana Sayfa > Bilgi Bankası > [Araç Adı]
+Tıklanabilir linkler.
+
+### 11. Kategori filtreleri ekle
+Sorun: 12 araç düz grid — gruplama yok.
+
+Ekle (chip veya tab):
+- Tümü (varsayılan)
+- Beslenme: Mama Hesaplama, Su Hesaplama, Aktivite Hesabı, Ödül Hesabı
+- Sağlık: Aşı Takvimi, İdeal Kilo, Belirti Kontrolü, Diş Sağlığı, Dışkı Rehberi
+- Bakım: Tıraş Zamanı
+- Genel: Yaş Hesaplama, İnsan Yaşı Tablosu
+
+Mobilde yatay scroll chip'ler.
+
+### 12. Poodle profil entegrasyonu
+Sorun: "Poodle'ım" profil verisi araçlara otomatik dolmuyor.
+
+Yapılacaklar:
+- Giriş yapmış / profil oluşturmuş kullanıcıda:
+  * Mama Hesaplama → kilo otomatik dolsun
+  * Yaş Hesaplama → doğum tarihi/yaş otomatik
+  * İdeal Kilo → mevcut kilo otomatik
+  * Aşı Takvimi → doğum tarihi ile kişisel takvim
+- Profil yoksa: "Poodle profilinizi oluşturun, araçlar otomatik dolsun" CTA
+
+### 13. Mama Hesaplama sonucuna CTA ekle
+Sorun: Mama hesaplama sonucu gösteriliyor ama sonraki adım yok.
+
+Ekle (sonuç panelinde):
+- "Mama Bul Sihirbazı ile size özel mama önerisi al →" (/yourpoodle/mama-bul)
+- "Mağazada mama ürünlerine bak →" (/yourpoodle/magaza?kategori=mama)
+- Sonuç özeti: "Günlük X gram, Y öğün" formatında net gösterim
+
+### 14. Aşı Takvimi iyileştirme
+Mevcut: Yavru/Yetişkin sekmeleri, ZORUNLU etiketli aşı listesi — iyi.
+
+Ekle:
+- Doğum tarihi input → kişisel aşı takvimi (hangi aşı ne zaman)
+- "Takvime Ekle" butonu (Google Calendar / iCal export)
+- Yıllık hatırlatıcı (karma booster, kuduz)
+
+═══════════════════════════════════════════
+P3 — RESPONSIVE, AI ARAMA, İYİLEŞTİRMELER
+═══════════════════════════════════════════
+
+### 15. 768px breakpoint düzelt
+Sorun: 768px'te mobil layout (bottom nav + hamburger).
+1024px tablet için üst nav + 3-4 sütun grid koru.
+
+Breakpoint:
+- ≥1280px: 4 sütun grid
+- 1024-1279px: 3-4 sütun, üst nav
+- 768-1023px: 3 sütun, üst nav (bottom nav GİZLE)
+- <768px: 3 sütun, bottom nav göster
+
+### 16. Mobil UX iyileştirmeleri
+- Araç paneli açıkken bottom nav ile çakışma olmasın (padding-bottom)
+- Uzun araçlarda (Aşı Takvimi, Belirti Kontrolü) scroll düzgün çalışsın
+- Arama kutusu sticky olabilir (scroll'da üstte kalsın)
+- Geri butonu mobilde daha belirgin (sol üst ok)
+
+### 17. AI arama uyumu — statik içerik
+Crawler ve AI botları JS olmadan içerik görmeli.
+
+Ekle (SSR veya pre-render, sayfa kaynağında görünür HTML):
+- 12 aracın adı + açıklaması (liste veya tablo)
+- Her araç için 3-5 adımlık kısa kullanım metni
+- Örnek sonuçlar:
+  * "3.5 kg yetişkin toy poodle, orta aktivite → ~85g mama/gün"
+  * "2 yaşında toy poodle → ~24 insan yaşı"
+- FAQ bölümü (görünür, FAQPage schema ile eşleşen)
+
+### 18. Araç bazlı iyileştirmeler
+Her araç için minimum kontrol listesi:
+
+Mama Hesaplama:
+- [ ] Kilo, yaş, aktivite → gram/öğün sonucu
+- [ ] Mama Bul CTA
+- [ ] Yeniden Hesapla butonu (mevcut ✓)
+
+Su Hesaplama:
+- [ ] Kilo bazlı ml/gün sonucu
+- [ ] Mama hesabı ile tutarlılık
+
+Aktivite Hesabı:
+- [ ] Yaş + kilo → dakika/gün egzersiz önerisi
+
+Yaş Hesaplama:
+- [ ] Köpek yaşı → insan yaşı (Toy Poodle formülü)
+
+İnsan Yaşı Tablosu:
+- [ ] 1-20 yaş karşılaştırma tablosu (görsel veya tablo)
+
+Aşı Takvimi:
+- [ ] Yavru/Yetişkin sekmeleri (mevcut ✓)
+- [ ] Doğum tarihi → kişisel takvim (yeni)
+
+İdeal Kilo:
+- [ ] Toy Poodle için ideal aralık (2-6 kg)
+- [ ] Mevcut kilo vs ideal karşılaştırma
+
+Tıraş Zamanı:
+- [ ] Son tıraş tarihi + tıraş tipi → sonraki tarih
+- [ ] Bakım sayfasından ?tool=tiras-zamani deep-link
+
+Ödül Hesabı:
+- [ ] Ödül sayısı + kalori → günlük limit uyarısı
+
+Belirti Kontrolü:
+- [ ] 12 belirti, risk seviyeleri (mevcut ✓)
+- [ ] Veteriner uyarısı + ACİL CTA (P1)
+
+Diş Sağlığı:
+- [ ] Kontrol listesi (checkbox)
+- [ ] İlerleme kaydı (localStorage)
+
+Dışkı Rehberi:
+- [ ] Renk/kıvam seçimi → sağlık değerlendirmesi
+- [ ] Görsel referans chart (renk örnekleri)
+
+### 19. Sonuç paylaşma
+- Her araç sonucunda "Sonucu Kopyala" butonu
+- Paylaşılabilir URL: /bilgi?tool=mama-hesaplama&kilo=3.5&yas=yetişkin
+- (Opsiyonel) Sosyal paylaşım
+
+### 20. Performans
+- Araç paneli lazy load (sadece seçilen araç render)
+- İlk yüklemede grid hızlı görünsün
+- Araç geçişlerinde animasyon (mevcut tasarıma uygun)
+
+═══════════════════════════════════════════
+TEST PLANI (tümünü geçmeden bitirme)
+═══════════════════════════════════════════
+
+1. /bilgi?tool=belirti-kontrol → Belirti Kontrolü açık
+2. /bilgi?tool=tiras-zamani → Tıraş Zamanı açık
+3. /bilgi?tool=mama-hesaplama → Mama Hesaplama açık
+4. Arama "aşı" → SADECE Aşı Takvimi (Yaş Hesaplama DEĞİL)
+5. Arama "mama" → Mama Hesaplama + Ödül Hesabı
+6. Mama Hesaplama: 3.5kg + Yetişkin + Orta → sonuç gösteriliyor
+7. Belirti Kontrolü: Nefes darlığı seç → ACİL uyarı + veteriner CTA
+8. <title> sayfaya özel, çift meta YOK
+9. ItemList + HowTo + FAQPage schema mevcut
+10. Açık araçta H2 başlık var
+11. Footer görünüyor
+12. 390px: bottom nav'da Bilgi aktif (Mağaza DEĞİL)
+13. 1024px: üst nav, 3-4 sütun grid
+14. 768px: üst nav (bottom nav değil)
+15. WebFetch/crawler: 12 araç adı HTML'de görünür
+16. Sağlık sayfasından /bilgi?tool=belirti-kontrol linki çalışıyor (sadece link güncelle, Sağlık sayfasına dokunma dersen dokunma — ama deep-link çalışınca otomatik çalışır)
+
+═══════════════════════════════════════════
+DOKUNMA
+═══════════════════════════════════════════
+- Diğer sayfalar (Sağlık, Bakım, Eğitim, Mağaza, AI Asistan, Mama Bul, Ana Sayfa)
+- Genel tema/renk sistemi
+- Mevcut hero banner tasarımı
+- 12 araç grid layout'u (sadece kategori chip ekle)
+- Çalışan araç mantığını bozma — sadece eksikleri tamamla

@@ -1,0 +1,313 @@
+YourPoodle sitesinde SADECE Mağaza sayfasını ve doğrudan bağlı e-ticaret bileşenlerini düzelt.
+Canlı URL: https://www.yourpoodle.com/yourpoodle/magaza
+
+Masaüstü (1920px), tablet (1024px, 768px) ve mobil (390px) için test et.
+Diğer sayfalara dokunma; sadece /yourpoodle/magaza, /yourpoodle/urun/* ve ilgili API endpoint'leri.
+
+Mevcut tasarımı, mor renk paletini (#6B3480) ve component yapısını koru.
+Gereksiz refactor yapma; sadece belirtilen sorunları düzelt.
+
+═══════════════════════════════════════════
+P1 — KRİTİK HATALAR (önce bunları düzelt)
+═══════════════════════════════════════════
+
+### 1. Ürün API'si boş dönüyor — mağaza tamamen çalışmıyor
+Sorun: GET /api/products → [] (boş dizi, HTTP 200)
+Sayfa "0 ürün" + "Ürün bulunamadı" gösteriyor.
+Hero banner "900+ Ürün" yazıyor ama hiç ürün yok.
+
+Kök neden araştır ve düzelt:
+- Veritabanında ürün var mı kontrol et
+- API filtreleri (published, active, visible) ürünleri yanlışlıkla dışlıyor olabilir
+- Ürün import/sync job çalışmıyor olabilir
+- campaign-items API de boş: GET /api/campaign-items → []
+
+Yapılacaklar:
+- /api/products en azından yayında olan tüm ürünleri döndürmeli
+- Her ürün minimum alanlar: id, name, slug, price, image, category, brand, stock, isActive
+- Ürün yoksa hero'da "900+ Ürün" YAZMA — gerçek sayıyı dinamik göster veya ürün yoksa farklı mesaj
+- Boş state: "Ürün bulunamadı" yerine admin için uyarı, kullanıcı için "Yakında" veya gerçek boş mesaj
+- Loading skeleton ekle (API beklerken boş state gösterme)
+
+Test:
+- /api/products → en az 1 ürün dönmeli (hedef 900+)
+- Sayfa ürün grid'i göstermeli
+- "X ürün" sayacı gerçek sayıyı yansıtmalı
+
+### 2. Ürün detay sayfaları 404 veriyor
+Sorun: /yourpoodle/urun/808 → "Aradığınız sayfayı bulamadık" (404)
+Ana sayfa ve Mama Bul'dan gelen ürün linkleri kırık.
+
+Yapılacaklar:
+- /yourpoodle/urun/:id veya /yourpoodle/urun/:slug route'unu düzelt
+- Ürün detay sayfası göstermeli:
+  * Ürün görseli (kırık img olmasın, CDN'den)
+  * Ürün adı (H1)
+  * Fiyat (₺)
+  * Marka, kategori
+  * Kısa açıklama
+  * Stok durumu
+  * "Sepete Ekle" butonu
+  * Breadcrumb: Ana Sayfa > Mağaza > [Kategori] > [Ürün]
+- Ürün bulunamazsa anlamlı 404 (mevcut genel 404 yerine "Bu ürün artık satışta değil" + mağazaya dön)
+- Mama Bul ve ana sayfadaki ürün linklerinin doğru URL'e gitmesini sağla
+
+### 3. Kategori sistemi çalışmıyor
+Sorun:
+- Sadece "Tümü" chip'i görünüyor; Mama, Ödül, Tasma, Yatak, Oyuncak, Bakım yok
+- /api/categories → 404 HTML döndürüyor (JSON endpoint yok)
+- ?kategori=mama ve ?kategori=bakim URL parametreleri filtreyi aktive etmiyor
+- Bakım/Sağlık/Eğitim sayfalarındaki "Mağazaya Git ?kategori=..." CTA'ları işe yaramıyor
+
+Yapılacaklar:
+- GET /api/categories endpoint'i oluştur (JSON)
+- Kategori chip'leri dinamik yükle:
+  * Tümü
+  * Mama
+  * Ödül & Atıştırmalık
+  * Tasma & Gezdirme
+  * Yatak & Taşıma
+  * Oyuncak
+  * Bakım & Hijyen
+  * Sağlık & Vitamin
+- ?kategori= URL parametresi ilgili chip'i aktif etsin ve ürünleri filtrelesin
+- Kategori değişince URL güncellensin (history.pushState)
+- Mobilde kategori chip'leri yatay scroll olsun
+
+### 4. Ürün görselleri kırık / yok
+Sorun: Sayfada 0 görsel. Ana sayfada mamato ptancisi.com harici URL'ler kırık.
+
+Yapılacaklar:
+- Tüm ürün görsellerini kendi CDN'ine taşı (/product-images/ veya /uploads/products/)
+- Harici mamato ptancisi.com image URL'lerini kaldır
+- Görsel yüklenemezse düzgün placeholder göster (kırık img ikonu olmasın)
+- Ürün kartlarında: görsel + ad + fiyat + marka rozeti
+- Lazy loading ekle
+
+### 5. Sepet ve temel e-ticaret akışı eksik
+Sorun: Header'da sepet ikonu yok. Sepete ekle / checkout akışı yok.
+
+Yapılacaklar (minimum viable):
+- Header'a sepet ikonu + ürün sayısı badge
+- Ürün kartında ve detayda "Sepete Ekle" butonu
+- Sepet drawer veya /sepet sayfası:
+  * Ürün listesi, adet, birim fiyat, toplam
+  * Ürün silme
+  * "Siparişe Devam" butonu
+- Checkout minimum: ad, telefon, adres, kapıda ödeme seçeneği
+- Giriş Yap butonu mevcut — sepet giriş yapmadan da çalışabilsin (misafir checkout)
+
+═══════════════════════════════════════════
+P2 — SEO, SCHEMA VE UX
+═══════════════════════════════════════════
+
+### 6. Title ve meta etiketleri düzelt
+Sorun:
+- <title> genel site title: "Toy Poodle Rehberi, Bakımı ve Mama Seçimi | YourPoodle"
+- İki farklı meta description
+- og:title çift (farklı değerler)
+- og:type çift: "article" VE "website" (çakışma)
+
+Düzelt — SADECE şunlar kalsın (tek set):
+<title>Poodle Mama Mağazası — 900+ Ürün, Aynı Gün Teslimat | YourPoodle</title>
+<meta name="description" content="Toy Poodle mama, ödül, tasma, oyuncak ve bakım ürünleri. Royal Canin, Hill's, Pro Plan. Samsun Atakum'a aynı gün teslimat, kapıda ödeme.">
+<meta property="og:title" content="Poodle Mama Mağazası | YourPoodle">
+<meta property="og:description" content="900+ poodle ürünü. Aynı gün teslimat, kapıda ödeme.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.yourpoodle.com/yourpoodle/magaza">
+<link rel="canonical" href="https://www.yourpoodle.com/yourpoodle/magaza">
+
+Çift/çakışan meta etiketlerini kaldır.
+Ürün sayısını dinamik yap: gerçekte 50 ürün varsa title'da "50+ Ürün" yaz.
+
+### 7. Schema / Structured Data düzelt
+Mevcut:
+- BreadcrumbList ✓ (koru)
+- WebApplication ✗ (yanlış tip — kaldır)
+
+Ekle:
+A) CollectionPage + ItemList (mağaza listesi):
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Poodle Mağazası",
+  "description": "Toy Poodle için mama, ödül, aksesuar ve bakım ürünleri",
+  "url": "https://www.yourpoodle.com/yourpoodle/magaza",
+  "mainEntity": {
+    "@type": "ItemList",
+    "numberOfItems": [gerçek ürün sayısı],
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "item": {
+          "@type": "Product",
+          "name": "[ürün adı]",
+          "image": "[ürün görsel URL]",
+          "brand": { "@type": "Brand", "name": "[marka]" },
+          "offers": {
+            "@type": "Offer",
+            "price": "[fiyat]",
+            "priceCurrency": "TRY",
+            "availability": "https://schema.org/InStock",
+            "url": "https://www.yourpoodle.com/yourpoodle/urun/[slug]"
+          }
+        }
+      }
+    ]
+  }
+}
+
+B) Her ürün detay sayfasında ayrı Product schema (Offer, brand, image, description)
+
+C) WebSite SearchAction'ı mağaza aramasına yönlendir:
+"urlTemplate": "https://www.yourpoodle.com/yourpoodle/magaza?q={search_term_string}"
+(şu an /bilgi?q= yönlendiriyor — yanlış)
+
+### 8. Alt SEO bloklarını düzelt
+Sorun: Sayfa altında 5 alakasız H2 blok görünür:
+- "Poodle Mama Rehberi ve Mama Hesaplama"
+- "Poodle Bakım ve Tıraş Rehberi"
+- "Poodle Eğitim ve Davranış Rehberi"
+- vb.
+
+Bunlar mağaza sayfasıyla ilgisiz ve kullanıcıya görünür (UX kötü).
+
+Yapılacaklar:
+- Bu genel SEO bloklarını mağaza sayfasından KALDIR
+- Yerine mağazaya özel statik içerik ekle (görünür, kullanıcı dostu):
+  * "Poodle Mamaları" — kısa açıklama + marka listesi
+  * "Bakım Ürünleri" — şampuan, tarak, kulak temizleyici
+  * "Teslimat ve Ödeme" — Samsun Atakum aynı gün, kapıda ödeme
+  * SSS: 3-5 soru (iade, teslimat süresi, minimum sipariş)
+
+### 9. Footer ekle
+Sorun: Mağaza sayfasında footer yok (diğer alt sayfalarla aynı sorun).
+
+Ekle:
+- İletişim, Hakkımızda linkleri
+- Teslimat & iade politikası
+- Gizlilik & KVKK
+- Sosyal medya
+- "© 2026 YourPoodle" + Samsun/Atakum bilgisi
+- Ana sayfadaki footer component'ini reuse et
+
+### 10. Breadcrumb UI ekle
+Schema var ama görünür breadcrumb yok.
+
+Ekle: Ana Sayfa > Mağaza (ve kategori seçiliyse: > Mama)
+Tıklanabilir linkler.
+
+### 11. Filtre paneli çalışır hale getir
+Sorun: Arama yanındaki ayarlar/filtre ikonu tıklanınca panel açılmıyor.
+
+Ekle (drawer veya dropdown):
+- Fiyat aralığı (min-max slider veya input)
+- Marka (checkbox listesi: Royal Canin, Hill's, Pro Plan...)
+- Stokta olanlar (toggle)
+- "Filtreleri Uygula" ve "Temizle" butonları
+- Mobilde tam ekran filtre drawer
+
+### 12. Arama düzelt
+Sorun: "Royal Canin" arandığında 0 sonuç (veri yokken beklenen ama veri gelince de test et).
+
+Yapılacaklar:
+- Ürün adı, marka, kategori, açıklamada arama
+- Debounce (300ms)
+- Sonuç sayısını güncelle ("12 ürün" / "Royal Canin için 5 sonuç")
+- Boş arama sonucu: öneri ("Farklı anahtar kelime deneyin" + popüler ürünler)
+- URL'de ?q= parametresi (paylaşılabilir arama)
+
+### 13. Sıralama çalışır hale getir
+UI var: Önerilen, Fiyat ↑, Fiyat ↓, En Yeni
+Gerçekten sıralamalı (client-side veya API param: ?sort=price_asc)
+
+### 14. Kampanya / öne çıkan ürünler
+/api/campaign-items çağrılıyor ama boş.
+
+Ekle (ürünler yüklendikten sonra):
+- Hero altında "🔥 Kampanyalı Ürünler" yatay scroll
+- veya "⭐ Poodle Sahiplerinin Favorileri" grid
+- campaign-items API'den veya isFeatured=true ürünlerden
+
+### 15. Mama Bul entegrasyonu
+Mağaza sayfasında Mama Bul CTA yok.
+
+Ekle:
+- Hero altında veya boş alanda: "Hangi mamayı seçeceğinizi bilmiyor musunuz? → Mama Bul Sihirbazı"
+- Mama Bul sonuçlarından mağaza ürününe deep link
+
+═══════════════════════════════════════════
+P3 — RESPONSIVE, AI ARAMA, İYİLEŞTİRMELER
+═══════════════════════════════════════════
+
+### 16. 768px breakpoint düzelt
+Sorun: 768px'te sayfa mobil layout'a geçiyor (bottom nav + hamburger).
+1024px tablet için 2 sütunlu ürün grid kullan.
+
+Breakpoint önerisi:
+- ≥1280px: 4 sütun grid
+- 1024-1279px: 3 sütun
+- 768-1023px: 2 sütun, üst nav koru (bottom nav GİZLE)
+- <768px: 1-2 sütun, bottom nav göster
+
+### 17. Mobil UX iyileştirmeleri
+- Sıralama butonları: yatay scroll veya dropdown (4 küçük buton yerine)
+- Sepet ikonu header'da (mobilde de)
+- Ürün kartları: tam genişlik veya 2 sütun
+- Bottom nav'da Mağaza aktif state KORU (şu an doğru — bozma)
+- Sticky arama çubuğu (scroll'da üstte kalsın)
+
+### 18. AI arama uyumu — statik içerik
+Crawler ve AI botları JS olmadan içerik görmeli.
+
+Ekle (SSR veya pre-render):
+- Sayfa kaynağında en az top 20 ürünün adı + fiyatı (HTML)
+- Kategori açıklama paragrafları
+- FAQ bölümü (FAQPage schema ile):
+  * "Samsun'da aynı gün teslimat var mı?"
+  * "Kapıda ödeme kabul ediyor musunuz?"
+  * "İade politikanız nedir?"
+  * "Hangi mama markalarını satıyorsunuz?"
+  * "Toy Poodle için en çok satan mama hangisi?"
+
+### 19. Ürün detay sayfası SEO
+Her /urun/:slug için:
+- Sayfaya özel title: "[Ürün Adı] — [Fiyat]₺ | YourPoodle"
+- Product schema (name, image, offers, brand, description)
+- Breadcrumb schema
+- "Benzer ürünler" bölümü
+- Open Graph ürün görseli
+
+### 20. Performans
+- Ürün görselleri: WebP, lazy load, srcset
+- API pagination: sayfa başına 24 ürün, "Daha fazla yükle" veya sayfalama
+- İlk yüklemede skeleton, sonra ürünler
+
+═══════════════════════════════════════════
+TEST PLANI (tümünü geçmeden bitirme)
+═══════════════════════════════════════════
+
+1. GET /api/products → boş dizi DEĞİL, ürünler var
+2. /yourpoodle/magaza → ürün grid görünüyor, "0 ürün" YOK
+3. /yourpoodle/urun/[geçerli-id] → ürün detay açılıyor, 404 değil
+4. ?kategori=mama → Mama chip aktif, filtrelenmiş ürünler
+5. Arama "Royal Canin" → sonuç dönüyor
+6. Sıralama Fiyat ↑ → fiyata göre sıralı
+7. Sepete Ekle → sepet badge artıyor
+8. <title> sayfaya özel, çift meta YOK
+9. ItemList + Product schema mevcut
+10. Footer görünüyor
+11. 1920px: 4 sütun grid
+12. 1024px: 3 sütun, üst nav
+13. 768px: 2 sütun (bottom nav değil)
+14. 390px: bottom nav, Mağaza aktif, sepet ikonu
+15. WebFetch/crawler: ürün adları HTML'de görünür
+
+═══════════════════════════════════════════
+DOKUNMA
+═══════════════════════════════════════════
+- Diğer sayfalar (Sağlık, Bakım, Eğitim, AI Asistan, Mama Bul, Ana Sayfa)
+- Genel tema/renk sistemi
+- Bottom nav component (sadece Mağaza aktif state'i koru)
+- Mevcut hero banner tasarımı (içerik güncelle, tasarımı bozma)
