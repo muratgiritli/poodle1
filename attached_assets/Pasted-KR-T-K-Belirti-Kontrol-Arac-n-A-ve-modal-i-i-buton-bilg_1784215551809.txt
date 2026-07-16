@@ -1,0 +1,58 @@
+KRİTİK:
+
+"Belirti Kontrol Aracını Aç" ve modal içi buton /bilgi'ye gidiyor — gerçek belirti sihirbazı yap veya buton metnini "Sağlık Araçlarına Git" yap
+Hero başlığını
+Poodle Sağlık Rehberi
+yap (şu an H1 yok)
+sayfaya özel yap: "Poodle Sağlık Rehberi — Belirtiler, Aşı Takvimi | YourPoodle"
+Mobil bottom nav: Sağlık sayfasında Mağaza değil Bilgi aktif olsun
+Mobil padding-bottom: 80px ekle (CTA bottom nav ile çakışmasın)
+İÇERİK: 6. Makaleler modal değil slug URL: /saglik/10-yaygin-saglik-sorunu vb. 7. Makale içeriklerini 800+ kelimeye genişlet (10 sorun başlığına 10 madde ekle) 8. Sağlık Araçları bölümü ekle (aşı takvimi, ideal kilo, yaş hesaplama kartları) 9. Footer ekle 10. Acil belirtileri tıklanabilir yap
+
+RESPONSIVE: 11. Mobil breakpoint 640px'e çek (768px'te erken mobil layout geliyor) 12. Sağlık Ürünleri → /magaza?kategori=saglik
+
+SEO: 13. Gizli alt H2 SEO bloklarını kaldır 14. Schema.org MedicalWebPage + Article markup ekle
+
+Test: 390px, 768px, 1024px, 1920px
+
+
+
+
+Her makale için Article schema:
+
+{
+  "@type": "Article",
+  "headline": "...",
+  "datePublished": "2024-01-15",
+  "author": { "@type": "Organization", "name": "YourPoodle" }
+}
+
+
+
+
+Open Graph etiketleri
+<meta property="og:title" content="Poodle Sağlık Rehberi | YourPoodle" />
+<meta property="og:description" content="..." />
+<meta property="og:image" content="[sağlık sayfası görseli URL]" />
+<meta property="og:url" content="https://www.yourpoodle.com/yourpoodle/saglik" />
+
+
+Makale modal mobilde full-screen olsun
+Eğer modal geçici olarak kalacaksa:
+
+Mobilde (<640px): modal tam ekran, üstte X kapat butonu
+Desktop'ta: mevcut ortalanmış modal OK
+
+SAYFA YAPISI — HEDEF
+/yourpoodle/saglik
+├── <h1> Poodle Sağlık Rehberi
+├── Hero (kırmızı gradient, alt başlık)
+├── Acil Durum Belirtileri (6 item, tıklanabilir, ACİL rozetli)
+│   └── CTA → Belirti Kontrol Sihirbazı (gerçek araç)
+├── Sağlık Araçları (3-4 kart grid)
+├── Arama + Kategori Filtresi
+├── Sağlık Yazıları (6+ makale, 2 sütun desktop / 1 sütun mobil)
+│   └── Her kart → /saglik/[slug] tam sayfa
+├── Veteriner Ürünleri CTA → /magaza?kategori=saglik
+└── Footer
+

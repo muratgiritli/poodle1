@@ -1,0 +1,311 @@
+YourPoodle sitesinde SADECE Bakım sayfasını düzelt: /yourpoodle/bakim
+Canlı URL: https://www.yourpoodle.com/yourpoodle/bakim
+
+Masaüstü (1920px), tablet (1024px, 768px) ve mobil (390px) için test et.
+Diğer sayfalara dokunma; sadece bu sayfa ve bağlı bileşenleri.
+
+---
+
+## P1 — KRİTİK HATALAR (önce bunları düzelt)
+
+### 1. "Hesapla" butonu yanlış yönlendiriyor
+"Tıraş Zamanlama Aracı" bölümündeki "Hesapla" butonu /yourpoodle/bilgi'ye gidiyor.
+Sayfada inline hesaplayıcı yok — bu yanıltıcı.
+
+Düzelt: Sayfada inline tıraş zamanlama aracı oluştur:
+- Date picker: "Son tıraş tarihi"
+- Dropdown: Tıraş tipi (Profesyonel 6-8 hafta / Ev tıraşı 4 hafta / Sadece yüz 2 hafta)
+- "Hesapla" tıklanınca: "Bir sonraki tıraş: [tarih]" + "X gün kaldı" göster
+- Takvime ekle butonu (isteğe bağlı .ics download)
+- /bilgi'ye yönlendirme KALDIR
+
+### 2. H1 etiketi yok
+"Bakım Rehberi" şu an <div>, semantik H1 değil (h1Count: 0).
+- Hero başlığını <h1>Poodle Bakım Rehberi</h1> yap
+- Alt başlık <p> olarak kalsın: "Poodle'ınızı her zaman şık ve sağlıklı tutun"
+
+### 3. <title> ile og:title uyumsuz + çift meta etiketleri
+Şu an:
+- <title>: "Toy Poodle Rehberi, Bakımı ve Mama Seçimi | YourPoodle" (genel)
+- og:title (1): "Toy Poodle Bakımı: Tıraş, Tüy ve Günlük Bakım | YourPoodle"
+- og:title (2): "Poodle Bakım Rehberi | YourPoodle"
+- İki farklı meta description
+- og:type hem "article" hem "website"
+
+Düzelt — TEK SET meta kullan:
+<title>Poodle Bakım Rehberi: Tıraş, Tüy Bakımı ve Grooming | YourPoodle</title>
+<meta name="description" content="Toy Poodle bakım rehberi: evde tıraş, haftalık tüy tarama, banyo sıklığı, pençe ve diş bakımı. Adım adım grooming rehberleri ve tıraş zamanlama aracı." />
+<meta property="og:title" content="Poodle Bakım Rehberi: Tıraş, Tüy Bakımı ve Grooming | YourPoodle" />
+<meta property="og:description" content="Toy Poodle bakım rehberi: evde tıraş, haftalık tüy tarama, banyo sıklığı, pençe ve diş bakımı." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://www.yourpoodle.com/yourpoodle/bakim" />
+<meta property="og:image" content="https://www.yourpoodle.com/images/bakim-og.webp" />
+
+Çift/çakışan meta etiketlerini KALDIR. Sayfada sadece 1 description, 1 og:title olsun.
+
+Canonical koru: https://www.yourpoodle.com/yourpoodle/bakim
+
+### 4. Bölüm başlıkları semantik değil
+"Bakım Kontrol Listesi", "Bakım Yazıları", "Tıraş Zamanlama Aracı" şu an DIV.
+Hepsini <h2> yap:
+<h2>Bakım Kontrol Listesi</h2>
+<h2>Bakım Yazıları</h2>
+<h2>Tıraş Zamanlama Aracı</h2>
+
+### 5. Bottom nav yanlış aktif state (mobil/tablet)
+Bakım sayfasındayken bottom nav'da "Mağaza" highlight oluyor.
+Düzelt:
+- pathname === '/yourpoodle/bakim' → "Rehber" veya özel Bakım ikonu aktif olsun
+- Bottom nav'da Bakım yoksa en azından "Rehber" aktif yap
+
+### 6. Mobil alt padding
+"Hesapla" ve "Bakım Ürünleri" butonları bottom nav ile çakışıyor.
+- Sayfa container'ına padding-bottom: 80px ekle
+
+---
+
+## P2 — İÇERİK VE YAPI
+
+### 7. Makaleler modal yerine slug URL ile tam sayfa açılsın
+Şu an makaleler modal'da açılıyor, URL değişmiyor.
+
+Her makale için slug URL:
+- /yourpoodle/bakim/evde-poodle-tirasi
+- /yourpoodle/bakim/tuy-bakimi-haftalik-rutin
+- /yourpoodle/bakim/pence-bakimi
+- /yourpoodle/bakim/kulak-bakimi
+- /yourpoodle/bakim/dis-fircalama
+- /yourpoodle/bakim/banyo-rehberi
+
+Makale sayfası yapısı:
+- Breadcrumb: Ana Sayfa > Bakım > [Makale Başlığı]
+- H1: makale başlığı
+- Kategori + okuma süresi + tarih
+- Kapak görseli
+- İçerik: min. 800 kelime, H2/H3 alt başlıklar
+- "Adım Adım" makalelerde numaralı adım listesi (HowTo uyumlu)
+- İlgili Makaleler (2-3 kart)
+- CTA: Bakım Ürünleri
+
+### 8. Makale içeriklerini genişlet
+"Evde Poodle Tıraşı: Adım Adım Rehber" başlığına karşılık tek paragraf var.
+
+"Evde Poodle Tıraşı" için minimum yapı:
+1. Giriş (neden evde tıraş?)
+2. Gerekli ekipman listesi (slicker fırça, makas, fön, matlaştırıcı sprey)
+3. Adım 1: Banyo hazırlığı
+4. Adım 2: Kurutma
+5. Adım 3: Tarama ve düğüm açma
+6. Adım 4: Kulak temizliği
+7. Adım 5: Yüz tıraşı
+8. Adım 6: Vücut şekillendirme (teddy bear)
+9. Adım 7: Pençe ve pati bakımı
+10. Sık yapılan hatalar
+11. Ne zaman profesyonel groomer'a gidilmeli?
+
+Diğer 5 makale için de benzer derinlik (min. 800 kelime).
+
+### 9. Eksik makale ekle: Göz Altı Lekesi Temizliği
+Meta description'da "göz altı leke bakımı" vaat edilmiş ama makale yok.
+Ekle: /yourpoodle/bakim/goz-alti-lekesi-temizligi
+- Neden oluşur (gözyaşı, bakteri, pigmentasyon)
+- Günlük temizlik rutini
+- Önerilen ürünler
+- Ne zaman veterinere gidilmeli
+
+### 10. "Hızlı Cevaplar" bölümü ekle (AI arama + SEO)
+Hero ile checklist arasına SSS kutusu:
+
+┌─────────────────────────────────────────────┐
+│ 💡 Hızlı Cevaplar                            │
+│                                              │
+│ S: Toy Poodle ne sıklıkla tıraş edilir?     │
+│ C: Profesyonel tıraş 6-8 haftada bir.       │
+│                                              │
+│ S: Poodle ne sıklıkla banyo yapılır?        │
+│ C: Ayda 2 kez yeterlidir.                   │
+│                                              │
+│ S: Poodle tüyü ne sıklıkla taranır?         │
+│ C: Haftada 3 kez slicker fırça ile.         │
+│                                              │
+│ S: Poodle pençeleri ne zaman kesilir?       │
+│ C: Ayda 1 kez veya tıkırtı sesi duyulunca.  │
+└─────────────────────────────────────────────┘
+
+### 11. Footer ekle
+Bakım sayfasında footer yok. Ana sayfadaki footer'ı ekle:
+- Site haritası, İletişim, Hakkımızda
+- © 2026 YourPoodle
+
+### 12. "Bakım Ürünleri" butonu filtreli mağazaya gitsin
+Şu an /yourpoodle/magaza'ya gidiyor (genel).
+Olması gereken: /yourpoodle/magaza?kategori=bakim
+
+---
+
+## P3 — SCHEMA.ORG VE AI ARAMA
+
+### 13. HowTo schema ekle (tıraş rehberi için)
+"Evde Poodle Tıraşı" makalesine:
+
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "Evde Poodle Tıraşı: Adım Adım Rehber",
+  "description": "Toy Poodle için evde teddy bear tıraş rehberi",
+  "totalTime": "PT60M",
+  "tool": [
+    {"@type": "HowToTool", "name": "Slicker fırça"},
+    {"@type": "HowToTool", "name": "Profesyonel makas"},
+    {"@type": "HowToTool", "name": "Matlaştırıcı sprey"},
+    {"@type": "HowToTool", "name": "Fön makinesi"}
+  ],
+  "step": [
+    {"@type": "HowToStep", "position": 1, "name": "Banyo", "text": "..."},
+    {"@type": "HowToStep", "position": 2, "name": "Kurutma", "text": "..."},
+    {"@type": "HowToStep", "position": 3, "name": "Tarama", "text": "..."},
+    {"@type": "HowToStep", "position": 4, "name": "Kulak temizliği", "text": "..."},
+    {"@type": "HowToStep", "position": 5, "name": "Şekillendirme", "text": "..."}
+  ]
+}
+
+### 14. ItemList schema ekle (makale listesi)
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Poodle Bakım Yazıları",
+  "numberOfItems": 7,
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "url": ".../bakim/evde-poodle-tirasi", "name": "Evde Poodle Tıraşı: Adım Adım Rehber"},
+    ...
+  ]
+}
+
+### 15. FAQPage schema ekle (Hızlı Cevaplar bölümü)
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Toy Poodle ne sıklıkla tıraş edilir?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Profesyonel tıraş 6-8 haftada bir önerilir."}
+    },
+    {
+      "@type": "Question",
+      "name": "Poodle ne sıklıkla banyo yapılır?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Ayda 2 kez yeterlidir, fazla banyo tüy yağını bozar."}
+    }
+  ]
+}
+
+### 16. Mevcut schema düzeltmeleri
+- Sayfa düzeyindeki Article schema'yı KALDIR (sayfa bir makale değil, hub sayfası)
+- WebPage schema'ya datePublished ve dateModified ekle
+- BreadcrumbList schema'yı KORU (zaten doğru)
+- Her makale sayfasına ayrı Article schema ekle (datePublished, author, image)
+
+### 17. Gizli SEO H2 bloklarını kaldır
+Sayfa altında görünmeyen 5 H2 var:
+- "YourPoodle — Toy Poodle Bakım, Mama, Eğitim ve Sağlık Platformu"
+- "Poodle Mama Rehberi ve Mama Hesaplama"
+- vb.
+
+Bunları kaldır. Cloaking sayılır, Google cezalandırabilir.
+Görünür H2'ler (Bakım Kontrol Listesi, Bakım Yazıları) yeterli.
+
+---
+
+## P4 — UX VE RESPONSIVE
+
+### 18. Tablet breakpoint düzelt
+768px'te masaüstü header kaybolup bottom nav geliyor — çok erken.
+- Mobil layout breakpoint: max-width 640px yap
+- 768px–1024px: compact header + 2 sütun grid
+
+### 19. Bakım kontrol listesi iyileştirmeleri
+Şu an çalışıyor (1/7 tamamlandı) ama:
+- Radio stili yerine checkbox stili kullan
+- İlerleme localStorage'a kaydet (sayfa yenilenince kaybolmasın)
+- Giriş yapmış kullanıcılar için hesaba kaydet
+- Tamamlanan maddeler üstü çizili + yeşil tik
+
+### 20. Arama ve kategori filtresi ekle
+- Arama: "Bakım konusu ara..."
+- Filtreler: Tümü | Tıraş | Tüy Bakımı | Pençe | Kulak | Ağız | Banyo | Göz
+
+### 21. Tıraş modelleri galerisi ekle (yeni bölüm)
+Makaleler ile tıraş aracı arasına:
+- Teddy Bear Cut (görsel + kısa açıklama)
+- Puppy Cut
+- Continental Clip
+- Lamb Cut
+- Kennel Cut
+Her model: kimler için uygun, bakım sıklığı, zorluk seviyesi
+
+### 22. Makale kapak görselleri
+Sayfada 0 görsel. Her makale kartına kapak görseli ekle.
+OG image'ı da sayfaya özel yap: /images/bakim-og.webp
+
+### 23. Makale modal mobilde full-screen
+Geçici olarak modal kalacaksa mobilde tam ekran + X kapat butonu.
+
+---
+
+## SAYFA YAPISI — HEDEF
+
+/yourpoodle/bakim
+├── <h1> Poodle Bakım Rehberi
+├── Hero (pembe gradient)
+├── Hızlı Cevaplar (FAQPage schema) ← YENİ
+├── <h2> Bakım Kontrol Listesi (7 item, kalıcı state)
+├── <h2> Bakım Yazıları (arama + filtre + 7+ makale)
+│   └── /bakim/[slug] tam sayfa + HowTo schema
+├── Tıraş Modelleri Galerisi ← YENİ
+├── <h2> Tıraş Zamanlama Aracı (inline hesaplayıcı)
+├── Bakım Ürünleri CTA → /magaza?kategori=bakim
+└── Footer
+
+---
+
+## TEST CHECKLIST (bitince kontrol et)
+
+Masaüstü 1920px:
+- [ ] H1 "Poodle Bakım Rehberi" var
+- [ ] Title = og:title (tek set, çift meta yok)
+- [ ] Hesapla inline çalışıyor (/bilgi'ye gitmiyor)
+- [ ] Makale tıklanınca slug URL açılıyor
+- [ ] Footer görünüyor
+- [ ] Hızlı Cevaplar bölümü var
+- [ ] Göz altı leke makalesi var
+
+Tablet 1024px:
+- [ ] 2 sütun checklist + makale grid
+- [ ] Header okunabilir
+
+Tablet 768px:
+- [ ] Tablet layout (bottom nav gelmemeli)
+
+Mobil 390px:
+- [ ] Bottom nav doğru aktif (Mağaza değil)
+- [ ] Tıraş aracı butonları tıklanabilir
+- [ ] Checklist "X/7 tamamlandı" çalışıyor
+- [ ] padding-bottom: 80px var
+
+SEO & Schema:
+- [ ] Çift meta etiketleri kaldırıldı
+- [ ] Gizli H2 blokları kaldırıldı
+- [ ] HowTo schema var
+- [ ] ItemList schema var
+- [ ] FAQPage schema var
+- [ ] BreadcrumbList korundu
+- [ ] Her makale unique URL + Article schema
+
+AI Arama:
+- [ ] Hızlı Cevaplar SSS formatında
+- [ ] Adım adım içerik (HowTo uyumlu)
+- [ ] datePublished/dateModified var
+- [ ] Yazar bilgisi var
+
+ÖNCELİK: P1 (1-6) → P2 (7-12) → P3 (13-17) → P4 (18-23)
+P1 bitmeden P2'ye geçme. Her değişiklikten sonra 390px ve 1920px'te test et.

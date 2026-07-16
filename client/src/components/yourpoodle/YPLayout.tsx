@@ -20,11 +20,14 @@ const NAV_LINKS = [
 interface Props {
   children: ReactNode;
   activeLink?: string;
+  /** Override which bottom-nav tab appears active (when page has no matching tab) */
+  bottomNavActive?: string;
   /** Set false for full-bleed pages (AI chat, wizard) that manage their own layout */
   constrain?: boolean;
 }
 
-export default function YPLayout({ children, activeLink = "", constrain = true }: Props) {
+export default function YPLayout({ children, activeLink = "", bottomNavActive, constrain = true }: Props) {
+  const effectiveBottomLink = bottomNavActive ?? activeLink;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [, navigate] = useLocation();
   const { isLoggedIn } = useCustomer();
@@ -178,7 +181,7 @@ export default function YPLayout({ children, activeLink = "", constrain = true }
             { label: "Rehber",    href: "/yourpoodle/rehber", Icon: BookOpen },
           ].map(({ label, href, Icon }) => (
             <button key={label} onClick={() => navigate(href)}
-              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, background: "none", border: "none", cursor: "pointer", flex: 1, color: activeLink === href ? "#7C3AED" : "#aaa" }}>
+              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, background: "none", border: "none", cursor: "pointer", flex: 1, color: effectiveBottomLink === href ? "#7C3AED" : "#aaa" }}>
               <Icon size={22} strokeWidth={2} />
               <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "inherit" }}>{label}</span>
             </button>
@@ -195,7 +198,7 @@ export default function YPLayout({ children, activeLink = "", constrain = true }
             { label: "Club",   href: "/yourpoodle/club",   Icon: Users },
           ].map(({ label, href, Icon }) => (
             <button key={label} onClick={() => navigate(href)}
-              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, background: "none", border: "none", cursor: "pointer", flex: 1, color: activeLink === href ? "#7C3AED" : "#aaa" }}>
+              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, background: "none", border: "none", cursor: "pointer", flex: 1, color: effectiveBottomLink === href ? "#7C3AED" : "#aaa" }}>
               <Icon size={22} strokeWidth={2} />
               <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "inherit" }}>{label}</span>
             </button>

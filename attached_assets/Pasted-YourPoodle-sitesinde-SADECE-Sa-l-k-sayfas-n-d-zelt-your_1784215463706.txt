@@ -1,0 +1,176 @@
+YourPoodle sitesinde SADECE Sağlık sayfasını düzelt: /yourpoodle/saglik
+Canlı URL: https://www.yourpoodle.com/yourpoodle/saglik
+
+Masaüstü (1920px), tablet (1024px, 768px) ve mobil (390px) için test et.
+Diğer sayfalara dokunma; sadece bu sayfa ve bağlı bileşenleri.
+
+---
+
+## P1 — KRİTİK HATALAR (önce bunları düzelt)
+
+### 1. Belirti Kontrol Aracı yanlış yönlendiriyor
+Şu an iki buton da /yourpoodle/bilgi'ye gidiyor:
+- "Belirti Kontrol Aracını Aç 🩺" (acil belirtiler bölümü)
+- "Belirti Kontrolü Aracı →" (makale modalı içi)
+
+İKİ SEÇENEK (birini uygula):
+A) Gerçek bir belirti kontrol sihirbazı oluştur (/yourpoodle/saglik/belirti-kontrol veya modal wizard):
+   - Adım 1: Belirti seçimi (kusma, ishal, topallama, nefes darlığı vb.)
+   - Adım 2: Süre ve şiddet
+   - Adım 3: Sonuç: "Acil veterinere gidin" / "24 saat içinde kontrol" / "Evde gözlem"
+   - Her sonuçta veteriner uyarısı
+B) Eğer araç henüz yoksa buton metnini değiştir:
+   - "Sağlık Araçlarına Git →" yap ve /bilgi'ye yönlendir
+   - "Belirti Kontrol" ifadesini kaldır (yanıltıcı)
+
+Tercih: A seçeneği — gerçek belirti sihirbazı.
+
+### 2. H1 etiketi yok
+Hero başlığı "Sağlık Rehberi" şu an H1 değil (h1Count: 0).
+- Hero başlığını <h1>Poodle Sağlık Rehberi</h1> yap
+- Alt başlık <p> olarak kalsın
+
+### 3. Sayfa title genel (tüm sitede aynı)
+Şu an: "Toy Poodle Rehberi, Bakımı ve Mama Seçimi | YourPoodle"
+Olması gereken:
+<title>Poodle Sağlık Rehberi — Belirtiler, Aşı Takvimi, Veteriner İpuçları | YourPoodle</title>
+
+Meta description zaten doğru, koru:
+"Poodle sağlık belirtilerini tanıyın, aşı takvimini öğrenin ve önleyici bakım ipuçları edinin..."
+
+Canonical koru: https://www.yourpoodle.com/yourpoodle/saglik
+
+### 4. Bottom nav yanlış aktif state (mobil/tablet)
+Sağlık sayfasındayken bottom nav'da "Mağaza" highlight oluyor.
+Düzelt:
+- pathname === '/yourpoodle/saglik' → "Bilgi" veya özel Sağlık ikonu aktif olsun
+- Bottom nav'da Sağlık yoksa en azından Bilgi aktif yap (sağlık araçları Bilgi altında)
+
+### 5. Mobil alt padding — CTA bottom nav ile çakışıyor
+"Sağlık Ürünleri →" butonu bottom nav'ın altında kalıyor.
+- Sayfa container'ına padding-bottom: 80px (veya bottom nav yüksekliği kadar) ekle
+- Son CTA bloğu tıklanabilir olsun
+
+---
+
+## P2 — İÇERİK VE YAPI
+
+### 6. Makaleler modal yerine slug URL ile tam sayfa açılsın
+Şu an makaleler modal'da açılıyor, URL değişmiyor (SEO kötü).
+
+Her makale için slug URL oluştur:
+- /yourpoodle/saglik/10-yaygin-saglik-sorunu
+- /yourpoodle/saglik/kalca-displazisi
+- /yourpoodle/saglik/poodle-anksiyetesi
+- /yourpoodle/saglik/asi-takvimi
+- /yourpoodle/saglik/dis-sagligi-periodontal
+- /yourpoodle/saglik/goz-yasi-lekeleri
+
+Makale sayfası yapısı:
+- Breadcrumb: Ana Sayfa > Sağlık > [Makale Başlığı]
+- H1: makale başlığı
+- Kategori etiketi + okuma süresi + tarih
+- Kapak görseli (en az placeholder)
+- İçerik: min. 800 kelime, H2/H3 alt başlıklar, madde listeleri
+- Veteriner uyarı kutusu (sarı, mevcut modal'daki gibi)
+- "İlgili Makaleler" bölümü (2-3 kart)
+- CTA: Belirti Kontrol Aracı veya Sağlık Araçları
+
+Modal'ı kaldır veya sadece hızlı önizleme için kullan; asıl navigasyon slug URL'e gitsin.
+
+### 7. Makale içeriklerini genişlet
+"10 Yaygın Sağlık Sorunu" başlığına karşılık sadece 5-6 hastalık, tek paragraf var.
+
+Her makale için minimum yapı:
+- Giriş paragrafı (2-3 cümle)
+- 3-5 H2 alt başlık
+- Her hastalık/konu için: belirtiler, nedenler, ne zaman veterinere gidilmeli, önleme
+- Sonuç + veteriner uyarısı
+
+Örnek "10 Yaygın Sağlık Sorunu" içeriği ekle:
+1. Addison Hastalığı
+2. Hipotiroidi
+3. Patellar Luksasyon (diz kayması)
+4. İlerleyici Retinal Atrofi (PRA)
+5. Epilepsi
+6. Göz Yaşı Lekeleri
+7. Periodontal Hastalık
+8. Kalça Displazisi
+9. Cushing Sendromu
+10. Alerjik Dermatit
+
+### 8. Sağlık Araçları bölümü ekle (sayfada yok, meta'da vaat edilmiş)
+Acil belirtiler ile makaleler arasına 3-4 araç kartı ekle:
+
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│ 💉 Aşı Takvimi  │ │ ⚖️ İdeal Kilo   │ │ 🎂 Yaş Hesaplama│
+│ Yavru→Yetişkin  │ │ Toy Poodle için │ │ İnsan yaşına    │
+│ [Aracı Aç →]    │ │ [Hesapla →]     │ │ [Hesapla →]     │
+└─────────────────┘ └─────────────────┘ └─────────────────┘
+
+- Kartlar /yourpoodle/bilgi'deki ilgili araca scroll veya deep link ile gitsin
+- Veya inline mini araç olarak sayfada göster
+
+### 9. Footer ekle
+Sağlık sayfasında footer yok. Ana sayfadaki footer'ı bu sayfaya da ekle:
+- Site haritası linkleri
+- İletişim, Hakkımızda
+- © 2026 YourPoodle (2025 değil)
+- Sosyal medya ikonları (varsa)
+
+### 10. Acil belirtileri tıklanabilir yap
+6 acil belirti şu an statik metin. Her birine tıklanınca:
+- Mini açıklama açılsın (accordion veya tooltip)
+- "Ne yapmalısınız?" 2-3 madde
+- ACİL olanlar için kırmızı "Hemen veterinere gidin" uyarısı
+- İsteğe bağlı: 112 veya veteriner acil hat bilgisi
+
+---
+
+## P3 — UX VE RESPONSIVE
+
+### 11. Tablet breakpoint düzelt (768px erken mobil geçiş)
+768px'te masaüstü header kaybolup bottom nav geliyor — çok erken.
+- Mobil layout breakpoint: max-width 640px veya 480px yap
+- 768px–1024px arası: compact header (hamburger veya 2 satır) + 2 sütun makale grid
+- Bottom nav sadece <640px'te göster
+
+### 12. "Sağlık Ürünleri →" butonu mağazada filtreli açılsın
+Şu an /yourpoodle/magaza'ya gidiyor (genel mağaza).
+Olması gereken: /yourpoodle/magaza?kategori=saglik veya /magaza/saglik-urunleri
+Mağazada kategori filtresi yoksa en azından sağlık/takviye ürünlerini öne çıkar.
+
+### 13. Makale kartlarına kapak görseli ekle
+Sayfada 0 görsel var. Her makale kartına:
+- Küçük kapak görseli (120x80px) veya kategori ikonu büyütülmüş
+- Placeholder: unsplash köpek sağlığı veya kategori renkli gradient
+
+### 14. Arama ve kategori filtresi ekle
+Rehber sayfasındaki gibi:
+- Arama kutusu: "Sağlık konusu ara..."
+- Kategori filtreleri: Tümü | Genel Sağlık | Ortopedi | Davranış | Önleyici Bakım | Ağız | Göz
+- Filtreleme client-side veya API ile
+
+### 15. Gizli SEO H2 bloklarını kaldır
+Sayfa altında görünmeyen H2'ler var (site geneli sorun):
+- "YourPoodle — Toy Poodle Bakım, Mama, Eğitim ve Sağlık Platformu"
+- "Poodle Mama Rehberi ve Mama Hesaplama"
+- vb.
+
+Bunları kaldır veya görünür, anlamlı içerik bölümlerine dönüştür.
+Cloaking sayılır, Google cezalandırabilir.
+
+---
+
+## P4 — SEO VE TEKNİK
+
+### 16. Schema.org markup ekle
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "MedicalWebPage",
+  "name": "Poodle Sağlık Rehberi",
+  "description": "...",
+  "url": "https://www.yourpoodle.com/yourpoodle/saglik",
+  "about": { "@type": "Thing", "name": "Toy Poodle Health" }
+}
