@@ -46,7 +46,12 @@ export default function Magaza() {
 
   return (
     <YPLayout activeLink="/yourpoodle/magaza">
-      <title>Mağaza — YourPoodle</title>
+      <title>Poodle Mama Mağazası | 900+ Ürün, Aynı Gün Teslimat | YourPoodle</title>
+      <meta name="description" content="Toy Poodle mama ve ürün mağazası. Royal Canin, Hill's, Pro Plan ve 900+ ürün. Samsun Atakum'a aynı gün teslimat, kapıda ödeme." />
+      <meta property="og:title" content="Poodle Mama Mağazası | YourPoodle" />
+      <meta property="og:description" content="900+ poodle mama ve ürünü. Aynı gün teslimat, kapıda ödeme seçeneğiyle." />
+      <meta property="og:type" content="website" />
+      <meta name="robots" content="index, follow" />
       <style>{`
         *, *::before, *::after { box-sizing: border-box; }
         .noscroll::-webkit-scrollbar { display: none; }

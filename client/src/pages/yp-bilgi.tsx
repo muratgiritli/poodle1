@@ -725,7 +725,12 @@ export default function BilgiBankasi() {
 
   return (
     <YPLayout activeLink="/yourpoodle/bilgi">
-      <title>Bilgi Bankası — YourPoodle</title>
+      <title>Poodle Bilgi Bankası | Mama, Su, Yaş Hesaplayıcı | YourPoodle</title>
+      <meta name="description" content="Toy Poodle için 12 pratik araç: mama hesaplama, su ihtiyacı, yaş çevirici, aşı takvimi, ideal kilo, belirti kontrolü ve daha fazlası." />
+      <meta property="og:title" content="Poodle Bilgi Bankası | YourPoodle" />
+      <meta property="og:description" content="Poodle için 12 ücretsiz araç: mama hesaplama, yaş çevirici, belirti kontrolü ve daha fazlası." />
+      <meta property="og:type" content="website" />
+      <meta name="robots" content="index, follow" />
       <style>{CSS}</style>
       <div style={{ background:"#fff", fontFamily:"Inter,sans-serif" }}>
 

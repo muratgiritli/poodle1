@@ -31,19 +31,41 @@ export default function Topluluk() {
 
   return (
     <YPLayout activeLink="/yourpoodle/topluluk">
-      <title>Topluluk — YourPoodle</title>
+      <title>Poodle Topluluğu | 10.000+ Poodle Sahibiyle Paylaş | YourPoodle</title>
+      <meta name="description" content="Türkiye'nin en büyük Toy Poodle topluluğu. Poodle sahipleriyle deneyim paylaşın, sorular sorun, fotoğraf paylaşın. 10.000+ aktif üye." />
+      <meta property="og:title" content="Poodle Topluluğu | YourPoodle" />
+      <meta property="og:description" content="10.000+ poodle sahibiyle buluş. Deneyim paylaş, soru sor, topluluğa katıl." />
+      <meta property="og:type" content="website" />
+      <meta name="robots" content="index, follow" />
       <style>{`
         .post-action:hover { background: #F5F0FF; }
         @media (min-width: 900px) {
           .topluluk-grid { display: grid !important; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+          .topluluk-hero { border-radius: 20px; margin: 24px 0 !important; }
         }
       `}</style>
 
       <div style={{ background:"#F7F5FF", minHeight:"100vh" }}>
+
+        {/* Hero */}
+        <div className="topluluk-hero" style={{ background:"linear-gradient(135deg,#7C3AFF,#A855F7)", padding:"24px 24px 28px", position:"relative", overflow:"hidden" }}>
+          <div style={{ position:"absolute", top:-20, right:-20, width:100, height:100, borderRadius:"50%", background:"rgba(255,255,255,0.08)" }} />
+          <div style={{ fontSize:32, marginBottom:8 }}>👥</div>
+          <h1 style={{ fontSize:22, fontWeight:900, color:"#fff", marginBottom:4 }}>Poodle Topluluğu</h1>
+          <p style={{ fontSize:13, color:"rgba(255,255,255,0.85)", marginBottom:14 }}>10.000+ poodle sahibiyle deneyim paylaş</p>
+          <div style={{ display:"flex", gap:16 }}>
+            {[["10K+","Üye"],["50K+","Gönderi"],["Ücretsiz","Katıl"]].map(([n,l]) => (
+              <div key={l}>
+                <div style={{ fontSize:14, fontWeight:900, color:"#fff" }}>{n}</div>
+                <div style={{ fontSize:10, color:"rgba(255,255,255,0.72)" }}>{l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div style={{ padding:"20px 16px 0" }}>
           <div style={{ marginBottom:16 }}>
-            <div style={{ fontSize:20, fontWeight:900, color:"#1a1a1a", marginBottom:4 }}>👥 Topluluk Paylaşımları</div>
-            <div style={{ fontSize:12, color:"#888" }}>10.000+ poodle sahibinin paylaşımları</div>
+            <div style={{ fontSize:18, fontWeight:900, color:"#1a1a1a", marginBottom:4 }}>Son Paylaşımlar</div>
           </div>
 
           {/* Search */}

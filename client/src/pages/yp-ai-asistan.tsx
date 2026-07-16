@@ -109,6 +109,12 @@ Kurallar:
 
   return (
     <YPLayout activeLink="/yourpoodle/ai-asistan" constrain={false}>
+      <title>Poodle AI Asistanı | Anlık Köpek Bakımı Soruları | YourPoodle</title>
+      <meta name="description" content="YourPoodle AI asistanıyla Toy Poodle hakkında anlık sorularınızı sorun. Beslenme, sağlık, bakım ve eğitim konularında yapay zeka destekli cevaplar." />
+      <meta property="og:title" content="Poodle AI Asistanı | YourPoodle" />
+      <meta property="og:description" content="Poodle sorularınıza anında AI destekli cevaplar. Beslenme, sağlık ve bakım hakkında her şeyi sorun." />
+      <meta property="og:type" content="website" />
+      <meta name="robots" content="index, follow" />
       <style>{`${CSS}
         @media (min-width: 900px) { .yp-ai-input-bar { bottom: 0 !important; } }
       `}</style>

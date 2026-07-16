@@ -115,22 +115,47 @@ export default function Rehber() {
 
   return (
     <YPLayout activeLink="/yourpoodle/rehber">
-      <title>Rehber — YourPoodle</title>
+      <title>Toy Poodle Rehberi | Sağlık, Bakım ve Beslenme Makaleleri | YourPoodle</title>
+      <meta name="description" content="Toy Poodle rehberi: beslenme, sağlık, bakım, eğitim ve davranış konularında veteriner onaylı 50+ makale. Poodle sahipleri için Türkiye'nin en kapsamlı kaynağı." />
+      <meta property="og:title" content="Toy Poodle Rehberi | YourPoodle" />
+      <meta property="og:description" content="Veteriner onaylı poodle makaleleri: beslenme, sağlık, bakım, eğitim ve daha fazlası." />
+      <meta property="og:type" content="website" />
+      <meta name="robots" content="index, follow" />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "Toy Poodle Rehberi",
+        "description": "Toy Poodle sahipleri için kapsamlı makale ve rehber koleksiyonu",
+        "url": "https://www.yourpoodle.com/yourpoodle/rehber",
+        "publisher": { "@type": "Organization", "name": "YourPoodle", "url": "https://www.yourpoodle.com" }
+      }) }} />
       <style>{`
         .art-row-reh:hover { background: #F5F1FF !important; }
         .noscroll-reh::-webkit-scrollbar { display: none; }
         .noscroll-reh { -ms-overflow-style: none; scrollbar-width: none; }
         @media (min-width: 900px) {
           .reh-featured { max-width: 680px; }
+          .reh-hero { border-radius: 20px; margin: 24px 0 !important; }
         }
       `}</style>
 
       {selected && <ArticleDetail article={selected} onClose={() => setSelected(null)} />}
 
-      {/* Page title */}
-      <div style={{ padding:"24px 16px 0" }}>
-        <h1 style={{ fontSize:24, fontWeight:900, color:"#1a1a1a", marginBottom:4 }}>📖 Rehber</h1>
-        <p style={{ fontSize:13, color:"#888" }}>Toy Poodle'ınız için kapsamlı içerikler</p>
+      {/* Hero banner */}
+      <div className="reh-hero" style={{ background:"linear-gradient(135deg,#7C3AFF,#A855F7)", padding:"28px 24px 32px", position:"relative", overflow:"hidden" }}>
+        <div style={{ position:"absolute", top:-30, right:-20, width:140, height:140, borderRadius:"50%", background:"rgba(255,255,255,0.08)" }} />
+        <div style={{ position:"absolute", bottom:-20, left:-10, width:90, height:90, borderRadius:"50%", background:"rgba(255,255,255,0.06)" }} />
+        <div style={{ fontSize:38, marginBottom:10 }}>📖</div>
+        <h1 style={{ fontSize:26, fontWeight:900, color:"#fff", marginBottom:6, lineHeight:1.2 }}>Poodle Rehberi</h1>
+        <p style={{ fontSize:14, color:"rgba(255,255,255,0.88)", lineHeight:1.5, marginBottom:16 }}>Veteriner onaylı içerikler, uzman yazarlar</p>
+        <div style={{ display:"flex", gap:20 }}>
+          {[["50+","Makale"],["6","Kategori"],["Ücretsiz","Erişim"]].map(([n,l]) => (
+            <div key={l}>
+              <div style={{ fontSize:15, fontWeight:900, color:"#fff" }}>{n}</div>
+              <div style={{ fontSize:10, color:"rgba(255,255,255,0.72)" }}>{l}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Search */}

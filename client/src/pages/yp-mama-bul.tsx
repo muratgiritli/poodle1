@@ -281,6 +281,12 @@ export default function YPMamaBulPage() {
 
   return (
     <YPLayout activeLink="/yourpoodle/mama-bul">
+      <title>Poodle Mama Bul | Kişiselleştirilmiş Mama Öneri Sihirbazı | YourPoodle</title>
+      <meta name="description" content="Poodle'ınıza özel mama önerisi. Yaş, kilo, sağlık durumu ve bütçenize göre en uygun mama markasını 3 adımda bulun." />
+      <meta property="og:title" content="Poodle Mama Bul | YourPoodle" />
+      <meta property="og:description" content="3 adımda poodle'ınıza özel mama önerisi. Yaş, kilo ve sağlık durumuna göre kişiselleştirilmiş sonuçlar." />
+      <meta property="og:type" content="website" />
+      <meta name="robots" content="index, follow" />
       <style>{CSS}</style>
       <div className="mb-page" style={{ minHeight:"unset" }}>
 

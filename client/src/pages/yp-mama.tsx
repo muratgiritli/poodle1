@@ -42,7 +42,20 @@ export default function MamaRehberi() {
 
   return (
     <YPLayout activeLink="/yourpoodle/mama">
-      <title>Mama Rehberi — YourPoodle</title>
+      <title>Poodle Mama Rehberi 2024 | En İyi Mama Markası ve Beslenme | YourPoodle</title>
+      <meta name="description" content="Toy Poodle mama rehberi: Royal Canin, Hill's, Pro Plan karşılaştırması. Günlük kalori ihtiyacı, BARF diyeti, yavru maması geçişi ve beslenme ipuçları." />
+      <meta property="og:title" content="Poodle Mama Rehberi 2024 | YourPoodle" />
+      <meta property="og:description" content="Poodle için en iyi mama markası rehberi. Günlük kalori, BARF diyeti ve beslenme ipuçları." />
+      <meta property="og:type" content="website" />
+      <meta name="robots" content="index, follow" />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Poodle Mama Rehberi",
+        "description": "Toy Poodle için en iyi mama markaları, beslenme rehberi ve kalori hesaplama",
+        "url": "https://www.yourpoodle.com/yourpoodle/mama",
+        "publisher": { "@type": "Organization", "name": "YourPoodle", "url": "https://www.yourpoodle.com" }
+      }) }} />
       <style>{`
         .art-row-mama:hover { background: #FFF8F0 !important; }
         @media (min-width: 900px) {

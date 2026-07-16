@@ -40,6 +40,21 @@ export default function YPHakkindaPage() {
 
   return (
     <YPLayout activeLink="/yourpoodle/hakkinda">
+      <title>YourPoodle Hakkında | Toy Poodle Uzman Platformu</title>
+      <meta name="description" content="YourPoodle; Türk poodle sahiplerine ana dillerinde veteriner onaylı içerik, pratik araçlar ve topluluk sunan Toy Poodle uzman platformudur." />
+      <meta property="og:title" content="YourPoodle Hakkında | Toy Poodle Uzman Platformu" />
+      <meta property="og:description" content="Türkiye'nin en kapsamlı Toy Poodle platformu. Veteriner onaylı içerikler, pratik araçlar ve aktif topluluk." />
+      <meta property="og:type" content="website" />
+      <meta name="robots" content="index, follow" />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "YourPoodle",
+        "url": "https://www.yourpoodle.com",
+        "description": "Toy Poodle sahipleri için Türkiye'nin en kapsamlı dijital platformu",
+        "email": "info@sizpa.com",
+        "address": { "@type": "PostalAddress", "streetAddress": "Yenimahalle Atatürk 3. Kısım Blv. No:113/A", "addressLocality": "Atakum, Samsun", "postalCode": "55200", "addressCountry": "TR" }
+      }) }} />
     <div style={{ fontFamily: "'Inter', -apple-system, sans-serif", background: "#FAFAF9" }}>
       <YPBreadcrumb items={BREADCRUMBS} />
 
@@ -56,7 +71,7 @@ export default function YPHakkindaPage() {
       </section>
 
       {/* ── Hikayemiz ──────────────────────────────────────────────────── */}
-      <section style={{ padding: "32px 20px", maxWidth: 640, margin: "0 auto" }}>
+      <section style={{ padding: "32px 20px", maxWidth: 820, margin: "0 auto" }}>
         <h2 style={{ fontSize: 20, fontWeight: 900, color: "#1a1a1a", marginBottom: 16 }}>Neden YourPoodle?</h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ background: "#fff", borderRadius: 16, padding: "20px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
@@ -82,7 +97,7 @@ export default function YPHakkindaPage() {
       </section>
 
       {/* ── İçerik Ekibi ───────────────────────────────────────────────── */}
-      <section style={{ padding: "0 20px 32px", maxWidth: 640, margin: "0 auto" }}>
+      <section style={{ padding: "0 20px 32px", maxWidth: 820, margin: "0 auto" }}>
         <h2 style={{ fontSize: 20, fontWeight: 900, color: "#1a1a1a", marginBottom: 16 }}>İçerik Ekibimiz</h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {TEAM.map((member) => (
@@ -99,7 +114,7 @@ export default function YPHakkindaPage() {
       </section>
 
       {/* ── İçerik Metodolojisi ────────────────────────────────────────── */}
-      <section style={{ padding: "0 20px 32px", maxWidth: 640, margin: "0 auto" }}>
+      <section style={{ padding: "0 20px 32px", maxWidth: 820, margin: "0 auto" }}>
         <h2 style={{ fontSize: 20, fontWeight: 900, color: "#1a1a1a", marginBottom: 16 }}>İçerik Metodolojimiz</h2>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {METHODOLOGY.map((item) => (
@@ -113,7 +128,7 @@ export default function YPHakkindaPage() {
       </section>
 
       {/* ── Önemli Uyarı ───────────────────────────────────────────────── */}
-      <section style={{ padding: "0 20px 32px", maxWidth: 640, margin: "0 auto" }}>
+      <section style={{ padding: "0 20px 32px", maxWidth: 820, margin: "0 auto" }}>
         <div style={{ background: "#FFF3CD", border: "1.5px solid #F59E0B", borderRadius: 16, padding: "20px" }}>
           <div style={{ fontSize: 20, marginBottom: 8 }}>⚠️</div>
           <h3 style={{ fontSize: 15, fontWeight: 800, color: "#92400E", marginBottom: 8 }}>Veteriner Tavsiyesinin Yerine Geçmez</h3>
@@ -126,7 +141,7 @@ export default function YPHakkindaPage() {
       </section>
 
       {/* ── İletişim ───────────────────────────────────────────────────── */}
-      <section style={{ padding: "0 20px 32px", maxWidth: 640, margin: "0 auto" }}>
+      <section style={{ padding: "0 20px 32px", maxWidth: 820, margin: "0 auto" }}>
         <h2 style={{ fontSize: 20, fontWeight: 900, color: "#1a1a1a", marginBottom: 16 }}>İletişim</h2>
         <div style={{ background: "#fff", borderRadius: 20, padding: "24px 20px", boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -156,7 +171,7 @@ export default function YPHakkindaPage() {
       </section>
 
       {/* ── Bağlantılar ────────────────────────────────────────────────── */}
-      <section style={{ padding: "0 20px 16px", maxWidth: 640, margin: "0 auto" }}>
+      <section style={{ padding: "0 20px 16px", maxWidth: 820, margin: "0 auto" }}>
         <h2 style={{ fontSize: 16, fontWeight: 900, color: "#1a1a1a", marginBottom: 12 }}>Politikalar</h2>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {[

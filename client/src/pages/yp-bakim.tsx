@@ -36,7 +36,20 @@ export default function Bakim() {
 
   return (
     <YPLayout activeLink="/yourpoodle/bakim">
-      <title>Bakım Rehberi — YourPoodle</title>
+      <title>Poodle Bakım Rehberi | Tüy Bakımı, Tıraş ve Hijyen İpuçları | YourPoodle</title>
+      <meta name="description" content="Toy Poodle bakım rehberi: tüy tarama, tıraş sıklığı, banyo teknikleri, diş ve pençe bakımı. Uzman groomer tavsiyeleri ile poodle'ınızı şık tutun." />
+      <meta property="og:title" content="Poodle Bakım Rehberi | YourPoodle" />
+      <meta property="og:description" content="Poodle tüy bakımı, tıraş ve hijyen rehberi. Uzman groomer tavsiyeleriyle evde profesyonel bakım." />
+      <meta property="og:type" content="website" />
+      <meta name="robots" content="index, follow" />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Poodle Bakım Rehberi",
+        "description": "Toy Poodle tüy bakımı, tıraş teknikleri ve grooming rehberi",
+        "url": "https://www.yourpoodle.com/yourpoodle/bakim",
+        "publisher": { "@type": "Organization", "name": "YourPoodle", "url": "https://www.yourpoodle.com" }
+      }) }} />
       <style>{`
         .art-row-bakim:hover { background: #FFF0F5 !important; }
         @media (min-width: 900px) {

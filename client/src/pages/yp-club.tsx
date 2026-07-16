@@ -1,3 +1,4 @@
+// YourPoodle Club — social hub for poodle owners
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
@@ -359,7 +360,12 @@ export default function Club() {
 
   return (
     <YPLayout activeLink="/yourpoodle/club">
-      <title>Club — YourPoodle</title>
+      <title>YourPoodle Club | Poodle Sosyal Topluluğu ve Paylaşım Platformu</title>
+      <meta name="description" content="YourPoodle Club: poodle sahiplerinin buluştuğu sosyal platform. Gönderi paylaşın, etkinliklere katılın, poodle profilinizi gösterin ve topluluğa dahil olun." />
+      <meta property="og:title" content="YourPoodle Club | Poodle Sosyal Topluluğu" />
+      <meta property="og:description" content="Poodle sahiplerinin sosyal platformu. Paylaş, bağlan, topluluğa katıl." />
+      <meta property="og:type" content="website" />
+      <meta name="robots" content="index, follow" />
       <style>{CSS}</style>
 
       {showCompose && isLoggedIn && (

@@ -33,7 +33,20 @@ export default function Egitim() {
 
   return (
     <YPLayout activeLink="/yourpoodle/egitim">
-      <title>Eğitim Rehberi — YourPoodle</title>
+      <title>Poodle Eğitim Rehberi | Komutlar, Clicker ve Agility | YourPoodle</title>
+      <meta name="description" content="Toy Poodle eğitim rehberi: otur, gel, bırak komutları, clicker eğitimi, tuvalet eğitimi ve sosyalleşme. Poodle dünyanın en zeki köpek ırkıdır — doğru yöntemlerle eğitin." />
+      <meta property="og:title" content="Poodle Eğitim Rehberi | YourPoodle" />
+      <meta property="og:description" content="Poodle için komut eğitimi, clicker ve agility rehberi. Dünyanın en zeki köpeğini doğru yöntemle eğitin." />
+      <meta property="og:type" content="website" />
+      <meta name="robots" content="index, follow" />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Poodle Eğitim Rehberi",
+        "description": "Toy Poodle eğitimi: temel komutlar, clicker, agility ve tuvalet eğitimi",
+        "url": "https://www.yourpoodle.com/yourpoodle/egitim",
+        "publisher": { "@type": "Organization", "name": "YourPoodle", "url": "https://www.yourpoodle.com" }
+      }) }} />
       <style>{`
         .art-row-egitim:hover { background: #F0FDF4 !important; }
         @media (min-width: 900px) {

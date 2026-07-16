@@ -71,7 +71,11 @@ export default function PoodleEkle() {
 
   return (
     <YPLayout activeLink="/yourpoodle/poodle-ekle">
-      <title>Poodle Ekle — YourPoodle</title>
+      <title>Poodle Profilini Oluştur | YourPoodle Poodle Ekle</title>
+      <meta name="description" content="Poodle'ınızın profilini oluşturun. Irk, yaş, cinsiyet ve renk bilgilerini kaydedin, kişiselleştirilmiş bakım ve beslenme önerileri alın." />
+      <meta property="og:title" content="Poodle Profili Oluştur | YourPoodle" />
+      <meta property="og:description" content="Poodle'ınızın profilini oluşturun ve kişiselleştirilmiş öneriler alın." />
+      <meta name="robots" content="noindex" />
       <style>{CSS}</style>
 
       <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"Inter,sans-serif", paddingBottom:32 }}>

@@ -29,7 +29,12 @@ export default function Etkinlikler() {
 
   return (
     <YPLayout activeLink="/yourpoodle/etkinlikler">
-      <title>Etkinlikler — YourPoodle</title>
+      <title>Poodle Etkinlikleri | Buluşmalar, Yarışmalar, Webinarlar | YourPoodle</title>
+      <meta name="description" content="Türkiye genelinde poodle etkinlikleri: buluşmalar, agility yarışmaları, grooming webinarları ve veteriner seminerleri. Poodle topluluğuyla tanışın." />
+      <meta property="og:title" content="Poodle Etkinlikleri | YourPoodle" />
+      <meta property="og:description" content="Poodle buluşmaları, yarışmaları ve online webinarlar. Topluluğa katılın." />
+      <meta property="og:type" content="website" />
+      <meta name="robots" content="index, follow" />
       <style>{`
         .ev-card:active { transform: scale(0.98); } .ev-card { transition: transform 0.12s; }
         @media (min-width: 900px) {

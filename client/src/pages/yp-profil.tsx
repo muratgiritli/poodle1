@@ -73,6 +73,11 @@ export default function YPProfilPage() {
 
   return (
     <YPLayout activeLink="/yourpoodle/profil">
+      <title>Poodle Profilim | Kişisel Poodle Takip Sayfası | YourPoodle</title>
+      <meta name="description" content="Poodle'ınızın profilini oluşturun. Irk, yaş, renk, sağlık bilgileri ve kişiselleştirilmiş bakım önerileri için YourPoodle profil sayfası." />
+      <meta property="og:title" content="Poodle Profilim | YourPoodle" />
+      <meta property="og:description" content="Poodle profilinizi oluşturun, kişiselleştirilmiş bakım ve beslenme önerileri alın." />
+      <meta name="robots" content="noindex" />
     <div style={{ fontFamily: "'Inter', -apple-system, sans-serif", background: "#FAFAF9" }}>
       <YPBreadcrumb items={BREADCRUMBS} />
 
@@ -83,7 +88,7 @@ export default function YPProfilPage() {
         <p style={{ fontSize: 13, opacity: 0.85 }}>Poodle'ınızın bilgilerini kaydedin ve takip edin</p>
       </section>
 
-      <div style={{ padding: "24px 16px", maxWidth: 480, margin: "0 auto" }}>
+      <div style={{ padding: "24px 16px", maxWidth: 700, margin: "0 auto" }}>
 
         {loading ? (
           <div style={{ textAlign: "center", padding: "48px 0", color: "#aaa" }}>Yükleniyor…</div>

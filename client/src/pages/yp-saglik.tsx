@@ -33,7 +33,20 @@ export default function Saglik() {
 
   return (
     <YPLayout activeLink="/yourpoodle/saglik">
-      <title>Sağlık Rehberi — YourPoodle</title>
+      <title>Poodle Sağlık Rehberi | Aşı, Hastalık ve Veteriner Bilgileri | YourPoodle</title>
+      <meta name="description" content="Toy ve Miniature Poodle'lar için veteriner onaylı sağlık rehberi. Aşı takvimi, yaygın hastalıklar, acil durum belirtileri ve sağlık ipuçları." />
+      <meta property="og:title" content="Poodle Sağlık Rehberi | YourPoodle" />
+      <meta property="og:description" content="Poodle'ınızın sağlığını koruyun. Veteriner onaylı hastalık rehberi, aşı takvimleri ve acil durum belirtileri." />
+      <meta property="og:type" content="website" />
+      <meta name="robots" content="index, follow" />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Poodle Sağlık Rehberi",
+        "description": "Toy Poodle sağlık bilgileri, aşı takvimi ve veteriner önerileri",
+        "url": "https://www.yourpoodle.com/yourpoodle/saglik",
+        "publisher": { "@type": "Organization", "name": "YourPoodle", "url": "https://www.yourpoodle.com" }
+      }) }} />
       <style>{`
         .art-row-saglik:hover { background: #FFF1F2 !important; }
         @media (min-width: 900px) {
