@@ -584,7 +584,7 @@ export default function YPGiris() {
                             name="phone"
                             autoComplete="tel"
                             inputMode="numeric"
-                            maxLength={country.code==="TR" ? 12 : 20}
+                            maxLength={country.code==="TR" ? 13 : 20}
                             value={phone}
                             onChange={e => {
                               const val = formatLocal(e.target.value);
