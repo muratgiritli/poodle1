@@ -1050,27 +1050,6 @@ export default function BilgiBankasi() {
               ))}
             </section>
 
-            {/* Footer */}
-            <footer style={{ background:"#111", padding:"28px 20px 24px" }}>
-              <div style={{ display:"flex", gap:32, flexWrap:"wrap", marginBottom:20 }}>
-                {[
-                  ["Platform",["Ana Sayfa:/yourpoodle","Mağaza:/yourpoodle/magaza","AI Asistan:/yourpoodle/ai-asistan","Rehber:/yourpoodle/rehber"]],
-                  ["Destek",["Hakkımızda:/yourpoodle","İletişim:/yourpoodle","Bakım:/yourpoodle/bakim","Sağlık:/yourpoodle/saglik"]],
-                  ["Yasal",["Gizlilik & KVKK:/yourpoodle","Çerez Politikası:/yourpoodle","Kullanım Şartları:/yourpoodle"]],
-                ].map(([title,links])=>(
-                  <div key={title as string}>
-                    <div style={{ fontSize:11, fontWeight:800, color:"#888", marginBottom:10, letterSpacing:"0.08em", textTransform:"uppercase" }}>{title as string}</div>
-                    {(links as string[]).map(l=>{
-                      const [label,href]=l.split(":");
-                      return <button key={label} onClick={()=>navigate(href)} style={{ display:"block",background:"none",border:"none",cursor:"pointer",color:"#bbb",fontSize:12,fontFamily:"Inter,sans-serif",marginBottom:7,padding:0,textAlign:"left" }}>{label}</button>;
-                    })}
-                  </div>
-                ))}
-              </div>
-              <div style={{ fontSize:11, color:"#555", borderTop:"1px solid #222", paddingTop:16 }}>
-                © 2026 YourPoodle · Toy Poodle sahipleri için Türkiye'nin ilk dijital platformu
-              </div>
-            </footer>
           </>
         )}
       </div>

@@ -68,40 +68,6 @@ const LS_MSG = "yp_ai_messages";
 const LS_PRF = "yp_ai_profile";
 const MAX_STORED = 20;
 
-/* ─── Footer ─────────────────────────────────────────── */
-function AiFooter({ onNav }:{onNav:(href:string)=>void}) {
-  return (
-    <footer style={{ background:"#111", padding:"40px 24px 28px" }}>
-      <div style={{ maxWidth:1200, margin:"0 auto" }}>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))", gap:28, marginBottom:28 }}>
-          <div>
-            <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:10 }}>
-              <div style={{ width:28, height:28, borderRadius:7, background:"linear-gradient(135deg,#7C3AED,#A855F7)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14 }}>🐩</div>
-              <span style={{ fontSize:14, fontWeight:900, color:"#fff" }}>YourPoodle</span>
-            </div>
-            <p style={{ fontSize:12, color:"#6B7280", lineHeight:1.6 }}>Toy Poodle sahipleri için Türkiye'nin en kapsamlı bakım ve bilgi platformu.</p>
-          </div>
-          {[
-            { title:"Platform", links:[["AI Asistan","/yourpoodle/ai-asistan"],["Rehber","/yourpoodle/rehber"],["Sağlık","/yourpoodle/saglik"],["Mağaza","/yourpoodle/magaza"]] },
-            { title:"Destek",   links:[["İletişim","/iletisim"],["Gizlilik","/gizlilik"],["KVKK","/kvkk"]] },
-            { title:"Yasal",    links:[["Çerez Politikası","/cerez-politikasi"],["Kullanım Şartları","/kullanim-sartlari"]] },
-          ].map(col=>(
-            <div key={col.title}>
-              <div style={{ fontSize:10, fontWeight:900, color:"#4B5563", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:10 }}>{col.title}</div>
-              {col.links.map(([l,h])=>(
-                <button key={l} onClick={()=>onNav(h as string)}
-                  style={{ display:"block", fontSize:12.5, color:"#6B7280", marginBottom:7, cursor:"pointer", background:"none", border:"none", padding:0, textAlign:"left" }}>{l}</button>
-              ))}
-            </div>
-          ))}
-        </div>
-        <div style={{ borderTop:"1px solid #1F2937", paddingTop:18 }}>
-          <span style={{ fontSize:11, color:"#4B5563" }}>© 2026 Sizpa İnternet Tic. Ltd. Şti. · info@yourpoodle.com</span>
-        </div>
-      </div>
-    </footer>
-  );
-}
 
 /* ─── Main ────────────────────────────────────────────── */
 export default function YPAiAsistanPage() {
@@ -563,7 +529,6 @@ Kurallar:
       </div>
 
       <div style={{ height:24 }}/>
-      <AiFooter onNav={navigate}/>
     </YPLayout>
   );
 }

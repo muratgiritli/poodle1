@@ -654,50 +654,6 @@ export default function YourPoodleHomePage() {
         </div>
       </section>
 
-      {/* ─── FOOTER ──────────────────────────────────────── */}
-      <footer style={{ background: "#111", padding: "48px 24px 32px" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <div className="yph-footer-grid" style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 36, marginBottom: 36 }}>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 8, background: "linear-gradient(135deg,#7C3AED,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15 }}>🐩</div>
-                <span style={{ fontSize: 15, fontWeight: 900, color: "#fff" }}>YourPoodle</span>
-              </div>
-              <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.7, maxWidth: 240 }}>Toy Poodle sahipleri için Türkiye'nin en kapsamlı bakım, beslenme ve eğitim platformu.</p>
-            </div>
-            {[
-              { title: "Platform", links: [["Rehber", "/yourpoodle/rehber"], ["Mama Bul", "/yourpoodle/mama-bul"], ["AI Asistan", "/yourpoodle/ai-asistan"], ["Topluluk", "/yourpoodle/topluluk"], ["Mağaza", "/yourpoodle/magaza"]] },
-              { title: "Destek",   links: [["SSS", "/sss"], ["İletişim", "/iletisim"], ["Sipariş Takip", "/siparis-takip"], ["Yardım", "/iletisim"]] },
-              { title: "Yasal",   links: [["Kullanım Koşulları", "/kullanim-kosullari"], ["Gizlilik", "/gizlilik"], ["KVKK", "/kvkk"], ["Çerez", "/cerez-politikasi"]] },
-            ].map(col => (
-              <div key={col.title}>
-                <div style={{ fontSize: 10.5, fontWeight: 900, color: "#4B5563", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12 }}>{col.title}</div>
-                {col.links.map(([label, href]) => (
-                  <button key={label} onClick={() => go(href as string)}
-                    style={{ display: "block", fontSize: 13.5, color: "#6B7280", marginBottom: 9, cursor: "pointer", background: "none", border: "none", padding: 0, fontFamily: "inherit", textAlign: "left", transition: "color 0.15s" }}
-                    onMouseEnter={e => { e.currentTarget.style.color = "#fff"; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = "#6B7280"; }}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-            ))}
-          </div>
-          <div style={{ borderTop: "1px solid #1F2937", paddingTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
-            <span style={{ fontSize: 12, color: "#4B5563" }}>© 2026 Sizpa İnternet Tic. Ltd. Şti. · info@yourpoodle.com</span>
-            <div style={{ display: "flex", gap: 20 }}>
-              {[["Gizlilik", "/gizlilik"], ["Çerezler", "/cerez-politikasi"], ["KVKK", "/kvkk"]].map(([l, h]) => (
-                <button key={l} onClick={() => go(h)} style={{ fontSize: 12, color: "#4B5563", cursor: "pointer", background: "none", border: "none", fontFamily: "inherit", transition: "color 0.15s" }}
-                  onMouseEnter={e => { e.currentTarget.style.color = "#9CA3AF"; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = "#4B5563"; }}>
-                  {l}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </footer>
-
       </div>{/* yph-page-pad */}
 
       {/* ─── MOBILE BOTTOM NAV ───────────────────────────── */}

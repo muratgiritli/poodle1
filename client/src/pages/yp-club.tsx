@@ -759,27 +759,6 @@ export default function Club() {
           </div>
         </section>
 
-        {/* Footer */}
-        <footer style={{ background:"#111", padding:"28px 20px 24px", marginTop:24 }}>
-          <div style={{ display:"flex", gap:32, flexWrap:"wrap", marginBottom:20 }}>
-            {([
-              ["Platform", [["Ana Sayfa","/yourpoodle"],["Mağaza","/yourpoodle/magaza"],["Rehber","/yourpoodle/rehber"],["Bilgi","/yourpoodle/bilgi"]]],
-              ["Topluluk", [["Club","/yourpoodle/club"],["Etkinlikler","/yourpoodle/etkinlikler"],["Akış","/yourpoodle/club?tab=akis"],["Üyeler","/yourpoodle/club?tab=topluluk"]]],
-              ["Yasal",    [["Gizlilik & KVKK","/yourpoodle"],["Topluluk Kuralları","/yourpoodle"],["Kullanım Şartları","/yourpoodle"]]],
-            ] as [string,[string,string][]][]).map(([title, links]) => (
-              <div key={title}>
-                <div style={{ fontSize:11, fontWeight:800, color:"#888", marginBottom:10, letterSpacing:"0.08em", textTransform:"uppercase" }}>{title}</div>
-                {links.map(([label,href]) => (
-                  <button key={label} onClick={() => navigate(href)} style={{ display:"block", background:"none", border:"none", cursor:"pointer", color:"#bbb", fontSize:12, fontFamily:"Inter,sans-serif", marginBottom:7, padding:0, textAlign:"left" }}>{label}</button>
-                ))}
-              </div>
-            ))}
-          </div>
-          <div style={{ fontSize:11, color:"#555", borderTop:"1px solid #222", paddingTop:16 }}>
-            © 2026 YourPoodle · Toy Poodle sahipleri için Türkiye'nin ilk dijital platformu
-          </div>
-        </footer>
-
         {/* FAB — compose (logged in, akis tab) */}
         {isLoggedIn && activeTab==="akis" && (
           <button onClick={() => setShowCompose(true)}
