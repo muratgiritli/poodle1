@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useCustomer } from "@/contexts/CustomerContext";
 import { Menu, X, ShoppingBag, BookOpen, Monitor, Home, Users } from "lucide-react";
+import YPFooter from "./YPFooter";
 
 const NAV_LINKS = [
   { label: "Rehber",     href: "/yourpoodle/rehber" },
@@ -182,6 +183,7 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
         <div className={constrain ? "yp-constrain" : ""}>
           {children}
         </div>
+        <YPFooter />
       </div>
 
       {/* ──────────── MOBILE BOTTOM NAV ──────────── */}

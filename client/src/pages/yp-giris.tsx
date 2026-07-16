@@ -213,7 +213,7 @@ const GoogleLogo = () => (
 function Toast({ msg, onDone }: { msg: string; onDone: () => void }) {
   useEffect(() => { const t = setTimeout(onDone, 3500); return () => clearTimeout(t); }, []);
   return (
-    <div style={{ position:"fixed", bottom:90, left:"50%", transform:"translateX(-50%)", background:"#1a1a1a", color:"#fff", padding:"10px 20px", borderRadius:12, fontSize:13, fontWeight:600, zIndex:9000, whiteSpace:"nowrap", boxShadow:"0 4px 20px rgba(0,0,0,0.3)", maxWidth:"90vw", whiteSpace:"normal", textAlign:"center" }}>
+    <div style={{ position:"fixed", bottom:90, left:"50%", transform:"translateX(-50%)", background:"#1a1a1a", color:"#fff", padding:"10px 20px", borderRadius:12, fontSize:13, fontWeight:600, zIndex:9000, whiteSpace:"normal", boxShadow:"0 4px 20px rgba(0,0,0,0.3)", maxWidth:"90vw", textAlign:"center" }}>
       {msg}
     </div>
   );
@@ -783,26 +783,7 @@ export default function YPGiris() {
                 </ol>
               </section>
 
-              {/* Hidden sitemap nav for crawlers */}
-              <nav aria-label="YourPoodle site haritası" style={{ display:"none" }}>
-                <a href="/yourpoodle">Ana Sayfa</a>
-                <a href="/yourpoodle/rehber">Poodle Rehberi</a>
-                <a href="/yourpoodle/magaza">Poodle Mağazası</a>
-                <a href="/yourpoodle/club">Poodle Club</a>
-                <a href="/yourpoodle/kullanim-sartlari">Kullanım Şartları</a>
-                <a href="/yourpoodle/gizlilik-politikasi">Gizlilik Politikası</a>
-              </nav>
             </div>
-
-            {/* Minimal auth footer */}
-            <footer style={{ width:"100%", padding:"20px 20px 28px", borderTop:"1px solid #f5f5f5", marginTop:32, background:"#FAFAFA" }}>
-              <div style={{ display:"flex", gap:20, justifyContent:"center", flexWrap:"wrap", marginBottom:12 }}>
-                <a href="/yourpoodle/kullanim-sartlari" target="_blank" rel="noopener noreferrer" style={{ fontSize:12, color:"#888", textDecoration:"none", fontFamily:"Inter,sans-serif" }}>Kullanım Şartları</a>
-                <a href="/yourpoodle/gizlilik-politikasi" target="_blank" rel="noopener noreferrer" style={{ fontSize:12, color:"#888", textDecoration:"none", fontFamily:"Inter,sans-serif" }}>Gizlilik Politikası</a>
-                <a href="mailto:info@sizpa.com" style={{ fontSize:12, color:"#888", textDecoration:"none", fontFamily:"Inter,sans-serif" }}>İletişim</a>
-              </div>
-              <div style={{ textAlign:"center", fontSize:11, color:"#bbb" }}>© 2026 YourPoodle · SSL güvenli</div>
-            </footer>
           </div>
         </div>
       </main>
