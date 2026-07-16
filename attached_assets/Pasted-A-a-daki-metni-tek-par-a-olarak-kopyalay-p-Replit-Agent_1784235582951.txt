@@ -1,0 +1,149 @@
+Aşağıdaki metni **tek parça** olarak kopyalayıp Replit Agent’a yapıştır:
+
+```
+GÖREV: YourPoodle sitesinde /yourpoodle/rehber sayfası ve makale altyapısındaki kritik SEO, routing ve UX sorunlarını düzelt. Önce projeyi tara: routing dosyalarını, RehberPage/component'lerini, makale veri kaynağını, meta/SEO helper'larını, footer linklerini, sitemap endpoint'ini ve deploy/SPA fallback ayarlarını bul. Mevcut kodu yeniden kullan, sıfırdan yazma.
+
+═══════════════════════════════════════
+BAĞLAM — MEVCUT DURUM
+═══════════════════════════════════════
+- /yourpoodle/rehber çalışıyor: hero, arama, 6 kategori filtresi, öne çıkan makale, makale grid, sayfalama, makale detay overlay
+- Makaleler ?a=slug query param ile açılıyor (ör: /yourpoodle/rehber?a=poodle-saglik-sorunlari)
+- Makale kartları <button>, <a> değil
+- Makale açıkken title, canonical, meta description, H1 güncellenmiyor
+- Bazı route'larda SPA mount olmuyor, sadece SEO fallback HTML görünüyor
+- Footer'da SSS, Kargo, İade vb. linkler yanlışlıkla /yourpoodle/rehber'e gidiyor
+- Sayfa altında gizli/duplicate SEO H2 blokları var
+- sitemap.xml 500 hatası veriyor
+- /yourpoodle/saglik, /bakim, /egitim sayfalarında özel widget'lar var ama rehber'de yok (birleştirme yapılacak)
+
+═══════════════════════════════════════
+P0 — KRİTİK DÜZELTMELER (ÖNCELİK)
+═══════════════════════════════════════
+
+1) SPA ROUTING / HYDRATION
+- Tüm /yourpoodle/* client-side route'ları doğrudan URL ile açıldığında React uygulaması mount olmalı
+- Server/deploy config'de SPA fallback (index.html rewrite) ayarla
+- Özellikle test et: /, /yourpoodle/rehber, /yourpoodle/mama-bul, /yourpoodle/ai-asistan
+- Hydration hatası varsa düzelt; sayfa boş/siyah veya sadece SEO metni görünmemeli
+
+2) MAKALE URL YAPISI
+- Query param yerine temiz URL kullan:
+  /yourpoodle/rehber/[slug]
+  Örnek: /yourpoodle/rehber/poodle-saglik-sorunlari
+- Eski ?a=slug URL'leri 301 veya client redirect ile yeni URL'ye yönlensin
+- Makale kartları <a href="/yourpoodle/rehber/{slug}"> olmalı (button değil)
+- Sağ tık, yeni sekme, paylaşım çalışmalı
+
+3) DİNAMİK SEO — HER MAKALE İÇİN
+Makale detay açıkken güncelle:
+- document.title = "{Makale Başlığı} | YourPoodle"
+- meta description = makale özeti (ilk 155 karakter)
+- canonical = https://www.yourpoodle.com/yourpoodle/rehber/{slug}
+- og:title, og:description, og:url, og:image (makale kapak varsa)
+- H1 = makale başlığı (hub'da H1 = "Poodle Rehberi")
+- JSON-LD Article schema: headline, author, datePublished, dateModified, image, description
+- Hub sayfasında (/yourpoodle/rehber) mevcut hub meta korunsun
+
+4) FOOTER KIRIK LİNKLER
+Şu linkler kendi sayfalarına gitmeli, /rehber'e değil:
+- Sık Sorulan Sorular → /sss veya /yourpoodle/sss
+- Kargo ve Teslimat → /kargo
+- Uluslararası Kargo → /uluslararasi-kargo
+- İade ve Değişim → /iade
+- Güvenli Alışveriş → /guvenli-alisveris
+- Mesafeli Satış Sözleşmesi → /mesafeli-satis
+Projede mevcut route'ları bul ve doğru href'leri ata. Sayfa yoksa placeholder route oluştur.
+
+5) GİZLİ DUPLICATE SEO BLOĞUNU KALDIR
+Sayfa altındaki görünmez/tekrarlayan H2 bloklarını kaldır veya sadece SSR/crawler için ayrı bir SEO component'e taşı:
+- "Poodle Mama Rehberi ve Mama Hesaplama"
+- "Poodle Bakım ve Tıraş Rehberi"
+- "Poodle Eğitim ve Davranış Rehberi"
+- "Poodle Sağlık Rehberi ve Araçlar"
+DOM'da duplicate heading olmasın. Tek H1 kuralına uy.
+
+6) SITEMAP.XML 500 DÜZELT
+- /sitemap.xml endpoint'i çalışsın
+- En az şunları listele:
+  - Ana sayfa
+  - /yourpoodle/rehber
+  - Her makale: /yourpoodle/rehber/{slug}
+  - /yourpoodle/mama-bul, /yourpoodle/ai-asistan, /yourpoodle/magaza vb. önemli sayfalar
+- robots.txt'teki Sitemap URL'i ile uyumlu olsun
+
+═══════════════════════════════════════
+P1 — REHBER SAYFASI GELİŞTİRMELERİ
+═══════════════════════════════════════
+
+7) 4 SAYFAYI REHBER'DE BİRLEŞTİR
+/yourpoodle/saglik, /bakim, /egitim içeriklerini /yourpoodle/rehber'e sekmeli yapı olarak ekle:
+
+URL: /yourpoodle/rehber?tab=tumu|saglik|bakim|egitim|beslenme|davranis|ureme
+Eski URL'ler redirect:
+  /yourpoodle/saglik → /yourpoodle/rehber?tab=saglik
+  /yourpoodle/bakim → /yourpoodle/rehber?tab=bakim
+  /yourpoodle/egitim → /yourpoodle/rehber?tab=egitim
+
+Sticky tab bar (mobilde de): [Tümü] [Sağlık] [Bakım] [Eğitim] [Beslenme] [Davranış] [Üreme]
+
+Sekmeye özel widget'lar (lazy load, sadece aktif sekmede):
+- Sağlık: Acil durum belirtileri grid + sağlık araçları (aşı, kilo, yaş)
+- Bakım: Hızlı cevaplar accordion + bakım kontrol listesi
+- Eğitim: Hızlı cevaplar + yaşa göre eğitim sekmeleri (Yavru/Genç/Yetişkin)
+- Her sekmenin kendi hero rengi korunsun (sağlık=kırmızı, bakım=pembe, eğitim=yeşil, rehber=mor)
+
+Filtre pill'leri tab ile senkronize olsun. Tab değişince URL güncellensin (history.pushState).
+
+Desktop nav'dan Sağlık/Bakım/Eğitim linklerini kaldır, tek "Rehber" kalsın. Mobil drawer'da da aynı sadeleştirme.
+
+8) BREADCRUMB UI
+Görünür breadcrumb ekle:
+- Hub: Ana Sayfa > Rehber
+- Makale: Ana Sayfa > Rehber > {Kategori} > {Makale Başlığı}
+Mevcut BreadcrumbList JSON-LD ile uyumlu olsun.
+
+9) MAKALE DETAY İYİLEŞTİRMELERİ
+- Makale başlığı H1 olsun (H2 değil)
+- Uzun makalelerde içindekiler (TOC) — H2/H3'lerden otomatik
+- Yazar bio kutusu: foto, unvan, kısa bio
+- Sabit tıbbi disclaimer: "Bu içerik bilgilendirme amaçlıdır. Acil durumlarda veterinere başvurun."
+- "AI Asistan'a Sor" butonu kalsın, makale slug'ını context olarak geçsin
+- İlgili makaleler (3 adet) kalsın
+
+10) FİLTRE & ARAMA URL SYNC
+- Kategori filtresi URL'ye yansısın: ?tab=saglik veya ?kategori=saglik
+- Arama terimi: ?q=tuvalet
+- Geri/ileri tuşu ve paylaşılabilir link çalışsın
+
+═══════════════════════════════════════
+TEKNİK KURALLAR
+═══════════════════════════════════════
+- Mevcut stil sistemini, renkleri, component'leri koru
+- TypeScript/React/Vite yapısına uy
+- Performans: sekme widget'larını lazy load et (React.lazy veya dynamic import)
+- Accessibility: makale linklerinde anlamlı aria-label, breadcrumb nav landmark
+- Mobile-first: sticky tab bar mobilde horizontal scroll
+- Mevcut 15 makale verisini koru, slug'ları bozma
+- Değişiklik sonrası test listesi:
+  ✓ /yourpoodle/rehber doğrudan URL ile açılıyor
+  ✓ /yourpoodle/rehber/poodle-saglik-sorunlari açılıyor
+  ✓ Makale title/canonical/H1 doğru
+  ✓ Makale kartları <a> tag
+  ✓ Footer linkleri doğru sayfaya gidiyor
+  ✓ sitemap.xml 200 dönüyor, makale URL'leri listede
+  ✓ ?tab=saglik widget'ları görünüyor
+  ✓ Eski /saglik, /bakim, /egitim redirect çalışıyor
+  ✓ Duplicate H2 bloğu yok
+
+═══════════════════════════════════════
+ÇIKTI
+═══════════════════════════════════════
+Tamamlandığında şunları raporla:
+1. Değiştirilen dosyalar listesi
+2. Yeni URL yapısı özeti
+3. Düzeltilen footer linkleri
+4. sitemap.xml örnek çıktısı (ilk 5 URL)
+5. Bilinen kalan sorunlar (varsa)
+```
+
+Bu komut P0 + P1 maddelerini kapsıyor. Sadece kritik düzeltmeleri istiyorsan **P1 — REHBER SAYFASI GELİŞTİRMELERİ** bölümünü (7–10) silmen yeterli.
