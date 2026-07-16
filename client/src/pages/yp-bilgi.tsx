@@ -739,10 +739,22 @@ export default function BilgiBankasi() {
           <ActiveScreen onBack={() => { setActiveTool(null); window.scrollTo({ top:0, behavior:"smooth" }); }} />
         ) : (
           <>
+            {/* Hero banner */}
+            <div className="yp-hero-banner" style={{ background:"linear-gradient(135deg,#7C3AFF,#A855F7)", padding:"26px 24px 30px", position:"relative", overflow:"hidden" }}>
+              <div style={{ position:"absolute", top:-30, right:-20, width:130, height:130, borderRadius:"50%", background:"rgba(255,255,255,0.08)" }} />
+              <div style={{ fontSize:36, marginBottom:10 }}>⚡</div>
+              <h1 style={{ fontSize:24, fontWeight:900, color:"#fff", marginBottom:5, lineHeight:1.2 }}>Poodle Bilgi Bankası</h1>
+              <p style={{ fontSize:13, color:"rgba(255,255,255,0.85)", marginBottom:16 }}>Poodle'ınız için {TOOLS.length} pratik araç</p>
+              <div style={{ display:"flex", gap:20 }}>
+                {[["12","Araç"],["Ücretsiz","Kullan"],["Anlık","Sonuç"]].map(([n,l]) => (
+                  <div key={l}><div style={{ fontSize:14, fontWeight:900, color:"#fff" }}>{n}</div><div style={{ fontSize:10, color:"rgba(255,255,255,0.72)" }}>{l}</div></div>
+                ))}
+              </div>
+            </div>
+
             {/* Grid header + search */}
             <div style={{ padding:"20px 16px 0" }}>
-              <h1 style={{ fontSize:22, fontWeight:900, color:"#1a1a1a", marginBottom:4 }}>⚡ Bilgi Bankası</h1>
-              <p style={{ fontSize:13, color:"#888", marginBottom:14 }}>Poodle'ınız için {TOOLS.length} araç</p>
+              <p style={{ fontSize:13, color:"#888", marginBottom:14 }}>Bir araç seçin</p>
               <div style={{ display:"flex", alignItems:"center", background:"#F7F7F7", border:"1.5px solid #ececec", borderRadius:14, height:48, overflow:"hidden", marginBottom:20 }}>
                 <div style={{ paddingLeft:14, color:"#bbb", display:"flex" }}><Search size={18} strokeWidth={2} /></div>
                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Araç ara..."

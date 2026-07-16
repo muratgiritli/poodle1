@@ -26,6 +26,17 @@ body { background: #fff; margin: 0; }
 .mb-btn-next:disabled { background: #ccc; cursor: not-allowed; }
 .mb-result-card { background: #fff; border-radius: 20px; padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); overflow: hidden; }
 .mb-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; }
+@media (min-width: 900px) {
+  .mb-header { display: none !important; }
+  .mb-page { background: #F8F7FF; }
+  .mb-wizard-wrap { max-width: 700px; margin: 32px auto; background: #fff; border-radius: 24px; box-shadow: 0 4px 40px rgba(0,0,0,0.08); padding: 36px; }
+  .mb-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .mb-option { margin-bottom: 0; }
+  .mb-content { padding: 0 !important; }
+  .mb-progress { margin: 0 0 24px !important; }
+  .mb-result-card { margin-bottom: 16px; }
+  .mb-results-wrap { max-width: 700px; margin: 32px auto; padding: 0 24px 60px; }
+}
 `;
 
 interface StepOption { value: string; label: string; desc?: string; icon?: string; }
@@ -290,6 +301,7 @@ export default function YPMamaBulPage() {
       <style>{CSS}</style>
       <div className="mb-page" style={{ minHeight:"unset" }}>
 
+      {/* Mobile-only sub-header */}
       <header className="mb-header">
         <button aria-label="Geri" onClick={handleBack}
           style={{ background: "#F5F0FF", border: "none", borderRadius: 10, width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
@@ -304,49 +316,58 @@ export default function YPMamaBulPage() {
         </div>
       </header>
 
-      <div className="mb-progress" style={{ marginTop: 12 }}>
-        <div className="mb-progress-fill" style={{ width: `${progress}%` }} />
-      </div>
+      <div className="mb-wizard-wrap">
+        {/* Desktop step indicator */}
+        <div style={{ display:"none" }} className="mb-desktop-step">
+          <div style={{ fontSize:13, color:"#888", marginBottom:8 }}>Adım {step + 1} / {STEPS.length}</div>
+        </div>
 
-      <div className="mb-content">
-        <h2 style={{ fontSize: 20, fontWeight: 900, color: "#1a1a1a", marginBottom: 6, lineHeight: 1.3 }}>
-          {currentStep.question}
-        </h2>
-        <p style={{ fontSize: 13, color: "#888", marginBottom: 20 }}>Bir seçenek seçin</p>
+        <div className="mb-progress" style={{ marginTop: 12 }}>
+          <div className="mb-progress-fill" style={{ width: `${progress}%` }} />
+        </div>
 
-        {currentStep.options.map(opt => (
-          <button
-            key={opt.value}
-            onClick={() => handleSelect(opt.value)}
-            className={`mb-option ${selected === opt.value ? "selected" : ""}`}
-            aria-pressed={selected === opt.value}
-          >
-            {opt.icon && (
-              <div className="mb-option-icon" style={{ background: selected === opt.value ? "#EDE8FF" : "#F5F5F5" }}>
-                {opt.icon}
-              </div>
-            )}
-            <div className="mb-option-text">
-              <div className="mb-option-label">{opt.label}</div>
-              {opt.desc && <div className="mb-option-desc">{opt.desc}</div>}
-            </div>
-            <div className="mb-check">
-              {selected === opt.value && <Check size={14} color="#fff" />}
-            </div>
-          </button>
-        ))}
+        <div className="mb-content">
+          <h2 style={{ fontSize: 20, fontWeight: 900, color: "#1a1a1a", marginBottom: 6, lineHeight: 1.3 }}>
+            {currentStep.question}
+          </h2>
+          <p style={{ fontSize: 13, color: "#888", marginBottom: 20 }}>Bir seçenek seçin</p>
 
-        <div className="mb-nav">
-          <button className="mb-btn-back" onClick={handleBack}>
-            ← Geri
-          </button>
-          <button
-            className="mb-btn-next"
-            disabled={!selected}
-            onClick={handleNext}
-          >
-            {step === STEPS.length - 1 ? "Önerileri Gör 🎉" : "İleri →"}
-          </button>
+          <div className="mb-options">
+            {currentStep.options.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => handleSelect(opt.value)}
+                className={`mb-option ${selected === opt.value ? "selected" : ""}`}
+                aria-pressed={selected === opt.value}
+              >
+                {opt.icon && (
+                  <div className="mb-option-icon" style={{ background: selected === opt.value ? "#EDE8FF" : "#F5F5F5" }}>
+                    {opt.icon}
+                  </div>
+                )}
+                <div className="mb-option-text">
+                  <div className="mb-option-label">{opt.label}</div>
+                  {opt.desc && <div className="mb-option-desc">{opt.desc}</div>}
+                </div>
+                <div className="mb-check">
+                  {selected === opt.value && <Check size={14} color="#fff" />}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div className="mb-nav">
+            <button className="mb-btn-back" onClick={handleBack}>
+              ← Geri
+            </button>
+            <button
+              className="mb-btn-next"
+              disabled={!selected}
+              onClick={handleNext}
+            >
+              {step === STEPS.length - 1 ? "Önerileri Gör 🎉" : "İleri →"}
+            </button>
+          </div>
         </div>
       </div>
 

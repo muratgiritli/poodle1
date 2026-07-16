@@ -116,7 +116,11 @@ Kurallar:
       <meta property="og:type" content="website" />
       <meta name="robots" content="index, follow" />
       <style>{`${CSS}
-        @media (min-width: 900px) { .yp-ai-input-bar { bottom: 0 !important; } }
+        @media (min-width: 900px) {
+          .yp-ai-header { display: none !important; }
+          .yp-ai-page { max-width: 860px; margin: 0 auto; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 32px rgba(0,0,0,0.08); }
+          .yp-ai-input-bar { bottom: 0 !important; border-radius: 0 0 20px 20px; }
+        }
       `}</style>
       <div className="yp-ai-page" style={{ minHeight:"unset" }}>
 

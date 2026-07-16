@@ -12,6 +12,9 @@ const NAV_LINKS = [
   { label: "AI Asistan", href: "/yourpoodle/ai-asistan" },
   { label: "Topluluk",   href: "/yourpoodle/topluluk" },
   { label: "Mağaza",     href: "/yourpoodle/magaza" },
+  { label: "Etkinlik",   href: "/yourpoodle/etkinlikler" },
+  { label: "Bilgi",      href: "/yourpoodle/bilgi" },
+  { label: "Club",       href: "/yourpoodle/club" },
 ];
 
 interface Props {
@@ -66,12 +69,12 @@ export default function YPLayout({ children, activeLink = "", constrain = true }
           </div>
         </Link>
 
-        <nav style={{ display: "flex", gap: 2, alignItems: "center" }}>
+        <nav style={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "nowrap" }}>
           {NAV_LINKS.map(l => (
             <Link key={l.href} href={l.href}>
               <span style={{
-                display: "inline-block", padding: "7px 13px", borderRadius: 8,
-                fontSize: 13.5, fontWeight: activeLink === l.href ? 700 : 500,
+                display: "inline-block", padding: "6px 10px", borderRadius: 8,
+                fontSize: 12.5, fontWeight: activeLink === l.href ? 700 : 500,
                 cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap",
                 color: activeLink === l.href ? "#7C3AED" : "#555",
                 background: activeLink === l.href ? "#F5F0FF" : "transparent",

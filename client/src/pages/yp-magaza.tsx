@@ -69,6 +69,19 @@ export default function Magaza() {
 
       <div style={{ background:"#F8F8F8", minHeight:"100vh" }}>
 
+        {/* Hero */}
+        <div className="yp-hero-banner" style={{ background:"linear-gradient(135deg,#7C3AFF,#A855F7)", padding:"24px 24px 28px", position:"relative", overflow:"hidden" }}>
+          <div style={{ position:"absolute", top:-25, right:-15, width:110, height:110, borderRadius:"50%", background:"rgba(255,255,255,0.08)" }} />
+          <div style={{ fontSize:34, marginBottom:8 }}>🛍️</div>
+          <h1 style={{ fontSize:22, fontWeight:900, color:"#fff", marginBottom:4, lineHeight:1.2 }}>Poodle Mağazası</h1>
+          <p style={{ fontSize:13, color:"rgba(255,255,255,0.85)", marginBottom:14 }}>Royal Canin, Hill's, Pro Plan ve daha fazlası</p>
+          <div style={{ display:"flex", gap:18 }}>
+            {[["900+","Ürün"],["Aynı Gün","Teslimat"],["Kapıda","Ödeme"]].map(([n,l]) => (
+              <div key={l}><div style={{ fontSize:14, fontWeight:900, color:"#fff" }}>{n}</div><div style={{ fontSize:10, color:"rgba(255,255,255,0.72)" }}>{l}</div></div>
+            ))}
+          </div>
+        </div>
+
         {/* Search + filter */}
         <div style={{ background:"#fff", padding:"14px 16px", borderBottom:"1px solid #f0f0f0" }}>
           <div style={{ display:"flex", gap:10, maxWidth:800 }}>
