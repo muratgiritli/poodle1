@@ -24,9 +24,11 @@ interface Props {
   bottomNavActive?: string;
   /** Set false for full-bleed pages (AI chat, wizard) that manage their own layout */
   constrain?: boolean;
+  /** Auth-mode: simplified header (logo only), no bottom nav — use on /giris and auth pages */
+  authMode?: boolean;
 }
 
-export default function YPLayout({ children, activeLink = "", bottomNavActive, constrain = true }: Props) {
+export default function YPLayout({ children, activeLink = "", bottomNavActive, constrain = true, authMode = false }: Props) {
   const effectiveBottomLink = bottomNavActive ?? activeLink;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [, navigate] = useLocation();
@@ -72,30 +74,33 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
           </div>
         </Link>
 
-        <nav style={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "nowrap" }}>
-          {NAV_LINKS.map(l => (
-            <Link key={l.href} href={l.href}>
-              <span style={{
-                display: "inline-block", padding: "6px 10px", borderRadius: 8,
-                fontSize: 12.5, fontWeight: activeLink === l.href ? 700 : 500,
-                cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap",
-                color: activeLink === l.href ? "#7C3AED" : "#555",
-                background: activeLink === l.href ? "#F5F0FF" : "transparent",
-              }}>{l.label}</span>
-            </Link>
-          ))}
-        </nav>
-
-        <button onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
-          style={{
-            padding: "9px 22px", borderRadius: 20, border: "2px solid",
-            borderColor: isLoggedIn ? "#22C55E" : "#7C3AED",
-            background: isLoggedIn ? "#F0FDF4" : "#7C3AED",
-            color: isLoggedIn ? "#16A34A" : "#fff",
-            fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
-          }}>
-          {isLoggedIn ? "Hesabım 👤" : "Giriş Yap"}
-        </button>
+        {!authMode && (
+          <>
+            <nav style={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "nowrap" }}>
+              {NAV_LINKS.map(l => (
+                <Link key={l.href} href={l.href}>
+                  <span style={{
+                    display: "inline-block", padding: "6px 10px", borderRadius: 8,
+                    fontSize: 12.5, fontWeight: activeLink === l.href ? 700 : 500,
+                    cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap",
+                    color: activeLink === l.href ? "#7C3AED" : "#555",
+                    background: activeLink === l.href ? "#F5F0FF" : "transparent",
+                  }}>{l.label}</span>
+                </Link>
+              ))}
+            </nav>
+            <button onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
+              style={{
+                padding: "9px 22px", borderRadius: 20, border: "2px solid",
+                borderColor: isLoggedIn ? "#22C55E" : "#7C3AED",
+                background: isLoggedIn ? "#F0FDF4" : "#7C3AED",
+                color: isLoggedIn ? "#16A34A" : "#fff",
+                fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
+              }}>
+              {isLoggedIn ? "Hesabım 👤" : "Giriş Yap"}
+            </button>
+          </>
+        )}
       </header>
 
       {/* ──────────── MOBILE DRAWER ──────────── */}
@@ -136,29 +141,40 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
       <header className="yp-mobile-hdr" style={{
         position: "sticky", top: 0, zIndex: 100, background: "#fff",
         borderBottom: "1px solid #f0f0f0", alignItems: "center",
-        justifyContent: "space-between", padding: "10px 14px", height: 56,
+        justifyContent: authMode ? "center" : "space-between", padding: "10px 14px", height: 56,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button onClick={() => setDrawerOpen(true)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", padding: 6 }}>
-            <Menu size={22} color="#333" strokeWidth={2} />
-          </button>
-          <Link href="/">
+        {authMode ? (
+          <Link href="/yourpoodle">
             <div style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
               <div style={{ width: 26, height: 26, borderRadius: 6, background: "linear-gradient(135deg,#7C3AED,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🐩</div>
               <span style={{ fontSize: 15, fontWeight: 900, color: "#7C3AED" }}>YourPoodle</span>
             </div>
           </Link>
-        </div>
-        <button onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
-          style={{
-            padding: "6px 13px", borderRadius: 20, border: "2px solid",
-            borderColor: isLoggedIn ? "#22C55E" : "#7C3AED",
-            background: isLoggedIn ? "#F0FDF4" : "#F5F0FF",
-            color: isLoggedIn ? "#16A34A" : "#7C3AED",
-            fontSize: 12, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap",
-          }}>
-          {isLoggedIn ? "Hesabım 👤" : "Giriş Yap"}
-        </button>
+        ) : (
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <button onClick={() => setDrawerOpen(true)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", padding: 6 }}>
+                <Menu size={22} color="#333" strokeWidth={2} />
+              </button>
+              <Link href="/">
+                <div style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+                  <div style={{ width: 26, height: 26, borderRadius: 6, background: "linear-gradient(135deg,#7C3AED,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🐩</div>
+                  <span style={{ fontSize: 15, fontWeight: 900, color: "#7C3AED" }}>YourPoodle</span>
+                </div>
+              </Link>
+            </div>
+            <button onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
+              style={{
+                padding: "6px 13px", borderRadius: 20, border: "2px solid",
+                borderColor: isLoggedIn ? "#22C55E" : "#7C3AED",
+                background: isLoggedIn ? "#F0FDF4" : "#F5F0FF",
+                color: isLoggedIn ? "#16A34A" : "#7C3AED",
+                fontSize: 12, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap",
+              }}>
+              {isLoggedIn ? "Hesabım 👤" : "Giriş Yap"}
+            </button>
+          </>
+        )}
       </header>
 
       {/* ──────────── PAGE CONTENT ──────────── */}
@@ -169,7 +185,7 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
       </div>
 
       {/* ──────────── MOBILE BOTTOM NAV ──────────── */}
-      <div className="yp-btm-nav">
+      {!authMode && <div className="yp-btm-nav">
         <nav style={{
           position: "fixed", bottom: 0, left: 0, right: 0,
           background: "#fff", borderTop: "1px solid #f0f0f0",
@@ -204,7 +220,7 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
             </button>
           ))}
         </nav>
-      </div>
+      </div>}
     </div>
   );
 }
