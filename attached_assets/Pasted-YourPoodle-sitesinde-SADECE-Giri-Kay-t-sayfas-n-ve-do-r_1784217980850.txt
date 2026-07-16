@@ -1,0 +1,361 @@
+YourPoodle sitesinde SADECE Giriş/Kayıt sayfasını ve doğrudan bağlı auth bileşenlerini düzelt.
+Canlı URL: https://www.yourpoodle.com/yourpoodle/giris
+
+Masaüstü (1920px), tablet (1024px, 768px) ve mobil (390px) için test et.
+Diğer sayfalara dokunma; sadece /yourpoodle/giris, auth API'leri ve yasal sayfalar.
+NOT: /yourpoodle/kullanim-sartlari ve /yourpoodle/gizlilik-politikasi bu prompt kapsamında düzeltilecek.
+
+Mevcut tasarımı, mor renk paletini (#6B3480), split-screen layout'u ve component yapısını koru.
+Gereksiz refactor yapma; sadece belirtilen sorunları düzelt.
+
+═══════════════════════════════════════════
+P1 — KRİTİK HATALAR (önce bunları düzelt)
+═══════════════════════════════════════════
+
+### 1. Kullanım Şartları ve Gizlilik Politikası tıklanamıyor
+Sorun: Metin mor ve kalın görünüyor ama <a> değil, <span>:
+"Devam ederek Kullanım Şartlarını ve Gizlilik Politikasını kabul etmiş olursunuz."
+Kullanıcı şartları okuyamıyor — KVKK/GDPR uyumluluk riski.
+
+Düzelt:
+- <span> → <a href="/yourpoodle/kullanim-sartlari">Kullanım Şartlarını</a>
+- <span> → <a href="/yourpoodle/gizlilik-politikasi">Gizlilik Politikasını</a>
+- Linkler yeni sekmede açılabilir (target="_blank" rel="noopener")
+- /yourpoodle/kullanim-sartlari ve /yourpoodle/gizlilik-politikasi sayfalarına GERÇEK yasal metin ekle (şu an boş/404 fallback)
+
+### 2. Google ile Devam Et çalışmıyor
+Sorun: Butona tıklanınca hiçbir şey olmuyor; OAuth popup/redirect yok.
+
+Düzelt:
+- Google OAuth 2.0 akışını implement et (Firebase Auth / Supabase Auth / NextAuth — mevcut stack'e uygun)
+- Buton tıklanınca: loading spinner + disabled state
+- Başarılı giriş: returnUrl veya varsayılan /yourpoodle/club'a yönlendir
+- Hata durumu: "Google girişi başarısız, tekrar deneyin" toast/mesaj
+- Google Cloud Console'da authorized redirect URI doğru olmalı
+
+### 3. returnUrl parametresi kullanılmıyor
+Sorun: ?returnUrl=/yourpoodle/club URL'de var ama:
+- Giriş sonrası yönlendirme yok
+- Misafir butonu ana sayfaya (/) gidiyor, returnUrl'e değil
+
+Düzelt:
+- URL'den returnUrl query param'ını oku
+- sessionStorage veya state'e kaydet
+- Başarılı giriş/kayıt sonrası returnUrl'e yönlendir
+- Güvenlik: returnUrl whitelist kontrolü (sadece yourpoodle.com domain)
+- Misafir modunda da returnUrl'e git (guest izinli sayfalar için)
+- returnUrl yoksa varsayılan: /yourpoodle/club veya /yourpoodle
+
+### 4. Misafir akışı belirsiz
+Sorun: "Misafir Olarak Devam Et" → ana sayfa (/). Guest session oluştuğu belli değil.
+
+Düzelt:
+- Guest token veya localStorage flag oluştur: { isGuest: true, expiresAt: ... }
+- returnUrl varsa oraya yönlendir
+- Club gibi sayfalarda "Misafir modundasınız — tam erişim için üye olun" banner
+- Guest kısıtlamaları: beğeni/yorum/paylaşım → login wall
+- Guest süresi: 24 saat veya session boyunca
+
+### 5. Çift H1 ve typo
+Sorun: Sayfada 2 adet <h1>:
+- "Poodle'ınızen iyi arkadaşı" (typo: boşluk eksik, "ınızen" → "ınızın en")
+- "Hoş Geldiniz!" (responsive duplicate, mobilde görünür)
+
+Düzelt:
+- TEK H1: <h1>Giriş Yap / Üye Ol</h1> (form başlığı)
+- Sol panel başlığı: <h2>Poodle'ınızın en iyi arkadaşı</h2> (typo düzelt)
+- Mobil hero "Hoş Geldiniz!": <p> veya <h2> olmalı, H1 değil
+- Responsive duplicate H1/H2 kaldır — tek kaynak component kullan
+
+### 6. <title> sayfaya özel değil
+Sorun:
+- <title>: "Toy Poodle Rehberi, Bakımı ve Mama Seçimi | YourPoodle" (genel)
+- og:title: "Giriş Yap | YourPoodle" (doğru ama <title> ile uyumsuz)
+
+Düzelt — SADECE şunlar kalsın (tek set):
+<title>Giriş Yap / Üye Ol | YourPoodle</title>
+<meta name="description" content="YourPoodle hesabınıza giriş yapın veya ücretsiz üye olun. Telefon veya Google ile hızlı kayıt.">
+<meta property="og:title" content="Giriş Yap / Üye Ol | YourPoodle">
+<meta property="og:description" content="YourPoodle hesabınıza giriş yapın veya ücretsiz üye olun.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.yourpoodle.com/yourpoodle/giris">
+<link rel="canonical" href="https://www.yourpoodle.com/yourpoodle/giris">
+<meta name="robots" content="noindex, nofollow">
+
+NOT: noindex doğru — giriş sayfası indexlenmemeli. Koru.
+
+React/SPA title override'ı düzelt — client-side genel title'ı ezmesin.
+
+### 7. Mobil bottom nav — Mağaza yanlış aktif
+Sorun: /giris sayfasında bottom nav'da Mağaza aktif (mor daire).
+
+Düzelt:
+- pathname === '/yourpoodle/giris' → hiçbir bottom nav item aktif olmasın
+- VEYA auth sayfalarında bottom nav tamamen gizle (önerilen)
+- Mağaza aktif state'ini kaldır
+
+### 8. OTP Doğrulama adımı (Step 2) eksik/yarım
+Sorun: Stepper'da "Doğrulama" adımı var ama UI/akış test edilemedi.
+
+Düzelt — Step 2 UI:
+- 6 haneli OTP input (ayrı kutular veya tek input)
+- "Kod gönderildi: 5XX XXX XX XX" bilgi mesajı
+- "Kodu tekrar gönder" butonu (60 sn cooldown + geri sayım)
+- "Numarayı değiştir" linki → Step 1'e dön
+- Geçersiz kod: "Doğrulama kodu hatalı"
+- Süresi dolmuş: "Kodun süresi doldu, yeni kod isteyin"
+- SMS API entegrasyonu (Twilio / Netgsm / Verimor — mevcut provider)
+
+### 9. Profil oluşturma adımı (Step 3) eksik
+Sorun: Stepper'da "Profil" adımı var ama içerik belirsiz.
+
+Düzelt — Step 3 minimum form:
+- Ad Soyad (zorunlu)
+- Poodle adı (zorunlu)
+- Poodle cinsi: Toy / Miniature / Standard (dropdown)
+- Şehir (opsiyonel, dropdown veya text)
+- "Profilimi Oluştur" butonu
+- Başarılı kayıt → returnUrl veya /yourpoodle/club
+- Hoş geldin toast: "YourPoodle'a hoş geldin, [Ad]!"
+
+═══════════════════════════════════════════
+P2 — SEO, SCHEMA, UX VE ERİŞİLEBİLİRLİK
+═══════════════════════════════════════════
+
+### 10. Schema / Structured Data düzelt
+Mevcut (koru):
+- Organization + WebSite (global) ✓
+
+Kaldır:
+- WebApplication schema (giriş sayfası için yanlış tip)
+
+Ekle — WebPage + RegisterAction:
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Giriş Yap / Üye Ol",
+  "description": "YourPoodle hesabınıza giriş yapın veya ücretsiz üye olun.",
+  "url": "https://www.yourpoodle.com/yourpoodle/giris",
+  "isPartOf": { "@id": "https://www.yourpoodle.com/#website" },
+  "potentialAction": {
+    "@type": "RegisterAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://www.yourpoodle.com/yourpoodle/giris",
+      "actionPlatform": [
+        "http://schema.org/DesktopWebPlatform",
+        "http://schema.org/MobileWebPlatform"
+      ]
+    }
+  }
+}
+
+Ekle — BreadcrumbList:
+Ana Sayfa > Giriş Yap
+
+### 11. Çift meta etiketlerini temizle
+Sorun: og:locale ve og:site_name 2 kez tekrarlanıyor.
+
+Düzelt: Her meta etiketinden sadece 1 adet kalsın.
+
+### 12. Alt SEO bloklarını kaldır
+Sorun: Sayfa altında 5 alakasız H2 görünür:
+- "YourPoodle — Toy Poodle Bakım..."
+- "Poodle Mama Rehberi..."
+- "Poodle Bakım ve Tıraş..."
+- "Poodle Eğitim..."
+- "Poodle Sağlık..."
+
+Düzelt:
+- Bu genel SEO bloklarını /giris sayfasından KALDIR
+- Gizli sitemap nav (aria-label="YourPoodle site haritası") crawler için kalabilir
+- Yerine giriş sayfasına özel kısa statik içerik (görünür):
+  * "YourPoodle'a Nasıl Üye Olurum?" — 3 adım açıklama
+  * "Üyelik ücretsiz mi?" — Evet, tamamen ücretsiz
+  * "Telefon numaram güvende mi?" — SSL + KVKK uyumlu
+
+### 13. Form semantiği ve erişilebilirlik
+Sorun:
+- <form> elementi yok
+- input: name/id/autocomplete eksik
+- maximum-scale=1 → pinch zoom engelli (WCAG ihlali)
+- <main> landmark yok
+
+Düzelt:
+- Tüm auth UI'yı <form> içine al
+- Telefon input:
+  <input type="tel" name="phone" id="phone" autocomplete="tel" inputmode="numeric" maxlength="10" aria-label="Telefon numarası" required>
+- <main> landmark ekle
+- viewport meta: maximum-scale kaldır veya 5 yap
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+- Label-input ilişkisi: <label for="phone">Telefon Numarası</label>
+
+### 14. Breadcrumb UI ekle
+Schema var ama görünür breadcrumb yok.
+
+Ekle: Ana Sayfa > Giriş Yap
+Mobilde kısa: ← YourPoodle (geri butonu — mevcut, koru)
+
+### 15. Header sadeleştir (auth sayfası)
+Sorun: Tam site nav (11 link) + "Giriş Yap" butonu giriş sayfasında gereksiz ve dikkat dağıtıcı.
+
+Düzelt (auth layout):
+- Sadece logo (Ana Sayfa'ya link) + opsiyonel "Yardım" linki
+- "Giriş Yap" butonunu gizle (zaten giriş sayfasındayız)
+- Tam nav'ı kaldır veya hamburger'a taşı
+- Diğer sayfalardaki header'ı bozma — sadece /giris için auth layout
+
+### 16. Çift H2 kaldır
+Sorun: "Giriş Yap / Üye Ol" H2'si 2 kez (responsive duplicate).
+
+Düzelt: Tek component, tek H2. Desktop ve mobile aynı kaynaktan render.
+
+### 17. Görünür footer ekle
+Sorun: Footer yok (sadece gizli sitemap nav).
+
+Ekle (minimal auth footer):
+- Kullanım Şartları | Gizlilik Politikası | İletişim
+- "© 2026 YourPoodle"
+- SSL rozeti footer'da da olabilir
+
+### 18. Telefon validasyonu iyileştir
+Mevcut: Boş ve kısa numara → "Geçerli bir telefon numarası girin" ✓
+
+Ekle:
+- Türkiye formatı: 5XX XXX XX XX (10 hane, 5 ile başlamalı)
+- Otomatik formatlama: kullanıcı yazarken boşluk ekle
+- Geçersiz prefix (0, 1, 2, 3, 4 ile başlayan): anında hata
+- maxLength=10 (sadece rakam)
+
+### 19. Loading ve error state'ler
+Tüm butonlarda:
+- "Devam Et" tıklanınca: spinner + "Gönderiliyor..."
+- "Google ile Devam Et" tıklanınca: spinner + disabled
+- API hata: toast veya inline mesaj
+- Network hata: "Bağlantı hatası, tekrar deneyin"
+
+═══════════════════════════════════════════
+P3 — RESPONSIVE, AI ARAMA, İYİLEŞTİRMELER
+═══════════════════════════════════════════
+
+### 20. 768px breakpoint düzelt
+Sorun: 768px'te mobil layout (bottom nav + sol panel gizleme).
+
+Breakpoint:
+- ≥1280px: split-screen (sol panel + form)
+- 1024-1279px: split-screen daraltılmış
+- 768-1023px: üst nav koru, bottom nav GİZLE, sol panel gizle, form ortala
+- <768px: bottom nav göster (ama aktif item yok), mobil hero + form
+
+### 21. E-posta ile giriş alternatifi (opsiyonel ama önerilir)
+Sorun: Sadece telefon + Google var.
+
+Ekle:
+- "ya da e-posta ile" divider
+- E-posta + şifre input
+- "Şifremi unuttum" linki
+- Tab veya toggle: Telefon | E-posta
+
+### 22. AI arama uyumu — statik içerik
+Crawler ve AI botları JS olmadan içerik görmeli.
+
+Ekle (SSR veya pre-render, sayfa kaynağında görünür HTML):
+- "YourPoodle'a Nasıl Üye Olurum?" (3-5 madde)
+- "Üyelik ücretsiz mi?" (evet)
+- "Hangi bilgiler gerekli?" (telefon veya Google hesabı)
+- "Verilerim güvende mi?" (SSL, KVKK)
+
+### 23. FAQ bölümü (giriş sayfasına özel)
+Ekle (görünür, schema ile eşleşsin):
+- "YourPoodle'a nasıl üye olurum?"
+- "Üyelik ücretsiz mi?"
+- "Telefon numaram neden isteniyor?"
+- "Google ile giriş güvenli mi?"
+- "Misafir olarak ne yapabilirim?"
+
+FAQPage schema ekle.
+
+### 24. Ülke kodu seçici
+Mevcut: 🇹🇷 +90 butonu var.
+
+Düzelt:
+- Şimdilik sadece TR destekleniyorsa butonu disabled/info yap: "Şu an sadece Türkiye"
+- Gelecekte çoklu ülke için dropdown hazırla
+- Tıklanınca hiçbir şey olmuyorsa kullanıcıyı yanıltmasın
+
+### 25. Session yönetimi
+- JWT veya session cookie
+- "Beni hatırla" checkbox (opsiyonel)
+- Oturum süresi: 30 gün (remember) / session (default)
+- Logout: /yourpoodle/cikis endpoint
+- Zaten giriş yapmış kullanıcı /giris'e gelirse → returnUrl veya /club'a redirect
+
+### 26. Güvenlik
+- CSRF token (form submit)
+- Rate limiting: OTP gönderimi max 3/dakika
+- OTP brute force: max 5 deneme
+- returnUrl open redirect koruması (whitelist)
+- HTTPS zorunlu
+- Telefon numarası hash'le (loglarda plain text olmasın)
+
+═══════════════════════════════════════════
+YASAL SAYFALAR (bu prompt kapsamında)
+═══════════════════════════════════════════
+
+### 27. /yourpoodle/kullanim-sartlari
+Sorun: Sayfa boş / genel SEO fallback.
+
+Ekle:
+- H1: Kullanım Şartları
+- Bölümler: Genel, Üyelik, İçerik Kuralları, Sorumluluk, Fesih
+- Son güncelleme tarihi
+- İletişim: info@sizpa.com
+- noindex OLMASIN (yasal sayfa indexlenebilir)
+
+### 28. /yourpoodle/gizlilik-politikasi
+Sorun: Sayfa boş / genel SEO fallback.
+
+Ekle:
+- H1: Gizlilik Politikası
+- KVKK uyumlu bölümler: Veri toplama, Kullanım amacı, Saklama, Haklar, Çerezler
+- Veri sorumlusu: YourPoodle / Sizpa
+- Son güncelleme tarihi
+- noindex OLMASIN
+
+═══════════════════════════════════════════
+TEST PLANI (tümünü geçmeden bitirme)
+═══════════════════════════════════════════
+
+1. <title>Giriş Yap / Üye Ol | YourPoodle</title> — genel title DEĞİL
+2. Tek H1: "Giriş Yap / Üye Ol" — çift H1 YOK, typo düzeltildi
+3. Kullanım Şartları ve Gizlilik linkleri tıklanabilir <a>
+4. /kullanim-sartlari ve /gizlilik-politikasi gerçek içerik gösteriyor
+5. Google ile Devam Et → OAuth akışı başlıyor
+6. ?returnUrl=/yourpoodle/club → giriş sonrası /club'a yönlendirme
+7. Misafir Olarak Devam Et → returnUrl veya guest session oluşuyor
+8. Telefon validasyon: boş, kısa, yanlış prefix → hata mesajı
+9. OTP adımı: 6 haneli input, yeniden gönder, geri sayım
+10. Profil adımı: ad, poodle adı, cins → kayıt tamamlanıyor
+11. 390px: bottom nav'da hiçbir item aktif DEĞİL (Mağaza DEĞİL)
+12. 390px: form butonları tıklanabilir
+13. WebPage + BreadcrumbList schema mevcut
+14. WebApplication schema KALDIRILDI
+15. Alt SEO blokları (Mama Rehberi vb.) /giris'ten kaldırıldı
+16. <form> elementi + autocomplete="tel" + name/id
+17. maximum-scale kısıtı kaldırıldı
+18. Auth header sadeleştirildi (tam nav yok, Giriş Yap butonu yok)
+19. robots: noindex, nofollow (korundu)
+20. 1024px: split layout, bottom nav yok
+21. Zaten giriş yapmış kullanıcı /giris'e gelince redirect
+
+═══════════════════════════════════════════
+DOKUNMA
+═══════════════════════════════════════════
+- Diğer sayfalar (Club, Mağaza, Bilgi, Sağlık, Bakım, Eğitim, AI Asistan, Mama Bul)
+- Genel tema/renk sistemi (#6B3480)
+- Split-screen layout tasarımı (sol mor panel + sağ form)
+- Testimonial kartı (Ayşe K.)
+- 3 adımlı stepper UI tasarımı
+- SSL rozeti metni
+- Gizli sitemap nav (crawler için)
+- Diğer sayfalardaki header/bottom nav mantığı

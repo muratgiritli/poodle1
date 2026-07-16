@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import {
   Search, X,
-  ChevronLeft, RotateCcw,
-  CheckCircle2, Circle, AlertTriangle,
+  ChevronLeft, ChevronRight, RotateCcw,
+  CheckCircle2, Circle, AlertTriangle, Phone,
 } from "lucide-react";
 import { useCustomer } from "@/contexts/CustomerContext";
 import YPLayout from "@/components/yourpoodle/YPLayout";
@@ -18,6 +18,43 @@ const CSS = [
   ".noscroll::-webkit-scrollbar { display: none; }",
   ".noscroll { -ms-overflow-style: none; scrollbar-width: none; }",
 ].join("\n");
+
+/* ─── URL slug ↔ internal ID maps ──────────────────────── */
+const SLUG_TO_ID: Record<string, string> = {
+  "mama-hesaplama":"mama",  "su-hesaplama":"su",
+  "aktivite-hesabi":"aktivite", "yas-hesaplama":"yas",
+  "insan-yasi-tablosu":"insanyas", "asi-takvimi":"asi",
+  "ideal-kilo":"kilo", "tiras-zamani":"tiras",
+  "odul-hesabi":"odul", "belirti-kontrol":"hastalik",
+  "dis-sagligi":"dis", "diski-rehberi":"diski",
+};
+const ID_TO_SLUG: Record<string,string> = Object.fromEntries(
+  Object.entries(SLUG_TO_ID).map(([s,i])=>[i,s])
+);
+
+/* ─── Category groups ────────────────────────────────────── */
+const TOOL_CATS = [
+  { id:"all",      label:"Tümü",       ids: null as string[]|null },
+  { id:"beslenme", label:"🍖 Beslenme", ids:["mama","su","aktivite","odul"] },
+  { id:"saglik",   label:"❤️ Sağlık",   ids:["asi","kilo","hastalik","dis","diski"] },
+  { id:"bakim",    label:"✂️ Bakım",    ids:["tiras"] },
+  { id:"genel",    label:"🎂 Genel",    ids:["yas","insanyas"] },
+];
+
+/* ─── Token-based search (fixes "aşı" ≠ "yaş" substring bug) */
+function normalize(s: string) {
+  return s.toLowerCase()
+    .replace(/[İI]/g,"i").replace(/[ğĞ]/g,"g")
+    .replace(/[üÜ]/g,"u").replace(/[şŞ]/g,"s")
+    .replace(/ı/g,"i").replace(/[öÖ]/g,"o")
+    .replace(/[çÇ]/g,"c");
+}
+function tokenSearch(q: string, label: string, desc: string): boolean {
+  if (!q.trim()) return true;
+  const nq = normalize(q.trim());
+  const words = normalize(label + " " + desc).split(/[\s\-\/()]+/);
+  return words.some(w => w.startsWith(nq));
+}
 
 /* ─── Tool registry ─────────────────────────────────────── */
 const TOOLS = [
@@ -39,12 +76,12 @@ const TOOLS = [
 function ToolHeader({ emoji, title, desc, onBack }: { emoji:string; title:string; desc:string; onBack:()=>void }) {
   return (
     <div style={{ display:"flex", alignItems:"center", gap:12, padding:"16px 16px 0", marginBottom:20 }}>
-      <button onClick={onBack} style={{ background:"#F5F5F5", border:"none", borderRadius:10, width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0 }}>
-        <ChevronLeft size={18} color="#333" />
+      <button onClick={onBack} style={{ background:"#F0EBFF", border:"none", borderRadius:10, width:38, height:38, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0 }}>
+        <ChevronLeft size={20} color="#7C3AFF" />
       </button>
       <div style={{ fontSize:28 }}>{emoji}</div>
       <div>
-        <div style={{ fontSize:17, fontWeight:800, color:"#1a1a1a", fontFamily:"Inter,sans-serif" }}>{title}</div>
+        <h2 style={{ fontSize:17, fontWeight:800, color:"#1a1a1a", fontFamily:"Inter,sans-serif", margin:0, lineHeight:1.2 }}>{title}</h2>
         <div style={{ fontSize:12, color:"#888", fontFamily:"Inter,sans-serif" }}>{desc}</div>
       </div>
     </div>
@@ -61,6 +98,7 @@ function ResultBox({ children, color="#7C3AFF", bg="#F0EBFF" }: { children:React
 
 /* ─── 1. Mama Calculator ────────────────────────────────── */
 function MamaCalculator({ onBack }: { onBack:()=>void }) {
+  const [, navigate] = useLocation();
   const [weight, setWeight] = useState("");
   const [age, setAge]       = useState("yetiskin");
   const [act, setAct]       = useState("orta");
@@ -103,14 +141,29 @@ function MamaCalculator({ onBack }: { onBack:()=>void }) {
         </div>
         <button onClick={calc} style={{ height:52, borderRadius:16, border:"none", background:"linear-gradient(135deg,#E07820,#F59E0B)", color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>Hesapla</button>
         {result !== null && (
-          <ResultBox color="#E07820" bg="linear-gradient(135deg,#FFF0E0,#FFF9C4)">
-            <div style={{ fontSize:13, color:"#888", marginBottom:4 }}>Günlük önerilen mama miktarı</div>
-            <div style={{ fontSize:52, fontWeight:900, color:"#E07820" }}>{result}g</div>
-            <div style={{ fontSize:12, color:"#888", marginTop:8, lineHeight:1.6 }}>Bu miktar yaklaşık değerdir.<br />Mama markasının talimatlarını da göz önünde bulundurun.</div>
-            <button onClick={()=>setResult(null)} style={{ marginTop:12, display:"inline-flex", alignItems:"center", gap:6, background:"none", border:"none", color:"#E07820", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
-              <RotateCcw size={13} /> Yeniden Hesapla
-            </button>
-          </ResultBox>
+          <>
+            <ResultBox color="#E07820" bg="linear-gradient(135deg,#FFF0E0,#FFF9C4)">
+              <div style={{ fontSize:13, color:"#888", marginBottom:4 }}>Günlük önerilen mama miktarı</div>
+              <div style={{ fontSize:52, fontWeight:900, color:"#E07820" }}>{result}g</div>
+              <div style={{ fontSize:13, color:"#555", marginTop:6, fontWeight:700 }}>
+                Günde {age==="yavru"?"3–4":"2"} öğün halinde verin
+              </div>
+              <div style={{ fontSize:12, color:"#888", marginTop:6, lineHeight:1.6 }}>Bu miktar yaklaşık değerdir. Mama markasının talimatlarını da göz önünde bulundurun.</div>
+              <button onClick={()=>setResult(null)} style={{ marginTop:12, display:"inline-flex", alignItems:"center", gap:6, background:"none", border:"none", color:"#E07820", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
+                <RotateCcw size={13} /> Yeniden Hesapla
+              </button>
+            </ResultBox>
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              <button onClick={()=>navigate("/yourpoodle/mama-bul")}
+                style={{ height:46, borderRadius:13, border:"none", background:"#E07820", color:"#fff", fontSize:13, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
+                🍖 Mama Bul Sihirbazı ile kişisel öneri al →
+              </button>
+              <button onClick={()=>navigate("/yourpoodle/magaza?kategori=mama")}
+                style={{ height:46, borderRadius:13, border:"1.5px solid #E07820", background:"#fff", color:"#E07820", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
+                Mağazada mama ürünlerine bak →
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>
@@ -526,6 +579,7 @@ const SYMPTOMS = [
 ];
 
 function BelirtiKontrol({ onBack }: { onBack:()=>void }) {
+  const [, navigate] = useLocation();
   const [checked, setChecked] = useState<Set<string>>(new Set());
 
   const toggle = (id:string) => {
@@ -541,19 +595,29 @@ function BelirtiKontrol({ onBack }: { onBack:()=>void }) {
 
   const level = totalRisk === 0 ? null : totalRisk <= 2 ? "low" : totalRisk <= 5 ? "medium" : "high";
   const levelConfig = {
-    low:    { label:"Düşük Risk", sub:"İzleyin, birkaç gün içinde geçmezse veterinere gidin", color:"#22C55E", bg:"#F0FDF4", icon:"✅" },
-    medium: { label:"Orta Risk",  sub:"24–48 saat içinde veterinere görünün", color:"#F59E0B", bg:"#FFFBEB", icon:"⚠️" },
-    high:   { label:"Yüksek Risk — ACİL", sub:"Mümkün olan en kısa sürede veterinere gidin!", color:"#EF4444", bg:"#FFF1F2", icon:"🚨" },
+    low:    { label:"Düşük Risk",         sub:"Belirtileri izleyin. Birkaç gün içinde geçmezse veterinere gidin.", color:"#22C55E", bg:"#F0FDF4", icon:"✅" },
+    medium: { label:"Orta Risk",          sub:"24 saat içinde veteriner kontrolü önerilir.", color:"#F59E0B", bg:"#FFFBEB", icon:"⚠️" },
+    high:   { label:"ACİL — Hemen Veterinere Gidin!", sub:"Seçilen belirtiler ciddi risk işareti. En kısa sürede veterinere başvurun.", color:"#EF4444", bg:"#FFF1F2", icon:"🚨" },
   };
 
   return (
     <div style={{ padding:"0 16px", paddingBottom:32 }}>
       <ToolHeader emoji="🩺" title="Belirti Kontrolü" desc="Belirtilere göre risk değerlendirmesi" onBack={onBack} />
+
+      {/* Static disclaimer — always visible */}
+      <div style={{ display:"flex", gap:9, alignItems:"flex-start", background:"#FFF7ED", borderRadius:13, padding:"11px 13px", marginBottom:16, border:"1.5px solid #FED7AA" }}>
+        <AlertTriangle size={15} color="#D97706" style={{ flexShrink:0, marginTop:1 }}/>
+        <p style={{ fontSize:12, color:"#92400E", margin:0, lineHeight:1.55, fontFamily:"Inter,sans-serif" }}>
+          <strong>Bu araç tıbbi tavsiye yerine geçmez.</strong> Ciddi veya acil belirtilerde veterinerinize başvurun.
+        </p>
+      </div>
+
       <div style={{ background:"#EDE8FF", borderRadius:14, padding:12, marginBottom:16 }}>
         <div style={{ fontSize:12, color:"#7C3AFF", lineHeight:1.7, fontFamily:"Inter,sans-serif" }}>
-          Poodle'ınızda gözlemlediğiniz belirtileri işaretleyin.
+          Poodle'ınızda gözlemlediğiniz belirtileri işaretleyin. <strong>!!!</strong> işareti acil duruma işaret eder.
         </div>
       </div>
+
       <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:16 }}>
         {SYMPTOMS.map(s => (
           <button key={s.id} onClick={() => toggle(s.id)}
@@ -569,13 +633,31 @@ function BelirtiKontrol({ onBack }: { onBack:()=>void }) {
           </button>
         ))}
       </div>
+
       {level && (() => {
         const c = levelConfig[level];
         return (
-          <div style={{ background:c.bg, border:`2px solid ${c.color}`, borderRadius:18, padding:"20px", textAlign:"center" }}>
-            <div style={{ fontSize:32, marginBottom:8 }}>{c.icon}</div>
-            <div style={{ fontSize:18, fontWeight:900, color:c.color, marginBottom:6, fontFamily:"Inter,sans-serif" }}>{c.label}</div>
-            <div style={{ fontSize:13, color:"#555", lineHeight:1.6, fontFamily:"Inter,sans-serif" }}>{c.sub}</div>
+          <div style={{ background:c.bg, border:`2px solid ${c.color}`, borderRadius:18, padding:"20px" }}>
+            <div style={{ textAlign:"center" }}>
+              <div style={{ fontSize:32, marginBottom:8 }}>{c.icon}</div>
+              <div style={{ fontSize:18, fontWeight:900, color:c.color, marginBottom:6, fontFamily:"Inter,sans-serif" }}>{c.label}</div>
+              <div style={{ fontSize:13, color:"#555", lineHeight:1.6, fontFamily:"Inter,sans-serif" }}>{c.sub}</div>
+            </div>
+            {/* CTA for medium + high */}
+            {(level === "high" || level === "medium") && (
+              <div style={{ display:"flex", flexDirection:"column", gap:8, marginTop:16 }}>
+                {level === "high" && (
+                  <a href="tel:4441308"
+                    style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, height:46, borderRadius:13, background:"#EF4444", color:"#fff", fontSize:14, fontWeight:800, textDecoration:"none", fontFamily:"Inter,sans-serif" }}>
+                    <Phone size={16}/> Veteriner Acil Hattını Ara
+                  </a>
+                )}
+                <button onClick={()=>navigate("/yourpoodle/ai-asistan")}
+                  style={{ height:44, borderRadius:13, border:`1.5px solid ${c.color}`, background:"#fff", color:c.color, fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
+                  🤖 AI Asistana Sor
+                </button>
+              </div>
+            )}
           </div>
         );
       })()}
@@ -714,29 +796,151 @@ const TOOL_SCREENS: Record<string, React.ComponentType<{ onBack:()=>void }>> = {
 
 /* ─── Main Page ─────────────────────────────────────────── */
 export default function BilgiBankasi() {
-  const [, navigate]  = useLocation();
-  const [activeTool, setActiveTool] = useState<string|null>(null);
-  const { isLoggedIn } = useCustomer();
-  const [search,     setSearch]     = useState("");
+  const [, navigate] = useLocation();
 
-  const filtered = TOOLS.filter(t => search === "" || t.label.toLowerCase().includes(search.toLowerCase()) || t.desc.toLowerCase().includes(search.toLowerCase()));
+  // Read ?tool= param on first render (lazy initializer)
+  const [activeTool, setActiveTool] = useState<string|null>(() => {
+    const slug = new URLSearchParams(window.location.search).get("tool");
+    return slug ? (SLUG_TO_ID[slug] ?? null) : null;
+  });
+  const [activeCat, setActiveCat] = useState<string>("all");
+  const [search, setSearch] = useState("");
+
+  // Open tool: update state + URL
+  const openTool = (id: string) => {
+    setActiveTool(id);
+    window.history.pushState(null, "", `?tool=${ID_TO_SLUG[id] ?? id}`);
+    window.scrollTo({ top:0, behavior:"smooth" });
+  };
+
+  // Close tool: clear state + URL
+  const closeTool = () => {
+    setActiveTool(null);
+    window.history.pushState(null, "", window.location.pathname);
+    window.scrollTo({ top:0, behavior:"smooth" });
+  };
+
+  // Browser back button support
+  useEffect(() => {
+    const handler = () => {
+      const slug = new URLSearchParams(window.location.search).get("tool");
+      setActiveTool(slug ? (SLUG_TO_ID[slug] ?? null) : null);
+    };
+    window.addEventListener("popstate", handler);
+    return () => window.removeEventListener("popstate", handler);
+  }, []);
+
+  // SEO — single set, no duplicates
+  useEffect(() => {
+    const toolLabel = activeTool ? TOOLS.find(t=>t.id===activeTool)?.label : null;
+    document.title = toolLabel
+      ? `${toolLabel} — Poodle Hesaplama Aracı | YourPoodle`
+      : "Poodle Bilgi Bankası — 12 Ücretsiz Hesaplama Aracı | YourPoodle";
+
+    const setMeta = (attr: string, key: string, val: string) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement|null;
+      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
+      el.content = val;
+    };
+    setMeta("name","description","Toy Poodle için 12 pratik araç: mama hesaplama, su ihtiyacı, yaş çevirici, aşı takvimi, ideal kilo, belirti kontrolü, tıraş zamanı. Ücretsiz, anlık sonuç.");
+    setMeta("property","og:title","Poodle Bilgi Bankası | YourPoodle");
+    setMeta("property","og:description","12 ücretsiz poodle aracı: mama, yaş, aşı, belirti kontrolü ve daha fazlası.");
+    setMeta("property","og:type","website");
+    setMeta("property","og:url","https://www.yourpoodle.com/yourpoodle/bilgi");
+    // Remove stale duplicates
+    document.querySelectorAll('meta[property="og:type"]').forEach((el,i) => { if(i>0) el.remove(); });
+    document.querySelectorAll('meta[property="og:title"]').forEach((el,i) => { if(i>0) el.remove(); });
+    const oldTitle = document.head.querySelector("title");
+    if (oldTitle) oldTitle.remove();
+  }, [activeTool]);
+
+  // Category + search filter
+  const catIds = TOOL_CATS.find(c=>c.id===activeCat)?.ids ?? null;
+  const filtered = TOOLS.filter(t => {
+    if (catIds && !catIds.includes(t.id)) return false;
+    return tokenSearch(search, t.label, t.desc);
+  });
 
   const ActiveScreen = activeTool ? TOOL_SCREENS[activeTool] : null;
+  const activeToolMeta = activeTool ? TOOLS.find(t=>t.id===activeTool) : null;
+
+  // Structured data schemas
+  const webAppSchema = {
+    "@context":"https://schema.org",
+    "@type":"WebApplication",
+    "name":"Poodle Bilgi Bankası",
+    "applicationCategory":"HealthApplication",
+    "operatingSystem":"Web",
+    "url":"https://www.yourpoodle.com/yourpoodle/bilgi",
+    "offers":{"@type":"Offer","price":"0","priceCurrency":"TRY"},
+    "featureList":TOOLS.map(t=>t.label),
+  };
+  const itemListSchema = {
+    "@context":"https://schema.org",
+    "@type":"ItemList",
+    "name":"Poodle Hesaplama Araçları",
+    "numberOfItems":12,
+    "itemListElement": TOOLS.map((t,i)=>({
+      "@type":"ListItem",
+      "position":i+1,
+      "name":t.label,
+      "description":t.desc,
+      "url":`https://www.yourpoodle.com/yourpoodle/bilgi?tool=${ID_TO_SLUG[t.id]??t.id}`,
+    })),
+  };
+  const howToSchema = {
+    "@context":"https://schema.org",
+    "@type":"HowTo",
+    "name":"Toy Poodle Mama Miktarı Nasıl Hesaplanır?",
+    "step":[
+      {"@type":"HowToStep","text":"Poodle'ın kilosunu (kg) girin"},
+      {"@type":"HowToStep","text":"Yaş grubunu seçin (Yavru/Yetişkin/Yaşlı)"},
+      {"@type":"HowToStep","text":"Aktivite seviyesini seçin (Düşük/Orta/Yüksek)"},
+      {"@type":"HowToStep","text":"'Hesapla' butonuna tıklayın ve günlük gram miktarını görün"},
+    ],
+  };
+  const faqSchema = {
+    "@context":"https://schema.org",
+    "@type":"FAQPage",
+    "mainEntity":[
+      {"@type":"Question","name":"Toy poodle günde ne kadar mama yer?","acceptedAnswer":{"@type":"Answer","text":"Ortalama 3–4 kg ağırlığındaki toy poodle için günlük ~85–100g kuru mama önerilir. Yaş, aktivite seviyesi ve mama markasına göre değişir. Mama Hesaplama aracımızla kişisel miktarı öğrenebilirsiniz."}},
+      {"@type":"Question","name":"Poodle yaşını insan yaşına nasıl çeviririm?","acceptedAnswer":{"@type":"Answer","text":"Küçük ırklar için: 1. yıl = 15 insan yılı, 2. yıl = +9, sonraki her yıl +4. Örneğin 4 yaşındaki toy poodle ≈ 32 insan yaşına karşılık gelir."}},
+      {"@type":"Question","name":"Poodle aşı takvimi nasıl olmalı?","acceptedAnswer":{"@type":"Answer","text":"6. haftada Karma Aşı 1, 9. haftada Karma Aşı 2, 12. haftada Karma Aşı 3 + Kuduz, 16. haftada son temel doz. Ardından yılda bir hatırlatma. Detaylı takvim için Aşı Takvimi aracını kullanın."}},
+      {"@type":"Question","name":"Poodle belirtileri ne zaman tehlikelidir?","acceptedAnswer":{"@type":"Answer","text":"Nefes darlığı, titreme/nöbet, kanlı ishal, idrara çıkmama, şiş karın gibi belirtiler ACİL duruma işaret eder. Belirti Kontrolü aracımız risk değerlendirmesi yapar; ciddi belirtilerde hemen veterinere başvurun."}},
+    ],
+  };
 
   return (
-    <YPLayout activeLink="/yourpoodle/bilgi">
-      <title>Poodle Bilgi Bankası | Mama, Su, Yaş Hesaplayıcı | YourPoodle</title>
-      <meta name="description" content="Toy Poodle için 12 pratik araç: mama hesaplama, su ihtiyacı, yaş çevirici, aşı takvimi, ideal kilo, belirti kontrolü ve daha fazlası." />
-      <meta property="og:title" content="Poodle Bilgi Bankası | YourPoodle" />
-      <meta property="og:description" content="Poodle için 12 ücretsiz araç: mama hesaplama, yaş çevirici, belirti kontrolü ve daha fazlası." />
-      <meta property="og:type" content="website" />
-      <meta name="robots" content="index, follow" />
-      <style>{CSS}</style>
+    <YPLayout activeLink="/yourpoodle/bilgi" bottomNavActive="/yourpoodle/bilgi">
+      <style>{CSS + `
+        .bilgi-cats::-webkit-scrollbar{display:none}
+        .bilgi-cats{-ms-overflow-style:none;scrollbar-width:none}
+        @media(min-width:1024px){.yp-tools-grid{grid-template-columns:repeat(4,1fr)!important}}
+        @media(min-width:768px) and (max-width:1023px){.yp-tools-grid{grid-template-columns:repeat(3,1fr)!important}}
+        @media(min-width:640px) and (max-width:767px){.yp-tools-grid{grid-template-columns:repeat(3,1fr)!important}}
+      `}</style>
+
+      {/* Structured data */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(webAppSchema)}} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(itemListSchema)}} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(howToSchema)}} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(faqSchema)}} />
+
       <div style={{ background:"#fff", fontFamily:"Inter,sans-serif" }}>
 
-        {/* ACTIVE TOOL SCREEN */}
+        {/* ── ACTIVE TOOL VIEW ─────────────────────────── */}
         {ActiveScreen ? (
-          <ActiveScreen onBack={() => { setActiveTool(null); window.scrollTo({ top:0, behavior:"smooth" }); }} />
+          <div style={{ paddingBottom:80 }}>
+            {/* Breadcrumb inside tool */}
+            <div style={{ display:"flex", alignItems:"center", gap:5, padding:"10px 16px", borderBottom:"1px solid #f5f5f5", background:"#fafafa" }}>
+              <button onClick={()=>navigate("/yourpoodle")} style={{ background:"none",border:"none",cursor:"pointer",color:"#888",fontSize:12,fontFamily:"Inter,sans-serif",padding:0 }}>Ana Sayfa</button>
+              <ChevronRight size={12} color="#bbb"/>
+              <button onClick={closeTool} style={{ background:"none",border:"none",cursor:"pointer",color:"#7C3AFF",fontSize:12,fontFamily:"Inter,sans-serif",padding:0,fontWeight:700 }}>Bilgi Bankası</button>
+              <ChevronRight size={12} color="#bbb"/>
+              <span style={{ fontSize:12, color:"#333", fontWeight:700, fontFamily:"Inter,sans-serif" }}>{activeToolMeta?.label}</span>
+            </div>
+            <ActiveScreen onBack={closeTool} />
+          </div>
         ) : (
           <>
             {/* Hero banner */}
@@ -752,12 +956,18 @@ export default function BilgiBankasi() {
               </div>
             </div>
 
-            {/* Grid header + search */}
-            <div style={{ padding:"20px 16px 0" }}>
-              <p style={{ fontSize:13, color:"#888", marginBottom:14 }}>Bir araç seçin</p>
-              <div style={{ display:"flex", alignItems:"center", background:"#F7F7F7", border:"1.5px solid #ececec", borderRadius:14, height:48, overflow:"hidden", marginBottom:20 }}>
+            {/* Breadcrumb */}
+            <div style={{ display:"flex", alignItems:"center", gap:5, padding:"10px 16px", borderBottom:"1px solid #f5f5f5" }}>
+              <button onClick={()=>navigate("/yourpoodle")} style={{ background:"none",border:"none",cursor:"pointer",color:"#888",fontSize:12,fontFamily:"Inter,sans-serif",padding:0 }}>Ana Sayfa</button>
+              <ChevronRight size={12} color="#bbb"/>
+              <span style={{ fontSize:12, color:"#333", fontWeight:700, fontFamily:"Inter,sans-serif" }}>Bilgi Bankası</span>
+            </div>
+
+            {/* Search */}
+            <div style={{ padding:"16px 16px 0" }}>
+              <div style={{ display:"flex", alignItems:"center", background:"#F7F7F7", border:"1.5px solid #ececec", borderRadius:14, height:48, overflow:"hidden" }}>
                 <div style={{ paddingLeft:14, color:"#bbb", display:"flex" }}><Search size={18} strokeWidth={2} /></div>
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Araç ara..."
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Araç ara... (mama, yaş, aşı...)"
                   style={{ flex:1, border:"none", outline:"none", fontSize:13.5, fontWeight:600, color:"#333", background:"transparent", padding:"0 10px", fontFamily:"Inter,sans-serif" }} />
                 {search && (
                   <button onClick={() => setSearch("")} style={{ background:"none", border:"none", cursor:"pointer", paddingRight:12, color:"#bbb" }}>
@@ -767,28 +977,100 @@ export default function BilgiBankasi() {
               </div>
             </div>
 
+            {/* Category chips */}
+            <div className="bilgi-cats" style={{ display:"flex", gap:8, padding:"12px 16px", overflowX:"auto" }}>
+              {TOOL_CATS.map(c => (
+                <button key={c.id} onClick={()=>{ setActiveCat(c.id); setSearch(""); }}
+                  style={{ whiteSpace:"nowrap", padding:"8px 16px", borderRadius:20, border:"2px solid", borderColor:activeCat===c.id?"#7C3AFF":"#e8e8e8", background:activeCat===c.id?"#7C3AFF":"#fff", color:activeCat===c.id?"#fff":"#555", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif", transition:"all 0.15s" }}>
+                  {c.label}
+                </button>
+              ))}
+            </div>
+
             {/* Tool grid */}
-            {filtered.length === 0 ? (
-              <div style={{ textAlign:"center", padding:"48px 24px", color:"#aaa" }}>
-                <div style={{ fontSize:40, marginBottom:12 }}>🔍</div>
-                <div style={{ fontSize:15, fontWeight:700, color:"#555", marginBottom:6 }}>Araç bulunamadı</div>
-                <div style={{ fontSize:13 }}>"{search}" ile eşleşen araç yok.</div>
-                <button onClick={() => setSearch("")} style={{ marginTop:16, padding:"10px 24px", borderRadius:20, background:"#7C3AFF", color:"#fff", border:"none", cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"Inter,sans-serif" }}>Tümünü Göster</button>
-              </div>
-            ) : (
-              <div style={{ padding:"0 16px 40px", display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"20px 8px" }} className="yp-tools-grid">
-                {filtered.map(t => (
-                  <button key={t.id} className="tool-card" onClick={() => { setActiveTool(t.id); window.scrollTo({ top:0, behavior:"smooth" }); }}
-                    style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8, background:"none", border:"none", cursor:"pointer", padding:0, textAlign:"center" }}>
-                    <div style={{ width:60, height:60, borderRadius:"50%", background:t.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>{t.emoji}</div>
-                    <div>
-                      <div style={{ fontSize:11.5, fontWeight:800, color:"#1a1a1a", lineHeight:1.3, marginBottom:3 }}>{t.label}</div>
-                      <div style={{ fontSize:10, color:"#888", lineHeight:1.35 }}>{t.desc}</div>
-                    </div>
-                  </button>
+            <div style={{ padding:"0 16px" }}>
+              {filtered.length === 0 ? (
+                <div style={{ textAlign:"center", padding:"48px 24px", color:"#aaa" }}>
+                  <div style={{ fontSize:40, marginBottom:12 }}>🔍</div>
+                  <div style={{ fontSize:15, fontWeight:700, color:"#555", marginBottom:6 }}>Araç bulunamadı</div>
+                  <div style={{ fontSize:13 }}>"{search}" ile eşleşen araç yok.</div>
+                  <button onClick={() => { setSearch(""); setActiveCat("all"); }} style={{ marginTop:16, padding:"10px 24px", borderRadius:20, background:"#7C3AFF", color:"#fff", border:"none", cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"Inter,sans-serif" }}>Tümünü Göster</button>
+                </div>
+              ) : (
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"20px 8px", paddingBottom:12 }} className="yp-tools-grid">
+                  {filtered.map(t => (
+                    <button key={t.id} className="tool-card" onClick={() => openTool(t.id)}
+                      style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8, background:"none", border:"none", cursor:"pointer", padding:0, textAlign:"center" }}>
+                      <div style={{ width:60, height:60, borderRadius:"50%", background:t.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>{t.emoji}</div>
+                      <div>
+                        <div style={{ fontSize:11.5, fontWeight:800, color:"#1a1a1a", lineHeight:1.3, marginBottom:3 }}>{t.label}</div>
+                        <div style={{ fontSize:10, color:"#888", lineHeight:1.35 }}>{t.desc}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Static SEO content — crawler-visible */}
+            <section style={{ padding:"32px 16px 0", borderTop:"1px solid #f0f0f0", marginTop:24 }}>
+              <h2 style={{ fontSize:17, fontWeight:800, color:"#1a1a1a", marginBottom:10 }}>Poodle Hesaplama Araçları</h2>
+              <p style={{ fontSize:13, color:"#555", lineHeight:1.7, marginBottom:16 }}>
+                YourPoodle Bilgi Bankası, toy poodle sahipleri için 12 ücretsiz, anlık hesaplama aracı sunar.
+                Mama miktarından aşı takvimine, yaş hesaplamadan belirti kontrolüne kadar her araç bilimsel formüllere dayanır.
+              </p>
+              {/* AI-crawler-friendly tool list */}
+              <ul aria-label="Tüm poodle araçları" style={{ listStyle:"none", padding:0, margin:0, display:"flex", flexDirection:"column", gap:6 }}>
+                {TOOLS.map(t => (
+                  <li key={t.id} style={{ fontSize:12.5, color:"#444", lineHeight:1.5 }}>
+                    <button onClick={()=>openTool(t.id)} style={{ background:"none",border:"none",cursor:"pointer",textAlign:"left",padding:0,color:"#7C3AFF",fontWeight:700,fontFamily:"Inter,sans-serif",fontSize:12.5 }}>
+                      {t.emoji} {t.label}
+                    </button>{" "}— {t.desc}
+                  </li>
+                ))}
+              </ul>
+              <p style={{ fontSize:12, color:"#888", marginTop:8 }}>
+                Örnek: 3.5 kg yetişkin toy poodle, orta aktivite → ~85 g mama/gün · 2 yaşındaki toy poodle → ~24 insan yaşı
+              </p>
+            </section>
+
+            {/* SSS — FAQPage schema ile eşleşen */}
+            <section style={{ padding:"24px 16px 32px" }}>
+              <h2 style={{ fontSize:16, fontWeight:800, color:"#1a1a1a", marginBottom:12 }}>Sık Sorulan Sorular</h2>
+              {[
+                ["Toy poodle günde ne kadar mama yer?","Ortalama 3–4 kg ağırlığındaki toy poodle için günlük ~85–100 g kuru mama önerilir. Yaş, aktivite seviyesi ve mama markasına göre değişir. Mama Hesaplama aracımızla kişisel miktarı öğrenebilirsiniz."],
+                ["Poodle yaşını insan yaşına nasıl çeviririm?","Küçük ırklar için: 1. yıl = 15 insan yılı, 2. yıl = +9, sonraki her yıl +4. 4 yaşındaki toy poodle ≈ 32 insan yaşına karşılık gelir."],
+                ["Poodle aşı takvimi nasıl olmalı?","6. haftada Karma Aşı 1, 9. haftada Karma Aşı 2, 12. haftada Karma Aşı 3 + Kuduz, 16. haftada son temel doz. Ardından yılda bir hatırlatma."],
+                ["Poodle belirtileri ne zaman tehlikelidir?","Nefes darlığı, titreme/nöbet, kanlı ishal, idrara çıkmama veya şiş karın ACİL duruma işaret eder. Belirti Kontrolü aracımız risk değerlendirmesi yapar."],
+              ].map(([q,a])=>(
+                <div key={q} style={{ marginBottom:14, background:"#FAFAFA", borderRadius:13, padding:"14px 16px" }}>
+                  <div style={{ fontSize:13.5, fontWeight:800, color:"#1a1a1a", marginBottom:5 }}>❓ {q}</div>
+                  <div style={{ fontSize:13, color:"#555", lineHeight:1.65 }}>{a}</div>
+                </div>
+              ))}
+            </section>
+
+            {/* Footer */}
+            <footer style={{ background:"#111", padding:"28px 20px 24px" }}>
+              <div style={{ display:"flex", gap:32, flexWrap:"wrap", marginBottom:20 }}>
+                {[
+                  ["Platform",["Ana Sayfa:/yourpoodle","Mağaza:/yourpoodle/magaza","AI Asistan:/yourpoodle/ai-asistan","Rehber:/yourpoodle/rehber"]],
+                  ["Destek",["Hakkımızda:/yourpoodle","İletişim:/yourpoodle","Bakım:/yourpoodle/bakim","Sağlık:/yourpoodle/saglik"]],
+                  ["Yasal",["Gizlilik & KVKK:/yourpoodle","Çerez Politikası:/yourpoodle","Kullanım Şartları:/yourpoodle"]],
+                ].map(([title,links])=>(
+                  <div key={title as string}>
+                    <div style={{ fontSize:11, fontWeight:800, color:"#888", marginBottom:10, letterSpacing:"0.08em", textTransform:"uppercase" }}>{title as string}</div>
+                    {(links as string[]).map(l=>{
+                      const [label,href]=l.split(":");
+                      return <button key={label} onClick={()=>navigate(href)} style={{ display:"block",background:"none",border:"none",cursor:"pointer",color:"#bbb",fontSize:12,fontFamily:"Inter,sans-serif",marginBottom:7,padding:0,textAlign:"left" }}>{label}</button>;
+                    })}
+                  </div>
                 ))}
               </div>
-            )}
+              <div style={{ fontSize:11, color:"#555", borderTop:"1px solid #222", paddingTop:16 }}>
+                © 2026 YourPoodle · Toy Poodle sahipleri için Türkiye'nin ilk dijital platformu
+              </div>
+            </footer>
           </>
         )}
       </div>
