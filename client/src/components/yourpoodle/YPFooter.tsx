@@ -135,13 +135,13 @@ export default function YPFooter() {
               <img
                 src="/yourpoodle-logo.jpg"
                 alt="YourPoodle"
-                style={{ height: 36, width: "auto", objectFit: "contain", background: "#fff", borderRadius: 10, padding: "4px 12px" }}
+                style={{ height: 38, width: "auto", objectFit: "contain", background: "#fff", borderRadius: 12, padding: "5px 14px", boxShadow: "0 2px 12px rgba(0,0,0,0.25)" }}
               />
             </a>
 
             {/* Description */}
             <p className="text-[13px] text-gray-400 leading-relaxed max-w-[260px]">
-              Toy Poodle sahipleri için özel e-ticaret ve topluluk platformu. Sağlık, bakım, beslenme ve daha fazlası.
+              Toy Poodle sahipleri için dünya geneline kargo yapan uzman e-ticaret ve topluluk platformu.
             </p>
 
             {/* Social buttons */}

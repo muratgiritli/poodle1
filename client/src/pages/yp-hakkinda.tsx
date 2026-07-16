@@ -84,8 +84,7 @@ export default function YPHakkindaPage() {
           </div>
           <div style={{ background: "#EDE8FF", borderRadius: 16, padding: "20px" }}>
             <p style={{ fontSize: 14, color: "#5B21B6", lineHeight: 1.8, margin: 0, fontWeight: 600 }}>
-              YourPoodle, tüm bu boşluğu doldurmak için tasarlandı: Türk poodle sahiplerine ana dillerinde, 
-              güvenilir, derinlemesine içerik ve pratik araçlar sunmak.
+              YourPoodle, tüm bu boşluğu doldurmak için tasarlandı: Dünya genelindeki poodle sahiplerine güvenilir, derinlemesine içerik, pratik araçlar ve kapsamlı bir mağaza sunmak.
             </p>
           </div>
           <div style={{ background: "#fff", borderRadius: 16, padding: "20px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>

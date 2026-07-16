@@ -272,7 +272,7 @@ export default function YourPoodleHomePage() {
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#F5F3FF", border: "1px solid #E9D5FF", borderRadius: 20, padding: "5px 14px", marginBottom: 22 }}>
               <span style={{ fontSize: 13 }}>✨</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#7C3AED" }}>Türkiye'nin #1 Poodle Platformu</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#7C3AED" }}>🌍 Dünya Geneli Kargo · #1 Poodle Platformu</span>
             </div>
 
             <h1 style={{ fontSize: "clamp(32px,5vw,50px)", fontWeight: 900, lineHeight: 1.1, letterSpacing: "-2px", marginBottom: 18, color: "#0F0F0F" }}>
@@ -282,7 +282,7 @@ export default function YourPoodleHomePage() {
             </h1>
 
             <p style={{ fontSize: 16, lineHeight: 1.7, color: "#6B7280", marginBottom: 32, maxWidth: 420 }}>
-              Beslenme, bakım, sağlık ve eğitim rehberleri. AI destekli kişisel öneriler. Türkiye'nin en büyük Poodle topluluğu.
+              Beslenme, bakım, sağlık ve eğitim rehberleri. AI destekli kişisel öneriler. Dünya geneline kargo yapan Poodle uzman platformu.
             </p>
 
             <div style={{ display: "flex", gap: 12, marginBottom: 40, flexWrap: "wrap" }}>
