@@ -1,0 +1,29 @@
+Aşağıdaki metni tek parça olarak kopyalayıp Replit Agent’a yapıştır:
+
+```
+GÖREV: YourPoodle sitesinde /yourpoodle/rehber, /yourpoodle/saglik, /yourpoodle/bakim ve /yourpoodle/egitim sayfalarının TÜM içeriğini ve özel bileşenlerini TEK bir sayfada birleştir. Ana URL /yourpoodle/rehber olsun. Önce projeyi tara: routing dosyalarını, bu 4 sayfanın component'lerini, makale veri kaynağını, mevcut stil sistemini ve navigasyonu bul. Mevcut kodu yeniden kullan, sıfırdan yazma.
+
+URL VE ROUTING: Ana sayfa /yourpoodle/rehber. Query param ile sekme: /yourpoodle/rehber?tab=tumu|saglik|bakim|egitim. Eski URL'ler 301 redirect: /yourpoodle/saglik → /yourpoodle/rehber?tab=saglik, /yourpoodle/bakim → /yourpoodle/rehber?tab=bakim, /yourpoodle/egitim → /yourpoodle/rehber?tab=egitim. Navigasyondan Sağlık, Bakım, Eğitim linklerini kaldır, tek "Rehber" linki kalsın. Footer site haritasında da aynı değişikliği yap.
+
+SAYFA DÜZENİ (yukarıdan aşağı): 1) Dinamik Hero (sekmeye göre renk/başlık değişir), 2) Sticky Tab Bar: [Tümü] [Sağlık] [Bakım] [Eğitim], 3) Kategoriye özel widget'lar (sadece ilgili sekmede), 4) Arama + filtreler, 5) Makale listesi grid, 6) Pagination. Tab bar sticky olsun (top: header yüksekliği, z-index: 40, beyaz arka plan). Mobilde tab'lar yatay scroll. Sekme değişince sayfa yenilenmesin, URL query param güncellensin.
+
+TAB TÜMÜ (varsayılan): Hero mor tema, başlık "Poodle Rehberi", alt başlık "Veteriner onaylı içerikler, uzman yazarlar", istatistikler: toplam makale sayısı, kategori sayısı, "Ücretsiz Erişim". Widget yok. Filtreler: Tümü, Beslenme, Sağlık, Bakım, Eğitim, Davranış, Üreme. Öne çıkan makale kartını koru. Tüm makaleler listelensin.
+
+TAB SAĞLIK: Hero kırmızı tema, başlık "Poodle Sağlık Rehberi", alt başlık "Poodle'ınızın sağlığını koruyun — veteriner onaylı içerikler". Widget 1 Acil Durum Belirtileri (mevcut /saglik sayfasından taşı): 2 sütunlu grid, belirtiler iştah kaybı, kusma, ishal, idrarda kan, nefes darlığı, topallama, halsizlik, göz akıntısı, aşırı susama, nöbet; ACİL badge'li olanlar kırmızı vurgu; altında CTA "🐶 Belirti Kontrol Sihirbazını Aç" mevcut sihirbaza link. Widget 2 Sağlık Araçları 3 kart: 💉 Aşı Takvimi, ⚖️ İdeal Kilo Hesabı, 🎂 Yaş Hesaplama (mevcut araç sayfalarına link). Filtreler: Tümü, Genel Sağlık, Ortopedi, Davranış, Önleyici Bakım, Ağız Sağlığı, Göz Sağlığı. Sadece kategori Sağlık makaleleri.
+
+TAB BAKIM: Hero pembe tema, başlık "Poodle Bakım Rehberi", alt başlık "Poodle'ınızı her zaman şık ve sağlıklı tutun". Widget 1 Hızlı Cevaplar accordion (mevcut /bakim'den): Poodle ne sıklıkla tıraş edilir, ne sıklıkla yıkanır, tüyü nasıl taranır, tırnakları ne sıklıkla kesilir, göz altı lekesi nasıl temizlenir. Widget 2 Bakım Kontrol Listesi (mevcut /bakim'den): Slicker fırça ile tüy tarama 3x/hafta, Diş fırçalama 2x/hafta, Göz çevresi temizliği Günlük, Kulak temizliği Haftalık, Tırnak kesimi 2-3 haftada, Profesyonel tıraş 6-8 haftada, Banyo 3-4 haftada, Göz altı lekesi temizliği Günlük; checkbox'lar tıklanabilir olsun, localStorage'da saklansın. Filtreler: Tümü, Tıraş, Tüy Bakımı, Pençe, Kulak, Ağız, Banyo, Göz. Sadece kategori Bakım makaleleri.
+
+TAB EĞİTİM: Hero yeşil tema, başlık "Poodle Eğitim Rehberi", alt başlık "Poodle'ınızın zekasını en iyi şekilde kullanın", istatistikler: #1 En Zeki Köpek Irkı, 10 dk Günlük Antrenman, 4 Hafta Temel Komutlar, makale sayısı. Widget 1 Hızlı Cevaplar accordion (mevcut /egitim'den): tuvalet eğitimi ne kadar sürer, günde ne kadar eğitilmeli, temel komutlar ne kadar sürede öğrenilir, neden havlar, ayrılık kaygısı nasıl çözülür. Widget 2 Yaşa Göre Eğitim tab'lı bölüm (mevcut /egitim'den): Yavru 0-6 ay tuvalet eğitimi ısırma kontrolü sosyalleşme kafes eğitimi, Genç 6-18 ay temel komutlar tasma eğitimi havlama kontrolü, Yetişkin 1-7 yaş ileri komutlar trick eğitimi davranış düzeltme. Filtreler 2 satır: kategori Tümü Temel Yavru Sosyalleşme Spor Davranış, seviye Tüm Seviyeler Başlangıç Orta İleri. Sadece kategori Eğitim makaleleri.
+
+TEKNİK: type TabType = 'tumu' | 'saglik' | 'bakim' | 'egitim' ile activeTab state, URL query param ile senkronize. Mevcut component'leri extract et: GuideHero, StickyTabBar, EmergencySymptoms, HealthTools, QuickAnswersAccordion, CareChecklist, AgeTrainingTabs, ArticleSearchFilter, ArticleGrid, FeaturedArticle. Kategori widget'ları lazy render: sadece activeTab eşleşince göster. Makale filtreleme useMemo ile: önce tab kategorisi, sonra alt kategori filtresi, sonra arama. Hero rengi aktif sekmeye göre CSS transition 300ms ile değişsin. Eski /saglik /bakim /egitim route dosyalarını silme, redirect handler bırak.
+
+SEO: Title "Poodle Rehberi — Sağlık, Bakım ve Eğitim | YourPoodle". Meta description tüm kategorileri kapsasın. Canonical /yourpoodle/rehber?tab=X. Eski URL'ler 301. JSON-LD Article listesi + BreadcrumbList.
+
+TASARIM: Mevcut YourPoodle tasarım dilini koru. Sekme renkleri: Tümü mor, Sağlık kırmızı, Bakım pembe, Eğitim yeşil. Tab aktif state dolu arka plan beyaz text. Makale kartları arama filtre pill'leri mevcut component'lerden birebir. Mobil responsive tek sütun.
+
+YAPMA: 4 sayfayı alt alta kopyala yapıştır yapma, mevcut makale verilerini/API'yi değiştirme, yeni kütüphane ekleme, eski URL'leri 404 yapma, Mama Bul AI Asistan Topluluk linklerini değiştirme.
+
+KABUL KRİTERLERİ: 1) /yourpoodle/rehber açılıyor Tümü aktif 2) 4 sekme arası geçiş sayfa yenilemeden 3) URL ?tab= güncelleniyor 4-6) eski 3 URL redirect çalışıyor 7) Sağlık sekmesi acil belirtiler araçlar sağlık makaleleri 8) Bakım sekmesi SSS checklist bakım makaleleri 9) Eğitim sekmesi SSS yaşa göre eğitim eğitim makaleleri 10) arama filtre çalışıyor 11) sticky tab bar scroll'da sabit 12) nav'da tek Rehber linki 13) mobil düzgün 14) makale detay linkleri çalışıyor 15) console error yok.
+
+İŞ BİTİNCE RAPORLA: değiştirilen/oluşturulan dosyalar, redirect'e çevrilen route'lar, yeni component ağacı, 15 maddelik test sonuçları, bilinen eksikler.
+```

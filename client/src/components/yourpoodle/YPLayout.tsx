@@ -1,34 +1,31 @@
 import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useCustomer } from "@/contexts/CustomerContext";
-import { ShoppingBag, BookOpen, Monitor, Home, Users } from "lucide-react";
+import { ShoppingBag, BookOpen, Bot, Users } from "lucide-react";
 import YPFooter from "./YPFooter";
 
-// Desktop nav — 7 primary links (matches homepage header)
+// Primary nav — 4 items shown everywhere
 const NAV_LINKS = [
-  { label: "Rehber",     href: "/yourpoodle/rehber" },
-  { label: "Mama Bul",   href: "/yourpoodle/mama-bul" },
-  { label: "Sağlık",     href: "/yourpoodle/saglik" },
-  { label: "Bakım",      href: "/yourpoodle/bakim" },
-  { label: "Eğitim",     href: "/yourpoodle/egitim" },
-  { label: "AI Asistan", href: "/yourpoodle/ai-asistan" },
-  { label: "Topluluk",   href: "/yourpoodle/topluluk" },
+  { label: "Mağaza",     href: "/yourpoodle/magaza",     Icon: ShoppingBag },
+  { label: "Rehber",     href: "/yourpoodle/rehber",     Icon: BookOpen },
+  { label: "AI Asistan", href: "/yourpoodle/ai-asistan", Icon: Bot },
+  { label: "Club",       href: "/yourpoodle/club",       Icon: Users },
 ];
 
 // Drawer — all links including secondary ones
 const DRAWER_LINKS = [
   { label: "Ana Sayfa",  href: "/" },
+  { label: "Mağaza",     href: "/yourpoodle/magaza" },
   { label: "Rehber",     href: "/yourpoodle/rehber" },
+  { label: "AI Asistan", href: "/yourpoodle/ai-asistan" },
+  { label: "Club",       href: "/yourpoodle/club" },
   { label: "Mama Bul",   href: "/yourpoodle/mama-bul" },
   { label: "Sağlık",     href: "/yourpoodle/saglik" },
   { label: "Bakım",      href: "/yourpoodle/bakim" },
   { label: "Eğitim",     href: "/yourpoodle/egitim" },
-  { label: "AI Asistan", href: "/yourpoodle/ai-asistan" },
   { label: "Topluluk",   href: "/yourpoodle/topluluk" },
-  { label: "Mağaza",     href: "/yourpoodle/magaza" },
   { label: "Etkinlik",   href: "/yourpoodle/etkinlikler" },
   { label: "Bilgi",      href: "/yourpoodle/bilgi" },
-  { label: "Club",       href: "/yourpoodle/club" },
   { label: "Poodle'ım",  href: "/yourpoodle/poodle-ekle" },
 ];
 
@@ -90,18 +87,20 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
 
           {!authMode && (
             <>
-              <nav style={{ display: "flex", gap: 2, flex: 1, overflow: "hidden", alignItems: "center" }}>
+              <nav style={{ display: "flex", gap: 4, alignItems: "center", flex: 1, justifyContent: "center" }}>
                 {NAV_LINKS.map(l => {
                   const isActive = activeLink === l.href || activeLink.startsWith(l.href);
                   return (
                     <Link key={l.href} href={l.href}>
                       <span
                         style={{
-                          display: "inline-block", padding: "6px 13px", borderRadius: 20,
+                          display: "inline-flex", alignItems: "center", gap: 6,
+                          padding: "7px 16px", borderRadius: 20,
                           fontSize: 13.5, fontWeight: 600,
                           cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap",
                           color: isActive ? "#7C3AED" : "#555",
                           background: isActive ? "#F5F3FF" : "transparent",
+                          border: isActive ? "1.5px solid #E9D5FF" : "1.5px solid transparent",
                         }}
                         onMouseEnter={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = "#F9F9F9"; (e.currentTarget as HTMLElement).style.color = "#333"; } }}
                         onMouseLeave={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#555"; } }}
@@ -225,35 +224,18 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
           position: "fixed", bottom: 0, left: 0, right: 0,
           background: "#fff", borderTop: "1px solid #f0f0f0",
           boxShadow: "0 -4px 20px rgba(0,0,0,0.08)",
-          height: 64, display: "flex", alignItems: "center", zIndex: 200, padding: "0 8px"
+          height: 64, display: "flex", alignItems: "center", zIndex: 200, padding: "0 4px"
         }}>
-          {[
-            { label: "Ana Sayfa", href: "/", Icon: Home },
-            { label: "Rehber",    href: "/yourpoodle/rehber", Icon: BookOpen },
-          ].map(({ label, href, Icon }) => (
-            <button key={label} onClick={() => navigate(href)}
-              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, background: "none", border: "none", cursor: "pointer", flex: 1, color: effectiveBottomLink === href ? "#7C3AED" : "#aaa" }}>
-              <Icon size={22} strokeWidth={2} />
-              <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "inherit" }}>{label}</span>
-            </button>
-          ))}
-          <button onClick={() => navigate("/yourpoodle/magaza")}
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, background: "none", border: "none", cursor: "pointer", flex: 1, position: "relative" }}>
-            <div style={{ width: 54, height: 54, borderRadius: "50%", background: "linear-gradient(135deg,#9B59FF,#7C3AFF)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 20px rgba(124,58,255,0.4)", position: "absolute", top: -24 }}>
-              <ShoppingBag size={24} color="#fff" strokeWidth={2.2} />
-            </div>
-            <span style={{ fontSize: 10, fontWeight: 700, color: "#aaa", fontFamily: "inherit", marginTop: 32 }}>Mağaza</span>
-          </button>
-          {[
-            { label: "Bilgi",  href: "/yourpoodle/bilgi",  Icon: Monitor },
-            { label: "Club",   href: "/yourpoodle/club",   Icon: Users },
-          ].map(({ label, href, Icon }) => (
-            <button key={label} onClick={() => navigate(href)}
-              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, background: "none", border: "none", cursor: "pointer", flex: 1, color: effectiveBottomLink === href ? "#7C3AED" : "#aaa" }}>
-              <Icon size={22} strokeWidth={2} />
-              <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "inherit" }}>{label}</span>
-            </button>
-          ))}
+          {NAV_LINKS.map(({ label, href, Icon }) => {
+            const isActive = effectiveBottomLink === href || effectiveBottomLink.startsWith(href);
+            return (
+              <button key={href} onClick={() => navigate(href)}
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, background: "none", border: "none", cursor: "pointer", flex: 1, color: isActive ? "#7C3AED" : "#aaa", transition: "color 0.15s" }}>
+                <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                <span style={{ fontSize: 10, fontWeight: isActive ? 800 : 600, fontFamily: "inherit" }}>{label}</span>
+              </button>
+            );
+          })}
         </nav>
       </div>}
     </div>
