@@ -886,6 +886,7 @@ export async function registerRoutes(
         { url: "/yourpoodle/ai-asistan",             priority: "0.8", changefreq: "weekly" },
         { url: "/yourpoodle/magaza",                 priority: "0.7", changefreq: "daily" },
         { url: "/yourpoodle/club",                   priority: "0.7", changefreq: "weekly" },
+        { url: "/yourpoodle/club/hakkimizda",        priority: "0.6", changefreq: "monthly" },
         { url: "/yourpoodle/topluluk",               priority: "0.7", changefreq: "weekly" },
         { url: "/yourpoodle/etkinlikler",            priority: "0.6", changefreq: "weekly" },
         { url: "/yourpoodle/poodle-ekle",            priority: "0.6", changefreq: "monthly" },

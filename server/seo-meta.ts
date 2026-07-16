@@ -485,6 +485,13 @@ const YP_ROUTE_META: Record<string, YPMeta> = {
     schemaType: "app",
     breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "AI Asistan", href: "/yourpoodle/ai-asistan" }],
   },
+  "/yourpoodle/club/hakkimizda": {
+    title: "Poodle Club Nedir? Hakkımızda ve SSS | YourPoodle",
+    description: "YourPoodle Club hakkında her şey: nasıl katılınır, özellikler, sık sorulan sorular ve 500+ üyeli topluluk hakkında bilgi. Tamamen ücretsiz.",
+    keywords: "poodle club nedir, yourpoodle club hakkında, poodle topluluğu katıl, poodle sahipleri sosyal platform",
+    schemaType: "guide",
+    breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "Poodle Club", href: "/yourpoodle/club" }, { name: "Hakkımızda", href: "/yourpoodle/club/hakkimizda" }],
+  },
   "/yourpoodle/club": {
     title: "Poodle Club: Topluluk ve Etkinlikler | YourPoodle",
     description: "YourPoodle Club'a katılın, poodle sahipleriyle bağlantı kurun. Fotoğraf paylaşımı, aylık yarışmalar ve poodle buluşmaları için Türkiye'nin poodle topluluğu.",
