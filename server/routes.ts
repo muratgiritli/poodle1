@@ -867,30 +867,63 @@ export async function registerRoutes(
   });
 
 
-  // ── YourPoodle static pages sitemap ─────────────────────────────────────────
+  // ── YourPoodle sitemap: static pages + dynamic dog products ─────────────────
   app.get("/sitemap-yp.xml", async (_req, res) => {
     try {
       const SITE = "https://www.yourpoodle.com";
       const today = new Date().toISOString().split("T")[0];
+
+      // Static YourPoodle pages (sorted by priority)
       const ypPages = [
-        { url: "/yourpoodle",             priority: "1.0", changefreq: "daily" },
-        { url: "/yourpoodle/rehber",      priority: "0.9", changefreq: "weekly" },
-        { url: "/yourpoodle/mama",        priority: "0.9", changefreq: "weekly" },
-        { url: "/yourpoodle/mama-bul",    priority: "0.9", changefreq: "weekly" },
-        { url: "/yourpoodle/egitim",      priority: "0.8", changefreq: "weekly" },
-        { url: "/yourpoodle/saglik",      priority: "0.8", changefreq: "weekly" },
-        { url: "/yourpoodle/bakim",       priority: "0.8", changefreq: "weekly" },
-        { url: "/yourpoodle/bilgi",       priority: "0.8", changefreq: "weekly" },
-        { url: "/yourpoodle/ai-asistan",  priority: "0.8", changefreq: "weekly" },
-        { url: "/yourpoodle/magaza",      priority: "0.7", changefreq: "daily" },
-        { url: "/yourpoodle/club",        priority: "0.7", changefreq: "weekly" },
-        { url: "/yourpoodle/topluluk",    priority: "0.7", changefreq: "weekly" },
-        { url: "/yourpoodle/etkinlikler", priority: "0.6", changefreq: "weekly" },
-        { url: "/yourpoodle/hakkinda",    priority: "0.5", changefreq: "monthly" },
-        { url: "/yourpoodle/profil",      priority: "0.4", changefreq: "monthly" },
+        { url: "/yourpoodle",                        priority: "1.0", changefreq: "daily" },
+        { url: "/yourpoodle/rehber",                 priority: "0.9", changefreq: "weekly" },
+        { url: "/yourpoodle/mama",                   priority: "0.9", changefreq: "weekly" },
+        { url: "/yourpoodle/mama-bul",               priority: "0.9", changefreq: "weekly" },
+        { url: "/yourpoodle/egitim",                 priority: "0.8", changefreq: "weekly" },
+        { url: "/yourpoodle/saglik",                 priority: "0.8", changefreq: "weekly" },
+        { url: "/yourpoodle/bakim",                  priority: "0.8", changefreq: "weekly" },
+        { url: "/yourpoodle/bilgi",                  priority: "0.8", changefreq: "weekly" },
+        { url: "/yourpoodle/ai-asistan",             priority: "0.8", changefreq: "weekly" },
+        { url: "/yourpoodle/magaza",                 priority: "0.7", changefreq: "daily" },
+        { url: "/yourpoodle/club",                   priority: "0.7", changefreq: "weekly" },
+        { url: "/yourpoodle/topluluk",               priority: "0.7", changefreq: "weekly" },
+        { url: "/yourpoodle/etkinlikler",            priority: "0.6", changefreq: "weekly" },
+        { url: "/yourpoodle/poodle-ekle",            priority: "0.6", changefreq: "monthly" },
+        { url: "/yourpoodle/hakkinda",               priority: "0.5", changefreq: "monthly" },
+        { url: "/yourpoodle/profil",                 priority: "0.4", changefreq: "monthly" },
+        { url: "/yourpoodle/kullanim-sartlari",      priority: "0.3", changefreq: "yearly" },
+        { url: "/yourpoodle/gizlilik-politikasi",    priority: "0.3", changefreq: "yearly" },
         // /yourpoodle/giris is noindex — excluded
       ];
+
+      // Slug helper (same as sitemap-products.xml)
+      const toSlug = (name: string) =>
+        name
+          .toLowerCase()
+          .replace(/[^a-z0-9ğüşıöç]+/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "");
+
+      // Dynamic: fetch active dog products from DB for /yourpoodle/urun/:id/:slug
+      let productRows: Array<{ id: number; name: string }> = [];
+      try {
+        const result = await sharedPool.query<{ id: number; name: string }>(`
+          SELECT p.id, p.name
+          FROM products p
+          LEFT JOIN brand_categories bc ON p.brand_category_id = bc.id
+          WHERE p.is_active = true AND p.price > 0
+            AND (bc.animal = 'kopek' OR bc.animal IS NULL)
+          ORDER BY p.id DESC
+          LIMIT 200
+        `);
+        productRows = result.rows;
+      } catch (_dbErr) {
+        // Non-fatal: serve static-only sitemap if DB unavailable
+      }
+
       let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n`;
+
+      // Static pages
       for (const p of ypPages) {
         xml += `  <url>\n`;
         xml += `    <loc>${SITE}${p.url}</loc>\n`;
@@ -901,11 +934,26 @@ export async function registerRoutes(
         xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}/" />\n`;
         xml += `  </url>\n`;
       }
+
+      // Dynamic product pages
+      for (const p of productRows) {
+        const slug = toSlug(p.name);
+        xml += `  <url>\n`;
+        xml += `    <loc>${SITE}/yourpoodle/urun/${p.id}/${slug}</loc>\n`;
+        xml += `    <lastmod>${today}</lastmod>\n`;
+        xml += `    <changefreq>weekly</changefreq>\n`;
+        xml += `    <priority>0.6</priority>\n`;
+        xml += `    <xhtml:link rel="alternate" hreflang="tr" href="${SITE}/yourpoodle/urun/${p.id}/${slug}" />\n`;
+        xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}/" />\n`;
+        xml += `  </url>\n`;
+      }
+
       xml += `</urlset>`;
       res.set("Content-Type", "application/xml");
       res.set("Cache-Control", "public, max-age=3600");
       res.send(xml);
     } catch (err) {
+      console.error("[sitemap-yp]", err);
       res.status(500).send("Sitemap YP error");
     }
   });

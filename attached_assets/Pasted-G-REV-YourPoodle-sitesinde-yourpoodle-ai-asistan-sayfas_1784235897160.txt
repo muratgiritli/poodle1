@@ -1,0 +1,244 @@
+GÖREV: YourPoodle sitesinde /yourpoodle/ai-asistan sayfasını incele, mevcut yapıyı koruyarak kritik bug'ları düzelt ve sayfayı production-ready hale getir. Önce projeyi tara: routing, AiAsistanPage/component, chat API/service, Poodle profil entegrasyonu, meta/SEO helper'ları, footer linkleri, mobil layout ve deploy/SPA fallback ayarlarını bul. Mevcut kodu yeniden kullan, sıfırdan yazma.
+
+═══════════════════════════════════════
+BAĞLAM — MEVCUT SAYFA YAPISI
+═══════════════════════════════════════
+URL: /yourpoodle/ai-asistan
+
+Mevcut bölümler (korunacak):
+1. Header: Mağaza | Rehber | AI Asistan | Club + Giriş/Ücretsiz Başla
+2. Hero (mor): H1 "AI Poodle Asistanı", alt metin, 4 stat pill (7/24, Ücretsiz, Anlık, 5 Kategori)
+3. "AI Asistanı Ne Yapabilir?" — 5 kategori kartı (Beslenme, Bakım, Eğitim, Sağlık, Davranış)
+4. Ana alan: Poodle Profilim dropdown + Chat panel
+5. Chat: karşılama, tıbbi disclaimer, kategori pill'leri, hızlı soru chip'leri, textarea, Gönder
+6. Gizlilik notu + Gizlilik Politikası linki
+7. SSS accordion (5 madde)
+8. İlgili Araçlar (4 kart): Mama Bul, Tıraş Planlayıcı, Belirti Kontrolü, Eğitim Programı
+9. Footer
+
+Bilinen sorunlar:
+- Doğrudan URL ile girince SPA bazen mount olmuyor (ana sayfa hero veya SEO fallback görünüyor)
+- Mobilde chat panel fold altında kalıyor
+- Sayfa altında gizli duplicate SEO H2 blokları var
+- Footer'da SSS, Kargo, İade vb. linkler yanlışlıkla /yourpoodle/rehber'e gidiyor
+- Araç kartları button, gerçek link değil
+- FAQ schema yok
+- Breadcrumb UI yok
+- Chat yanıtlarında kaynak makale linki yok
+- Kategori kartları semantik heading kullanmıyor
+
+═══════════════════════════════════════
+P0 — KRİTİK DÜZELTMELER
+═══════════════════════════════════════
+
+1) SPA ROUTING / HYDRATION
+- /yourpoodle/ai-asistan doğrudan URL ile her zaman doğru sayfayı göstermeli
+- Server/deploy SPA fallback ayarla
+- Test: hard refresh, yeni sekme, paylaşılan link — siyah ekran veya ana sayfa hero görünmemeli
+- İlk paint'te loading skeleton göster, hydration bitince gerçek UI
+
+2) MOBİL LAYOUT — CHAT ÖNCELİKLİ
+Desktop: mevcut 2 kolon korunabilir
+Mobil (<768px) sıralama değişsin:
+  a) Kompakt hero (daha kısa)
+  b) Poodle Profilim bar (sticky, chat üstünde)
+  c) CHAT PANEL (full-width, min-height 420px) — fold içinde görünsün
+  d) 5 kategori kartı (chat altında)
+  e) SSS accordion
+  f) İlgili Araçlar
+
+Mobilde hero stat pill'leri tek satır scroll veya 2x2 grid olsun, hero yüksekliği max 200px.
+
+3) GİZLİ DUPLICATE SEO BLOĞUNU KALDIR
+Sayfa altındaki görünmez/tekrarlayan H2'leri kaldır:
+- "Poodle Mama Rehberi ve Mama Hesaplama"
+- "Poodle Bakım ve Tıraş Rehberi"
+- "Poodle Eğitim ve Davranış Rehberi"
+- "Poodle Sağlık Rehberi ve Araçlar"
+Tek H1 kuralı: sayfada sadece "AI Poodle Asistanı"
+
+4) FOOTER KIRIK LİNKLER
+Şu linkler kendi sayfalarına gitmeli:
+- Sık Sorulan Sorular → /yourpoodle/sss (veya mevcut route)
+- Kargo ve Teslimat → /kargo
+- Uluslararası Kargo → /uluslararasi-kargo
+- İade ve Değişim → /iade
+- Güvenli Alışveriş → /guvenli-alisveris
+- Mesafeli Satış Sözleşmesi → /mesafeli-satis
+Projede mevcut route'ları bul, yoksa placeholder oluştur.
+
+5) ARAÇ KARTLARINI GERÇEK LİNKE ÇEVİR
+Button yerine link/navigate:
+- Mama Bul → /yourpoodle/mama-bul
+- Tıraş Planlayıcı → /yourpoodle/bilgi veya ilgili araç route
+- Belirti Kontrolü → sağlık sihirbazı route
+- Eğitim Programı → eğitim route
+Her kart tıklanabilir, hover state, aria-label.
+
+═══════════════════════════════════════
+P1 — CHAT & UX GELİŞTİRMELERİ
+═══════════════════════════════════════
+
+6) CHAT PANEL İYİLEŞTİRMELERİ
+Mevcut chat UI korunsun, şunları ekle:
+
+a) Typing indicator: AI yanıt beklerken "Yazıyor..." animasyonu
+b) Mesaj balonları: kullanıcı sağ/mor, AI sol/beyaz
+c) Gönder butonu: textarea boşken disabled (mevcut), Enter ile gönder (Shift+Enter yeni satır)
+d) Kategori pill seçilince hızlı soru chip'leri o kategoriye göre güncellensin (Beslenme'de 3 soru var, diğer kategorilere de en az 3'er soru ekle)
+e) Hızlı soru chip'ine tıklayınca soru textarea'ya yazılsın ve otomatik gönderilsin
+f) "Sohbeti temizle" butonu (chat header'da)
+g) Boş state: ilk açılışta karşılama + 3 önerilen soru
+
+7) POODLE PROFİLİ → CHAT CONTEXT
+Poodle Profilim dropdown:
+- Profil seçiliyse chat system prompt'a ekle: isim, yaş, kilo, ırk (Toy/Miniature)
+- Karşılama mesajı kişiselleşsin: "Merhaba! Max (4 aylık, 2.1 kg) için size nasıl yardımcı olabilirim?"
+- Profil yoksa: "Profil oluşturun, daha kişisel öneriler alın" CTA chip'i göster
+- Profil verisi localStorage veya auth'tan gelsin (mevcut Poodle'ım sistemini kullan)
+
+8) RAG / KAYNAK LİNKLERİ
+AI yanıtları site içi makalelerden beslensin:
+- Yanıt sonunda "📖 İlgili rehber: [Makale Başlığı]" linki (max 2)
+- Makale slug'ları /yourpoodle/rehber/[slug] formatında
+- System prompt kuralları:
+  · Teşhis koyma, ilaç dozu verme
+  · Acil belirti (kusma+letargi, 24h iştahsızlık, nöbet) → "Hemen veterinere gidin" banner
+  · Her zaman "genel bilgilendirme" notu
+- Backend'de mevcut rehber makale verisini context olarak kullan (embedding veya keyword match yeterli MVP için)
+
+9) SOHBET OTURUMU
+- localStorage'da son 20 mesaj saklansın (anonim kullanıcı)
+- Sayfa yenilenince sohbet geri gelsin
+- "Sohbeti temizle" localStorage'ı sıfırlasın
+- Login olmuş kullanıcıda DB'ye kaydet (varsa auth sistemi)
+
+10) BREADCRUMB
+Görünür breadcrumb ekle:
+Ana Sayfa > AI Asistan
+Mevcut BreadcrumbList JSON-LD ile uyumlu.
+
+11) SEMANTİK HTML & ACCESSIBILITY
+- "AI Asistanı Ne Yapabilir?" → <h2>
+- "Sık Sorulan Sorular" → <h2>
+- "İlgili Araçlar" → <h2>
+- Chat textarea: aria-label="Poodle sorunuzu yazın", role="textbox"
+- Chat mesaj alanı: role="log", aria-live="polite"
+- Kategori kartları: button veya link with aria-label
+- Tıbbi disclaimer: role="alert"
+
+═══════════════════════════════════════
+P2 — SEO & DÖNÜŞÜM
+═══════════════════════════════════════
+
+12) FAQ SCHEMA
+SSS accordion'daki 5 soru-cevap için FAQPage JSON-LD ekle:
+- S: 4 aylık Poodle ne kadar mama yemeli?
+- S: Poodle göz altı neden kızarır?
+- S: Poodle evde yalnız kalınca neden havlar?
+- S: Poodle tüyü ne sıklıkla taranmalı?
+- S: Poodle tuvalet eğitimine nasıl başlanır?
+Accordion cevapları DOM'da görünür olsun (display:none değil, max-height collapse).
+
+13) SEO META (MEVCUT KORU + İYİLEŞTİR)
+- title: "AI Poodle Asistanı: Anlık Uzman Desteği | YourPoodle" (mevcut OK)
+- description: mevcut OK
+- canonical: https://www.yourpoodle.com/yourpoodle/ai-asistan
+- og:image: AI asistan temalı görsel (robot + poodle)
+- WebApplication schema ekle: name, description, applicationCategory, offers (free)
+
+14) ACİL VETERİNER BANNER
+Sağlık kategorisi seçilince veya sağlık kelimesi geçen sorularda chat üstünde:
+"⚠️ Acil durum mu? En yakın nöbetçi veterineri bulun →" linki
+Link: Google Maps search veya /yourpoodle/rehber?tab=saglik acil bölümüne anchor
+
+15) GÜNLÜK SORU LİMİTİ (MONETİZASYON HAZIRLIĞI)
+Anonim kullanıcı: günde 5 ücretsiz soru
+- Kalan soru sayısını chat header'da göster: "3/5 ücretsiz soru"
+- Limit dolunca: "Günlük limitiniz doldu. Club üyesi olun → sınırsız soru" CTA
+- localStorage ile günlük sayaç (date key)
+- Login/Club üyesi: sınırsız (auth check varsa)
+
+16) MOBİL STICKY CHAT FAB (OPSİYONEL)
+768px altında scroll yapınca sağ altta floating "💬 Soru Sor" butonu
+Tıklayınca chat paneline smooth scroll
+
+17) ANALYTICS EVENT'LERİ
+Şunları track et (console.log veya mevcut analytics):
+- ai_question_sent (kategori, profil_var_mi)
+- ai_quick_chip_clicked
+- ai_category_selected
+- ai_tool_card_clicked
+- ai_profile_connected
+- ai_limit_reached
+
+═══════════════════════════════════════
+KATEGORİ BAZLI HIZLI SORULAR (EKLE)
+═══════════════════════════════════════
+Her kategori için en az 3 hızlı soru chip'i:
+
+Beslenme:
+- 4 aylık Poodle'ım ne kadar mama yemeli?
+- Poodle'a hangi yiyecekler verilmez?
+- Yetişkin Toy Poodle için en iyi mama hangisi?
+
+Bakım:
+- Poodle tüyü ne sıklıkla taranmalı?
+- Evde tıraş mı groomer mı?
+- Göz altı lekesi nasıl temizlenir?
+
+Eğitim:
+- Tuvalet eğitimine nasıl başlanır?
+- Temel komutlar kaç haftada öğrenilir?
+- Clicker eğitimi nasıl yapılır?
+
+Sağlık:
+- Poodle aşı takvimi nasıl?
+- İdeal kilosu ne olmalı?
+- Göz altı neden kızarır?
+
+Davranış:
+- Yalnız kalınca neden havlar?
+- Anksiyete belirtileri neler?
+- Isırma davranışı nasıl düzeltilir?
+
+═══════════════════════════════════════
+TEKNİK KURALLAR
+═══════════════════════════════════════
+- Mevcut mor tema, component stili, font korunsun
+- TypeScript/React/Vite yapısına uy
+- Chat API endpoint'ini mevcut backend'i kullan (yeni API yazma, var olanı genişlet)
+- Performans: chat mesajları virtualize etme (20 mesaj yeterli), lazy load araç kartları
+- Error handling: API fail → "Bağlantı hatası, tekrar deneyin" mesajı
+- Rate limit: frontend + backend (varsa)
+- KVKK: gizlilik notu korunsun, sohbetler üçüncü tarafa satılmaz
+
+═══════════════════════════════════════
+TEST LİSTESİ (TAMAMLANINCA DOĞRULA)
+═══════════════════════════════════════
+✓ /yourpoodle/ai-asistan hard refresh ile açılıyor
+✓ Mobilde chat fold içinde görünüyor
+✓ Kategori pill → hızlı sorular değişiyor
+✓ Hızlı soru chip → otomatik gönderim
+✓ Poodle profili seçilince karşılama kişiselleşiyor
+✓ AI yanıtında kaynak makale linki var
+✓ Sohbet localStorage'da kalıyor
+✓ Footer linkleri doğru sayfaya gidiyor
+✓ Araç kartları doğru route'a gidiyor
+✓ Duplicate H2 bloğu yok
+✓ FAQ schema DOM'da mevcut
+✓ Breadcrumb görünüyor
+✓ Typing indicator çalışıyor
+✓ Tıbbi disclaimer görünür
+✓ 5/5 günlük limit UI çalışıyor
+
+═══════════════════════════════════════
+ÇIKTI RAPORU
+═══════════════════════════════════════
+Tamamlandığında raporla:
+1. Değiştirilen dosyalar listesi
+2. Mobil layout değişiklik özeti
+3. Chat API / RAG entegrasyon detayı
+4. Eklenen hızlı sorular listesi
+5. Test sonuçları (yukarıdaki checklist)
+6. Bilinen kalan sorunlar (varsa)

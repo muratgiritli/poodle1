@@ -160,6 +160,7 @@ export default function YourPoodleHomePage() {
           .yph-btm-nav      { display: block !important; }
           .yph-hero-right   { display: none !important; }
           .yph-hero-grid    { grid-template-columns: 1fr !important; }
+          .yph-hero-pad     { padding: 36px 20px 32px !important; }
           .yph-grid-4       { grid-template-columns: repeat(2,1fr) !important; }
           .yph-grid-8       { grid-template-columns: repeat(2,1fr) !important; }
           .yph-grid-3r      { grid-template-columns: 1fr !important; }
@@ -271,7 +272,7 @@ export default function YourPoodleHomePage() {
 
       {/* ─── HERO ────────────────────────────────────────── */}
       <section style={{ background: "#fff", borderBottom: "1px solid #F0F0F0" }}>
-        <div className="yph-hero-grid" style={{ maxWidth: 1200, margin: "0 auto", padding: "64px 24px 56px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 72, alignItems: "center" }}>
+        <div className="yph-hero-grid yph-hero-pad" style={{ maxWidth: 1200, margin: "0 auto", padding: "64px 24px 56px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 72, alignItems: "center" }}>
 
           {/* Left */}
           <div>
