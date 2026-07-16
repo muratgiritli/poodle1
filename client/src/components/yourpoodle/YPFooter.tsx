@@ -12,10 +12,6 @@ const COLUMNS = [
     title: "Kurumsal",
     links: [
       { label: "Hakkımızda",         href: "/yourpoodle/hakkinda" },
-      { label: "Blog & Rehber",       href: "/yourpoodle/rehber" },
-      { label: "Fotoğraf Yarışması",  href: "/yourpoodle/club?tab=akis" },
-      { label: "Kariyer",             href: "/yourpoodle/hakkinda" },
-      { label: "Bayi Başvurusu",      href: "/yourpoodle/hakkinda" },
     ],
   },
   {
