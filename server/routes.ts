@@ -894,6 +894,16 @@ export async function registerRoutes(
         { url: "/yourpoodle/profil",                 priority: "0.4", changefreq: "monthly" },
         { url: "/yourpoodle/kullanim-sartlari",      priority: "0.3", changefreq: "yearly" },
         { url: "/yourpoodle/gizlilik-politikasi",    priority: "0.3", changefreq: "yearly" },
+        { url: "/yourpoodle/cerez-politikasi",        priority: "0.3", changefreq: "yearly" },
+        { url: "/yourpoodle/sss",                     priority: "0.5", changefreq: "monthly" },
+        { url: "/yourpoodle/kargo",                   priority: "0.5", changefreq: "monthly" },
+        { url: "/yourpoodle/uluslararasi-kargo",      priority: "0.4", changefreq: "monthly" },
+        { url: "/yourpoodle/iade",                    priority: "0.5", changefreq: "monthly" },
+        { url: "/yourpoodle/guvenli-alisveris",       priority: "0.4", changefreq: "yearly" },
+        { url: "/yourpoodle/mesafeli-satis",          priority: "0.3", changefreq: "yearly" },
+        { url: "/yourpoodle/kariyer",                 priority: "0.4", changefreq: "monthly" },
+        { url: "/yourpoodle/bayi-basvurusu",          priority: "0.4", changefreq: "monthly" },
+        { url: "/yourpoodle/fotograf-yarismasi",      priority: "0.6", changefreq: "weekly" },
         // /yourpoodle/giris is noindex — excluded
       ];
 

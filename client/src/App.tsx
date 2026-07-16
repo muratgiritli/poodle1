@@ -106,6 +106,16 @@ const YPMamaBulPage       = lazy(() => import("@/pages/yp-mama-bul"));
 const YPHakkindaPage            = lazy(() => import("@/pages/yp-hakkinda"));
 const YPKullanimSartlariPage    = lazy(() => import("@/pages/yp-kullanim-sartlari"));
 const YPGizlilikPolitikasiPage  = lazy(() => import("@/pages/yp-gizlilik-politikasi"));
+const YPSSSPage                 = lazy(() => import("@/pages/yp-sss"));
+const YPKargoPage               = lazy(() => import("@/pages/yp-kargo"));
+const YPUluslararasiKargoPage   = lazy(() => import("@/pages/yp-uluslararasi-kargo"));
+const YPIadePage                = lazy(() => import("@/pages/yp-iade"));
+const YPGuvenliAlisverisPage    = lazy(() => import("@/pages/yp-guvenli-alisveris"));
+const YPMesafeliSatisPage       = lazy(() => import("@/pages/yp-mesafeli-satis"));
+const YPCerezPolitikasiPage     = lazy(() => import("@/pages/yp-cerez-politikasi"));
+const YPKariyerPage             = lazy(() => import("@/pages/yp-kariyer"));
+const YPBayiBasvurusuPage       = lazy(() => import("@/pages/yp-bayi-basvurusu"));
+const YPFotografYarismasi       = lazy(() => import("@/pages/yp-fotograf-yarismasi"));
 const YPProfilPage        = lazy(() => import("@/pages/yp-profil"));
 const DemoKampanyaPage = lazy(() => import("@/pages/demo-kampanya"));
 const DemoKampanyaUrunPage = lazy(() => import("@/pages/demo-kampanya").then(m => ({ default: m.DemoKampanyaUrun })));
@@ -198,10 +208,20 @@ function Router() {
         <Route path="/yourpoodle/etkinlikler"    component={YPEtkinliklerPage} />
         <Route path="/yourpoodle/ai-asistan"     component={YPAiAsistanPage} />
         <Route path="/yourpoodle/mama-bul"       component={YPMamaBulPage} />
-        <Route path="/yourpoodle/hakkinda"            component={YPHakkindaPage} />
-        <Route path="/yourpoodle/profil"             component={YPProfilPage} />
-        <Route path="/yourpoodle/kullanim-sartlari"  component={YPKullanimSartlariPage} />
-        <Route path="/yourpoodle/gizlilik-politikasi" component={YPGizlilikPolitikasiPage} />
+        <Route path="/yourpoodle/hakkinda"              component={YPHakkindaPage} />
+        <Route path="/yourpoodle/profil"               component={YPProfilPage} />
+        <Route path="/yourpoodle/kullanim-sartlari"    component={YPKullanimSartlariPage} />
+        <Route path="/yourpoodle/gizlilik-politikasi"  component={YPGizlilikPolitikasiPage} />
+        <Route path="/yourpoodle/sss"                  component={YPSSSPage} />
+        <Route path="/yourpoodle/kargo"                component={YPKargoPage} />
+        <Route path="/yourpoodle/uluslararasi-kargo"   component={YPUluslararasiKargoPage} />
+        <Route path="/yourpoodle/iade"                 component={YPIadePage} />
+        <Route path="/yourpoodle/guvenli-alisveris"    component={YPGuvenliAlisverisPage} />
+        <Route path="/yourpoodle/mesafeli-satis"       component={YPMesafeliSatisPage} />
+        <Route path="/yourpoodle/cerez-politikasi"     component={YPCerezPolitikasiPage} />
+        <Route path="/yourpoodle/kariyer"              component={YPKariyerPage} />
+        <Route path="/yourpoodle/bayi-basvurusu"       component={YPBayiBasvurusuPage} />
+        <Route path="/yourpoodle/fotograf-yarismasi"   component={YPFotografYarismasi} />
         <Route path="/yourpoodle/urun/:id/:slug?" component={lazy(() => import("@/pages/yp-urun"))} />
         <Route path="/demo-kampanya" component={DemoKampanyaPage} />
         <Route path="/demo-kampanya/urun/:id" component={DemoKampanyaUrunPage} />
