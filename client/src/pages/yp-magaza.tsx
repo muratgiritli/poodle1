@@ -360,9 +360,16 @@ export default function Magaza() {
                   style={{ borderRadius:16, overflow:"hidden", display:"flex", flexDirection:"column", boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
                   <div style={{ background:"#F0ECFF", aspectRatio:"1/1", display:"flex", alignItems:"center", justifyContent:"center", position:"relative", overflow:"hidden" }}>
                     {p.img
-                      ? <img src={p.img} alt={p.name} loading="lazy"
-                          style={{ width:"100%", height:"100%", objectFit:"cover" }}
-                          onError={e=>{(e.target as HTMLImageElement).style.display="none";}}/>
+                      ? <>
+                          <img src={p.img} alt={p.name} loading="lazy"
+                            style={{ width:"100%", height:"100%", objectFit:"cover" }}
+                            onError={e=>{
+                              (e.target as HTMLImageElement).style.display="none";
+                              const sib = (e.target as HTMLImageElement).nextElementSibling as HTMLElement|null;
+                              if (sib) sib.style.display="flex";
+                            }}/>
+                          <span style={{ fontSize:40, display:"none", width:"100%", height:"100%", alignItems:"center", justifyContent:"center" }}>🐾</span>
+                        </>
                       : <span style={{ fontSize:40 }}>🐾</span>
                     }
                     {p.originalPrice && p.originalPrice>p.price && (

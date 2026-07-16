@@ -191,7 +191,7 @@ function Router() {
         <Route path="/yourpoodle/profil"             component={YPProfilPage} />
         <Route path="/yourpoodle/kullanim-sartlari"  component={YPKullanimSartlariPage} />
         <Route path="/yourpoodle/gizlilik-politikasi" component={YPGizlilikPolitikasiPage} />
-        <Route path="/yourpoodle/urun/:id/:slug?" component={lazy(() => import("@/pages/product-detail"))} />
+        <Route path="/yourpoodle/urun/:id/:slug?" component={lazy(() => import("@/pages/yp-urun"))} />
         <Route path="/demo-kampanya" component={DemoKampanyaPage} />
         <Route path="/demo-kampanya/urun/:id" component={DemoKampanyaUrunPage} />
         <Route path="/kampanya" component={CampaignPage} />

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { useCustomer } from "@/contexts/CustomerContext";
 import YPBottomNav from "@/components/YPBottomNav";
 
@@ -18,17 +19,11 @@ const NAV = [
   { label: "Topluluk",   href: "/yourpoodle/topluluk" },
 ];
 
-/* Curated Toy/Mini Poodle products — local images only */
-const FEATURED_PRODUCTS = [
-  { id: 1,  name: "Royal Canin Poodle Adult 500g",              price: 289,  img: "/product-images/product-1.webp"  },
-  { id: 2,  name: "Royal Canin Poodle Adult 3 kg",              price: 849,  img: "/product-images/product-2.webp"  },
-  { id: 3,  name: "Pro Plan Small & Mini Adult Somonlu 3 kg",   price: 799,  img: "/product-images/product-3.webp"  },
-  { id: 4,  name: "Pro Plan Toy & Mini Puppy 3 kg",             price: 749,  img: "/product-images/product-4.webp"  },
-  { id: 5,  name: "Hill's Science Plan Small & Miniature 3 kg", price: 899,  img: "/product-images/product-5.webp"  },
-  { id: 6,  name: "Acana Small Breed Tavuk & Balık 2 kg",       price: 689,  img: "/product-images/product-6.webp"  },
-  { id: 7,  name: "Farmina N&D Toy & Mini Adult Tavuk 2 kg",    price: 729,  img: "/product-images/product-7.webp"  },
-  { id: 8,  name: "Orijen Small Breed Köpek Maması 2 kg",       price: 899,  img: "/product-images/product-8.webp"  },
-];
+interface YPProduct {
+  id: number; name: string; price: number; originalPrice?: number;
+  img?: string; stock: number; isActive: boolean;
+  mamaType?: string; subcategory?: string; brandName?: string;
+}
 
 const NEEDS = [
   { emoji: "🍖", label: "Doğru Mama",       sub: "Yaş & kiloya göre",  color: "#F97316", bg: "#FFF7ED", href: "/yourpoodle/mama-bul" },
@@ -92,6 +87,13 @@ export default function YourPoodleHomePage() {
   const [emailSent, setEmailSent] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { isLoggedIn } = useCustomer();
+
+  /* Live products from API — top 8 by newest id */
+  const { data: allProducts = [] } = useQuery<YPProduct[]>({
+    queryKey: ["/api/yp-products"],
+    staleTime: 5 * 60 * 1000,
+  });
+  const featuredProducts = allProducts.slice(0, 8);
 
   /* SEO: set title + og:title */
   useEffect(() => {
@@ -548,23 +550,36 @@ export default function YourPoodleHomePage() {
             </button>
           </div>
           <div className="yph-grid-5p" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
-            {FEATURED_PRODUCTS.map(p => (
-              <button key={p.id} onClick={() => go("/yourpoodle/magaza")}
+            {featuredProducts.length === 0
+              ? Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} style={{ background: "#E8E4FF", borderRadius: 16, aspectRatio: "1", animation: "pulse 1.5s ease-in-out infinite" }} />
+                ))
+              : featuredProducts.map(p => (
+              <button key={p.id} onClick={() => go(`/yourpoodle/urun/${p.id}`)}
                 style={{ background: "#fff", borderRadius: 16, overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column", border: "1.5px solid #F3F4F6", padding: 0, fontFamily: "inherit", textAlign: "left", transition: "all 0.2s" }}
                 onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.1)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
                 onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}>
                 <div style={{ background: "#F5F3FF", aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-                  <img
-                    src={p.img}
-                    alt={p.name}
-                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                    onError={e => { e.currentTarget.style.display = "none"; (e.currentTarget.nextSibling as HTMLElement).style.display = "flex"; }}
-                  />
-                  <span style={{ fontSize: 32, display: "none", width: "100%", height: "100%", alignItems: "center", justifyContent: "center" }}>🐾</span>
+                  {p.img
+                    ? <>
+                        <img
+                          src={p.img}
+                          alt={p.name}
+                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                          onError={e => {
+                            e.currentTarget.style.display = "none";
+                            const sib = e.currentTarget.nextElementSibling as HTMLElement | null;
+                            if (sib) sib.style.display = "flex";
+                          }}
+                        />
+                        <span style={{ fontSize: 32, display: "none", width: "100%", height: "100%", alignItems: "center", justifyContent: "center" }}>🐾</span>
+                      </>
+                    : <span style={{ fontSize: 32, display: "flex", width: "100%", height: "100%", alignItems: "center", justifyContent: "center" }}>🐾</span>
+                  }
                 </div>
                 <div style={{ padding: "10px 12px 14px" }}>
                   <div style={{ fontSize: 11.5, fontWeight: 700, color: "#111", lineHeight: 1.35, marginBottom: 6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as any, overflow: "hidden" }}>{p.name}</div>
-                  <div style={{ fontSize: 14, fontWeight: 900, color: "#7C3AED" }}>₺{p.price.toLocaleString("tr-TR")}</div>
+                  <div style={{ fontSize: 14, fontWeight: 900, color: "#7C3AED" }}>₺{Number(p.price).toLocaleString("tr-TR")}</div>
                 </div>
               </button>
             ))}
