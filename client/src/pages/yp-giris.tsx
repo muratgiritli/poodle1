@@ -1,43 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import { ChevronLeft, Loader2, ShieldCheck, Search, X, ChevronDown, Star, Heart, Zap, ChevronRight } from "lucide-react";
+import { ChevronLeft, Loader2, ShieldCheck, Star, Heart, Zap, ChevronRight } from "lucide-react";
 import { useCustomer } from "@/contexts/CustomerContext";
 import { apiRequest } from "@/lib/queryClient";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 
-/* ─── Country codes ─────────────────────────────────────── */
-const COUNTRIES = [
-  { code:"TR", dial:"+90",  flag:"🇹🇷", name:"Türkiye" },
-  { code:"DE", dial:"+49",  flag:"🇩🇪", name:"Almanya" },
-  { code:"NL", dial:"+31",  flag:"🇳🇱", name:"Hollanda" },
-  { code:"AT", dial:"+43",  flag:"🇦🇹", name:"Avusturya" },
-  { code:"BE", dial:"+32",  flag:"🇧🇪", name:"Belçika" },
-  { code:"FR", dial:"+33",  flag:"🇫🇷", name:"Fransa" },
-  { code:"GB", dial:"+44",  flag:"🇬🇧", name:"İngiltere" },
-  { code:"CH", dial:"+41",  flag:"🇨🇭", name:"İsviçre" },
-  { code:"SE", dial:"+46",  flag:"🇸🇪", name:"İsveç" },
-  { code:"NO", dial:"+47",  flag:"🇳🇴", name:"Norveç" },
-  { code:"DK", dial:"+45",  flag:"🇩🇰", name:"Danimarka" },
-  { code:"FI", dial:"+358", flag:"🇫🇮", name:"Finlandiya" },
-  { code:"IT", dial:"+39",  flag:"🇮🇹", name:"İtalya" },
-  { code:"ES", dial:"+34",  flag:"🇪🇸", name:"İspanya" },
-  { code:"PT", dial:"+351", flag:"🇵🇹", name:"Portekiz" },
-  { code:"GR", dial:"+30",  flag:"🇬🇷", name:"Yunanistan" },
-  { code:"RU", dial:"+7",   flag:"🇷🇺", name:"Rusya" },
-  { code:"UA", dial:"+380", flag:"🇺🇦", name:"Ukrayna" },
-  { code:"US", dial:"+1",   flag:"🇺🇸", name:"ABD" },
-  { code:"CA", dial:"+1",   flag:"🇨🇦", name:"Kanada" },
-  { code:"AU", dial:"+61",  flag:"🇦🇺", name:"Avustralya" },
-  { code:"AE", dial:"+971", flag:"🇦🇪", name:"BAE" },
-  { code:"SA", dial:"+966", flag:"🇸🇦", name:"S. Arabistan" },
-  { code:"QA", dial:"+974", flag:"🇶🇦", name:"Katar" },
-  { code:"KW", dial:"+965", flag:"🇰🇼", name:"Kuveyt" },
-  { code:"AZ", dial:"+994", flag:"🇦🇿", name:"Azerbaycan" },
-  { code:"KZ", dial:"+7",   flag:"🇰🇿", name:"Kazakistan" },
-  { code:"JP", dial:"+81",  flag:"🇯🇵", name:"Japonya" },
-  { code:"CN", dial:"+86",  flag:"🇨🇳", name:"Çin" },
-  { code:"KR", dial:"+82",  flag:"🇰🇷", name:"Güney Kore" },
-];
+/* ─── Turkey only ───────────────────────────────────────── */
+const TR_DIAL = "+90";
 
 const BREEDS = ["Toy Poodle","Miniature Poodle","Standard Poodle","Moyen Poodle"];
 const CITIES = ["İstanbul","Ankara","İzmir","Bursa","Antalya","Samsun","Adana","Gaziantep","Konya","Kayseri","Diğer"];
@@ -128,14 +97,10 @@ function formatLocal(val: string) {
   return `${d.slice(0,3)} ${d.slice(3,6)} ${d.slice(6,8)} ${d.slice(8,10)}`;
 }
 
-function validatePhone(local: string, code: string): string | null {
-  if (code === "TR") {
-    if (local.length === 0) return "Telefon numarası girin";
-    if (!local.startsWith("5")) return "Türkiye numaraları 5 ile başlamalıdır (5XX XXX XX XX)";
-    if (local.length < 10) return `${10 - local.length} hane daha girin`;
-  } else {
-    if (local.length < 7) return "Geçerli bir telefon numarası girin";
-  }
+function validatePhone(local: string): string | null {
+  if (local.length === 0) return "Telefon numarası girin";
+  if (!local.startsWith("5")) return "Numaranız 5 ile başlamalıdır (5XX XXX XX XX)";
+  if (local.length < 10) return `${10 - local.length} hane daha girin`;
   return null;
 }
 
@@ -155,47 +120,6 @@ function Steps({ step }: { step: "phone" | "otp" | "register" }) {
           {i < labels.length-1 && <div style={{ height:2, flex:1, background:i<idx?"#7C3AFF":"#f0f0f0", marginBottom:18, transition:"background 0.3s" }} />}
         </div>
       ))}
-    </div>
-  );
-}
-
-function CountryPicker({ selected, onSelect, onClose }: {
-  selected: typeof COUNTRIES[0];
-  onSelect: (c: typeof COUNTRIES[0]) => void;
-  onClose: () => void;
-}) {
-  const [q, setQ] = useState("");
-  const filtered = COUNTRIES.filter(c =>
-    q === "" || c.name.toLowerCase().includes(q.toLowerCase()) || c.dial.includes(q) || c.code.toLowerCase().includes(q.toLowerCase())
-  );
-  return (
-    <div style={{ position:"fixed", inset:0, zIndex:9999, display:"flex", flexDirection:"column", background:"rgba(0,0,0,0.45)" }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ margin:"auto", background:"#fff", borderRadius:20, width:"90%", maxWidth:420, maxHeight:"80vh", display:"flex", flexDirection:"column", boxShadow:"0 20px 60px rgba(0,0,0,0.25)" }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 18px 12px", borderBottom:"1px solid #f0f0f0" }}>
-          <span style={{ fontSize:16, fontWeight:800, color:"#1a1a1a" }}>Ülke Kodu Seç</span>
-          <button onClick={onClose} style={{ background:"#F5F5F5", border:"none", borderRadius:8, padding:6, cursor:"pointer", display:"flex" }}><X size={18} color="#555" /></button>
-        </div>
-        <div style={{ padding:"10px 16px", borderBottom:"1px solid #f8f8f8" }}>
-          <div style={{ display:"flex", alignItems:"center", background:"#F7F7F7", borderRadius:12, height:42, overflow:"hidden", border:"1.5px solid #eee" }}>
-            <div style={{ paddingLeft:12, color:"#bbb", display:"flex" }}><Search size={16} strokeWidth={2} /></div>
-            <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder="Ülke ara..." style={{ flex:1, border:"none", outline:"none", fontSize:14, color:"#333", background:"transparent", padding:"0 10px", fontFamily:"Inter,sans-serif" }} />
-            {q && <button onClick={() => setQ("")} style={{ background:"none", border:"none", cursor:"pointer", paddingRight:10, color:"#bbb" }}><X size={14} /></button>}
-          </div>
-        </div>
-        <div style={{ overflowY:"auto", flex:1 }}>
-          {filtered.map(c => (
-            <button key={c.code+c.dial} className="country-row" onClick={() => { onSelect(c); onClose(); }}
-              style={{ display:"flex", alignItems:"center", gap:12, width:"100%", padding:"13px 18px", border:"none", borderBottom:"1px solid #fafafa", cursor:"pointer", background:c.code===selected.code && c.dial===selected.dial?"#F5F0FF":"#fff", textAlign:"left", fontFamily:"Inter,sans-serif", transition:"background 0.1s" }}>
-              <span style={{ fontSize:22, lineHeight:1 }}>{c.flag}</span>
-              <span style={{ flex:1, fontSize:14, fontWeight:600, color:c.code===selected.code?"#7C3AFF":"#222" }}>{c.name}</span>
-              <span style={{ fontSize:14, fontWeight:700, color:"#888" }}>{c.dial}</span>
-              {c.code===selected.code && c.dial===selected.dial && <span style={{ fontSize:16, color:"#7C3AFF" }}>✓</span>}
-            </button>
-          ))}
-          {filtered.length === 0 && <div style={{ padding:"32px", textAlign:"center", color:"#aaa", fontSize:13 }}>Sonuç bulunamadı</div>}
-        </div>
-      </div>
     </div>
   );
 }
@@ -268,8 +192,6 @@ export default function YPGiris() {
   });
 
   const [step,         setStep]        = useState<"phone"|"otp"|"register">("phone");
-  const [country,      setCountry]     = useState(COUNTRIES[0]);
-  const [pickerOpen,   setPickerOpen]  = useState(false);
   const [phone,        setPhone]       = useState("");
   const [otp,          setOtp]         = useState(["","","",""]);
   const [name,         setName]        = useState("");
@@ -340,9 +262,9 @@ export default function YPGiris() {
 
   const sendOtp = async () => {
     const local = phone.replace(/\D/g,"");
-    const phoneError = validatePhone(local, country.code);
+    const phoneError = validatePhone(local);
     if (phoneError) { setError(phoneError); return; }
-    const normalized = country.code === "TR" ? local : `${country.dial.replace("+","")}${local}`;
+    const normalized = local;
     setError(""); setLoading(true);
     try {
       let deviceToken: string|undefined;
@@ -362,7 +284,7 @@ export default function YPGiris() {
 
   const doVerify = async (code: string) => {
     const local = phone.replace(/\D/g,"");
-    const normalized = country.code === "TR" ? local : `${country.dial.replace("+","")}${local}`;
+    const normalized = local;
     setError(""); setLoading(true); setAutoVfy(true);
     try {
       const data = await loginWithOtp(normalized, code);
@@ -381,7 +303,7 @@ export default function YPGiris() {
   const doRegister = async () => {
     if (!name.trim()) { setError("Adınızı girin"); return; }
     const local = phone.replace(/\D/g,"");
-    const normalized = country.code === "TR" ? local : `${country.dial.replace("+","")}${local}`;
+    const normalized = local;
     setError(""); setLoading(true);
     try {
       await loginWithOtp(normalized, otp.join(""), name.trim());
@@ -431,8 +353,8 @@ export default function YPGiris() {
 
   const maskedPhone = () => {
     const d = phone.replace(/\D/g,"");
-    if (d.length < 4) return `${country.dial} ${phone}`;
-    return `${country.dial} ${d.slice(0,3)} *** ** ${d.slice(-2)}`;
+    if (d.length < 4) return `${TR_DIAL} ${phone}`;
+    return `${TR_DIAL} ${d.slice(0,3)} *** ** ${d.slice(-2)}`;
   };
 
   const fmtCountdown = () => `${Math.floor(countdown/60)}:${String(countdown%60).padStart(2,"0")}`;
@@ -446,7 +368,6 @@ export default function YPGiris() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      {pickerOpen && <CountryPicker selected={country} onSelect={setCountry} onClose={() => setPickerOpen(false)} />}
       {toast && <Toast msg={toast} onDone={() => setToast("")} />}
 
       <main>
@@ -570,12 +491,10 @@ export default function YPGiris() {
                       <div>
                         <label htmlFor="phone" style={{ fontSize:12, fontWeight:700, color:"#555", display:"block", marginBottom:8 }}>Telefon Numarası</label>
                         <div style={{ display:"flex", border:"2px solid #e8e8e8", borderRadius:14, overflow:"hidden", background:"#fafafa", transition:"border-color 0.2s" }}>
-                          <button type="button" onClick={() => setPickerOpen(true)}
-                            style={{ display:"flex", alignItems:"center", gap:5, padding:"0 10px 0 12px", borderRight:"1px solid #e8e8e8", background:"#f5f5f5", border:"none", cursor:"pointer", flexShrink:0, height:52 }}>
-                            <span style={{ fontSize:20, lineHeight:1 }}>{country.flag}</span>
-                            <span style={{ fontSize:13, fontWeight:700, color:"#333" }}>{country.dial}</span>
-                            <ChevronDown size={13} color="#888" strokeWidth={2.5} />
-                          </button>
+                          <div style={{ display:"flex", alignItems:"center", gap:5, padding:"0 10px 0 12px", borderRight:"1px solid #e8e8e8", background:"#f5f5f5", flexShrink:0, height:52 }}>
+                            <span style={{ fontSize:20, lineHeight:1 }}>🇹🇷</span>
+                            <span style={{ fontSize:13, fontWeight:700, color:"#333" }}>+90</span>
+                          </div>
                           <input
                             className="yp-inp"
                             type="tel"
@@ -583,20 +502,20 @@ export default function YPGiris() {
                             name="phone"
                             autoComplete="tel"
                             inputMode="numeric"
-                            maxLength={country.code==="TR" ? 13 : 20}
+                            maxLength={13}
                             value={phone}
                             onChange={e => {
                               const val = formatLocal(e.target.value);
                               setPhone(val);
                               const d = val.replace(/\D/g,"");
-                              if (country.code==="TR" && d.length > 0 && !d.startsWith("5")) {
-                                setError("Türkiye numaraları 5 ile başlamalıdır");
+                              if (d.length > 0 && !d.startsWith("5")) {
+                                setError("Numaranız 5 ile başlamalıdır");
                               } else if (error) {
                                 setError("");
                               }
                             }}
                             onKeyDown={e => { if (e.key==="Enter") { e.preventDefault(); sendOtp(); } }}
-                            placeholder={country.code==="TR" ? "5XX XXX XX XX" : "Telefon no."}
+                            placeholder="5XX XXX XX XX"
                             aria-label="Telefon numarası"
                             style={{ flex:1, border:"none", padding:"0 14px", fontSize:18, fontWeight:700, letterSpacing:1, color:"#222", background:"transparent", height:52, fontFamily:"Inter,sans-serif", outline:"none" }}
                           />
