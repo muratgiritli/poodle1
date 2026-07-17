@@ -1,30 +1,32 @@
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { useCustomer } from "@/contexts/CustomerContext";
-import { ShoppingBag, BookOpen, Bot, Utensils, Wrench } from "lucide-react";
+import {
+  ShoppingBag, BookOpen, Bot, Utensils, Wrench,
+  PawPrint, Search, Heart, ShoppingCart, ChevronDown, X, User,
+} from "lucide-react";
 import YPFooter from "./YPFooter";
 
-// Primary nav — 5 items shown everywhere
+/* ─── Nav items ─────────────────────────────────────────── */
 const NAV_LINKS = [
-  { label: "Rehber",     href: "/yourpoodle/rehber",     Icon: BookOpen },
-  { label: "Mama Bul",   href: "/yourpoodle/mama-bul",   Icon: Utensils },
-  { label: "Ara\u00e7lar",    href: "/yourpoodle/bilgi",      Icon: Wrench },
-  { label: "AI Asistan", href: "/yourpoodle/ai-asistan", Icon: Bot },
-  { label: "Ma\u011faza",     href: "/yourpoodle/magaza",     Icon: ShoppingBag },
+  { label: "Ana Sayfa",  href: "/yourpoodle",              Icon: PawPrint   },
+  { label: "Mama Bul",   href: "/yourpoodle/mama-bul",     Icon: Utensils   },
+  { label: "Rehber",     href: "/yourpoodle/rehber",       Icon: BookOpen   },
+  { label: "Araçlar",    href: "/yourpoodle/bilgi",        Icon: Wrench     },
+  { label: "AI Asistan", href: "/yourpoodle/ai-asistan",   Icon: Bot        },
+  { label: "Mağaza",     href: "/yourpoodle/magaza",       Icon: ShoppingBag},
 ];
 
-// Drawer — all links including secondary ones
-// Note: "Siparişlerim" is injected dynamically below when logged in
 const DRAWER_LINKS_BASE = [
-  { label: "Ana Sayfa",  href: "/" },
+  { label: "Ana Sayfa",  href: "/yourpoodle" },
   { label: "Rehber",     href: "/yourpoodle/rehber" },
   { label: "Mama Bul",   href: "/yourpoodle/mama-bul" },
-  { label: "Ara\u00e7lar",    href: "/yourpoodle/bilgi" },
+  { label: "Araçlar",    href: "/yourpoodle/bilgi" },
   { label: "AI Asistan", href: "/yourpoodle/ai-asistan" },
-  { label: "Ma\u011faza",     href: "/yourpoodle/magaza" },
-  { label: "Sa\u011fl\u0131k",     href: "/yourpoodle/saglik" },
-  { label: "Bak\u0131m",      href: "/yourpoodle/bakim" },
-  { label: "E\u011fitim",     href: "/yourpoodle/egitim" },
+  { label: "Mağaza",     href: "/yourpoodle/magaza" },
+  { label: "Sağlık",     href: "/yourpoodle/saglik" },
+  { label: "Bakım",      href: "/yourpoodle/bakim" },
+  { label: "Eğitim",     href: "/yourpoodle/egitim" },
   { label: "Topluluk",   href: "/yourpoodle/topluluk" },
   { label: "Etkinlik",   href: "/yourpoodle/etkinlikler" },
 ];
@@ -32,35 +34,73 @@ const DRAWER_LINKS_BASE = [
 interface Props {
   children: ReactNode;
   activeLink?: string;
-  /** Override which bottom-nav tab appears active (when page has no matching tab) */
   bottomNavActive?: string;
-  /** Set false for full-bleed pages (AI chat, wizard) that manage their own layout */
   constrain?: boolean;
-  /** Auth-mode: simplified header (logo only), no bottom nav — use on /giris and auth pages */
   authMode?: boolean;
 }
 
-export default function YPLayout({ children, activeLink = "", bottomNavActive, constrain = true, authMode = false }: Props) {
+function isActive(activeLink: string, href: string) {
+  if (href === "/yourpoodle") return activeLink === "/yourpoodle" || activeLink === "" || activeLink === "/";
+  return activeLink === href || activeLink.startsWith(href + "/");
+}
+
+export default function YPLayout({
+  children, activeLink = "", bottomNavActive, constrain = true, authMode = false,
+}: Props) {
   const effectiveBottomLink = bottomNavActive ?? activeLink;
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [, navigate] = useLocation();
-  const { isLoggedIn } = useCustomer();
+  const [drawerOpen, setDrawerOpen]   = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [search, setSearch]           = useState("");
+  const [cartCount, setCartCount]     = useState(0);
+  const [, navigate]                  = useLocation();
+  const { isLoggedIn, customer }      = useCustomer();
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  /* cart badge — reads YP localStorage cart */
+  useEffect(() => {
+    const read = () => {
+      try {
+        const c = JSON.parse(localStorage.getItem("yp_cart") || "[]");
+        setCartCount(Array.isArray(c) ? c.reduce((s: number, i: any) => s + (i.qty || 1), 0) : 0);
+      } catch { setCartCount(0); }
+    };
+    read();
+    window.addEventListener("storage", read);
+    return () => window.removeEventListener("storage", read);
+  }, []);
+
+  /* close profile dropdown on outside click */
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (search.trim()) { navigate(`/yourpoodle/magaza?q=${encodeURIComponent(search.trim())}`); setSearch(""); }
+  };
+
+  const initials = customer?.name?.slice(0, 1).toUpperCase() || "";
 
   return (
     <div style={{ fontFamily: "'Inter',-apple-system,sans-serif", minHeight: "100vh", background: "#FAFAFA" }}>
       <style>{`
-        /* ── responsive layout ── */
+        @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+
         .yp-desktop-hdr { display: none !important; }
         .yp-mobile-hdr  { display: flex !important; }
         .yp-btm-nav     { display: block !important; }
         .yp-page-body   { padding-bottom: 80px; }
+
         @media (min-width: 900px) {
           .yp-desktop-hdr { display: flex !important; }
           .yp-mobile-hdr  { display: none !important; }
           .yp-btm-nav     { display: none !important; }
           .yp-page-body   { padding-bottom: 48px !important; }
           .yp-constrain   { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
-          /* content grids */
           .yp-art-grid    { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 14px !important; }
           .yp-3col-grid   { display: grid !important; grid-template-columns: 1fr 1fr 1fr !important; gap: 14px !important; }
           .yp-prod-grid   { grid-template-columns: repeat(4,1fr) !important; }
@@ -69,63 +109,183 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
           .yp-hero-banner { border-radius: 20px; margin: 24px 0 !important; }
           .yp-section-title { font-size: 20px !important; }
         }
+
+        .yp-nav-item { transition: background 0.15s, color 0.15s; cursor: pointer; }
+        .yp-nav-item:hover { background: #F5F0FF !important; color: #7C3AED !important; }
+        .yp-nav-item:hover svg { color: #7C3AED !important; }
+        .yp-util-btn { transition: background 0.15s; cursor: pointer; }
+        .yp-util-btn:hover { background: #F5F5F5 !important; }
+        .yp-search-inp:focus { outline: none; border-color: #A78BFA !important; }
+        .yp-profile-drop { animation: yp-fade-in 0.12s ease; }
+        @keyframes yp-fade-in { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
       `}</style>
 
-      {/* ──────────── DESKTOP HEADER ──────────── */}
+      {/* ════════════ DESKTOP HEADER ════════════ */}
       <header className="yp-desktop-hdr" style={{
         position: "sticky", top: 0, zIndex: 200,
-        background: "#fff", borderBottom: "1px solid #F0F0F0",
+        background: "linear-gradient(135deg, #F5F0FF 0%, #EDE9FE 100%)",
+        padding: "10px 20px",
         alignItems: "center",
-        height: 60,
       }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", display: "flex", alignItems: "center", gap: 32, height: "100%", width: "100%" }}>
-          <Link href="/">
-            <div style={{ display: "flex", alignItems: "center", cursor: "pointer", flexShrink: 0 }}>
-              <img src="/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 38, width: "auto", objectFit: "contain" }} />
+        <div style={{
+          maxWidth: 1200, margin: "0 auto", width: "100%",
+          background: "#ffffff",
+          borderRadius: 9999,
+          boxShadow: "0 8px 32px rgba(139, 92, 246, 0.15)",
+          display: "flex", alignItems: "center",
+          padding: "6px 16px 6px 20px",
+          gap: 0,
+        }}>
+
+          {/* ── Logo ── */}
+          <Link href="/yourpoodle">
+            <div style={{ display: "flex", flexDirection: "column", cursor: "pointer", flexShrink: 0, paddingRight: 20, marginRight: 4, borderRight: "1px solid #F0EAFF" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                <span style={{
+                  fontFamily: "'Pacifico', cursive",
+                  fontSize: 21, color: "#6B21A8",
+                  lineHeight: 1.2, letterSpacing: "-0.3px",
+                }}>YourPoodle</span>
+                <span style={{ fontSize: 16 }}>🐾</span>
+              </div>
+              <span style={{ fontSize: 10, color: "#9CA3AF", fontWeight: 500, marginTop: -1 }}>
+                Poodle'ınız için en iyi rehber 💜
+              </span>
             </div>
           </Link>
 
           {!authMode && (
             <>
-              <nav style={{ display: "flex", gap: 4, alignItems: "center", flex: 1, justifyContent: "center" }}>
-                {NAV_LINKS.map(l => {
-                  const isActive = activeLink === l.href || activeLink.startsWith(l.href);
+              {/* ── Nav items ── */}
+              <nav style={{ display: "flex", alignItems: "center", flex: 1, justifyContent: "center", gap: 2 }}>
+                {NAV_LINKS.map(({ label, href, Icon }) => {
+                  const active = isActive(activeLink, href);
                   return (
-                    <Link key={l.href} href={l.href}>
-                      <span
-                        style={{
-                          display: "inline-flex", alignItems: "center", gap: 6,
-                          padding: "7px 16px", borderRadius: 20,
-                          fontSize: 13.5, fontWeight: 600,
-                          cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap",
-                          color: isActive ? "#7C3AED" : "#555",
-                          background: isActive ? "#F5F3FF" : "transparent",
-                          border: isActive ? "1.5px solid #E9D5FF" : "1.5px solid transparent",
-                        }}
-                        onMouseEnter={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = "#F9F9F9"; (e.currentTarget as HTMLElement).style.color = "#333"; } }}
-                        onMouseLeave={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#555"; } }}
-                      >{l.label}</span>
+                    <Link key={href} href={href}>
+                      <div className="yp-nav-item" style={{
+                        display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+                        padding: "7px 14px", borderRadius: 12,
+                        background: active ? "#EDE9FE" : "transparent",
+                        color: active ? "#7C3AED" : "#374151",
+                        minWidth: 64,
+                      }}>
+                        <Icon size={18} strokeWidth={active ? 2.5 : 1.8} color={active ? "#7C3AED" : "#374151"} />
+                        <span style={{ fontSize: 11, fontWeight: active ? 700 : 500, whiteSpace: "nowrap", fontFamily: "inherit" }}>
+                          {label}
+                        </span>
+                      </div>
                     </Link>
                   );
                 })}
               </nav>
-              <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
-                <button onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
-                  style={{
-                    padding: "7px 18px", borderRadius: 20, border: "1.5px solid #E5E7EB",
-                    background: "#fff", fontSize: 13.5, fontWeight: 700,
-                    color: isLoggedIn ? "#16A34A" : "#555",
-                    cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit",
-                  }}>
-                  {isLoggedIn ? "Hesab\u0131m" : "Giri\u015f Yap"}
+
+              {/* ── Right utility area ── */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0, paddingLeft: 12 }}>
+
+                {/* Search */}
+                <form onSubmit={handleSearch} style={{ position: "relative" }}>
+                  <Search size={15} color="#9CA3AF" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
+                  <input
+                    className="yp-search-inp"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder="Ara..."
+                    style={{
+                      width: 140, height: 36, borderRadius: 9999,
+                      border: "1.5px solid #E5E7EB", paddingLeft: 34, paddingRight: 10,
+                      fontSize: 13, color: "#374151", background: "#fff",
+                      fontFamily: "inherit", outline: "none",
+                    }}
+                  />
+                </form>
+
+                {/* Favorites */}
+                <button
+                  className="yp-util-btn"
+                  onClick={() => navigate("/favoriler")}
+                  style={{ width: 36, height: 36, borderRadius: "50%", border: "1.5px solid #E5E7EB", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+                  title="Favoriler"
+                >
+                  <Heart size={17} color="#374151" strokeWidth={1.8} />
                 </button>
+
+                {/* Cart */}
+                <button
+                  className="yp-util-btn"
+                  onClick={() => navigate("/yourpoodle/sepet")}
+                  style={{ width: 36, height: 36, borderRadius: "50%", border: "1.5px solid #E5E7EB", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative" }}
+                  title="Sepet"
+                >
+                  <ShoppingCart size={17} color="#374151" strokeWidth={1.8} />
+                  {cartCount > 0 && (
+                    <span style={{
+                      position: "absolute", top: -4, right: -4,
+                      background: "#7C3AED", color: "#fff",
+                      fontSize: 9, fontWeight: 800,
+                      width: 18, height: 18, borderRadius: "50%",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      border: "2px solid #fff",
+                    }}>{cartCount > 9 ? "9+" : cartCount}</span>
+                  )}
+                </button>
+
+                {/* Profile */}
+                <div ref={profileRef} style={{ position: "relative" }}>
+                  <button
+                    className="yp-util-btn"
+                    onClick={() => {
+                      if (!isLoggedIn) { navigate("/yourpoodle/giris"); return; }
+                      setProfileOpen(o => !o);
+                    }}
+                    style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px 4px 4px", borderRadius: 9999, border: "1.5px solid #E5E7EB", background: "#fff", cursor: "pointer" }}
+                  >
+                    {/* Avatar circle */}
+                    <div style={{
+                      width: 28, height: 28, borderRadius: "50%",
+                      background: isLoggedIn ? "linear-gradient(135deg,#7C3AED,#A855F7)" : "#F3F4F6",
+                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                    }}>
+                      {isLoggedIn
+                        ? <span style={{ fontSize: 12, fontWeight: 800, color: "#fff" }}>{initials || "🐾"}</span>
+                        : <User size={14} color="#9CA3AF" />
+                      }
+                    </div>
+                    <ChevronDown size={13} color="#9CA3AF" strokeWidth={2} style={{ transform: profileOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
+                  </button>
+
+                  {/* Dropdown */}
+                  {profileOpen && isLoggedIn && (
+                    <div className="yp-profile-drop" style={{
+                      position: "absolute", top: "calc(100% + 8px)", right: 0,
+                      background: "#fff", borderRadius: 16,
+                      boxShadow: "0 8px 32px rgba(139,92,246,0.18)",
+                      border: "1px solid #EDE9FE",
+                      minWidth: 180, zIndex: 300, overflow: "hidden",
+                    }}>
+                      {[
+                        { label: "👤 Profilim",         href: "/hesabim" },
+                        { label: "📦 Siparişlerim",     href: "/yourpoodle/siparislerim" },
+                        { label: "🐾 Köpek Profilim",   href: "/yourpoodle/p/olustur" },
+                        { label: "❤️ Favorilerim",      href: "/favoriler" },
+                        { label: "🚪 Çıkış Yap",        href: "/giris?logout=1" },
+                      ].map(({ label, href }) => (
+                        <button key={href} onClick={() => { navigate(href); setProfileOpen(false); }}
+                          style={{ display: "block", width: "100%", padding: "11px 18px", fontSize: 13, fontWeight: 600, color: "#374151", background: "none", border: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}
+                          onMouseEnter={e => (e.currentTarget.style.background = "#F5F0FF")}
+                          onMouseLeave={e => (e.currentTarget.style.background = "none")}
+                        >{label}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 {!isLoggedIn && (
                   <button onClick={() => navigate("/yourpoodle/giris")}
                     style={{
-                      padding: "7px 18px", borderRadius: 20, border: "none",
+                      padding: "7px 16px", borderRadius: 9999, border: "none",
                       background: "linear-gradient(135deg,#7C3AED,#A855F7)",
-                      fontSize: 13.5, fontWeight: 700, color: "#fff",
-                      cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit",
+                      fontSize: 13, fontWeight: 700, color: "#fff",
+                      cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit", flexShrink: 0,
                     }}>
                     Ücretsiz Başla
                   </button>
@@ -136,7 +296,7 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
         </div>
       </header>
 
-      {/* ──────────── MOBILE DRAWER ──────────── */}
+      {/* ════════════ MOBILE DRAWER ════════════ */}
       {drawerOpen && (
         <div onClick={() => setDrawerOpen(false)}
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 299, backdropFilter: "blur(2px)" }} />
@@ -144,13 +304,14 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
       <nav style={{
         position: "fixed", top: 0, left: 0, height: "100%", width: 280, background: "#fff", zIndex: 300,
         transform: drawerOpen ? "translateX(0)" : "translateX(-100%)", transition: "transform 0.24s ease",
-        boxShadow: "4px 0 28px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column"
+        boxShadow: "4px 0 28px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column",
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 18px 14px", borderBottom: "1px solid #f2f2f2" }}>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <img src="/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 30, width: "auto", objectFit: "contain" }} />
-          </div>
-          <button onClick={() => setDrawerOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: "#666", padding: 6 }}>✕</button>
+          <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 20, color: "#6B21A8" }}>YourPoodle 🐾</span>
+          <button onClick={() => setDrawerOpen(false)}
+            style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", width: 32, height: 32 }}>
+            <X size={20} color="#666" />
+          </button>
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: "8px 0" }}>
           {[
@@ -160,8 +321,8 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
             <button key={l.href} onClick={() => { navigate(l.href); setDrawerOpen(false); }}
               style={{
                 display: "block", width: "100%", padding: "13px 20px", fontSize: 15, fontWeight: 600,
-                color: activeLink === l.href || activeLink.startsWith(l.href) ? "#7C3AED" : "#222",
-                background: activeLink === l.href || activeLink.startsWith(l.href) ? "#F5F0FF" : "transparent",
+                color: isActive(activeLink, l.href) ? "#7C3AED" : "#222",
+                background: isActive(activeLink, l.href) ? "#F5F0FF" : "transparent",
                 border: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit",
               }}>{l.label}</button>
           ))}
@@ -169,51 +330,49 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
         <div style={{ padding: "16px 18px", borderTop: "1px solid #f2f2f2" }}>
           <button onClick={() => { navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris"); setDrawerOpen(false); }}
             style={{ width: "100%", height: 46, borderRadius: 12, background: "linear-gradient(135deg,#7C3AED,#A855F7)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-            {isLoggedIn ? "\ud83d\udc64 Hesab\u0131m" : "Ücretsiz Başla"}
+            {isLoggedIn ? "👤 Hesabım" : "Ücretsiz Başla"}
           </button>
         </div>
       </nav>
 
-      {/* ──────────── MOBILE HEADER ──────────── */}
+      {/* ════════════ MOBILE HEADER ════════════ */}
       <header className="yp-mobile-hdr" style={{
-        position: "sticky", top: 0, zIndex: 100, background: "#fff",
-        borderBottom: "1px solid #F0F0F0", alignItems: "center",
-        justifyContent: authMode ? "center" : "space-between", padding: "10px 14px", height: 60,
+        position: "sticky", top: 0, zIndex: 100,
+        background: "linear-gradient(135deg, #F5F0FF 0%, #EDE9FE 100%)",
+        alignItems: "center",
+        justifyContent: authMode ? "center" : "space-between",
+        padding: "8px 12px",
+        height: 58,
       }}>
         {authMode ? (
           <Link href="/yourpoodle">
-            <div style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
-              <img src="/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 32, width: "auto", objectFit: "contain" }} />
-            </div>
+            <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 20, color: "#6B21A8", cursor: "pointer" }}>YourPoodle 🐾</span>
           </Link>
         ) : (
-          <>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Link href="/">
-                <div style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
-                  <img src="/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 34, width: "auto", objectFit: "contain" }} />
-                </div>
-              </Link>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
+          <div style={{
+            width: "100%", background: "#fff", borderRadius: 9999,
+            boxShadow: "0 4px 16px rgba(139,92,246,0.12)",
+            display: "flex", alignItems: "center",
+            justifyContent: "space-between", padding: "5px 8px 5px 14px", height: 42,
+          }}>
+            <Link href="/yourpoodle">
+              <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 17, color: "#6B21A8", cursor: "pointer" }}>YourPoodle 🐾</span>
+            </Link>
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <button onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
-                style={{
-                  padding: "6px 13px", borderRadius: 20, border: "1.5px solid #7C3AED",
-                  background: "#F5F0FF", color: "#7C3AED",
-                  fontSize: 12, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit",
-                }}>
-                {isLoggedIn ? "Hesab\u0131m" : "Giri\u015f Yap"}
+                style={{ padding: "5px 11px", borderRadius: 20, border: "1.5px solid #7C3AED", background: "#F5F0FF", color: "#7C3AED", fontSize: 11.5, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
+                {isLoggedIn ? "Hesabım" : "Giriş"}
               </button>
               <button onClick={() => setDrawerOpen(true)}
-                style={{ background: "none", border: "none", cursor: "pointer", padding: 6, fontSize: 22, color: "#333" }}>
+                style={{ background: "#EDE9FE", border: "none", cursor: "pointer", padding: "5px 8px", fontSize: 18, color: "#7C3AED", borderRadius: 10, lineHeight: 1 }}>
                 ☰
               </button>
             </div>
-          </>
+          </div>
         )}
       </header>
 
-      {/* ──────────── PAGE CONTENT ──────────── */}
+      {/* ════════════ PAGE CONTENT ════════════ */}
       <div className="yp-page-body">
         <div className={constrain ? "yp-constrain" : ""}>
           {children}
@@ -221,26 +380,28 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
         <YPFooter />
       </div>
 
-      {/* ──────────── MOBILE BOTTOM NAV ──────────── */}
-      {!authMode && <div className="yp-btm-nav">
-        <nav style={{
-          position: "fixed", bottom: 0, left: 0, right: 0,
-          background: "#fff", borderTop: "1px solid #f0f0f0",
-          boxShadow: "0 -4px 20px rgba(0,0,0,0.08)",
-          height: 64, display: "flex", alignItems: "center", zIndex: 200, padding: "0 2px"
-        }}>
-          {NAV_LINKS.map(({ label, href, Icon }) => {
-            const isActive = effectiveBottomLink === href || effectiveBottomLink.startsWith(href);
-            return (
-              <button key={href} onClick={() => navigate(href)}
-                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, background: "none", border: "none", cursor: "pointer", flex: 1, color: isActive ? "#7C3AED" : "#aaa", transition: "color 0.15s", padding: "4px 2px" }}>
-                <Icon size={21} strokeWidth={isActive ? 2.5 : 2} />
-                <span style={{ fontSize: 9, fontWeight: isActive ? 800 : 600, fontFamily: "inherit", whiteSpace: "nowrap" }}>{label}</span>
-              </button>
-            );
-          })}
-        </nav>
-      </div>}
+      {/* ════════════ MOBILE BOTTOM NAV ════════════ */}
+      {!authMode && (
+        <div className="yp-btm-nav">
+          <nav style={{
+            position: "fixed", bottom: 0, left: 0, right: 0,
+            background: "#fff", borderTop: "1px solid #f0f0f0",
+            boxShadow: "0 -4px 20px rgba(0,0,0,0.08)",
+            height: 64, display: "flex", alignItems: "center", zIndex: 200, padding: "0 2px",
+          }}>
+            {NAV_LINKS.map(({ label, href, Icon }) => {
+              const active = isActive(effectiveBottomLink, href);
+              return (
+                <button key={href} onClick={() => navigate(href)}
+                  style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, background: "none", border: "none", cursor: "pointer", flex: 1, color: active ? "#7C3AED" : "#aaa", transition: "color 0.15s", padding: "4px 2px" }}>
+                  <Icon size={20} strokeWidth={active ? 2.5 : 2} />
+                  <span style={{ fontSize: 9, fontWeight: active ? 800 : 600, fontFamily: "inherit", whiteSpace: "nowrap" }}>{label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+      )}
     </div>
   );
 }

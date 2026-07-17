@@ -1,0 +1,61 @@
+yourpoodle.com sitesine aşağıdaki tasarıma birebir uygun bir üst navigasyon barı (header) ekle. Mevcut site yapısına ve kullanılan framework'e (React/Next.js/HTML vb.) uyum sağla. Tüm metinler Türkçe olacak.
+
+## Genel Tasarım
+- Açık lavanta/mor tonlu arka plan üzerinde yüzen, beyaz, pill şeklinde (border-radius: 9999px veya ~50px) bir navbar
+- Yumuşak mor/pembe tonlu drop shadow (box-shadow: 0 8px 32px rgba(139, 92, 246, 0.15))
+- Max-width: ~1200px, ortalanmış, yatay flex layout
+- Responsive: mobilde hamburger menüye dönüşsün
+
+## Renk Paleti
+- Primary purple: #6B21A8 veya #7C3AED
+- Light purple (active bg): #EDE9FE veya #F3E8FF
+- Text dark: #374151
+- Text grey: #9CA3AF
+- White: #FFFFFF
+- Border grey: #E5E7EB
+
+## Sol Bölüm — Logo
+- "YourPoodle" yazısı koyu mor, elegant cursive/script font (Google Fonts: "Pacifico" veya "Dancing Script")
+- "e" harfinin sonuna küçük mor paw print (🐾) ikonu
+- Altında slogan: "Poodle'ınız için en iyi rehber 💜" — küçük, gri, sans-serif font (Inter veya system-ui)
+
+## Orta Bölüm — Navigasyon (6 item, ikon + label alt alta)
+Her item: outline ikon + altında label, dikey hizalı, gap: 4px
+
+1. **Ana Sayfa** (ACTIVE) — paw print ikonu, açık mor rounded-square arka plan (#EDE9FE), ikon ve text mor
+2. **Mama Bul** — dog food bowl ikonu, gri/siyah
+3. **Rehber** — open book ikonu, gri/siyah
+4. **Araçlar** — grooming brush/comb ikonu, gri/siyah
+5. **AI Asistan** — robot face ikonu, gri/sikh
+6. **Mağaza** — shopping bag ikonu, gri/sikh
+
+Active item stili:
+- background: #EDE9FE
+- border-radius: 12px
+- padding: 8px 16px
+- color: #7C3AED
+
+İkonlar: Lucide React veya Heroicons outline style kullan.
+
+## Sağ Bölüm — Utility Tools
+1. **Arama kutusu**: pill şeklinde input, sol tarafta büyüteç ikonu, placeholder "Ara...", açık gri border
+2. **Favoriler**: kalp ikonu, ince dairesel border içinde
+3. **Sepet**: alışveriş sepeti ikonu, dairesel border, sağ üstte mor badge "3"
+4. **Profil**: yuvarlak avatar (kahverengi poodle fotoğrafı veya placeholder), yanında aşağı ok (dropdown)
+
+## Teknik Gereksinimler
+- Component adı: `Navbar` veya `Header`
+- Tüm sayfalarda görünsün (layout'a ekle)
+- Sticky top: position sticky, top: 16px, z-index: 50
+- Hover efektleri: inactive nav item'larda hafif mor arka plan geçişi
+- Sepet badge: absolute positioned, bg-purple-600, text-white, text-xs, rounded-full, w-5 h-5
+- Arama, favori, sepet butonları: w-10 h-10, rounded-full, border border-gray-200, hover:bg-gray-50
+- Tailwind CSS kullanılıyorsa Tailwind class'ları ile yaz
+- TypeScript kullanılıyorsa tip tanımları ekle
+- Mevcut routing yapısına uygun Link/navigate kullan
+
+## Dosya Yapısı (React/Next.js için)
+- components/Navbar.tsx (veya Header.tsx)
+- layout.tsx veya App.tsx'e import et
+
+Önce mevcut proje yapısını incele, sonra bu navbar'ı oluştur ve tüm sayfalara entegre et. Çalıştığından emin ol.
