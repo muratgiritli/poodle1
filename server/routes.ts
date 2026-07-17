@@ -2112,6 +2112,30 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
+  // YourPoodle cart validation: check current price/stock/active for a list of product IDs
+  // POST body: { ids: number[] }
+  // Returns: { [id]: { price, stock, isActive, name } }
+  app.post("/api/yp-cart/validate", async (req, res) => {
+    try {
+      const ids: number[] = Array.isArray(req.body?.ids) ? req.body.ids.map(Number).filter(n => !isNaN(n) && n > 0) : [];
+      if (ids.length === 0) return res.json({});
+      if (ids.length > 100) return res.status(400).json({ error: "Too many items" });
+      const result = await sharedPool.query(
+        `SELECT id, name, price, stock, is_active AS "isActive" FROM products WHERE id = ANY($1)`,
+        [ids]
+      );
+      const map: Record<number, { name: string; price: number; stock: number; isActive: boolean }> = {};
+      for (const row of result.rows) {
+        map[row.id] = { name: row.name, price: row.price, stock: row.stock, isActive: row.isActive };
+      }
+      res.setHeader("Cache-Control", "no-store");
+      res.json(map);
+    } catch (e: any) {
+      console.error("[/api/yp-cart/validate]", e?.message);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // YourPoodle: dog product categories (from subcategories table)
   app.get("/api/categories", async (req, res) => {
     try {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useLocation } from "wouter";
-import { ChevronLeft, CreditCard, Loader2, ArrowRight, Check, X } from "lucide-react";
+import { ChevronLeft, CreditCard, Loader2, ArrowRight, Check, X, AlertTriangle, PackageX, RefreshCw } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { useCustomer } from "@/contexts/CustomerContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -11,6 +11,9 @@ interface CartItem { id: number; name: string; price: number; img?: string; qty:
 const LS_CART = "yp_cart_items";
 function loadCart(): CartItem[] {
   try { return JSON.parse(localStorage.getItem(LS_CART) || "[]"); } catch { return []; }
+}
+function saveCart(items: CartItem[]) {
+  try { localStorage.setItem(LS_CART, JSON.stringify(items)); } catch {}
 }
 function clearYPCart() {
   try { localStorage.setItem(LS_CART, "[]"); } catch {}
@@ -29,12 +32,28 @@ function formatPhone(val: string): string {
   return `${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6, 8)} ${d.slice(8, 10)}`;
 }
 
+/* ─── Stock status for a single product ─── */
+interface LiveProductInfo {
+  name: string;
+  price: number;
+  stock: number;
+  isActive: boolean;
+}
+
 export default function YPOdemePage() {
   const [, navigate] = useLocation();
   const { customer, isLoggedIn, loginWithOtp } = useCustomer();
 
   /* ─── Cart ─── */
-  const [cart] = useState<CartItem[]>(loadCart);
+  const [cart, setCart] = useState<CartItem[]>(loadCart);
+
+  /* ─── Stock validation ─── */
+  const [liveInfo, setLiveInfo] = useState<Record<number, LiveProductInfo>>({});
+  const [stockLoading, setStockLoading] = useState(false);
+  const [stockChecked, setStockChecked] = useState(false);
+  const [stockError, setStockError] = useState("");
+
+  /* Compute totals from (possibly updated) cart */
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const shipping = subtotal >= KARGO_UCRETSIZ_LIMIT ? 0 : KARGO_UCRET;
   const total = subtotal + shipping;
@@ -83,6 +102,69 @@ export default function YPOdemePage() {
   useEffect(() => {
     if (cart.length === 0) navigate("/yourpoodle/magaza");
   }, []);
+
+  /* ─── Validate cart against live product data on mount ─── */
+  const validateCart = async (currentCart: CartItem[]) => {
+    if (currentCart.length === 0) return;
+    setStockLoading(true);
+    setStockError("");
+    try {
+      const ids = currentCart.map(i => i.id);
+      const res = await apiRequest("POST", "/api/yp-cart/validate", { ids });
+      if (!res.ok) throw new Error("Ürün bilgileri alınamadı.");
+      const data: Record<string, LiveProductInfo> = await res.json();
+      setLiveInfo(data);
+
+      /* Auto-update prices in cart where they've changed */
+      setCart(prev => {
+        const updated = prev.map(item => {
+          const live = data[item.id];
+          if (live && live.isActive && live.price !== item.price) {
+            return { ...item, price: live.price };
+          }
+          return item;
+        });
+        saveCart(updated);
+        return updated;
+      });
+    } catch (err: any) {
+      setStockError("Stok kontrolü yapılamadı. Devam edebilirsiniz ancak bazı ürünler güncel olmayabilir.");
+    } finally {
+      setStockLoading(false);
+      setStockChecked(true);
+    }
+  };
+
+  useEffect(() => {
+    validateCart(loadCart());
+  }, []);
+
+  /* ─── Derived: per-item issues ─── */
+  interface ItemIssue { kind: "inactive" | "outofstock" | "pricechange"; oldPrice?: number; newPrice?: number; }
+  const itemIssues = useMemo((): Record<number, ItemIssue> => {
+    if (!stockChecked) return {};
+    const issues: Record<number, ItemIssue> = {};
+    for (const item of cart) {
+      const live = liveInfo[item.id];
+      if (!live) continue; // product not found → don't block (server will catch it)
+      if (!live.isActive) { issues[item.id] = { kind: "inactive" }; continue; }
+      if ((live.stock ?? 0) <= 0) { issues[item.id] = { kind: "outofstock" }; continue; }
+      /* qty exceeds stock */
+      if (item.qty > live.stock) { issues[item.id] = { kind: "outofstock" }; continue; }
+    }
+    return issues;
+  }, [cart, liveInfo, stockChecked]);
+
+  const hasBlockingIssues = Object.keys(itemIssues).length > 0;
+
+  /* Remove a problematic item from cart */
+  const removeItem = (id: number) => {
+    setCart(prev => {
+      const next = prev.filter(i => i.id !== id);
+      saveCart(next);
+      return next;
+    });
+  };
 
   /* ─── Validation ─── */
   const validate = (): string => {
@@ -190,7 +272,7 @@ export default function YPOdemePage() {
     if (code.length !== 4) { verifyingRef.current = false; return; }
     setOtpLoading(true);
     setOtpError("");
-    const normalized = phone.replace(/\D/g, "");
+      const normalized = phone.replace(/\D/g, "");
     try {
       await loginWithOtp(normalized, code, name.trim(), undefined);
       setShowOtp(false);
@@ -236,6 +318,7 @@ export default function YPOdemePage() {
 
   /* ─── Submit handler ─── */
   const handleSubmit = async () => {
+    if (hasBlockingIssues) return;
     const err = validate();
     if (err) { setOrderError(err); return; }
     const payload = buildPayload();
@@ -286,6 +369,61 @@ export default function YPOdemePage() {
             <span style={{ fontSize: 13, fontWeight: 700, color: purple }}>Güvenli Online Kart Ödemesi</span>
             <span style={{ marginLeft: "auto", fontSize: 11, color: "#888" }}>SSL şifreli</span>
           </div>
+
+          {/* Stock checking indicator */}
+          {stockLoading && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F5F0FF", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 13, color: purple }}>
+              <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} />
+              Sepetinizdeki ürünlerin güncel stoku kontrol ediliyor…
+            </div>
+          )}
+
+          {/* Stock check error (non-blocking) */}
+          {stockError && !stockLoading && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#FFFBEB", border: "1px solid #FCD34D", borderRadius: 10, padding: "10px 14px", marginBottom: 16 }}>
+              <AlertTriangle size={15} color="#D97706" style={{ flexShrink: 0 }} />
+              <span style={{ fontSize: 13, color: "#92400E" }}>{stockError}</span>
+            </div>
+          )}
+
+          {/* Blocking issues: out-of-stock / deactivated items */}
+          {stockChecked && hasBlockingIssues && (
+            <div style={{ background: "#FEF2F2", border: "1.5px solid #FCA5A5", borderRadius: 14, padding: "14px 16px", marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <PackageX size={17} color="#DC2626" />
+                <span style={{ fontSize: 13, fontWeight: 800, color: "#DC2626" }}>
+                  Sepetinizde sorunlu ürün var
+                </span>
+              </div>
+              <p style={{ fontSize: 12.5, color: "#7F1D1D", margin: "0 0 12px", lineHeight: 1.5 }}>
+                Aşağıdaki ürünler stokta kalmadı veya satıştan kaldırıldı. Ödemeye geçebilmek için lütfen sepetinizden kaldırın.
+              </p>
+              {Object.entries(itemIssues).map(([idStr, issue]) => {
+                const id = Number(idStr);
+                const item = cart.find(i => i.id === id);
+                if (!item) return null;
+                return (
+                  <div key={id} style={{ display: "flex", alignItems: "center", gap: 10, background: "#fff", borderRadius: 10, padding: "10px 12px", marginBottom: 6, border: "1px solid #FCA5A5" }}>
+                    {item.img && (
+                      <img src={item.img} alt={item.name} style={{ width: 36, height: 36, objectFit: "contain", borderRadius: 6, flexShrink: 0 }} />
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: "#1a1a1a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</div>
+                      <div style={{ fontSize: 11.5, color: "#DC2626", marginTop: 2 }}>
+                        {issue.kind === "inactive" ? "Bu ürün artık satışta değil" : "Stokta yok"}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => removeItem(id)}
+                      style={{ display: "flex", alignItems: "center", gap: 4, background: "#DC2626", border: "none", borderRadius: 8, padding: "6px 10px", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}
+                    >
+                      <X size={12} /> Kaldır
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Delivery info form */}
           <div style={{ background: "#F9FAFB", borderRadius: 16, padding: "18px 16px", marginBottom: 16 }}>
@@ -346,15 +484,35 @@ export default function YPOdemePage() {
 
           {/* Order summary */}
           <div style={{ background: "#F9FAFB", borderRadius: 16, padding: "16px 18px", marginBottom: 16 }}>
-            <h2 style={{ fontSize: 14, fontWeight: 800, color: "#1a1a1a", margin: "0 0 14px" }}>Sipariş Özeti ({cartCount} ürün)</h2>
-            {cart.map(item => (
-              <div key={item.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#444", marginBottom: 8 }}>
-                <span style={{ flex: 1, marginRight: 8, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {item.name} <span style={{ color: "#888" }}>×{item.qty}</span>
-                </span>
-                <span style={{ fontWeight: 700, flexShrink: 0 }}>₺{(item.price * item.qty).toLocaleString("tr-TR")}</span>
-              </div>
-            ))}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <h2 style={{ fontSize: 14, fontWeight: 800, color: "#1a1a1a", margin: 0 }}>Sipariş Özeti ({cartCount} ürün)</h2>
+              {stockChecked && !stockLoading && (
+                <button
+                  onClick={() => validateCart(cart)}
+                  style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", color: purple, fontSize: 11, fontWeight: 700, padding: 0 }}
+                  title="Stoku yenile"
+                >
+                  <RefreshCw size={12} /> Stoku yenile
+                </button>
+              )}
+            </div>
+            {cart.map(item => {
+              const issue = itemIssues[item.id];
+              const hasIssue = !!issue;
+              return (
+                <div key={item.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: hasIssue ? "#B91C1C" : "#444", marginBottom: 8, opacity: hasIssue ? 0.7 : 1 }}>
+                  <span style={{ flex: 1, marginRight: 8, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {item.name} <span style={{ color: "#888" }}>×{item.qty}</span>
+                    {hasIssue && <span style={{ marginLeft: 6, fontSize: 11, color: "#DC2626", fontWeight: 700 }}>
+                      {issue.kind === "inactive" ? "(satışta değil)" : "(stok yok)"}
+                    </span>}
+                  </span>
+                  <span style={{ fontWeight: 700, flexShrink: 0, textDecoration: hasIssue ? "line-through" : undefined }}>
+                    ₺{(item.price * item.qty).toLocaleString("tr-TR")}
+                  </span>
+                </div>
+              );
+            })}
             <div style={{ borderTop: "1px solid #e5e7eb", paddingTop: 10, marginTop: 4 }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#555", marginBottom: 6 }}>
                 <span>Kargo</span>
@@ -375,19 +533,29 @@ export default function YPOdemePage() {
             </div>
           )}
 
+          {/* Blocking issues hint above button */}
+          {stockChecked && hasBlockingIssues && (
+            <div style={{ textAlign: "center", fontSize: 12.5, color: "#DC2626", fontWeight: 700, marginBottom: 10 }}>
+              Sorunlu ürünleri kaldırdıktan sonra ödemeye geçebilirsiniz.
+            </div>
+          )}
+
           {/* Place order button */}
           <button
             onClick={handleSubmit}
-            disabled={orderLoading}
+            disabled={orderLoading || (stockChecked && hasBlockingIssues)}
             style={{
               width: "100%", height: 52, borderRadius: 14, border: "none",
-              background: orderLoading ? "#ccc" : `linear-gradient(135deg,${purple},#A855F7)`,
-              color: "#fff", fontSize: 15, fontWeight: 800, cursor: orderLoading ? "not-allowed" : "pointer",
+              background: (orderLoading || (stockChecked && hasBlockingIssues)) ? "#ccc" : `linear-gradient(135deg,${purple},#A855F7)`,
+              color: "#fff", fontSize: 15, fontWeight: 800,
+              cursor: (orderLoading || (stockChecked && hasBlockingIssues)) ? "not-allowed" : "pointer",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontFamily: "inherit",
             }}
           >
             {orderLoading ? (
               <><Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> İşleniyor...</>
+            ) : stockLoading ? (
+              <><Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> Stok kontrol ediliyor...</>
             ) : (
               <>Ödemeye Geç <ArrowRight size={16} /></>
             )}
