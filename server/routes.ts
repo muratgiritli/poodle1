@@ -150,12 +150,14 @@ async function sendSmsViaNetgsm(phone: string, message: string, msgheaderOverrid
     console.log("NetGSM send skipped (TEST_OTP_BYPASS active, no SMS capture)");
     return true;
   }
-  // Strip leading '+' — NetGSM rejects "+908508403959" but accepts "908508403959".
-  const usercode = (process.env.NETGSM_USERCODE || "").replace(/\D/g, "");
-  const password = process.env.NETGSM_PASSWORD;
-  const msgheader = (msgheaderOverride && msgheaderOverride.trim()) || process.env.NETGSM_MSGHEADER;
+  // Use usercode as-is (trim only) — usercode can be alphanumeric username or phone number.
+  // Only strip a leading '+' if present (e.g. "+905..." → "905...").
+  const usercode = (process.env.NETGSM_USERCODE || "").trim().replace(/^\+/, "");
+  const password = (process.env.NETGSM_PASSWORD || "").trim();
+  const msgheader = ((msgheaderOverride && msgheaderOverride.trim()) || process.env.NETGSM_MSGHEADER || "").trim();
+  console.log(`NetGSM usercode loaded: ${usercode ? usercode.slice(0,3) + "***" : "(empty)"}, msgheader: "${msgheader}"`);
   if (!usercode || !password || !msgheader) {
-    console.error("NetGSM credentials not configured");
+    console.error(`NetGSM credentials not configured — usercode:${!!usercode} password:${!!password} msgheader:${!!msgheader}`);
     return false;
   }
   message = normalizeTrSms(message);
