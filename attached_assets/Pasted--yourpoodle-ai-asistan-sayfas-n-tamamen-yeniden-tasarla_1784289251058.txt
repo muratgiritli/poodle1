@@ -1,0 +1,125 @@
+/yourpoodle/ai-asistan sayfasını tamamen yeniden tasarla. Mevcut işlevselliği (AI chat, kategori seçimi, önerilen sorular) koru; sadece UI/UX'i modern, premium ve pet-friendly bir tasarıma dönüştür.
+
+## Hedef
+YourPoodle AI Poodle Asistanı sayfası — glassmorphism, yumuşak gradientler, geniş boşluklar, yuvarlatılmış köşeler (16–24px), mobil-first responsive.
+
+## Renk Paleti
+- Primary: #8B5CF6 (mor)
+- Gradient header: #7C3AED → #8B5CF6 → #A78BFA
+- Kategori renkleri:
+  - Beslenme: mor (#8B5CF6 / #F3E8FF arka plan)
+  - Bakım: pembe (#EC4899 / #FCE7F3)
+  - Eğitim: mavi (#3B82F6 / #DBEAFE)
+  - Sağlık: yeşil (#10B981 / #D1FAE5)
+  - Davranış: turuncu (#F97316 / #FFEDD5)
+- Arka plan: #F8FAFC veya #F9FAFB
+- Kartlar: beyaz, hafif gölge (shadow-sm / shadow-md)
+
+## Font
+Inter veya Poppins (Google Fonts). Başlıklar bold, gövde metni regular.
+
+---
+
+## 1. HERO HEADER (Tam genişlik)
+- Mor gradient arka plan, alt kenarda organik dalga geçişi (SVG path veya clip-path ile beyaz içeriğe geçiş)
+- Sol taraf:
+  - Yuvarlatılmış kare içinde robot ikonu (beyaz)
+  - Başlık: "AI Poodle Asistanı" (büyük, bold, beyaz)
+  - Alt metin: "Poodle'nız hakkında her soruyu sorun — beslenme, bakım, eğitim ve sağlık."
+  - 4 glassmorphism chip (yarı saydam beyaz, backdrop-blur):
+    1. 💬 "7/24 Aktif"
+    2. 👑 "Ücretsiz Her zaman"
+    3. 💭 "5sn Ortalama yanıt"
+    4. ⭐ "5 Kategori"
+- Sağ taraf (masaüstü):
+  - Toy poodle fotoğrafı (sağdan içeri bakıyor)
+  - Konuşma balonu: "Merhaba! 👋 Ben AI Poodle Asistanı. Poodle'nız için buradayım!"
+
+---
+
+## 2. ANA İÇERİK — İKİ SÜTUN (masaüstü) / TEK SÜTUN (mobil)
+
+### Sol sütun (~2/3 genişlik)
+
+**Breadcrumb:** "Ana Sayfa > AI Poodle Asistanı" (açık gri, link mor)
+
+**Başlık:** "✨ Size Nasıl Yardımcı Olabilirim?"
+**Alt metin:** "Aşağıdaki konulardan birini seçin veya sorunuzu yazın."
+
+**Kategori Grid:**
+- Masaüstü: 3 sütun grid (ilk 5 kart), son kart tam genişlik
+- Mobil: 2 sütun (ilk 4 kart), sonra tek sütun
+
+Her kart:
+- Yuvarlatılmış köşeler (rounded-2xl), hafif gölge, hover'da hafif yükselme (translateY -2px + shadow-lg)
+- Sol üst: renkli daire içinde ikon
+- Bold kategori başlığı
+- Kısa açıklama metni
+- Sağ alt: küçük yuvarlak ok butonu (→)
+
+Kategoriler:
+1. **Beslenme** — mor ikon (kase) — "Mama miktarı, öğün planı ve beslenme önerileri"
+2. **Bakım** — pembe ikon (makas) — "Tüy bakımı, banyo ve grooming ipuçları"
+3. **Eğitim** — mavi ikon (mezuniyet şapkası) — "Tuvalet eğitimi, komutlar ve sosyalleşme"
+4. **Sağlık** — yeşil ikon (kalp/nabız) — "Aşı takvimi, hastalık belirtileri ve veteriner"
+5. **Davranış** — turuncu ikon (pati) — "Anksiyete, havlama ve davranış sorunları"
+
+**Özel alt kart — "Poodle Profilim":**
+- Tam genişlik, açık mor arka plan (#F3E8FF)
+- Poodle siluet ikonu + "Poodle Profilim" + "Profilinizi oluşturun, kişiselleştirilmiş öneriler alın"
+- Sağda büyük chevron ok
+
+---
+
+### Sağ sütun (~1/3 genişlik) — CHAT PANELİ
+
+Beyaz kart, rounded-2xl, shadow-md, sticky (masaüstünde scroll'da sabit kalabilir)
+
+**"Önerilen Sorular" bölümü:**
+- Başlık + chat bubble ikonu
+- Mobil: sağda "Tümünü Gör >" linki
+- Tıklanabilir soru listesi (her biri ince border ile ayrılmış, sağda chevron):
+  - "4 aylık Poodle'ım ne kadar mama yemeli?"
+  - "Toy Poodle tüy bakımı ne sıklıkla yapılmalı?"
+  - "Poodle tuvalet eğitimi ne kadar sürer?"
+  - (mevcut önerilen soruları koru)
+
+**Chat input:**
+- Geniş, açık gri arka planlı input: placeholder "Sorunuzu buraya yazın..."
+- Sağda mor kare/yuvarlak gönder butonu (kağıt uçak ikonu)
+- Mevcut AI chat API entegrasyonunu koru
+
+**Alt not:**
+- 🔒 "Sohbetleriniz gizlidir ve üçüncü kişilerle paylaşılmaz." (küçük, gri metin)
+
+---
+
+## 3. MOBİL — ALT NAVİGASYON BAR (sadece mobil, fixed bottom)
+Beyaz arka plan, 5 menü öğesi:
+1. **Asistan** (robot ikonu) — AKTİF (mor)
+2. **Mama Bul** (kase ikonu) — gri
+3. **Rehber** (kitap ikonu) — gri
+4. **Araçlar** (grid ikonu) — gri
+5. **Profilim** (user ikonu) — gri
+
+Mobilde chat paneli kategori grid'in altına taşınır. Alt nav için body'ye padding-bottom ekle.
+
+---
+
+## 4. TEKNİK GEREKSİNİMLER
+- Tailwind CSS kullan (projede yoksa ekle)
+- İkonlar: lucide-react veya mevcut ikon kütüphanesi
+- Responsive breakpoint'ler: sm (640), md (768), lg (1024)
+- lg+: iki sütun layout (grid-cols-3, sol col-span-2, sağ col-span-1)
+- md altı: tek sütun, kategori 2 kolon grid
+- Tüm mevcut fonksiyonellik korunmalı: kategori tıklama → chat'e prompt gönderme, önerilen soru tıklama, AI yanıt akışı, Poodle Profilim linki
+- SEO meta title/description değiştirme
+- Animasyonlar: hover transitions (200ms), kart hover lift, chip fade-in
+- Erişilebilirlik: butonlarda aria-label, yeterli kontrast oranı
+
+## 5. YAPMA
+- Mevcut routing/URL yapısını değiştirme
+- Backend/API endpoint'lerini değiştirme
+- Diğer sayfaların stilini bozma — sadece ai-asistan sayfasına özel component/stil
+
+Önce mevcut ai-asistan sayfa dosyasını bul, sonra yukarıdaki tasarıma göre refactor et. Bitince masaüstü ve mobil görünümü kontrol et.
