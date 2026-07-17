@@ -3124,6 +3124,125 @@ test("payment-status exposes sourceSite=jetgo for YP orders → isYP=true → re
     "YP success redirect destination must be /yourpoodle/tesekkurler");
 });
 
+// ---- YP Tosla callback: full completion round-trip ----
+//
+// The prior YP tests confirm order creation and the payment-status redirect
+// contract, but do not drive the Tosla callback → payment_status='completed'
+// round-trip. If that callback path ever breaks for a YP order the order
+// silently stays 'pending' and is invisible to both the buyer and admin.
+//
+// These two tests close that gap:
+//   (a) A valid signed success callback must flip the order to 'completed'
+//       while leaving source_site='jetgo' intact.
+//   (b) A callback arriving without a valid Hash must be rejected by the
+//       server (verification-failed) and the order must stay 'pending' —
+//       proving a broken/forged callback cannot silently complete a YP order.
+
+test("YP Tosla callback (success): YP order reaches payment_status='completed' and source_site='jetgo' survives", async () => {
+  // 1) Create a YP order — same payload as yp-odeme.tsx.
+  const res = await postAsCustomerXff("/api/orders", JETGO_HOST, ypOrderPayload(), "10.201.0.3");
+  assert.equal(res.status, 201, `YP order POST failed: ${JSON.stringify(res.body)}`);
+  const orderId = res.body.id as number;
+  assert.ok(orderId, "YP order id must be present");
+  ids.orders.push(orderId);
+
+  // Confirm initial DB state.
+  const created = await pool.query(
+    "SELECT source_site, payment_status FROM orders WHERE id = $1",
+    [orderId]
+  );
+  assert.equal(created.rows[0]?.payment_status, "pending",
+    "YP order must start as pending before any payment callback");
+  assert.equal(created.rows[0]?.source_site, "jetgo",
+    "YP order source_site must be jetgo at creation");
+
+  // 2) Register a Tosla payment token (simulating init-payment; never hits
+  //    the real Tosla API).
+  const merchantOrderId = `${MARK}YPTOK${orderId}`;
+  await pool.query(
+    `INSERT INTO tosla_payment_tokens (token, order_id, amount, status, updated_at)
+     VALUES ($1, $2, $3, 'pending', NOW())`,
+    [merchantOrderId, orderId, 100]
+  );
+  // Advance to 'awaiting' (happens when the buyer opens the hosted-payment page).
+  await pool.query("UPDATE orders SET payment_status = 'awaiting' WHERE id = $1", [orderId]);
+
+  // 3) Drive the Tosla success callback with a properly signed Hash.
+  const cbHash = await toslaCallbackHash({
+    orderId: merchantOrderId, mdStatus: "1", bankResponseCode: "00",
+    bankResponseMessage: "", requestStatus: "1",
+  });
+  const cbUrl =
+    `${baseUrl}/api/tosla/callback` +
+    `?OrderId=${encodeURIComponent(merchantOrderId)}` +
+    `&Code=0&BankResponseCode=00&MdStatus=1&RequestStatus=1` +
+    `&Hash=${encodeURIComponent(cbHash)}`;
+  const cbRes = await fetch(cbUrl, {
+    headers: { "X-Forwarded-Host": JETGO_HOST },
+    redirect: "manual",
+  });
+  assert.ok(
+    cbRes.status >= 300 && cbRes.status < 400,
+    `Tosla callback expected a redirect (3xx), got ${cbRes.status}`
+  );
+
+  // 4) Assert DB state after the callback.
+  const after = await pool.query(
+    "SELECT source_site, payment_status FROM orders WHERE id = $1",
+    [orderId]
+  );
+  assert.equal(after.rows[0]?.payment_status, "completed",
+    "YP order must be marked payment_status='completed' after a valid success callback");
+  assert.equal(after.rows[0]?.source_site, "jetgo",
+    "source_site='jetgo' must survive the Tosla completion callback unchanged");
+});
+
+test("YP Tosla callback (failed/broken): order stays pending when the callback has no valid Hash", async () => {
+  // 1) Create a YP order.
+  const res = await postAsCustomerXff("/api/orders", JETGO_HOST, ypOrderPayload(), "10.201.0.4");
+  assert.equal(res.status, 201, `YP order POST failed: ${JSON.stringify(res.body)}`);
+  const orderId = res.body.id as number;
+  assert.ok(orderId, "YP order id must be present");
+  ids.orders.push(orderId);
+
+  // 2) Register a Tosla payment token.
+  const merchantOrderId = `${MARK}YPFAIL${orderId}`;
+  await pool.query(
+    `INSERT INTO tosla_payment_tokens (token, order_id, amount, status, updated_at)
+     VALUES ($1, $2, $3, 'pending', NOW())`,
+    [merchantOrderId, orderId, 100]
+  );
+
+  // 3) Drive the callback WITHOUT a Hash — simulates a broken or forged callback.
+  //    The server must reject this (verification-failed) and must NOT complete
+  //    the order. The redirect destination signals failure, but the critical
+  //    assertion is the DB state below.
+  const brokenUrl =
+    `${baseUrl}/api/tosla/callback` +
+    `?OrderId=${encodeURIComponent(merchantOrderId)}` +
+    `&Code=0&BankResponseCode=00&MdStatus=1&RequestStatus=1`;
+  // No Hash param — server rejects with failRedirect (still a 3xx).
+  const cbRes = await fetch(brokenUrl, {
+    headers: { "X-Forwarded-Host": JETGO_HOST },
+    redirect: "manual",
+  });
+  assert.ok(
+    cbRes.status >= 300 && cbRes.status < 400,
+    `broken callback expected a redirect (3xx), got ${cbRes.status}`
+  );
+
+  // 4) Order must still be 'pending' — the broken callback must not flip it to
+  //    'completed', ensuring the silent-failure scenario is detectable.
+  const after = await pool.query(
+    "SELECT source_site, payment_status FROM orders WHERE id = $1",
+    [orderId]
+  );
+  assert.equal(after.rows[0]?.payment_status, "pending",
+    "YP order must remain payment_status='pending' when the Tosla callback lacks a valid Hash");
+  assert.equal(after.rows[0]?.source_site, "jetgo",
+    "source_site='jetgo' must be preserved even when the callback is rejected");
+});
+
 // ── Stock-guard: real-time out-of-stock rejection ─────────────────────────────
 //
 // The checkout page (yp-odeme.tsx) validates stock on mount, but the result is
