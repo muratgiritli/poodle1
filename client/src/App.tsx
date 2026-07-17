@@ -118,6 +118,11 @@ const YPFotografYarismasi       = lazy(() => import("@/pages/yp-fotograf-yarisma
 const YPOzelTasarimPage         = lazy(() => import("@/pages/yp-ozel-tasarim"));
 const YPProfilPage        = lazy(() => import("@/pages/yp-profil"));
 const YPSepetPage         = lazy(() => import("@/pages/yp-sepet"));
+const YPDogCreatePage     = lazy(() => import("@/pages/yp-dog-create"));
+const YPDogProfilePage    = lazy(() => import("@/pages/yp-dog-profile"));
+const YPDogEditPage       = lazy(() => import("@/pages/yp-dog-edit"));
+const YPClubKesfetPage    = lazy(() => import("@/pages/yp-club-kesfet"));
+const YPClubKopeklerPage  = lazy(() => import("@/pages/yp-club-kopekler"));
 const DemoKampanyaPage = lazy(() => import("@/pages/demo-kampanya"));
 const DemoKampanyaUrunPage = lazy(() => import("@/pages/demo-kampanya").then(m => ({ default: m.DemoKampanyaUrun })));
 const SeoPage = lazy(() => import("@/pages/seo-pages"));
@@ -196,7 +201,16 @@ function Router() {
         </Route>
         <Route path="/yourpoodle/rehber"         component={YPRehberPage} />
         <Route path="/yourpoodle/club/hakkimizda" component={YPClubHakkimizdaPage} />
+        <Route path="/yourpoodle/club/kesfet"    component={YPClubKesfetPage} />
+        <Route path="/yourpoodle/club/kopekler"  component={YPClubKopeklerPage} />
         <Route path="/yourpoodle/club"           component={YPClubPage} />
+        <Route path="/yourpoodle/p/olustur"      component={YPDogCreatePage} />
+        <Route path="/yourpoodle/p/:slug/duzenle">
+          {(params) => <YPDogEditPage routeSlug={params?.slug} />}
+        </Route>
+        <Route path="/yourpoodle/p/:slug">
+          {(params) => <YPDogProfilePage routeSlug={params?.slug} />}
+        </Route>
         <Route path="/yourpoodle/bilgi"          component={YPBilgiPage} />
         <Route path="/yourpoodle/magaza"         component={YPMagazaPage} />
         <Route path="/yourpoodle/giris"          component={YPGirisPage} />

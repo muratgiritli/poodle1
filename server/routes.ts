@@ -2,6 +2,7 @@ import crypto from "crypto";
 import type { Express, Request, Response, NextFunction } from "express";
 import { type Server } from "http";
 import { storage, pool as sharedPool, db } from "./storage";
+import { registerDogRoutes } from "./dogs";
 import { seedDatabase } from "./seed";
 import { insertBrandCategorySchema, insertProductSchema, insertCrossSellSectionSchema, insertCrossSellItemSchema, insertOrderSchema, orderItemSchema, insertBreedStatSchema, insertStockAlertSchema, orders, virtualPets, petContestEntries, petContestVotes, productReviews, insertContactMessageSchema, brandCategories } from "@shared/schema";
 import { getStoreByHost, STORES, brandifyFor, canonicalHost, DEFAULT_STORE } from "@shared/stores";
@@ -7918,6 +7919,8 @@ Kurallar:
       res.json({ ok: true });
     } catch (e: any) { res.status(500).json({ message: e.message }); }
   });
+
+  await registerDogRoutes(app, sharedPool);
 
   return httpServer;
 }

@@ -46,7 +46,7 @@ const COLUMNS = [
     title: "Topluluk",
     links: [
       { label: "Topluluk Akışı",   href: "/yourpoodle/club?tab=akis" },
-      { label: "Köpek Dizini",     href: "/yourpoodle/club?tab=poodlem" },
+      { label: "Köpek Dizini",     href: "/yourpoodle/club/kopekler" },
       { label: "YourPoodle Club",  href: "/yourpoodle/club" },
       { label: "Sağlık Asistanı",  href: "/yourpoodle/ai-asistan" },
       { label: "Poodle Rehberi",   href: "/yourpoodle/rehber" },
