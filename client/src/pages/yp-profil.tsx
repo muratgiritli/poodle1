@@ -251,7 +251,7 @@ export default function YPProfilPage() {
               {[
                 { emoji: "🍖", label: "Mama Bul", href: "/yourpoodle/mama-bul" },
                 { emoji: "🤖", label: "AI Asistan", href: "/yourpoodle/ai-asistan" },
-                { emoji: "📚", label: "Bakım Rehberi", href: "/yourpoodle/bakim" },
+                { emoji: "📦", label: "Siparişlerim", href: "/yourpoodle/siparislerim" },
                 { emoji: "🏆", label: "Poodle Club", href: "/yourpoodle/club" },
               ].map(item => (
                 <button

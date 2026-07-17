@@ -5064,6 +5064,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         installmentMonthly: (o as any).installmentMonthly,
         installmentTotal: (o as any).installmentTotal,
         paymentStatus: (o as any).paymentStatus,
+        sourceSite: (o as any).sourceSite,
         isCampaign,
       };
     }));

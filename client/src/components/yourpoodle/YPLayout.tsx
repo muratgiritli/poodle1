@@ -14,7 +14,8 @@ const NAV_LINKS = [
 ];
 
 // Drawer — all links including secondary ones
-const DRAWER_LINKS = [
+// Note: "Siparişlerim" is injected dynamically below when logged in
+const DRAWER_LINKS_BASE = [
   { label: "Ana Sayfa",  href: "/" },
   { label: "Rehber",     href: "/yourpoodle/rehber" },
   { label: "Mama Bul",   href: "/yourpoodle/mama-bul" },
@@ -152,7 +153,10 @@ export default function YPLayout({ children, activeLink = "", bottomNavActive, c
           <button onClick={() => setDrawerOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: "#666", padding: 6 }}>✕</button>
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: "8px 0" }}>
-          {DRAWER_LINKS.map(l => (
+          {[
+            ...DRAWER_LINKS_BASE,
+            ...(isLoggedIn ? [{ label: "Siparişlerim", href: "/yourpoodle/siparislerim" }] : []),
+          ].map(l => (
             <button key={l.href} onClick={() => { navigate(l.href); setDrawerOpen(false); }}
               style={{
                 display: "block", width: "100%", padding: "13px 20px", fontSize: 15, fontWeight: 600,
