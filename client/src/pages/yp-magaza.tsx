@@ -355,12 +355,12 @@ export default function Magaza() {
               const inCart = cart.some(i=>i.id===p.id);
               return (
                 <div key={p.id} className="prod-card" onClick={()=>navigate(`/yourpoodle/urun/${p.id}`)}
-                  style={{ borderRadius:16, overflow:"hidden", display:"flex", flexDirection:"column", boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
-                  <div style={{ background:"#F0ECFF", aspectRatio:"1/1", display:"flex", alignItems:"center", justifyContent:"center", position:"relative", overflow:"hidden" }}>
+                  style={{ borderRadius:16, overflow:"hidden", display:"flex", flexDirection:"column", border:"1.5px solid #111", boxShadow:"0 2px 12px rgba(0,0,0,0.08)" }}>
+                  <div style={{ background:"#fff", aspectRatio:"1/1", display:"flex", alignItems:"center", justifyContent:"center", position:"relative", overflow:"hidden", borderBottom:"1px solid #111" }}>
                     {p.img
                       ? <>
                           <img src={p.img} alt={p.name} loading="lazy"
-                            style={{ width:"100%", height:"100%", objectFit:"contain", padding:"12px" }}
+                            style={{ width:"100%", height:"100%", objectFit:"contain", padding:"14px" }}
                             onError={e=>{
                               (e.target as HTMLImageElement).style.display="none";
                               const sib = (e.target as HTMLImageElement).nextElementSibling as HTMLElement|null;

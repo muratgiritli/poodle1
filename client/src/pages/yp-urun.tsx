@@ -119,10 +119,10 @@ export default function YPUrunPage() {
     <YPLayout>
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-        .yp-urun-img-wrap { background: #F0ECFF; }
+        .yp-urun-img-wrap { background: #ffffff; border-bottom: 1.5px solid #111; }
         @media (min-width: 768px) {
           .yp-urun-layout { display: grid !important; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 960px; margin: 0 auto; padding: 32px 24px; }
-          .yp-urun-img-wrap { border-radius: 20px; aspect-ratio: 1/1; }
+          .yp-urun-img-wrap { border-radius: 16px; border: 1.5px solid #111 !important; aspect-ratio: 1/1; }
           .yp-urun-back { display: none !important; }
         }
       `}</style>
