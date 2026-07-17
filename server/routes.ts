@@ -6563,6 +6563,28 @@ Kurallar:
     } catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
+  // Get all recommendations for the logged-in user (paginated)
+  app.get("/api/yp/recommendations", async (req, res) => {
+    const customerId = (req.session as any)?.customerId;
+    if (!customerId) return res.status(401).json({ error: "Giriş gerekli" });
+    const page = Math.max(1, parseInt(String(req.query.page || "1"), 10));
+    const limit = Math.min(20, Math.max(1, parseInt(String(req.query.limit || "10"), 10)));
+    const offset = (page - 1) * limit;
+    try {
+      await sharedPool.query(ENSURE_YP_RECOMMENDATIONS);
+      const countResult = await sharedPool.query(
+        `SELECT COUNT(*) FROM yp_recommendations WHERE customer_id = $1`,
+        [customerId]
+      );
+      const total = parseInt(countResult.rows[0].count, 10);
+      const result = await sharedPool.query(
+        `SELECT * FROM yp_recommendations WHERE customer_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
+        [customerId, limit, offset]
+      );
+      res.json({ items: result.rows, total, page, limit, pages: Math.ceil(total / limit) });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
   // ── Poodle photo upload ────────────────────────────────────────────────
   app.post("/api/yp/poodle/photo", upload.single("photo"), async (req, res) => {
     const customerId = (req.session as any)?.customerId;

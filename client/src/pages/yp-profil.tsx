@@ -187,12 +187,20 @@ export default function YPProfilPage() {
                     <span style={{ fontSize: 20 }}>🍖</span>
                     <span style={{ fontSize: 14, fontWeight: 800, color: "#18114a" }}>Son Mama Önerim</span>
                   </div>
-                  <button
-                    onClick={() => navigate("/yourpoodle/mama-bul")}
-                    style={{ background: "#EDE9FE", border: "none", borderRadius: 10, padding: "5px 10px", fontSize: 11, fontWeight: 700, color: "#7C3AED", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontFamily: "'Inter', sans-serif" }}
-                  >
-                    Yenile <ChevronRight size={12} />
-                  </button>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button
+                      onClick={() => navigate("/yourpoodle/gecmis-oneriler")}
+                      style={{ background: "#F0FDF4", border: "none", borderRadius: 10, padding: "5px 10px", fontSize: 11, fontWeight: 700, color: "#059669", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontFamily: "'Inter', sans-serif" }}
+                    >
+                      Geçmiş <ChevronRight size={12} />
+                    </button>
+                    <button
+                      onClick={() => navigate("/yourpoodle/mama-bul")}
+                      style={{ background: "#EDE9FE", border: "none", borderRadius: 10, padding: "5px 10px", fontSize: 11, fontWeight: 700, color: "#7C3AED", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontFamily: "'Inter', sans-serif" }}
+                    >
+                      Yenile <ChevronRight size={12} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Profile tags */}
