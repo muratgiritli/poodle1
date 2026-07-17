@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import { Package, ExternalLink, ChevronRight } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Package, ExternalLink, ChevronRight, X } from "lucide-react";
 import { useCustomer } from "@/contexts/CustomerContext";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import YPBreadcrumb from "@/components/YPBreadcrumb";
@@ -44,9 +44,13 @@ function formatCurrency(v: number | string) {
   return Number(v).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+const CANCELLABLE_STATUSES = ["beklemede", "hazirlaniyor"];
+
 export default function YPSiparislerimPage() {
   const [, navigate] = useLocation();
   const { isLoggedIn } = useCustomer();
+  const queryClient = useQueryClient();
+  const [confirmingId, setConfirmingId] = useState<number | null>(null);
 
   // Redirect to login if not logged in
   useEffect(() => {
@@ -57,6 +61,31 @@ export default function YPSiparislerimPage() {
     queryKey: ["/api/customer/orders"],
     enabled: !!isLoggedIn,
     staleTime: 30_000,
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: async (orderId: number) => {
+      const res = await fetch(`/api/customer/orders/${orderId}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || "İptal işlemi başarısız oldu");
+      }
+      return res.json();
+    },
+    onSuccess: (_data, orderId) => {
+      setConfirmingId(null);
+      // Optimistically update the cached order list so status flips instantly
+      queryClient.setQueryData<any[]>(["/api/customer/orders"], (prev) =>
+        (prev || []).map((o) => (o.id === orderId ? { ...o, status: "iptal" } : o))
+      );
+    },
+    onError: (err: Error) => {
+      setConfirmingId(null);
+      alert(err.message || "İptal işlemi başarısız oldu. Lütfen tekrar deneyin.");
+    },
   });
 
   // Filter to YP / jetgo orders only, exclude pending payment (not yet paid online)
@@ -109,6 +138,9 @@ export default function YPSiparislerimPage() {
                 const payInfo = PAYMENT_STATUS[order.paymentStatus] || null;
                 const items: any[] = Array.isArray(order.items) ? order.items : [];
                 const hasTracking = order.trackingNumber || order.trackingUrl;
+                const isCancellable = CANCELLABLE_STATUSES.includes(order.status);
+                const isConfirming = confirmingId === order.id;
+                const isCancelling = cancelMutation.isPending && cancelMutation.variables === order.id;
 
                 return (
                   <div key={order.id} style={{ background: "#fff", borderRadius: 20, boxShadow: "0 2px 16px rgba(0,0,0,0.07)", overflow: "hidden" }}>
@@ -217,6 +249,43 @@ export default function YPSiparislerimPage() {
                         >
                           Ürünü Görüntüle <ChevronRight size={13} />
                         </button>
+                      </div>
+                    )}
+
+                    {/* Cancel button — only for beklemede / hazirlaniyor */}
+                    {isCancellable && (
+                      <div style={{ padding: "0 16px 14px" }}>
+                        {isConfirming ? (
+                          <div style={{ background: "#FEF2F2", borderRadius: 12, padding: "12px 14px", border: "1px solid #FECACA" }}>
+                            <p style={{ fontSize: 13, fontWeight: 700, color: "#991B1B", margin: "0 0 10px", textAlign: "center" }}>
+                              Siparişi iptal etmek istediğinize emin misiniz?
+                            </p>
+                            <div style={{ display: "flex", gap: 8 }}>
+                              <button
+                                onClick={() => setConfirmingId(null)}
+                                disabled={isCancelling}
+                                style={{ flex: 1, height: 40, borderRadius: 10, background: "#F3F4F6", border: "none", fontSize: 13, fontWeight: 700, color: "#374151", cursor: "pointer", fontFamily: "inherit" }}
+                              >
+                                Vazgeç
+                              </button>
+                              <button
+                                onClick={() => cancelMutation.mutate(order.id)}
+                                disabled={isCancelling}
+                                style={{ flex: 1, height: 40, borderRadius: 10, background: "#DC2626", border: "none", fontSize: 13, fontWeight: 700, color: "#fff", cursor: isCancelling ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: isCancelling ? 0.7 : 1 }}
+                              >
+                                {isCancelling ? "İptal ediliyor…" : "Evet, İptal Et"}
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmingId(order.id)}
+                            style={{ width: "100%", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 12, padding: "10px 14px", fontSize: 12, fontWeight: 700, color: "#DC2626", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4, fontFamily: "inherit" }}
+                          >
+                            <X size={13} />
+                            İptal Et
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>

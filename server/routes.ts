@@ -5094,6 +5094,98 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }));
   });
 
+  // Buyer self-service cancel: only beklemede/hazirlaniyor orders, ownership validated via phone
+  app.post("/api/customer/orders/:id/cancel", requireCustomer, async (req, res) => {
+    const customerId = (req as any).customerId;
+    const orderId = parseInt(String(req.params.id));
+    if (isNaN(orderId)) return res.status(400).json({ message: "Geçersiz sipariş ID" });
+
+    const ip = req.ip || "unknown";
+    if (rateLimit(`customer-cancel:${ip}`, 10, 60 * 60 * 1000)) {
+      return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
+    }
+
+    try {
+      // Resolve customer phone for ownership check
+      const customer = await storage.getCustomer(customerId);
+      if (!customer) return res.status(401).json({ message: "Müşteri bulunamadı" });
+
+      // Read the order — validate ownership (phone match) and cancellable status
+      const orderRows = await sharedPool.query(
+        "SELECT id, status, payment_status, customer_phone, source_site, items FROM orders WHERE id = $1",
+        [orderId]
+      );
+      if (orderRows.rows.length === 0) return res.status(404).json({ message: "Sipariş bulunamadı" });
+      const order = orderRows.rows[0];
+
+      // Ownership: customer phone must match order's customer_phone
+      if (canonicalTrPhone(order.customer_phone || "") !== canonicalTrPhone(customer.phone || "")) {
+        return res.status(403).json({ message: "Bu siparişe erişim izniniz yok" });
+      }
+
+      // Only allow cancel on beklemede / hazirlaniyor
+      const cancellableStatuses = ["beklemede", "hazirlaniyor"];
+      if (!cancellableStatuses.includes(order.status)) {
+        return res.status(409).json({ message: "Bu sipariş artık iptal edilemez" });
+      }
+
+      // Atomically transition to iptal
+      const upd = await sharedPool.query(
+        "UPDATE orders SET status = 'iptal', updated_at = NOW() WHERE id = $1 AND status = ANY($2) RETURNING id, items, source_site, customer_phone",
+        [orderId, cancellableStatuses]
+      );
+      if (upd.rowCount === 0) {
+        // Race condition: another process already changed status
+        return res.status(409).json({ message: "Bu sipariş artık iptal edilemez" });
+      }
+
+      // Restore stock for each item
+      const items: any[] = upd.rows[0]?.items || [];
+      for (const it of items) {
+        const pid = parseInt(String(it.productId));
+        const qty = it.deductedQty != null
+          ? (parseInt(String(it.deductedQty)) || 0)
+          : (it.isPreorder ? 0 : (parseInt(String(it.quantity)) || 0));
+        if (!isNaN(pid) && qty > 0) {
+          await restoreStockWithMovement(pid, qty, orderId);
+        }
+      }
+
+      // Also fail any pending payment tokens so late callbacks can't complete the order
+      await sharedPool.query(
+        "UPDATE tosla_payment_tokens SET status = 'failed', updated_at = NOW() WHERE order_id = $1 AND status = 'pending'",
+        [orderId]
+      );
+      await sharedPool.query(
+        "UPDATE iyzico_payment_tokens SET status = 'failed', updated_at = NOW() WHERE order_id = $1 AND status = 'pending'",
+        [orderId]
+      );
+
+      console.log(`[customer-cancel] order=${orderId} customer=${customerId} items_restored=${items.length}`);
+
+      // Fire buyer "order cancelled" SMS — explicit user action, not an auto-cancel
+      try {
+        const sourceSite = upd.rows[0]?.source_site || order.source_site;
+        const phone = upd.rows[0]?.customer_phone || order.customer_phone;
+        if (phone) {
+          const stCfg = storeById(sourceSite);
+          const brand = stCfg.id === "jetgo" ? "YourPoodle" : stCfg.shortName;
+          const apexHost = canonicalHost(stCfg).replace(/^www\./, "");
+          const smsMsg = `${brand} - #${orderId} numarali siparisiniz iptal edildi. Sorunuz varsa bize ulasin. ${apexHost}`;
+          const stHeader = await resolveSmsHeader(stCfg.id);
+          await sendSmsViaNetgsm(phone, smsMsg, stHeader);
+        }
+      } catch (smsErr) {
+        console.error("[customer-cancel] SMS error:", smsErr);
+      }
+
+      res.json({ ok: true, status: "iptal" });
+    } catch (e) {
+      console.error("[customer-cancel] error:", e);
+      res.status(500).json({ message: "Sipariş iptal edilirken bir hata oluştu" });
+    }
+  });
+
   app.get("/api/customer/favorites", requireCustomer, async (req, res) => {
     const customerId = (req as any).customerId;
     const favoriteIds = await storage.getCustomerFavoriteIds(customerId);
