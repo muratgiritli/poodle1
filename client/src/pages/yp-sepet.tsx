@@ -58,6 +58,19 @@ export default function YPSepetPage() {
       .finally(() => setStockLoading(false));
   }, [cart]);
 
+  // Auto-remove fully out-of-stock items once validation results arrive
+  useEffect(() => {
+    if (Object.keys(stockMap).length === 0) return;
+    setCart(prev => {
+      const filtered = prev.filter(item => {
+        const info = stockMap[item.id];
+        if (!info) return true; // not yet loaded — keep
+        return info.isActive && info.stock > 0;
+      });
+      return filtered.length !== prev.length ? filtered : prev;
+    });
+  }, [stockMap]);
+
   const remove = (id: number) => setCart(prev => prev.filter(i => i.id !== id));
   const changeQty = (id: number, delta: number) =>
     setCart(prev => prev.map(i => i.id === id ? { ...i, qty: Math.max(1, i.qty + delta) } : i));
@@ -81,6 +94,11 @@ export default function YPSepetPage() {
     const s = getStockStatus(item);
     return s === "out" || s === "insufficient";
   });
+
+  const hasOutItems = cart.some(item => getStockStatus(item) === "out");
+
+  const removeOutOfStock = () =>
+    setCart(prev => prev.filter(item => getStockStatus(item) !== "out"));
 
   return (
     <YPLayout activeLink="/yourpoodle/magaza">
@@ -201,9 +219,34 @@ export default function YPSepetPage() {
 
             {/* Out-of-stock summary warning */}
             {hasBlockingIssue && !stockLoading && (
-              <div style={{ margin: "0 16px 12px", padding: "10px 14px", borderRadius: 12, background: "#FEF2F2", border: "1px solid #FECACA", fontSize: 13, color: "#DC2626", fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
-                <AlertTriangle size={15} style={{ flexShrink: 0 }} />
-                Sepetinizdeki bazı ürünlerin stoğu yetersiz. Siparişi tamamlamak için miktarları güncelleyin veya ürünleri çıkarın.
+              <div style={{ margin: "0 16px 12px" }}>
+                <div style={{ padding: "10px 14px", borderRadius: 12, background: "#FEF2F2", border: "1px solid #FECACA", fontSize: 13, color: "#DC2626", fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+                  <AlertTriangle size={15} style={{ flexShrink: 0 }} />
+                  Sepetinizdeki bazı ürünlerin stoğu yetersiz. Siparişi tamamlamak için miktarları güncelleyin veya ürünleri çıkarın.
+                </div>
+                {hasOutItems && (
+                  <button
+                    onClick={removeOutOfStock}
+                    style={{
+                      marginTop: 8,
+                      width: "100%",
+                      padding: "10px 16px",
+                      borderRadius: 10,
+                      border: "1.5px solid #FECACA",
+                      background: "#fff",
+                      color: "#DC2626",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 6,
+                      fontFamily: "inherit",
+                    }}>
+                    <Trash2 size={14} /> Stokta olmayan ürünleri kaldır
+                  </button>
+                )}
               </div>
             )}
 
