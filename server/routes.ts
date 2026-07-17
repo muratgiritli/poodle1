@@ -2101,7 +2101,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
                bc.animal, bc.subcategory, bc.brand_name AS "brandName", bc.brand_slug AS "brandSlug"
         FROM products p
         LEFT JOIN brand_categories bc ON p.brand_category_id = bc.id
-        WHERE p.is_active = true
+        WHERE p.is_active = true AND bc.animal = 'kopek'
         ORDER BY p.id DESC
       `);
       res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");

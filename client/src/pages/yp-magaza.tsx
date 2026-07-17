@@ -24,7 +24,7 @@ const CATS = [
   { id:"tasma",   label:"Tasma & Gezdirme", icon:"🎗️", slugs:["bel-boyun-tasma"] },
   { id:"tasima",  label:"Taşıma",           icon:"🎒", slugs:["tasima-kulube"] },
   { id:"oyuncak", label:"Oyuncak",          icon:"🎾", slugs:["oyuncak"] },
-  { id:"bakim",   label:"Bakım & Hijyen",   icon:"✨", slugs:["sampuan-banyo","bakim-saglik","tiras-ekipmanlari","tirnak-makasi","goz-kulak-bakim","tuy-toplayici","agiz-dis-bakim"] },
+  { id:"bakim",   label:"Bakım & Hijyen",   icon:"✨", slugs:["sampuan-banyo","bakim-saglik","tras-ekipmanlari","tirnak-makasi","goz-kulak-bakim","tuy-toplayici","agiz-dis-bakim"] },
   { id:"saglik",  label:"Sağlık & Vitamin", icon:"❤️", slugs:["bit-pire-parazit","sut-tozu-biberon"] },
 ] as const;
 type CatId = typeof CATS[number]["id"];

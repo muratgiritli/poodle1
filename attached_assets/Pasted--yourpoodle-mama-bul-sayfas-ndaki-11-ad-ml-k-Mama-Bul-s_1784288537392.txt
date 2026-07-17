@@ -1,0 +1,214 @@
+/yourpoodle/mama-bul sayfasındaki 11 adımlık "Mama Bul" sihirbazının UI'sını sıfırdan yeniden tasarla. Mevcut backend/API, filtreleme mantığı, state key'leri, sonuç sayfası yönlendirmesi ve form verisi AYNEN korunacak — sadece görsel katman değişecek.
+
+Önce projede şu dosyaları bul: mama-bul route/page, MamaBul / MamaBulWizard component, mb-wizard-wrap CSS veya Tailwind class'ları. Mevcut 11 adımın state yapısını oku, field isimlerini değiştirme.
+
+## Hedef
+Ekteki mockup'lardaki premium mor-beyaz tasarımı birebir uygula. Şu anki düz liste görünümü (emoji + basit kart) tamamen kaldırılacak.
+
+## Tasarım sistemi (tüm adımlar için ortak)
+
+### Renkler
+- Primary purple: #7B3FE4 (buton, seçili border, progress)
+- Primary hover: #6D28D9
+- Light lavender bg: #F3EFFF / #F4F0FF
+- Card white: #FFFFFF
+- Text primary: #1A1A2E
+- Text secondary: #6B7280
+- Border default: #E5E7EB
+- Border selected: #7B3FE4
+- Info banner bg: #F3EFFF
+- Disabled button: #E2E2F0, text #9CA3AF
+
+### Tipografi
+- Google Font: "Inter" veya "Plus Jakarta Sans"
+- Başlık: 28–32px, font-weight 700
+- Alt metin: 15–16px, color secondary
+- Vurgulu kelime mor + ince alt çizgi (ör: "yaşı nedir?", "hedefi", "alerjisi")
+
+### Sayfa arka planı
+- Tam ekran açık lavanta (#F3EFFF)
+- Dekoratif soluk paw print ve dalga SVG'ler (opacity 0.08)
+- Ortada max-width 920px beyaz kart, border-radius 28px, box-shadow: 0 20px 60px rgba(123,63,228,0.08)
+
+### Ortak layout bileşenleri oluştur
+1. `WizardShell` — arka plan + merkez kart
+2. `WizardHeader` — sol üst "Adım X / 11" pill badge + sağ üst 11'li progress tracker
+3. `ProgressTracker` — 11 daire: tamamlanan = mor + beyaz ✓, aktif = mor + numara, gelecek = gri border + gri numara
+4. `StepHero` — sol metin (ikon + başlık + alt metin), sağda apricot toy poodle fotoğrafı mor daire içinde (object-fit cover, decorative heart/paw)
+5. `OptionCard` — ikon kutusu + başlık + açıklama + sağda radio veya checkbox
+6. `InfoBanner` — lavanta bar, info ikonu, "Birden fazla seçenek işaretleyebilirsiniz" vb.
+7. `WizardFooter` — tam genişlik mor "Devam Et →" butonu; seçim yoksa disabled gri; adım 2+ için altında "← Geri dön" linki
+
+### OptionCard davranışı
+- Hover: border #C4B5FD, hafif shadow
+- Selected: mor border 2px, hafif mor arka plan (#FAF5FF), radio/checkbox dolu mor
+- Radio adımlar: tek seçim
+- Checkbox adımlar: çoklu seçim
+- Grid: 2 sütun desktop, 1 sütun mobil (<768px)
+- Kart padding 16–20px, border-radius 16px
+
+### Buton
+- Devam Et: height 52px, border-radius 9999px, gradient mor, beyaz bold text
+- Son adım: "Sonuçları Gör →"
+- Seçim yapılmadan disabled
+
+### Poodle görseli
+- Tüm hero adımlarda aynı apricot toy poodle görseli kullan (projede varsa mevcut asset, yoksa public/images/poodle-hero.webp placeholder ekle)
+- Mor daire backdrop: 220px, position absolute behind image
+
+---
+
+## 11 ADIM — İÇERİK VE DÜZEN (mockup'a göre)
+
+### ADIM 1 — Yaş (radio, 3 kart yatay/ grid)
+- Badge ikon: 🐾
+- Başlık: "Poodle'ınızın **yaşı nedir?**" (yaşı nedir mor vurgulu)
+- Alt: "Yaşa göre besin ihtiyacı farklılaşır. Doğru seçimi birlikte yapalım. 💜"
+- Hero layout: metin sol, poodle sağ
+- Seçenekler:
+  1. 🌱 Yavru (0–12 ay) — "Besin ihtiyacı yüksek, büyüme dönemi"
+  2. 💪 Yetişkin (1–7 yaş) — "Dengeli beslenme, enerji dengesi"
+  3. ❤️ Yaşlı (7+ yaş) — "Eklem desteği, düşük kalori"
+- 3 kart tek satırda (mobilde stack)
+
+### ADIM 2 — Kilo (radio, 2x2 grid)
+- İkon: terazi
+- Başlık: "Poodle'ınızın **kilosu?**"
+- Alt: "Doğru porsiyon hesabı için önemli"
+- Hero layout
+- Seçenekler:
+  1. 1–2 kg | Micro / Teacup
+  2. 2–4 kg | Toy Poodle
+  3. 4–9 kg | Minyatür
+  4. 9+ kg | Standart
+- Info banner: "Kilonuza göre günlük mama miktarı ve öneriler size özel hazırlanır."
+
+### ADIM 3 — Kısırlaştırma (radio, 2 büyük kart)
+- İkon: clipboard+
+- Başlık: "Kısırlaştırıldı mı?"
+- Alt: "Kısır poodle'lerin kalori ihtiyacı daha azdır."
+- Hero layout
+- Seçenekler:
+  1. ✅ Evet — "Light / kısır formül önerilir"
+  2. 🔵 Hayır — "Standart formül uygundur"
+- Info banner: "Doğru seçim, ideal kilo ve sağlıklı bir yaşam için önemlidir."
+
+### ADIM 4 — Aktivite (radio, 3 kart) [mockup yok, mevcut mantığı koru]
+- Başlık: "Günlük **aktivite seviyesi?**"
+- Alt: "Aktif poodle'ler daha fazla kalori harcar"
+- Hero layout
+- Seçenekler:
+  1. Düşük — "Çoğunlukla evde, kısa yürüyüş"
+  2. Orta — "Günlük 30–60 dk yürüyüş"
+  3. Yüksek — "Aktif, uzun yürüyüşler"
+
+### ADIM 5 — Kilo hedefi (radio, 3 kart — mockup düzeni)
+- İkon: hedef/tahta
+- Başlık: "Kilo **hedefi** var mı?"
+- Alt: "Buna göre kalori yoğunluğunu ayarlıyoruz."
+- Hero layout (sağda poodle, altta sağda 3. kart)
+- Seçenekler:
+  1. 📉 Kilo vermesi gerekiyor — "Kilo kontrolü ve yağ kaybı desteklenir."
+  2. 📈 Biraz kilo alması lazım — "Sağlıklı kilo artışını destekler."
+  3. ⚖️ Kilosunu korusun — "Mevcut kilosunu korumaya yardımcı olur."
+
+### ADIM 6 — Alerji (radio, 2 sütun grid, 5 kart)
+- İkon: yaprak
+- Başlık: "Bilinen **alerjisi** var mı?"
+- Alt: "Alerjen içerikli mamaları filtreliyoruz."
+- Hero layout
+- Seçenekler:
+  1. ✅ Yok / Bilmiyorum — "Alerjisi yok veya bilmiyorum."
+  2. 🐔 Tavuk alerjisi — "Tavuk proteinine karşı alerjisi var."
+  3. 🌾 Tahıl hassasiyeti — "Tahıl içeriklerine karşı hassasiyeti var."
+  4. 🐟 Balık alerjisi — "Balık proteinine karşı alerjisi var."
+  5. ⚠️ Farklı bir alerji — "Yukarıdakiler dışında farklı bir alerjisi var."
+
+### ADIM 7 — Tüy & deri (radio, 2x2)
+- Başlık: "Tüy & deri **durumu?**"
+- Alt: "Omega yağ asitleri tüy kalitesini artırır."
+- Hero layout
+- Seçenekler:
+  1. ✨ Sağlıklı, sorun yok — "İdeal tüy & deri durumu"
+  2. 😔 Tüyleri mat / cansız — "Parlaklık ve canlılık desteği"
+  3. 🤚 Çok kaşınıyor — "Kaşıntı ve tahriş desteği"
+  4. 💇 Aşırı dökülüyor — "Tüy dökülmesine karşı destek"
+
+### ADIM 8 — Sindirim (radio, 3 dikey kart)
+- İkon: kalp
+- Başlık: "Sindirim hassasiyeti var mı?"
+- Alt: "Hassas sindirim için özel formüller mevcuttur."
+- Hero layout
+- Seçenekler:
+  1. ✅ Yok, sorun yok — "Normal sindirim, herhangi bir problem yok."
+  2. 🤢 Zaman zaman mide sorunu — "Ara sıra kusma, ishal veya mide hassasiyeti yaşıyor."
+  3. ⚠️ Çok hassas sindirim — "Sık sık sindirim problemi yaşıyor, özel mama gerekiyor."
+
+### ADIM 9 — Protein (checkbox MULTI, 2 sütun)
+- İkon: et/biftek
+- Başlık: "Tercih edilen protein?"
+- Alt: "Poodle'ınızın en iyi sindireceği kaynakları seçebilirsiniz."
+- Info banner: "Birden fazla seçenek işaretleyebilirsiniz."
+- Hero YOK — sadece başlık + grid (mockup gibi)
+- Seçenekler (checkbox):
+  1. 🐔 Tavuk — "Hafif ve sindirimi kolay protein kaynağıdır."
+  2. 🐑 Kuzu — "Yüksek besin değeri ve lezzetli bir kaynaktır."
+  3. 🐟 Somon / Balık — "Omega-3 kaynağı, tüy ve deri sağlığını destekler."
+  4. 🐰 Tavşan — "Hipoalerjenik özellik gösterir, hassas köpekler için idealdir."
+  5. 🔀 Fark etmez — "Protein kaynağı benim için önemli değil."
+
+### ADIM 10 — Bütçe (checkbox MULTI, 3 kart)
+- İkon: kredi kartı
+- Başlık: "Aylık mama bütçeniz?"
+- Alt: "Her bütçe için kaliteli seçenekler var"
+- Info banner: "Birden fazla seçenek işaretleyebilirsiniz."
+- Seçenekler:
+  1. 💰 ₺500–1.000 — Ekonomik — "Uygun fiyatlı, temel ihtiyaçları karşılayan mamalar."
+  2. 💳 ₺1.000–2.000 — Orta segment — "Dengeli içerik ve kalite, en popüler aralık."
+  3. ⭐ ₺2.000+ — Premium — "Yüksek kaliteli içerik, özel formüller ve destekler."
+
+### ADIM 11 — Paket boyutu (checkbox MULTI, 2x3 grid) — SON ADIM
+- İkon: koli
+- Başlık: "Tercih edilen paket boyutu?"
+- Alt: "Küçük paketler daha taze, büyükler daha ekonomik"
+- Info banner: "Birden fazla seçenek işaretleyebilirsiniz."
+- Seçenekler (6 adet — mockup'taki gibi genişlet):
+  1. 📦 1–2 kg — "Taze kalır, değişiklik kolay"
+  2. 📦 3–5 kg — "Taze + ekonomik denge"
+  3. 🏭 7–12 kg — "En ekonomik, depo gerektirir"
+  4. 📦 13–20 kg — "Büyük ırklar için ideal"
+  5. 📦 21–30 kg — "Uzun süreli kullanım için uygun"
+  6. 📦 30+ kg — "En avantajlı, toplu alım"
+- Öneri banner (mockup): mor yıldız ikon + "Önerilerimiz: 1–2 kg ve 3–5 kg paketleri dönüşümlü kullanarak hem tazeliği koruyabilir hem de ekonomik avantaj sağlayabilirsiniz."
+- Buton metni: "Sonuçları Gör →" (Devam Et değil)
+- "← Geri dön" linki
+
+---
+
+## Teknik uygulama
+
+1. `steps.config.ts` (veya benzeri) dosyası oluştur — 11 adımın title, hint, options, type (radio|checkbox), layout (hero|grid), infoBanner metinleri burada tanımlı olsun.
+2. Ana component tek `WizardStepRenderer` ile config'den render etsin; hardcode tekrar etme.
+3. Mevcut state hook'unu (`useMamaBulWizard` vb.) kullan; sadece UI component'lerini değiştir.
+4. Eski class'lar (`mb-wizard-wrap`, `mb-option`, `mb-step-pill`) yeni tasarıma taşınsın veya Tailwind'e geçirilsin — eski düz CSS kaldırılsın.
+5. Animasyon: adım geçişinde hafif fade+slide (200ms).
+6. Accessibility: option kartları button/role=radio|checkbox, aria-pressed, keyboard navigasyon.
+7. Responsive: mobilde hero'da poodle üstte, metin altta; grid tek sütun.
+8. Progress tracker mobilde yatay scroll veya sadece "Adım X/11" + ince progress bar.
+
+## Korunacaklar (KRİTİK)
+- Mevcut API endpoint'leri ve filtre alanları
+- Sonuç sayfasına giden submit logic
+- SEO meta title/description
+- Navbar ve footer dokunma
+- Form validation kuralları (radio=1 seçim zorunlu, checkbox=en az 1)
+
+## Test
+- /yourpoodle/mama-bul adresinde 11 adımı baştan sona tıkla
+- Her adımda seçim yapmadan buton disabled kalsın
+- Geri dön çalışsın
+- Adım 9–11 multi-select çalışsın
+- Son adımda sonuçlar sayfası açılsın
+- Desktop (1440px) ve mobil (375px) kontrol et
+
+Önce mevcut kodu analiz et, sonra refactor planını kısaca yaz ve uygula. Bitince hangi dosyaları değiştirdiğini listele.
