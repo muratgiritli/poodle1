@@ -492,6 +492,12 @@ export async function registerRoutes(
   }
 
   try {
+    await sharedPool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS cancel_reason text;`);
+  } catch (e) {
+    console.error("Orders cancel_reason migration error:", e);
+  }
+
+  try {
     await sharedPool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS source_site text;`);
     await sharedPool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS city text;`);
     await sharedPool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS district text;`);
@@ -4577,10 +4583,27 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     const id = parseInt(String(req.params.id));
     const { status } = req.body;
     if (!status) return res.status(400).json({ message: "Status required" });
-    const prevRow = await sharedPool.query("SELECT status FROM orders WHERE id = $1", [id]);
+    const prevRow = await sharedPool.query("SELECT status, cancel_reason FROM orders WHERE id = $1", [id]);
     const prevStatus = prevRow.rows[0]?.status;
+
+    // Alıcı tarafından iptal edilmiş siparişlerde durum değişikliğini engelle
+    if (prevStatus === "iptal" && prevRow.rows[0]?.cancel_reason === "customer") {
+      return res.status(409).json({
+        message: "Bu sipariş alıcı tarafından iptal edildi; durumu değiştirilemez.",
+        cancelReason: "customer",
+      });
+    }
+
     const order = await storage.updateOrderStatus(id, status);
     if (!order) return res.status(404).json({ message: "Order not found" });
+
+    // Admin iptal ediyorsa cancel_reason'ı kaydet (customer tarafından zaten set edilmemişse)
+    if (status === "iptal" && prevStatus !== "iptal") {
+      await sharedPool.query(
+        "UPDATE orders SET cancel_reason = 'admin' WHERE id = $1 AND cancel_reason IS NULL",
+        [id]
+      );
+    }
 
     if (SHIPPED_STATUSES.has(String(status).toLowerCase())) {
       await notifyShipmentIfNeeded(order);
@@ -5129,9 +5152,9 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         return res.status(409).json({ message: "Bu sipariş artık iptal edilemez" });
       }
 
-      // Atomically transition to iptal
+      // Atomically transition to iptal — record that the buyer initiated this
       const upd = await sharedPool.query(
-        "UPDATE orders SET status = 'iptal', updated_at = NOW() WHERE id = $1 AND status = ANY($2) RETURNING id, items, source_site, customer_phone",
+        "UPDATE orders SET status = 'iptal', cancel_reason = 'customer', updated_at = NOW() WHERE id = $1 AND status = ANY($2) RETURNING id, items, source_site, customer_phone",
         [orderId, cancellableStatuses]
       );
       if (upd.rowCount === 0) {

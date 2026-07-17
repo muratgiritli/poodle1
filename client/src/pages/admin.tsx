@@ -3066,8 +3066,14 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                           >
                             {statusLabels[order.status] || order.status}
                           </Badge>
+                          {(order as any).cancelReason === "customer" && (
+                            <Badge className="no-default-hover-elevate no-default-active-elevate text-[10px] sm:text-xs bg-orange-100 text-orange-700 border border-orange-300">
+                              Müşteri İptali
+                            </Badge>
+                          )}
                           <Select
                             value={order.status}
+                            disabled={(order as any).cancelReason === "customer"}
                             onValueChange={(value) => updateOrderStatusMutation.mutate({ id: order.id, status: value })}
                           >
                             <SelectTrigger className="w-[120px] sm:w-[150px] h-7 sm:h-8 text-xs sm:text-sm" data-testid={`select-order-status-${order.id}`}>
@@ -3392,10 +3398,18 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     );
                   })()}
 
+                  {(order as any).cancelReason === "customer" && (
+                    <div className="flex items-center gap-2 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-lg p-3 text-sm text-orange-700 dark:text-orange-400">
+                      <span className="text-base">⚠️</span>
+                      <span>Bu sipariş <strong>alıcı tarafından</strong> iptal edildi. Durum değiştirilemez.</span>
+                    </div>
+                  )}
+
                   <div className="border-t pt-3 flex items-center justify-between gap-3">
                     <span className="text-sm text-muted-foreground">Durum Değiştir:</span>
                     <Select
                       value={order.status}
+                      disabled={(order as any).cancelReason === "customer"}
                       onValueChange={(value) => {
                         updateOrderStatusMutation.mutate({ id: order.id, status: value });
                         setOrderDetailDialog({ ...order, status: value });

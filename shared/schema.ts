@@ -138,6 +138,7 @@ export const orders = pgTable("orders", {
   paymentStatus: text("payment_status").notNull().default("completed"),
   isCampaign: boolean("is_campaign").notNull().default(false),
   sourceSite: text("source_site"),
+  cancelReason: text("cancel_reason"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
