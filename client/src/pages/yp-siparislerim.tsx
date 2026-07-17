@@ -51,6 +51,7 @@ export default function YPSiparislerimPage() {
   const { isLoggedIn } = useCustomer();
   const queryClient = useQueryClient();
   const [confirmingId, setConfirmingId] = useState<number | null>(null);
+  const [cancelReasonText, setCancelReasonText] = useState("");
 
   // Redirect to login if not logged in
   useEffect(() => {
@@ -64,10 +65,11 @@ export default function YPSiparislerimPage() {
   });
 
   const cancelMutation = useMutation({
-    mutationFn: async (orderId: number) => {
+    mutationFn: async ({ orderId, reason }: { orderId: number; reason: string }) => {
       const res = await fetch(`/api/customer/orders/${orderId}/cancel`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cancelReasonText: reason }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -75,8 +77,9 @@ export default function YPSiparislerimPage() {
       }
       return res.json();
     },
-    onSuccess: (_data, orderId) => {
+    onSuccess: (_data, { orderId }) => {
       setConfirmingId(null);
+      setCancelReasonText("");
       // Optimistically update the cached order list so status flips instantly
       queryClient.setQueryData<any[]>(["/api/customer/orders"], (prev) =>
         (prev || []).map((o) => (o.id === orderId ? { ...o, status: "iptal" } : o))
@@ -84,6 +87,7 @@ export default function YPSiparislerimPage() {
     },
     onError: (err: Error) => {
       setConfirmingId(null);
+      setCancelReasonText("");
       alert(err.message || "İptal işlemi başarısız oldu. Lütfen tekrar deneyin.");
     },
   });
@@ -140,7 +144,7 @@ export default function YPSiparislerimPage() {
                 const hasTracking = order.trackingNumber || order.trackingUrl;
                 const isCancellable = CANCELLABLE_STATUSES.includes(order.status);
                 const isConfirming = confirmingId === order.id;
-                const isCancelling = cancelMutation.isPending && cancelMutation.variables === order.id;
+                const isCancelling = cancelMutation.isPending && cancelMutation.variables?.orderId === order.id;
 
                 return (
                   <div key={order.id} style={{ background: "#fff", borderRadius: 20, boxShadow: "0 2px 16px rgba(0,0,0,0.07)", overflow: "hidden" }}>
@@ -280,16 +284,35 @@ export default function YPSiparislerimPage() {
                             <p style={{ fontSize: 13, fontWeight: 700, color: "#991B1B", margin: "0 0 10px", textAlign: "center" }}>
                               Siparişi iptal etmek istediğinize emin misiniz?
                             </p>
+                            {/* Opsiyonel neden seçici */}
+                            <div style={{ marginBottom: 10 }}>
+                              <p style={{ fontSize: 11, fontWeight: 600, color: "#6B7280", margin: "0 0 6px" }}>İptal nedeniniz (opsiyonel):</p>
+                              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                                {["Yanlış ürün seçtim", "Fikrim değişti", "Teslimat süresi çok uzun", "Daha ucuz buldum", "Diğer"].map((reason) => (
+                                  <label key={reason} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 12, color: "#374151", fontWeight: cancelReasonText === reason ? 700 : 400 }}>
+                                    <input
+                                      type="radio"
+                                      name={`cancel-reason-${order.id}`}
+                                      value={reason}
+                                      checked={cancelReasonText === reason}
+                                      onChange={() => setCancelReasonText(reason)}
+                                      style={{ accentColor: "#DC2626" }}
+                                    />
+                                    {reason}
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
                             <div style={{ display: "flex", gap: 8 }}>
                               <button
-                                onClick={() => setConfirmingId(null)}
+                                onClick={() => { setConfirmingId(null); setCancelReasonText(""); }}
                                 disabled={isCancelling}
                                 style={{ flex: 1, height: 40, borderRadius: 10, background: "#F3F4F6", border: "none", fontSize: 13, fontWeight: 700, color: "#374151", cursor: "pointer", fontFamily: "inherit" }}
                               >
                                 Vazgeç
                               </button>
                               <button
-                                onClick={() => cancelMutation.mutate(order.id)}
+                                onClick={() => cancelMutation.mutate({ orderId: order.id, reason: cancelReasonText })}
                                 disabled={isCancelling}
                                 style={{ flex: 1, height: 40, borderRadius: 10, background: "#DC2626", border: "none", fontSize: 13, fontWeight: 700, color: "#fff", cursor: isCancelling ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: isCancelling ? 0.7 : 1 }}
                               >

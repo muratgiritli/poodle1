@@ -493,6 +493,7 @@ export async function registerRoutes(
 
   try {
     await sharedPool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS cancel_reason text;`);
+    await sharedPool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS cancel_reason_text text;`);
   } catch (e) {
     console.error("Orders cancel_reason migration error:", e);
   }
@@ -5152,10 +5153,21 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         return res.status(409).json({ message: "Bu sipariş artık iptal edilemez" });
       }
 
+      // İzin verilen iptal nedenleri (alıcı tarafı)
+      const ALLOWED_CANCEL_REASONS = [
+        "Yanlış ürün seçtim",
+        "Fikrim değişti",
+        "Teslimat süresi çok uzun",
+        "Daha ucuz buldum",
+        "Diğer",
+      ];
+      const rawReason = typeof req.body?.cancelReasonText === "string" ? req.body.cancelReasonText.trim() : "";
+      const cancelReasonText = ALLOWED_CANCEL_REASONS.includes(rawReason) ? rawReason : null;
+
       // Atomically transition to iptal — record that the buyer initiated this
       const upd = await sharedPool.query(
-        "UPDATE orders SET status = 'iptal', cancel_reason = 'customer', updated_at = NOW() WHERE id = $1 AND status = ANY($2) RETURNING id, items, source_site, customer_phone",
-        [orderId, cancellableStatuses]
+        "UPDATE orders SET status = 'iptal', cancel_reason = 'customer', cancel_reason_text = $3, updated_at = NOW() WHERE id = $1 AND status = ANY($2) RETURNING id, items, source_site, customer_phone",
+        [orderId, cancellableStatuses, cancelReasonText]
       );
       if (upd.rowCount === 0) {
         // Race condition: another process already changed status

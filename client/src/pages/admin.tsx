@@ -3346,6 +3346,13 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     </div>
                   )}
 
+                  {(order as any).cancelReasonText && (
+                    <div className="text-sm bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900 rounded-lg p-3">
+                      <span className="font-medium text-red-700 dark:text-red-400">İptal Nedeni: </span>
+                      <span className="text-red-600 dark:text-red-300">{(order as any).cancelReasonText}</span>
+                    </div>
+                  )}
+
                   {(() => {
                     const st = STORES.find((s) => s.id === ((order as any).sourceSite || "jetgo"));
                     if (st?.commerce?.fulfillment !== "cargo") return null;

@@ -139,6 +139,7 @@ export const orders = pgTable("orders", {
   isCampaign: boolean("is_campaign").notNull().default(false),
   sourceSite: text("source_site"),
   cancelReason: text("cancel_reason"),
+  cancelReasonText: text("cancel_reason_text"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
