@@ -28,6 +28,24 @@ export default function YPSepetPage() {
     saveCart(cart);
   }, [cart]);
 
+  // Shared validate helper — keeps both the on-change and interval effects DRY
+  const validateStock = (ids: number[], showSpinner = false) => {
+    if (showSpinner) setStockLoading(true);
+    fetch("/api/yp-cart/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+    })
+      .then(r => r.ok ? r.json() : {})
+      .then(data => {
+        const normalized: Record<number, StockInfo> = {};
+        for (const k of Object.keys(data)) normalized[Number(k)] = data[k];
+        setStockMap(normalized);
+      })
+      .catch(() => {})
+      .finally(() => { if (showSpinner) setStockLoading(false); });
+  };
+
   // Validate stock whenever cart item ids change
   useEffect(() => {
     if (cart.length === 0) {
@@ -38,24 +56,15 @@ export default function YPSepetPage() {
     const idsKey = ids.slice().sort((a,b)=>a-b).join(",");
     if (idsKey === prevIdsRef.current) return;
     prevIdsRef.current = idsKey;
+    validateStock(ids, true);
+  }, [cart]);
 
-    setStockLoading(true);
-    fetch("/api/yp-cart/validate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids }),
-    })
-      .then(r => r.ok ? r.json() : {})
-      .then(data => {
-        // Convert string keys from JSON to number keys
-        const normalized: Record<number, StockInfo> = {};
-        for (const k of Object.keys(data)) {
-          normalized[Number(k)] = data[k];
-        }
-        setStockMap(normalized);
-      })
-      .catch(() => {})
-      .finally(() => setStockLoading(false));
+  // Periodic re-check every 30 s while the page is open (catches race conditions)
+  useEffect(() => {
+    if (cart.length === 0) return;
+    const ids = cart.map(i => i.id);
+    const timer = setInterval(() => validateStock(ids), 30_000);
+    return () => clearInterval(timer);
   }, [cart]);
 
   // Auto-remove fully out-of-stock items once validation results arrive
