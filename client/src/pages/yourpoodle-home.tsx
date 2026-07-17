@@ -362,77 +362,115 @@ export default function YourPoodleHomePage() {
       <div className="yph-page-pad">
 
       {/* ─── HERO ────────────────────────────────────────── */}
-      <section style={{ background: "#fff", borderBottom: "1px solid #F0F0F0" }}>
+      <section style={{ background: "linear-gradient(160deg, #F5F0FF 0%, #EDE9FE 60%, #F0EAFF 100%)", borderBottom: "1px solid #E8DFFF" }}>
         <div className="yph-hero-grid yph-hero-pad" style={{ maxWidth: 1200, margin: "0 auto", padding: "64px 24px 56px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 72, alignItems: "center" }}>
 
           {/* Left */}
           <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#F5F3FF", border: "1px solid #E9D5FF", borderRadius: 20, padding: "5px 14px", marginBottom: 22 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.7)", border: "1px solid #E9D5FF", borderRadius: 20, padding: "5px 14px", marginBottom: 22, backdropFilter: "blur(8px)" }}>
               <span style={{ fontSize: 13 }}>✨</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#7C3AED" }}>🌍 Dünya Geneli Kargo · #1 Poodle Platformu</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#7C3AED" }}>Dünyanın En Büyük Poodle Platformu</span>
             </div>
 
             <h1 style={{ fontSize: "clamp(32px,5vw,50px)", fontWeight: 900, lineHeight: 1.1, letterSpacing: "-2px", marginBottom: 18, color: "#0F0F0F" }}>
               Toy Poodle'ınız<br />
-              <span style={{ background: "linear-gradient(135deg,#7C3AED,#EC4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>için her şey</span><br />
+              <span style={{ color: "#7C3AED" }}>için her şey</span><br />
               tek yerde
             </h1>
 
-            <p style={{ fontSize: 16, lineHeight: 1.7, color: "#6B7280", marginBottom: 32, maxWidth: 420 }}>
+            <p style={{ fontSize: 15, lineHeight: 1.7, color: "#6B7280", marginBottom: 32, maxWidth: 420 }}>
               Beslenme, bakım, sağlık ve eğitim rehberleri. AI destekli kişisel öneriler. Dünya geneline kargo yapan Poodle uzman platformu.
             </p>
 
-            <div style={{ display: "flex", gap: 12, marginBottom: 40, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 12, marginBottom: 0, flexWrap: "wrap" }}>
               <button onClick={() => go("/yourpoodle/mama-bul")}
-                style={{ height: 52, padding: "0 28px", borderRadius: 14, border: "none", background: "linear-gradient(135deg,#7C3AED,#A855F7)", color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 8px 24px rgba(124,58,237,0.3)" }}>
+                style={{ height: 52, padding: "0 28px", borderRadius: 14, border: "none", background: "linear-gradient(135deg,#7C3AED,#A855F7)", color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 8px 24px rgba(124,58,237,0.3)", display: "flex", alignItems: "center", gap: 8 }}>
                 🔍 Mama Bul
               </button>
               <button onClick={() => go("/yourpoodle/rehber")}
-                style={{ height: 52, padding: "0 28px", borderRadius: 14, border: "1.5px solid #E5E7EB", background: "#fff", color: "#374151", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                style={{ height: 52, padding: "0 28px", borderRadius: 14, border: "1.5px solid #C4B5FD", background: "rgba(255,255,255,0.8)", color: "#7C3AED", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8 }}>
                 📖 Rehberleri Gör
               </button>
-            </div>
-
-            {/* Stats — flex-wrap so they never overflow on mobile */}
-            <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-              {[["50K+", "Aktif üye"], ["500+", "Rehber"], ["4.9★", "Puan"]].map(([n, l]) => (
-                <div key={l} style={{ minWidth: 60 }}>
-                  <div style={{ fontSize: 20, fontWeight: 900, color: "#111", letterSpacing: "-0.5px" }}>{n}</div>
-                  <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 600, marginTop: 2 }}>{l}</div>
-                </div>
-              ))}
             </div>
           </div>
 
           {/* Right — hidden on mobile, visible on tablet+ */}
           <div className="yph-hero-right" style={{ position: "relative" }}>
-            <div style={{ borderRadius: 28, overflow: "hidden", boxShadow: "0 8px 32px rgba(0,0,0,0.08)", position: "relative", aspectRatio: "4/4.5", background: "#fff" }}>
+            <div style={{ borderRadius: 28, overflow: "hidden", boxShadow: "0 16px 48px rgba(109,40,217,0.18)", position: "relative", aspectRatio: "4/4.5", background: "#EDE9FE" }}>
               <img
                 src="/images/poodle-hero_2.jpg"
                 alt="Toy Poodle"
                 style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
               />
-              <div style={{ position: "absolute", bottom: 16, left: 16, right: 16 }}>
-                <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
-                  {["🍽️ Kişisel mama planı", "✂️ Bakım takvimi", "💊 Sağlık takibi"].map(f => (
-                    <span key={f} style={{ fontSize: 11, fontWeight: 700, color: "#5B21B6", background: "rgba(255,255,255,0.92)", backdropFilter: "blur(8px)", borderRadius: 20, padding: "5px 11px", border: "1px solid #E9D5FF", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}>{f}</span>
-                  ))}
+            </div>
+            {/* Floating badge — AI Asistan (top-right) */}
+            <div style={{ position: "absolute", top: 24, right: -20, background: "#fff", borderRadius: 16, padding: "10px 16px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", display: "flex", alignItems: "center", gap: 10, minWidth: 170 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "#EDE9FE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🤖</div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#111", lineHeight: 1.2 }}>AI Asistan</div>
+                <div style={{ fontSize: 11, color: "#9CA3AF" }}>7/24 size özel destek</div>
+              </div>
+            </div>
+            {/* Floating badge — Kişiselleştirilmiş Öneriler (mid-left) */}
+            <div style={{ position: "absolute", top: "36%", left: -24, background: "#fff", borderRadius: 16, padding: "10px 16px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", display: "flex", alignItems: "center", gap: 10, minWidth: 190 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "#FEE2E2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>❤️</div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#111", lineHeight: 1.2 }}>Kişiselleştirilmiş Öneriler</div>
+                <div style={{ fontSize: 11, color: "#9CA3AF" }}>Poodle'ınıza özel içerik ve ürün önerileri</div>
+              </div>
+            </div>
+            {/* Floating badge — Dünya Geneli Kargo (bottom-right) */}
+            <div style={{ position: "absolute", bottom: 32, right: -20, background: "#fff", borderRadius: 16, padding: "10px 16px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", display: "flex", alignItems: "center", gap: 10, minWidth: 170 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🌍</div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#111", lineHeight: 1.2 }}>Dünya Geneli Kargo</div>
+                <div style={{ fontSize: 11, color: "#9CA3AF" }}>Hızlı ve güvenilir teslimat</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── HIZLI LİNKLER + STATS ───────────────────────── */}
+      <section style={{ background: "#fff", borderBottom: "1px solid #F3F4F6" }}>
+        {/* 5 hızlı link kartı */}
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px 0" }}>
+          <div className="yph-grid-5p" style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12 }}>
+            {[
+              { emoji: "🍽️", label: "Mama Bul",       sub: "Poodle'ınıza en uygun mamayı bulun",       href: "/yourpoodle/mama-bul"  },
+              { emoji: "📖", label: "Rehberler",       sub: "Uzman rehberler ve ipuçları",               href: "/yourpoodle/rehber"     },
+              { emoji: "✂️", label: "Bakım Araçları",  sub: "Tüy bakımı ve hijyen araçları",            href: "/yourpoodle/bakim"      },
+              { emoji: "🩺", label: "Sağlık Takibi",   sub: "Aşı, kontrol ve sağlık takip rehberi",     href: "/yourpoodle/saglik"     },
+              { emoji: "👥", label: "Topluluk",         sub: "Poodle severlerle buluşun",                href: "/yourpoodle/topluluk"   },
+            ].map(item => (
+              <button key={item.label} onClick={() => go(item.href)}
+                style={{ background: "#fff", border: "1.5px solid #F3F4F6", borderRadius: 18, padding: "18px 16px", textAlign: "left", cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s", display: "flex", flexDirection: "column", gap: 10 }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "#C4B5FD"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 20px rgba(124,58,237,0.1)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "#F3F4F6"; e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
+                <div style={{ width: 44, height: 44, borderRadius: 14, background: "#F5F0FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>{item.emoji}</div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "#111", marginBottom: 3 }}>{item.label}</div>
+                  <div style={{ fontSize: 11.5, color: "#9CA3AF", lineHeight: 1.4 }}>{item.sub}</div>
                 </div>
-              </div>
+                <div style={{ marginTop: "auto", fontSize: 14, color: "#7C3AED", fontWeight: 700 }}>→</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Stats şeridi */}
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px" }}>
+          <div style={{ background: "#F9F8FF", borderRadius: 20, padding: "28px 32px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <p style={{ fontSize: 18, fontWeight: 900, color: "#111", margin: "0 0 2px" }}>Binlerce Poodle sahibi bize güveniyor 💜</p>
             </div>
-            <div style={{ position: "absolute", top: -14, left: -14, background: "#fff", borderRadius: 16, padding: "10px 16px", boxShadow: "0 8px 24px rgba(0,0,0,0.1)", display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 22 }}>🎓</span>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 800, color: "#111", lineHeight: 1.2 }}>500+ Rehber</div>
-                <div style={{ fontSize: 11, color: "#9CA3AF" }}>Uzman içerik</div>
-              </div>
-            </div>
-            <div style={{ position: "absolute", bottom: -14, right: -14, background: "#fff", borderRadius: 16, padding: "10px 16px", boxShadow: "0 8px 24px rgba(0,0,0,0.1)", display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 22 }}>❤️</span>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 800, color: "#111", lineHeight: 1.2 }}>50K+ Üye</div>
-                <div style={{ fontSize: 11, color: "#9CA3AF" }}>Güvenilen platform</div>
-              </div>
+            <div style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>
+              {[["50K+", "Aktif Üye"], ["500+", "Uzman Rehber"], ["4.9", "Ortalama Puan"], ["100+", "Ülkeye Kargo"]].map(([n, l]) => (
+                <div key={l} style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: "#7C3AED", letterSpacing: "-0.5px" }}>{n}</div>
+                  <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 600, marginTop: 2, whiteSpace: "nowrap" }}>{l}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
