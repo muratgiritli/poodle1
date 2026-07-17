@@ -439,6 +439,13 @@ function AgePath({ step, total }: { step: number; total: number }) {
   );
 }
 
+// Maps poodle profile breed to wizard weight-step value
+function breedToWeight(breed?: string | null): string | undefined {
+  if (!breed) return undefined;
+  const map: Record<string, string> = { toy: "toy", miniature: "mini", standard: "standard" };
+  return map[breed];
+}
+
 export default function YPMamaBulPage() {
   const [, navigate] = useLocation();
   const { isLoggedIn } = useCustomer();
@@ -447,11 +454,34 @@ export default function YPMamaBulPage() {
   const [done, setDone] = useState(false);
   const [slideKey, setSlideKey] = useState(0);
   const savedRef = useRef(false);
+  const prefillApplied = useRef(false);
 
   const { data: products = [] } = useQuery<any[]>({
     queryKey: ["/api/yp-products"],
     staleTime: 10 * 60 * 1000,
   });
+
+  const { data: poodle } = useQuery<any>({
+    queryKey: ["/api/yp/poodle"],
+    enabled: isLoggedIn,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Pre-fill answers from poodle profile once, on first load
+  useEffect(() => {
+    if (!poodle || prefillApplied.current) return;
+    prefillApplied.current = true;
+    const prefill: Record<string, string> = {};
+    const ageValues = ["puppy", "adult", "senior"];
+    if (poodle.age && ageValues.includes(poodle.age)) {
+      prefill.age = poodle.age;
+    }
+    const weight = breedToWeight(poodle.breed);
+    if (weight) prefill.weight = weight;
+    if (Object.keys(prefill).length > 0) {
+      setAnswers(a => ({ ...prefill, ...a }));
+    }
+  }, [poodle]);
 
   const currentStep = STEPS[step];
   const selected = answers[currentStep?.key];
@@ -473,7 +503,23 @@ export default function YPMamaBulPage() {
     else navigate("/yourpoodle");
   };
 
-  const restart = () => { setStep(0); setAnswers({}); setDone(false); setSlideKey(0); savedRef.current = false; };
+  const buildPrefill = () => {
+    if (!poodle) return {};
+    const prefill: Record<string, string> = {};
+    const ageValues = ["puppy", "adult", "senior"];
+    if (poodle.age && ageValues.includes(poodle.age)) prefill.age = poodle.age;
+    const weight = breedToWeight(poodle.breed);
+    if (weight) prefill.weight = weight;
+    return prefill;
+  };
+
+  const restart = () => {
+    setStep(0);
+    setAnswers(buildPrefill());
+    setDone(false);
+    setSlideKey(0);
+    savedRef.current = false;
+  };
   const recommendations = useMemo(() => pickRecommendations(products, answers), [products, answers]);
 
   // Save recommendations to DB when wizard completes and user is logged in
