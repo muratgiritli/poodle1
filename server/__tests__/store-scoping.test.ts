@@ -3032,3 +3032,94 @@ test("local feed store_code: jetgo defaults to ATAKUM001, other stores stay empt
   // Explicit configured code wins for any store, including jetgo.
   assert.equal(effectiveStoreCode(DEFAULT_STORE.id, { storeCode: "CUSTOM01" }), "CUSTOM01", "explicit code overrides jetgo default");
 });
+
+// ---- YP checkout: "Online Kredi/Banka Kartı" payment method → source_site=jetgo ----
+//
+// yp-odeme.tsx always places orders with paymentMethod:"Online Kredi/Banka Kartı".
+// These tests verify the full server-side contract for the YP payment path:
+//   (a) the exact payment_method string is persisted verbatim,
+//   (b) the order is tagged source_site='jetgo' (YP lives on jetgomarket.com),
+//   (c) payment_status starts as 'pending' (the server treats "online kredi/banka
+//       kartı" as an online-card method via the /online/i regex),
+//   (d) the /api/orders/:id/payment-status endpoint exposes sourceSite:'jetgo' —
+//       the exact field payment-result.tsx reads to branch isYP=true and navigate
+//       to /yourpoodle/tesekkurler instead of staying on the generic result page.
+
+// YP-flavoured order payload mirroring yp-odeme.tsx's buildPayload().
+const ypOrderPayload = () => ({
+  ...orderPayload(),
+  paymentMethod: "Online Kredi/Banka Kartı",
+});
+
+test("YP order (jetgomarket.com) is tagged source_site=jetgo with payment_method='Online Kredi/Banka Kartı' and starts pending", async () => {
+  // Use a unique XFF so the per-IP order rate limiter doesn't accumulate
+  // against the shared localhost bucket used by other tests.
+  const res = await postAsCustomerXff("/api/orders", JETGO_HOST, ypOrderPayload(), "10.201.0.1");
+  assert.equal(res.status, 201, `YP order POST failed: ${JSON.stringify(res.body)}`);
+  const orderId = res.body.id as number;
+  assert.ok(orderId, "response must include an order id");
+  ids.orders.push(orderId);
+
+  const row = await pool.query(
+    "SELECT source_site, payment_method, payment_status FROM orders WHERE id = $1",
+    [orderId]
+  );
+  assert.equal(row.rows[0]?.source_site, "jetgo",
+    "YP order placed on jetgomarket.com must be tagged source_site=jetgo");
+  assert.equal(row.rows[0]?.payment_method, "Online Kredi/Banka Kartı",
+    "the exact paymentMethod string from yp-odeme.tsx must be stored verbatim");
+  assert.equal(row.rows[0]?.payment_status, "pending",
+    "'Online Kredi/Banka Kartı' matches /online/i → order must start in pending state");
+});
+
+// ---- payment-result.tsx redirect logic: /odeme-sonuc?status=success → /yourpoodle/tesekkurler ----
+//
+// payment-result.tsx queries /api/orders/:id/payment-status and evaluates:
+//   const isYP = order.sourceSite === "jetgo";
+//   if (isSuccess && isYP) navigate("/yourpoodle/tesekkurler");
+//
+// This test drives that server-side contract end to end:
+//   1. Create a YP order (source_site=jetgo).
+//   2. Register a Tosla payment token (without hitting the real gateway) so the
+//      payment-status endpoint can authorize the request via the t= query param.
+//   3. Assert the endpoint returns sourceSite:'jetgo'.
+//   4. Apply the same isYP branch logic and confirm the destination is
+//      /yourpoodle/tesekkurler (not the generic result page).
+
+test("payment-status exposes sourceSite=jetgo for YP orders → isYP=true → redirect to /yourpoodle/tesekkurler", async () => {
+  // 1) Create the YP order.
+  const res = await postAsCustomerXff("/api/orders", JETGO_HOST, ypOrderPayload(), "10.201.0.2");
+  assert.equal(res.status, 201, `YP order creation failed: ${JSON.stringify(res.body)}`);
+  const orderId = res.body.id as number;
+  assert.ok(orderId, "order id must be present");
+  ids.orders.push(orderId);
+
+  // 2) Insert a Tosla payment token (never hits real gateway; token is what the
+  //    payment-status endpoint uses to authorize the read via ?t=<token>).
+  const merchantOrderId = `${MARK}YPPS${orderId}`;
+  await pool.query(
+    `INSERT INTO tosla_payment_tokens (token, order_id, amount, status, updated_at)
+     VALUES ($1, $2, $3, 'pending', NOW())`,
+    [merchantOrderId, orderId, 100]
+  );
+
+  // 3) Query payment-status via the token (same way payment-result.tsx does it
+  //    after a redirect back from the gateway with ?t=<merchantOrderId>).
+  const psRes = await fetch(
+    `${baseUrl}/api/orders/${orderId}/payment-status?t=${encodeURIComponent(merchantOrderId)}`,
+    { headers: { "X-Forwarded-Host": JETGO_HOST } }
+  );
+  assert.equal(psRes.status, 200, "payment-status must be reachable via a valid token");
+  const ps = await psRes.json() as any;
+
+  assert.equal(ps.sourceSite, "jetgo",
+    "payment-status must expose sourceSite='jetgo' for orders placed on jetgomarket.com");
+
+  // 4) Apply the exact isYP branch from payment-result.tsx and assert destination.
+  const isYP = ps.sourceSite === "jetgo";
+  const successDest = isYP ? "/yourpoodle/tesekkurler" : "/hesabim?tab=orders";
+  assert.equal(isYP, true,
+    "isYP must be true for a jetgo-sourced YP order");
+  assert.equal(successDest, "/yourpoodle/tesekkurler",
+    "YP success redirect destination must be /yourpoodle/tesekkurler");
+});
