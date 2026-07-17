@@ -56,17 +56,19 @@ export default function YPLayout({
   const { isLoggedIn, customer }      = useCustomer();
   const profileRef = useRef<HTMLDivElement>(null);
 
-  /* cart badge — reads YP localStorage cart */
+  /* cart badge — reads YP localStorage cart (yp_cart_items) */
   useEffect(() => {
     const read = () => {
       try {
-        const c = JSON.parse(localStorage.getItem("yp_cart") || "[]");
-        setCartCount(Array.isArray(c) ? c.reduce((s: number, i: any) => s + (i.qty || 1), 0) : 0);
+        const c = JSON.parse(localStorage.getItem("yp_cart_items") || "[]");
+        setCartCount(Array.isArray(c) ? c.reduce((s: number, i: any) => s + (i.qty || 0), 0) : 0);
       } catch { setCartCount(0); }
     };
     read();
     window.addEventListener("storage", read);
-    return () => window.removeEventListener("storage", read);
+    /* Aynı sekmedeki değişimleri de yakala */
+    const timer = setInterval(read, 500);
+    return () => { window.removeEventListener("storage", read); clearInterval(timer); };
   }, []);
 
   /* close profile dropdown on outside click */
@@ -387,15 +389,73 @@ export default function YPLayout({
             position: "fixed", bottom: 0, left: 0, right: 0,
             background: "#fff", borderTop: "1px solid #f0f0f0",
             boxShadow: "0 -4px 20px rgba(0,0,0,0.08)",
-            height: 64, display: "flex", alignItems: "center", zIndex: 200, padding: "0 2px",
+            height: 72, display: "flex", alignItems: "center", zIndex: 200,
+            padding: "0 4px", paddingBottom: "env(safe-area-inset-bottom,0px)",
           }}>
-            {NAV_LINKS.map(({ label, href, Icon }) => {
+            {/* Sol 2 tab */}
+            {[
+              { label: "Ana Sayfa", href: "/yourpoodle",          Icon: PawPrint  },
+              { label: "Mama Bul",  href: "/yourpoodle/mama-bul", Icon: Utensils  },
+            ].map(({ label, href, Icon }) => {
               const active = isActive(effectiveBottomLink, href);
               return (
                 <button key={href} onClick={() => navigate(href)}
                   style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, background: "none", border: "none", cursor: "pointer", flex: 1, color: active ? "#7C3AED" : "#aaa", transition: "color 0.15s", padding: "4px 2px" }}>
                   <Icon size={20} strokeWidth={active ? 2.5 : 2} />
                   <span style={{ fontSize: 9, fontWeight: active ? 800 : 600, fontFamily: "inherit", whiteSpace: "nowrap" }}>{label}</span>
+                  {active && <div style={{ width: 14, height: 2.5, borderRadius: 2, background: "#7C3AED", marginTop: -1 }} />}
+                </button>
+              );
+            })}
+
+            {/* Merkez — Sepet butonu */}
+            {(() => {
+              const cartActive = effectiveBottomLink.startsWith("/yourpoodle/sepet") || effectiveBottomLink.startsWith("/yourpoodle/odeme");
+              return (
+                <button onClick={() => navigate("/yourpoodle/sepet")}
+                  aria-label="Sepetim"
+                  style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", flex: "0 0 auto", padding: 0 }}>
+                  <div style={{
+                    width: 52, height: 52, borderRadius: "50%",
+                    background: cartActive
+                      ? "linear-gradient(135deg,#5B21B6,#7C3AED)"
+                      : "linear-gradient(135deg,#7C3AED,#A855F7)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: "0 4px 16px rgba(124,58,237,0.4)",
+                    marginTop: -22,
+                    border: "3px solid #fff",
+                    position: "relative",
+                  }}>
+                    <ShoppingCart size={22} color="#fff" strokeWidth={2.2} />
+                    {cartCount > 0 && (
+                      <span style={{
+                        position: "absolute", top: -2, right: -2,
+                        minWidth: 18, height: 18, borderRadius: 9,
+                        background: "#EF4444", color: "#fff",
+                        fontSize: 9, fontWeight: 900,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        padding: "0 4px", border: "2px solid #fff",
+                        fontFamily: "inherit", boxSizing: "border-box",
+                      }}>{cartCount > 99 ? "99+" : cartCount}</span>
+                    )}
+                  </div>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: cartActive ? "#7C3AED" : "#555", fontFamily: "inherit" }}>Sepetim</span>
+                </button>
+              );
+            })()}
+
+            {/* Sağ 2 tab */}
+            {[
+              { label: "Mağaza", href: "/yourpoodle/magaza",  Icon: ShoppingBag },
+              { label: "Rehber", href: "/yourpoodle/rehber",  Icon: BookOpen    },
+            ].map(({ label, href, Icon }) => {
+              const active = isActive(effectiveBottomLink, href);
+              return (
+                <button key={href} onClick={() => navigate(href)}
+                  style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, background: "none", border: "none", cursor: "pointer", flex: 1, color: active ? "#7C3AED" : "#aaa", transition: "color 0.15s", padding: "4px 2px" }}>
+                  <Icon size={20} strokeWidth={active ? 2.5 : 2} />
+                  <span style={{ fontSize: 9, fontWeight: active ? 800 : 600, fontFamily: "inherit", whiteSpace: "nowrap" }}>{label}</span>
+                  {active && <div style={{ width: 14, height: 2.5, borderRadius: 2, background: "#7C3AED", marginTop: -1 }} />}
                 </button>
               );
             })}
