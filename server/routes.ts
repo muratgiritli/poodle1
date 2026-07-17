@@ -3089,6 +3089,54 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       orderData.grandTotal = Math.round((orderData.grandTotal + paymentSurcharge) * 100) / 100;
     }
 
+    // ── Stok ön-kontrol geçişi ────────────────────────────────────────────────
+    // Herhangi bir stok azaltımı yapmadan ÖNCE tüm ürünleri kontrol et.
+    // Aksi hâlde kısmi başarısızlık (ürün N geçer → ürün N+1 yetersiz stok)
+    // ürün N'nin stoğunu kalıcı olarak azaltır, sipariş oluşturulmadan.
+    //
+    // Aynı productId birden fazla satırda gelebilir (crafted payload);
+    // toplam miktarı productId bazında toplayarak karşılaştır.
+    {
+      const storeCommerce = reqStore(req).commerce;
+      // productId → toplam talep edilen miktar (yalnızca preorder-dışı ürünler)
+      const neededQty = new Map<number, number>();
+      // productId → ilk satırın adı (hata mesajı için)
+      const itemNameByProductId = new Map<number, string>();
+      for (const item of orderData.items) {
+        const productId = parseInt(String(item.productId));
+        if (isNaN(productId)) continue;
+        const prod = allProds.find(p => p.id === productId);
+        // Preorder etkin ürünler ön-kontrolden muaf; backorder'a izin veriliyor.
+        if (prod && prod.preorderEnabled && storeCommerce.preorderEnabled) continue;
+        neededQty.set(productId, (neededQty.get(productId) ?? 0) + (item.quantity || 0));
+        if (!itemNameByProductId.has(productId)) itemNameByProductId.set(productId, item.name);
+      }
+
+      if (neededQty.size > 0) {
+        const ids = Array.from(neededQty.keys());
+        const stockCheck = await sharedPool.query(
+          "SELECT id, stock, name FROM products WHERE id = ANY($1)",
+          [ids]
+        );
+        const stockByProductId = new Map<number, { stock: number; name: string }>();
+        for (const row of stockCheck.rows) {
+          stockByProductId.set(row.id, { stock: row.stock, name: row.name });
+        }
+        for (const [productId, needed] of neededQty) {
+          const info = stockByProductId.get(productId);
+          const available = info?.stock ?? 0;
+          if (available < needed) {
+            const label = info?.name || itemNameByProductId.get(productId) || String(productId);
+            return res.status(400).json({
+              message: `Stok yetersiz: ${label}`,
+              outOfStockProductId: productId,
+            });
+          }
+        }
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     let hasPreorderItems = false;
     const saleMovements: Array<{ productId: number; name: string; barcode: string | null; qty: number; newStock: number }> = [];
     for (const item of orderData.items) {
