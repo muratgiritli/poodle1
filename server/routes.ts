@@ -6677,6 +6677,23 @@ Kurallar:
     } catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
+  // Delete a single recommendation (ownership-checked)
+  app.delete("/api/yp/recommendations/:id", async (req, res) => {
+    const customerId = (req.session as any)?.customerId;
+    if (!customerId) return res.status(401).json({ error: "Giriş gerekli" });
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id) || id <= 0) return res.status(400).json({ error: "Geçersiz id" });
+    try {
+      await sharedPool.query(ENSURE_YP_RECOMMENDATIONS);
+      const result = await sharedPool.query(
+        `DELETE FROM yp_recommendations WHERE id = $1 AND customer_id = $2 RETURNING id`,
+        [id, customerId]
+      );
+      if (result.rowCount === 0) return res.status(404).json({ error: "Bulunamadı veya yetkiniz yok" });
+      res.json({ deleted: true, id });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
   // ── Poodle photo upload ────────────────────────────────────────────────
   app.post("/api/yp/poodle/photo", upload.single("photo"), async (req, res) => {
     const customerId = (req.session as any)?.customerId;

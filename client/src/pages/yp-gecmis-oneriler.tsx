@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { ArrowLeft, ChevronRight, RotateCcw, Trash2 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import YPBreadcrumb from "@/components/YPBreadcrumb";
 import { useCustomer } from "@/contexts/CustomerContext";
@@ -70,10 +70,22 @@ function AnswerTag({ label }: { label: string }) {
   );
 }
 
-function HistoryCard({ entry, navigate }: { entry: HistoryEntry; navigate: (p: string) => void }) {
+function HistoryCard({ entry, navigate, onDelete }: { entry: HistoryEntry; navigate: (p: string) => void; onDelete: (id: number) => void }) {
   const [expanded, setExpanded] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { answers, products, created_at } = entry;
   const time = new Date(created_at).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const r = await fetch(`/api/yp/recommendations/${entry.id}`, { method: "DELETE", credentials: "include" });
+      if (r.ok) onDelete(entry.id);
+    } catch {}
+    setDeleting(false);
+    setConfirmDelete(false);
+  };
 
   const answerTags: string[] = [];
   if (answers.age) answerTags.push(AGE_LABELS[answers.age] || answers.age);
@@ -97,9 +109,35 @@ function HistoryCard({ entry, navigate }: { entry: HistoryEntry; navigate: (p: s
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
           <span style={{ fontSize: 12, color: "#9580CC", fontWeight: 600 }}>{time}</span>
-          <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#7C3AED", fontSize: 12, fontWeight: 700 }}>
-            {expanded ? "Gizle" : "Detaylar"}
-            <ChevronRight size={14} style={{ transform: expanded ? "rotate(90deg)" : "none", transition: "transform 0.2s" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {/* Trash / confirm inline */}
+            {confirmDelete ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }} onClick={e => e.stopPropagation()}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#DC2626" }}>Silinsin mi?</span>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  style={{ background: "#DC2626", border: "none", borderRadius: 8, color: "#fff", fontSize: 11, fontWeight: 800, padding: "3px 10px", cursor: "pointer", opacity: deleting ? 0.6 : 1, fontFamily: "inherit" }}>
+                  {deleting ? "…" : "Evet"}
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  style={{ background: "#F3F4F6", border: "none", borderRadius: 8, color: "#555", fontSize: 11, fontWeight: 700, padding: "3px 10px", cursor: "pointer", fontFamily: "inherit" }}>
+                  İptal
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={e => { e.stopPropagation(); setConfirmDelete(true); }}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", color: "#C4B5FD" }}
+                title="Sil">
+                <Trash2 size={14} />
+              </button>
+            )}
+            <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#7C3AED", fontSize: 12, fontWeight: 700 }}>
+              {expanded ? "Gizle" : "Detaylar"}
+              <ChevronRight size={14} style={{ transform: expanded ? "rotate(90deg)" : "none", transition: "transform 0.2s" }} />
+            </div>
           </div>
         </div>
 
@@ -273,7 +311,16 @@ export default function YPGecmisOnerilerPage() {
                     {group.label}
                   </div>
                   {group.entries.map(entry => (
-                    <HistoryCard key={entry.id} entry={entry} navigate={navigate} />
+                    <HistoryCard
+                      key={entry.id}
+                      entry={entry}
+                      navigate={navigate}
+                      onDelete={(id) => setData(prev => prev ? {
+                        ...prev,
+                        total: prev.total - 1,
+                        items: prev.items.filter(i => i.id !== id),
+                      } : prev)}
+                    />
                   ))}
                 </div>
               ))}
