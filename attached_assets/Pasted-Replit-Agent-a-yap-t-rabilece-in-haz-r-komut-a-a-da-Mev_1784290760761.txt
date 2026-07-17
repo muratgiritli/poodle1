@@ -1,0 +1,110 @@
+Replit Agent'a yapıştırabileceğin hazır komut aşağıda. Mevcut **Header** ve **Footer**'a dokunmadan, aradaki ana sayfa içeriğini görseldeki gibi düzenler:
+
+---
+
+## Replit Agent Komutu (Kopyala-Yapıştır)
+
+```
+Ana sayfayı (index/home page) düzenle. Mevcut Header ve Footer bileşenlerine DOKUNMA — sadece aradaki main content alanını aşağıdaki tasarıma göre yeniden oluştur.
+
+## Genel
+- Site: YourPoodle (Türkçe Poodle bakım sitesi)
+- Font: Inter veya Poppins
+- Ana renkler: Mor #7D41E1, Pembe #F14A89, beyaz arka plan
+- Max-width container: ~1200px, ortalanmış
+- Kart köşeleri: border-radius 16-20px
+- Hafif box-shadow kullan
+
+## Bölüm 1 — Kategori Grid (Header altı, Footer üstü)
+
+Başlık (ortalanmış, bold, siyah):
+"Bugün ne arıyorsunuz?"
+
+Alt başlık (ortalanmış, gri):
+"Poodle'ınız için ihtiyacınız olan konuyu seçin"
+
+Altında 2 satır x 4 sütun responsive grid (mobilde 2 sütun, tablette 2-3, desktop 4):
+
+| Kart | İkon | Arka plan | Alt metin |
+|------|------|-----------|-----------|
+| Doğru Mama | 🍖 et/kemik | #FFF3E8 (açık turuncu) | Yaş & kiloya göre |
+| Tuvalet Eğitimi | 🚽 | #E8F8EE (açık yeşil) | Adım adım rehber |
+| Göz Yaşı | 👁️ | #FCE8F0 (açık pembe) | Tedavi & bakım |
+| Tüy & Bakım | 🪮 | #F0E8FC (açık mor) | Tarama & tıraş |
+| Havlama | 📢 | #FFFBE8 (açık sarı) | Eğitim teknikleri |
+| Yalnız Kalma | 🏠 | #E8F0FC (açık mavi) | Anksiyete çözümü |
+| Yavru Bakımı | 🍼 | #E8FCF8 (açık turkuaz) | 0-6 ay rehberi |
+| Sağlık Belirtileri | 🩺 | #FCE8E8 (açık kırmızı) | Belirti sorgulama |
+
+Her kart:
+- Ortalanmış emoji/ikon (büyük)
+- Başlık (bold)
+- Alt metin (küçük, gri)
+- Sağ alt köşede küçük ok butonu (→)
+- Hover: hafif yukarı kalkma + gölge artışı
+- Tıklanabilir (cursor pointer)
+
+## Bölüm 2 — İki Büyük Feature Kart (grid altında, yan yana)
+
+### Sol kart — Poodle AI Asistan
+- Arka plan: koyu mor gradient (#2D1B69 → #1A0F3C), yıldız/sparkle efekti opsiyonel
+- Sol üst: 🤖 robot ikonu
+- Badge: "7/24 YANINIZDA" (mor pill)
+- Başlık (beyaz): "Poodle AI Asistan"
+- Alt metin (açık gri): "Sorununuzu yazın, Poodle'ınıza özel yanıt alın"
+- 3 örnek soru balonu (koyu gri arka plan, beyaz metin):
+  1. "Kaç gram mama vermeliyim?"
+  2. "Göz altı neden kızarıyor?"
+  3. "Yalnız kalınca neden havlıyor?"
+- Alt buton (tam genişlik, parlak mor #7D41E1): "AI Asistanı Başlat →"
+
+### Sağ kart — Profil Oluştur
+- Arka plan: açık pembe #FFF0F5, ince pembe border
+- Sol üst: 🐩 poodle illüstrasyonu veya placeholder görsel
+- Badge: "Kişiselleştir" (pembe pill)
+- Başlık (siyah): "Poodle Profilinizi Oluşturun"
+- Alt metin (gri): "Adı, yaşı ve kilosunu girin. Size özel mama önerileri, bakım takvimi ve sağlık hatırlatıcıları alın."
+- 3 madde listesi:
+  - 🥛 Kişiselleştirilmiş mama planı
+  - 💉 Aşı ve veteriner takibi
+  - ✂️ Otomatik bakım takvimi
+- 3 input alanı (opsiyonel, görselde varsa): Adı, Yaşı, Kilosu
+- Alt buton (tam genişlik, hot pink #F14A89): "Ücretsiz Profil Oluştur →"
+
+## Responsive
+- Desktop: 4 sütun grid + 2 feature kart yan yana (50/50)
+- Tablet: 2 sütun grid + feature kartlar alt alta
+- Mobil: 2 sütun grid + feature kartlar tek sütun
+
+## Teknik
+- Mevcut Header ve Footer import/component'lerini koru
+- Sadece ana sayfa main content'ini değiştir
+- Tailwind CSS kullanıyorsan utility class'larla yap
+- React/Vite projesiyse Home.jsx veya index.jsx içinde düzenle
+- Inline style kullanma, CSS class veya Tailwind tercih et
+- Tüm metinler Türkçe kalsın
+
+Dosyaları düzenle, çalıştır ve sonucu göster.
+```
+
+---
+
+## Kısa versiyon (hızlı düzeltme için)
+
+Daha kısa bir komut istersen:
+
+```
+Ana sayfada Header ve Footer'a dokunma. Aradaki içeriği şöyle yap:
+
+1) "Bugün ne arıyorsunuz?" başlığı + 8 renkli kategori kartı (2x4 grid): Doğru Mama, Tuvalet Eğitimi, Göz Yaşı, Tüy & Bakım, Havlama, Yalnız Kalma, Yavru Bakımı, Sağlık Belirtileri — her kartta emoji ikon, başlık, alt açıklama, hover efekti
+
+2) Altında 2 büyük kart yan yana:
+   - Sol: Koyu mor "Poodle AI Asistan" kartı, 3 örnek soru, "AI Asistanı Başlat →" butonu
+   - Sağ: Açık pembe "Poodle Profilinizi Oluşturun" kartı, 3 özellik maddesi, "Ücretsiz Profil Oluştur →" butonu
+
+Renkler: mor #7D41E1, pembe #F14A89. Responsive olsun. Tailwind kullan.
+```
+
+---
+
+Replit'te **Agent** sekmesine yapıştırıp çalıştırman yeterli. Proje React + Tailwind mi, yoksa düz HTML/CSS mi — söylersen komutu o stack'e göre daha net yazabilirim.

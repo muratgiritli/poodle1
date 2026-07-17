@@ -1,216 +1,38 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, Check, ShoppingCart, RotateCcw } from "lucide-react";
+import { ArrowLeft, Check, ShoppingCart, RotateCcw, Info } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { useCustomer } from "@/contexts/CustomerContext";
 
-const CSS = `
-*, *::before, *::after { box-sizing: border-box; }
-
-/* ── Page shell ── */
-.mb-page { min-height: 100svh; background: #F5F0FF; font-family: 'Inter', sans-serif; display: flex; flex-direction: column; }
-
-/* ── Top bar ── */
-.mb-topbar {
-  position: sticky; top: 0; z-index: 50;
-  display: flex; align-items: center; gap: 14px;
-  padding: 14px 18px 10px;
-  background: transparent;
-}
-.mb-back-btn {
-  width: 40px; height: 40px; border-radius: 50%;
-  background: rgba(255,255,255,0.85); border: none;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(124,58,237,0.12);
-  backdrop-filter: blur(8px);
-}
-
-/* ── Step dots ── */
-.mb-stepdots { display: flex; gap: 5px; flex: 1; justify-content: center; }
-.mb-dot {
-  height: 5px; border-radius: 3px;
-  background: rgba(124,58,237,0.18);
-  transition: all 0.3s ease;
-  flex: 1; max-width: 28px;
-}
-.mb-dot.done { background: #7C3AED; }
-.mb-dot.active { background: #7C3AED; max-width: 40px; }
-
-/* ── Progress bar ── */
-.mb-progress-track { height: 3px; background: rgba(124,58,237,0.12); margin: 0 18px 0; border-radius: 99px; }
-.mb-progress-fill { height: 3px; background: linear-gradient(90deg, #7C3AED, #A855F7); border-radius: 99px; transition: width 0.4s cubic-bezier(.4,0,.2,1); }
-
-/* ── Question area ── */
-.mb-question-wrap {
-  padding: 28px 22px 8px;
-  flex: 0 0 auto;
-}
-.mb-step-pill {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: #EDE9FE; border-radius: 99px;
-  padding: 4px 12px; font-size: 12px; font-weight: 700;
-  color: #7C3AED; margin-bottom: 16px;
-}
-.mb-emoji { font-size: 36px; display: block; margin-bottom: 12px; line-height: 1; }
-.mb-question {
-  font-size: 24px; font-weight: 900; color: #18114a;
-  line-height: 1.25; margin: 0 0 6px; letter-spacing: -0.5px;
-}
-.mb-hint { font-size: 13px; color: #9580CC; margin: 0; }
-
-/* ── Options ── */
-.mb-options-wrap { padding: 16px 18px 0; display: flex; flex-direction: column; gap: 10px; }
-.mb-option {
-  display: flex; align-items: center; gap: 14px;
-  background: #fff; border: 2px solid transparent;
-  border-radius: 18px; padding: 15px 16px;
-  cursor: pointer; transition: all 0.18s ease;
-  box-shadow: 0 1px 6px rgba(124,58,237,0.06);
-  text-align: left; width: 100%;
-  -webkit-tap-highlight-color: transparent;
-}
-.mb-option:active { transform: scale(0.98); }
-.mb-option.selected {
-  border-color: #7C3AED;
-  background: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%);
-  box-shadow: 0 4px 20px rgba(124,58,237,0.32);
-}
-.mb-opt-icon {
-  width: 46px; height: 46px; border-radius: 14px;
-  background: #F5F0FF; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px; transition: background 0.18s;
-}
-.mb-option.selected .mb-opt-icon { background: rgba(255,255,255,0.25); }
-.mb-opt-label { flex: 1; font-size: 15px; font-weight: 700; color: #18114a; line-height: 1.3; }
-.mb-opt-desc { font-size: 12px; color: #888; margin-top: 2px; }
-.mb-option.selected .mb-opt-label { color: #fff; }
-.mb-option.selected .mb-opt-desc { color: rgba(255,255,255,0.75); }
-.mb-check-ring {
-  width: 26px; height: 26px; border-radius: 50%;
-  border: 2px solid #DDD; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.18s;
-}
-.mb-option.selected .mb-check-ring { background: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.5); }
-
-/* ── Bottom CTA ── */
-.mb-cta-wrap {
-  position: sticky; bottom: 0;
-  padding: 14px 18px calc(14px + env(safe-area-inset-bottom));
-  background: linear-gradient(to top, #F5F0FF 60%, transparent);
-  margin-top: auto;
-}
-.mb-btn-next {
-  width: 100%; height: 56px; border-radius: 18px;
-  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
-  border: none; font-size: 16px; font-weight: 800; color: #fff;
-  cursor: pointer; font-family: 'Inter', sans-serif;
-  box-shadow: 0 6px 24px rgba(124,58,237,0.38);
-  transition: opacity 0.2s, transform 0.15s;
-  letter-spacing: -0.2px;
-}
-.mb-btn-next:disabled {
-  background: #DDD; box-shadow: none; cursor: not-allowed; color: #aaa;
-}
-.mb-btn-next:not(:disabled):active { transform: scale(0.98); }
-
-/* ── Result screen ── */
-.mb-result-hero {
-  margin: 18px 18px 0;
-  background: linear-gradient(135deg, #5B21B6 0%, #7C3AED 50%, #A855F7 100%);
-  border-radius: 24px; padding: 24px 20px;
-  color: #fff; position: relative; overflow: hidden;
-}
-.mb-result-hero::after {
-  content: ''; position: absolute; top: -40px; right: -40px;
-  width: 140px; height: 140px; border-radius: 50%;
-  background: rgba(255,255,255,0.08);
-}
-.mb-result-cards { padding: 16px 18px 120px; display: flex; flex-direction: column; gap: 14px; }
-.mb-result-card {
-  background: #fff; border-radius: 22px;
-  box-shadow: 0 2px 20px rgba(0,0,0,0.07);
-  overflow: hidden;
-}
-.mb-card-badge {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 16px; font-size: 12px; font-weight: 800;
-}
-.mb-card-body { padding: 0 16px 16px; display: flex; gap: 14px; align-items: flex-start; }
-.mb-card-img {
-  width: 80px; height: 80px; border-radius: 16px;
-  background: #F5F0FF; overflow: hidden; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center; font-size: 32px;
-}
-.mb-card-actions { display: flex; gap: 8px; padding: 0 16px 16px; }
-.mb-btn-detail {
-  flex: 1; height: 44px; border-radius: 12px;
-  background: #F5F0FF; border: none; font-size: 13px; font-weight: 700;
-  color: #7C3AED; cursor: pointer; font-family: 'Inter', sans-serif;
-}
-.mb-btn-add {
-  flex: 1; height: 44px; border-radius: 12px;
-  border: none; font-size: 13px; font-weight: 700;
-  color: #fff; cursor: pointer; font-family: 'Inter', sans-serif;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-}
-.mb-restart {
-  margin: 0 18px 20px; height: 50px; border-radius: 16px;
-  background: #EDE9FE; border: none; font-size: 15px; font-weight: 700;
-  color: #7C3AED; cursor: pointer; font-family: 'Inter', sans-serif;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  width: calc(100% - 36px);
-}
-
-/* ── Slide transition ── */
-.mb-slide { animation: mbSlideIn 0.28s cubic-bezier(.4,0,.2,1) both; }
-@keyframes mbSlideIn {
-  from { opacity: 0; transform: translateX(28px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
-/* ── Desktop override ── */
-@media (min-width: 900px) {
-  .mb-topbar { display: none !important; }
-  .mb-progress-track { display: none; }
-  .mb-page { background: #F5F0FF; min-height: unset; }
-  .mb-wizard-wrap {
-    max-width: 680px; margin: 36px auto;
-    background: #fff; border-radius: 28px;
-    box-shadow: 0 8px 48px rgba(124,58,237,0.12);
-    padding: 40px 44px; overflow: visible;
-  }
-  .mb-question-wrap { padding: 0 0 8px; }
-  .mb-options-wrap { padding: 16px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .mb-cta-wrap { position: static; padding: 24px 0 0; background: none; }
-  .mb-btn-next { height: 52px; font-size: 15px; }
-  .mb-result-hero { margin: 28px 0 0; }
-  .mb-result-cards { padding: 16px 0 40px; }
-  .mb-restart { margin: 0; width: 100%; }
-}
-`;
-
+/* ─── Types ──────────────────────────────────────────────────── */
 interface StepOption { value: string; label: string; desc?: string; icon?: string; }
-interface Step { key: string; question: string; hint?: string; emoji: string; options: StepOption[]; }
+type StepType = "radio" | "checkbox";
+interface Step {
+  key: string; type: StepType; question: string; questionBold?: string;
+  hint: string; emoji: string; options: StepOption[];
+  infoBanner?: string; hasHero?: boolean;
+}
 
+/* ─── Step config (11 steps) ─────────────────────────────────── */
 const STEPS: Step[] = [
   {
-    key: "age", emoji: "🐾",
-    question: "Poodle'ınızın yaşı nedir?",
-    hint: "Yaşa göre besin ihtiyacı farklılaşır",
+    key: "age", type: "radio", hasHero: true,
+    emoji: "🐾",
+    question: "Poodle'ınızın ", questionBold: "yaşı nedir?",
+    hint: "Yaşa göre besin ihtiyacı farklılaşır. Doğru seçimi birlikte yapalım. 💜",
     options: [
-      { value: "puppy",  label: "Yavru (0–12 ay)",   desc: "Besin ihtiyacı yüksek, büyüme dönemi", icon: "🌱" },
+      { value: "puppy",  label: "Yavru (0–12 ay)",    desc: "Besin ihtiyacı yüksek, büyüme dönemi", icon: "🌱" },
       { value: "adult",  label: "Yetişkin (1–7 yaş)", desc: "Dengeli beslenme, enerji dengesi",      icon: "💪" },
       { value: "senior", label: "Yaşlı (7+ yaş)",     desc: "Eklem desteği, düşük kalori",          icon: "❤️" },
     ],
   },
   {
-    key: "weight", emoji: "⚖️",
-    question: "Poodle'ınızın kilosu?",
+    key: "weight", type: "radio", hasHero: true,
+    emoji: "⚖️",
+    question: "Poodle'ınızın ", questionBold: "kilosu?",
     hint: "Doğru porsiyon hesabı için önemli",
+    infoBanner: "Kilonuza göre günlük mama miktarı ve öneriler size özel hazırlanır.",
     options: [
       { value: "micro",    label: "1–2 kg",  desc: "Micro / Teacup", icon: "🫧" },
       { value: "toy",      label: "2–4 kg",  desc: "Toy Poodle",     icon: "🐩" },
@@ -219,105 +41,121 @@ const STEPS: Step[] = [
     ],
   },
   {
-    key: "neutered", emoji: "🏥",
+    key: "neutered", type: "radio", hasHero: true,
+    emoji: "🏥",
     question: "Kısırlaştırıldı mı?",
-    hint: "Kısır poodlelerin kalori ihtiyacı daha azdır",
+    hint: "Kısır poodle'lerin kalori ihtiyacı daha azdır.",
+    infoBanner: "Doğru seçim, ideal kilo ve sağlıklı bir yaşam için önemlidir.",
     options: [
-      { value: "yes", label: "Evet", desc: "Light / kısır formül önerilir", icon: "✅" },
-      { value: "no",  label: "Hayır", desc: "Standart formül uygundur",     icon: "🔵" },
+      { value: "yes", label: "Evet",  desc: "Light / kısır formül önerilir", icon: "✅" },
+      { value: "no",  label: "Hayır", desc: "Standart formül uygundur",       icon: "🔵" },
     ],
   },
   {
-    key: "activity", emoji: "🏃",
-    question: "Günlük aktivite seviyesi?",
-    hint: "Aktif poodleler daha fazla kalori harcar",
+    key: "activity", type: "radio", hasHero: true,
+    emoji: "🏃",
+    question: "Günlük ", questionBold: "aktivite seviyesi?",
+    hint: "Aktif poodle'ler daha fazla kalori harcar",
     options: [
-      { value: "low",    label: "Düşük",   desc: "Çoğunlukla evde, kısa yürüyüş", icon: "🛋️" },
-      { value: "medium", label: "Orta",    desc: "Günlük 30–60 dk yürüyüş",       icon: "🚶" },
-      { value: "high",   label: "Yüksek",  desc: "Aktif, uzun yürüyüşler",        icon: "🏃" },
+      { value: "low",    label: "Düşük",  desc: "Çoğunlukla evde, kısa yürüyüş", icon: "🛋️" },
+      { value: "medium", label: "Orta",   desc: "Günlük 30–60 dk yürüyüş",       icon: "🚶" },
+      { value: "high",   label: "Yüksek", desc: "Aktif, uzun yürüyüşler",        icon: "🏃" },
     ],
   },
   {
-    key: "weight_goal", emoji: "🎯",
-    question: "Kilo hedefi var mı?",
-    hint: "Buna göre kalori yoğunluğunu ayarlıyoruz",
+    key: "weight_goal", type: "radio", hasHero: true,
+    emoji: "🎯",
+    question: "Kilo ", questionBold: "hedefi", question2: " var mı?",
+    hint: "Buna göre kalori yoğunluğunu ayarlıyoruz.",
     options: [
-      { value: "lose",     label: "Kilo vermesi gerekiyor", icon: "📉" },
-      { value: "maintain", label: "Kilosunu korusun",        icon: "⚖️" },
-      { value: "gain",     label: "Biraz kilo alması lazım", icon: "📈" },
+      { value: "lose",     label: "Kilo vermesi gerekiyor", desc: "Kilo kontrolü ve yağ kaybı desteklenir.", icon: "📉" },
+      { value: "gain",     label: "Biraz kilo alması lazım", desc: "Sağlıklı kilo artışını destekler.",      icon: "📈" },
+      { value: "maintain", label: "Kilosunu korusun",        desc: "Mevcut kilosunu korumaya yardımcı olur.", icon: "⚖️" },
     ],
   },
   {
-    key: "allergy", emoji: "🌿",
-    question: "Bilinen alerjisi var mı?",
-    hint: "Alerjen içerikli mamaları filtreliyoruz",
+    key: "allergy", type: "radio", hasHero: true,
+    emoji: "🌿",
+    question: "Bilinen ", questionBold: "alerjisi", question2: " var mı?",
+    hint: "Alerjen içerikli mamaları filtreliyoruz.",
     options: [
-      { value: "none",    label: "Yok / Bilmiyorum",  icon: "✅" },
-      { value: "chicken", label: "Tavuk alerjisi",     icon: "🐔" },
-      { value: "grain",   label: "Tahıl hassasiyeti",  icon: "🌾" },
-      { value: "fish",    label: "Balık alerjisi",     icon: "🐟" },
-      { value: "other",   label: "Farklı bir alerji",  icon: "⚠️" },
+      { value: "none",    label: "Yok / Bilmiyorum",  desc: "Alerjisi yok veya bilmiyorum.",                    icon: "✅" },
+      { value: "chicken", label: "Tavuk alerjisi",     desc: "Tavuk proteinine karşı alerjisi var.",             icon: "🐔" },
+      { value: "grain",   label: "Tahıl hassasiyeti",  desc: "Tahıl içeriklerine karşı hassasiyeti var.",        icon: "🌾" },
+      { value: "fish",    label: "Balık alerjisi",     desc: "Balık proteinine karşı alerjisi var.",             icon: "🐟" },
+      { value: "other",   label: "Farklı bir alerji",  desc: "Yukarıdakiler dışında farklı bir alerjisi var.",   icon: "⚠️" },
     ],
   },
   {
-    key: "coat", emoji: "✨",
-    question: "Tüy & deri durumu?",
-    hint: "Omega yağ asitleri tüy kalitesini artırır",
+    key: "coat", type: "radio", hasHero: true,
+    emoji: "✨",
+    question: "Tüy & deri ", questionBold: "durumu?",
+    hint: "Omega yağ asitleri tüy kalitesini artırır.",
     options: [
-      { value: "none",     label: "Sağlıklı, sorun yok",  icon: "✨" },
-      { value: "dull",     label: "Tüyleri mat / cansız",  icon: "😞" },
-      { value: "scratch",  label: "Çok kaşınıyor",         icon: "🤚" },
-      { value: "shedding", label: "Aşırı dökülüyor",       icon: "💇" },
+      { value: "none",     label: "Sağlıklı, sorun yok",  desc: "İdeal tüy & deri durumu",          icon: "✨" },
+      { value: "dull",     label: "Tüyleri mat / cansız",  desc: "Parlaklık ve canlılık desteği",    icon: "😔" },
+      { value: "scratch",  label: "Çok kaşınıyor",         desc: "Kaşıntı ve tahriş desteği",        icon: "🤚" },
+      { value: "shedding", label: "Aşırı dökülüyor",       desc: "Tüy dökülmesine karşı destek",    icon: "💇" },
     ],
   },
   {
-    key: "digestion", emoji: "🫀",
+    key: "digestion", type: "radio", hasHero: true,
+    emoji: "🫀",
     question: "Sindirim hassasiyeti var mı?",
-    hint: "Hassas sindirim için özel formüller mevcuttur",
+    hint: "Hassas sindirim için özel formüller mevcuttur.",
     options: [
-      { value: "none",         label: "Yok, sorun yok",         icon: "✅" },
-      { value: "sensitive",    label: "Zaman zaman mide sorunu", icon: "😣" },
-      { value: "very_sensitive", label: "Çok hassas sindirim",   icon: "⚠️" },
+      { value: "none",           label: "Yok, sorun yok",         desc: "Normal sindirim, herhangi bir problem yok.",              icon: "✅" },
+      { value: "sensitive",      label: "Zaman zaman mide sorunu", desc: "Ara sıra kusma, ishal veya mide hassasiyeti yaşıyor.",   icon: "🤢" },
+      { value: "very_sensitive", label: "Çok hassas sindirim",     desc: "Sık sık sindirim problemi yaşıyor, özel mama gerekiyor.", icon: "⚠️" },
     ],
   },
   {
-    key: "protein", emoji: "🥩",
+    key: "protein", type: "checkbox", hasHero: false,
+    emoji: "🥩",
     question: "Tercih edilen protein?",
-    hint: "Poodle'ınızın en iyi sindireceği kaynak",
+    hint: "Poodle'ınızın en iyi sindireceği kaynakları seçebilirsiniz.",
+    infoBanner: "Birden fazla seçenek işaretleyebilirsiniz.",
     options: [
-      { value: "chicken", label: "Tavuk",           icon: "🐔" },
-      { value: "lamb",    label: "Kuzu",            icon: "🐑" },
-      { value: "salmon",  label: "Somon / Balık",   icon: "🐟" },
-      { value: "rabbit",  label: "Tavşan",          icon: "🐰" },
-      { value: "any",     label: "Fark etmez",      icon: "🔀" },
+      { value: "chicken", label: "Tavuk",         desc: "Hafif ve sindirimi kolay protein kaynağıdır.",            icon: "🐔" },
+      { value: "lamb",    label: "Kuzu",           desc: "Yüksek besin değeri ve lezzetli bir kaynaktır.",          icon: "🐑" },
+      { value: "salmon",  label: "Somon / Balık",  desc: "Omega-3 kaynağı, tüy ve deri sağlığını destekler.",      icon: "🐟" },
+      { value: "rabbit",  label: "Tavşan",         desc: "Hipoalerjenik özellik gösterir, hassas köpekler için idealdir.", icon: "🐰" },
+      { value: "any",     label: "Fark etmez",     desc: "Protein kaynağı benim için önemli değil.",               icon: "🔀" },
     ],
   },
   {
-    key: "budget", emoji: "💳",
+    key: "budget", type: "checkbox", hasHero: false,
+    emoji: "💳",
     question: "Aylık mama bütçeniz?",
     hint: "Her bütçe için kaliteli seçenekler var",
+    infoBanner: "Birden fazla seçenek işaretleyebilirsiniz.",
     options: [
-      { value: "economy", label: "₺500–1.000",  desc: "Ekonomik",       icon: "💰" },
-      { value: "mid",     label: "₺1.000–2.000", desc: "Orta segment",  icon: "💳" },
-      { value: "premium", label: "₺2.000+",      desc: "Premium",       icon: "⭐" },
+      { value: "economy", label: "₺500–1.000",   desc: "Uygun fiyatlı, temel ihtiyaçları karşılayan mamalar.", icon: "💰" },
+      { value: "mid",     label: "₺1.000–2.000",  desc: "Dengeli içerik ve kalite, en popüler aralık.",        icon: "💳" },
+      { value: "premium", label: "₺2.000+",       desc: "Yüksek kaliteli içerik, özel formüller ve destekler.", icon: "⭐" },
     ],
   },
   {
-    key: "package", emoji: "📦",
+    key: "package", type: "checkbox", hasHero: false,
+    emoji: "📦",
     question: "Tercih edilen paket boyutu?",
     hint: "Küçük paketler daha taze, büyükler daha ekonomik",
+    infoBanner: "Birden fazla seçenek işaretleyebilirsiniz.",
     options: [
-      { value: "small",  label: "1–2 kg",   desc: "Taze kalır, değişiklik kolay",  icon: "📦" },
-      { value: "medium", label: "3–5 kg",   desc: "Taze + ekonomik denge",         icon: "🗃️" },
-      { value: "large",  label: "7–12 kg",  desc: "En ekonomik, depo gerektirir",  icon: "🏭" },
+      { value: "small",   label: "1–2 kg",   desc: "Taze kalır, değişiklik kolay",              icon: "📦" },
+      { value: "medium",  label: "3–5 kg",   desc: "Taze + ekonomik denge",                     icon: "🗃️" },
+      { value: "large",   label: "7–12 kg",  desc: "En ekonomik, depo gerektirir",              icon: "🏭" },
+      { value: "xl",      label: "13–20 kg", desc: "Büyük ırklar için ideal",                   icon: "📦" },
+      { value: "xxl",     label: "21–30 kg", desc: "Uzun süreli kullanım için uygun",            icon: "📦" },
+      { value: "bulk",    label: "30+ kg",   desc: "En avantajlı, toplu alım",                  icon: "📦" },
     ],
   },
 ];
 
 const RESULT_META = [
-  { label: "En Uygun Seçim", emoji: "🏆", color: "#7C3AED", bg: "#EDE9FE", gradient: "linear-gradient(135deg,#7C3AED,#8B5CF6)", reason: "Poodle'ınızın yaşı, kilosu ve ihtiyaçlarıyla birebir örtüşüyor." },
-  { label: "Fiyat Performans", emoji: "💚", color: "#059669", bg: "#D1FAE5", gradient: "linear-gradient(135deg,#059669,#34D399)", reason: "Kaliteli içerik, makul fiyat. Uzun süreli kullanımda tasarruf sağlar." },
-  { label: "Premium Seçim", emoji: "⭐", color: "#D97706", bg: "#FEF3C7", gradient: "linear-gradient(135deg,#D97706,#F59E0B)", reason: "En yüksek kalite standartları. İçerik açısından üstün formül." },
+  { label: "En Uygun Seçim",    emoji: "🏆", color: "#7B3FE4", bg: "#EDE9FE", gradient: "linear-gradient(135deg,#7B3FE4,#8B5CF6)", reason: "Poodle'ınızın yaşı, kilosu ve ihtiyaçlarıyla birebir örtüşüyor." },
+  { label: "Fiyat Performans",  emoji: "💚", color: "#059669", bg: "#D1FAE5", gradient: "linear-gradient(135deg,#059669,#34D399)", reason: "Kaliteli içerik, makul fiyat. Uzun süreli kullanımda tasarruf sağlar." },
+  { label: "Premium Seçim",     emoji: "⭐", color: "#D97706", bg: "#FEF3C7", gradient: "linear-gradient(135deg,#D97706,#F59E0B)", reason: "En yüksek kalite standartları. İçerik açısından üstün formül." },
 ];
 
 interface Product {
@@ -326,67 +164,87 @@ interface Product {
   score?: number; matchPct?: number; reason?: string;
 }
 
-/* ─── Scoring algorithm ─────────────────────────────────────── */
-function scoreProduct(p: any, answers: Record<string, string>): number {
+/* ─── Helpers for multi-select answers ──────────────────────── */
+type Answers = Record<string, string | string[]>;
+
+function getStr(answers: Answers, key: string): string {
+  const v = answers[key];
+  if (!v) return "";
+  if (Array.isArray(v)) return v[0] || "";
+  return v;
+}
+
+function hasAnswer(answers: Answers, key: string): boolean {
+  const v = answers[key];
+  if (!v) return false;
+  if (Array.isArray(v)) return v.length > 0;
+  return v !== "";
+}
+
+/* ─── Scoring ────────────────────────────────────────────────── */
+function scoreProduct(p: any, answers: Answers): number {
   let score = 50;
   const meta = p.mamaMetadata || {};
 
-  // mamaType ↔ age: +30 match / -10 mismatch
   const ageMap: Record<string, string> = { puppy: "yavru", adult: "yetiskin", senior: "yasli" };
-  const expectedType = ageMap[answers.age] || "";
+  const expectedType = ageMap[getStr(answers, "age")] || "";
   if (expectedType && p.mamaType) {
     score += p.mamaType === expectedType ? 30 : -10;
   }
 
-  // proteinType ↔ protein: +20 match / -5 mismatch
   const protMap: Record<string, string> = { chicken: "tavuk", salmon: "somon", lamb: "kuzu", rabbit: "tavsan" };
-  if (answers.protein && answers.protein !== "any" && meta.proteinType) {
-    score += meta.proteinType === protMap[answers.protein] ? 20 : -5;
-  } else if (answers.protein === "any") {
+  const proteinVals = answers.protein ? (Array.isArray(answers.protein) ? answers.protein : [answers.protein]) : [];
+  if (proteinVals.length > 0 && !proteinVals.includes("any") && meta.proteinType) {
+    const anyMatch = proteinVals.some(pv => meta.proteinType === protMap[pv]);
+    score += anyMatch ? 20 : -5;
+  } else if (proteinVals.includes("any")) {
     score += 6;
   }
 
-  // grainFree ↔ allergy grain: +15
-  if (answers.allergy === "grain") {
+  if (getStr(answers, "allergy") === "grain") {
     score += meta.grainFree === true ? 15 : -20;
   }
 
-  // budgetTier ↔ budget: +15 match / tiered penalty
   const budgetMap: Record<string, string> = { economy: "ekonomik", mid: "orta", premium: "premium" };
   const tiers = ["ekonomik", "orta", "premium"];
-  if (answers.budget && meta.budgetTier) {
-    const expected = budgetMap[answers.budget] || "";
-    if (meta.budgetTier === expected) score += 15;
+  const budgetVals = answers.budget ? (Array.isArray(answers.budget) ? answers.budget : [answers.budget]) : [];
+  if (budgetVals.length > 0 && meta.budgetTier) {
+    const anyBudgetMatch = budgetVals.some(bv => meta.budgetTier === budgetMap[bv]);
+    if (anyBudgetMatch) score += 15;
     else {
-      const diff = Math.abs(tiers.indexOf(meta.budgetTier) - tiers.indexOf(expected));
-      score += diff === 1 ? -3 : -10;
+      const bestDiff = Math.min(...budgetVals.map(bv => {
+        const expected = budgetMap[bv] || "";
+        return Math.abs(tiers.indexOf(meta.budgetTier) - tiers.indexOf(expected));
+      }));
+      score += bestDiff === 1 ? -3 : -10;
     }
   }
 
-  // breedSize ↔ weight: +10 match / -3 mismatch
   const weightBreed: Record<string, string[]> = { micro: ["toy"], toy: ["toy"], mini: ["miniature"], standard: ["standart"] };
-  if (answers.weight && meta.breedSize) {
-    const ok = weightBreed[answers.weight] || [];
+  const weight = getStr(answers, "weight");
+  if (weight && meta.breedSize) {
+    const ok = weightBreed[weight] || [];
     score += ok.includes(meta.breedSize) ? 10 : -3;
   }
 
-  // allergen elimination: -100 (effectively removes)
-  if (meta.allergens && answers.allergy && answers.allergy !== "none" && answers.allergy !== "other") {
+  const allergyKey = getStr(answers, "allergy");
+  if (meta.allergens && allergyKey && allergyKey !== "none" && allergyKey !== "other") {
     const allergyMap: Record<string, string[]> = { chicken: ["tavuk"], fish: ["balik", "somon"], grain: ["tahil", "bugday"] };
-    const allergyTerms = allergyMap[answers.allergy] || [];
+    const allergyTerms = allergyMap[allergyKey] || [];
     const hasAllergen = meta.allergens.some((a: string) =>
       allergyTerms.some((t: string) => a.toLowerCase().includes(t))
     );
     if (hasAllergen) score -= 100;
   }
 
-  // specialNeeds ↔ coat/digestion: +10
   if (meta.specialNeeds && Array.isArray(meta.specialNeeds)) {
-    if ((answers.coat === "dull" || answers.coat === "shedding" || answers.coat === "scratch") &&
+    const coat = getStr(answers, "coat");
+    const digestion = getStr(answers, "digestion");
+    if ((coat === "dull" || coat === "shedding" || coat === "scratch") &&
         meta.specialNeeds.some((n: string) => n.includes("tuy") || n.includes("deri"))) {
       score += 10;
     }
-    if ((answers.digestion === "sensitive" || answers.digestion === "very_sensitive") &&
+    if ((digestion === "sensitive" || digestion === "very_sensitive") &&
         meta.specialNeeds.some((n: string) => n.includes("sindirim") || n.includes("hassas"))) {
       score += 10;
     }
@@ -395,24 +253,25 @@ function scoreProduct(p: any, answers: Record<string, string>): number {
   return score;
 }
 
-function buildReason(p: any, answers: Record<string, string>): string {
+function buildReason(p: any, answers: Answers): string {
   const meta = p.mamaMetadata || {};
   const parts: string[] = [];
-  const ageMatch = (answers.age === "puppy" && p.mamaType === "yavru") ||
-                   (answers.age === "adult" && p.mamaType === "yetiskin") ||
-                   (answers.age === "senior" && p.mamaType === "yasli");
+  const age = getStr(answers, "age");
+  const ageMatch = (age === "puppy" && p.mamaType === "yavru") ||
+                   (age === "adult" && p.mamaType === "yetiskin") ||
+                   (age === "senior" && p.mamaType === "yasli");
   if (ageMatch) {
-    const lbl = { puppy: "Yavru", adult: "Yetişkin", senior: "Yaşlı" }[answers.age] || "";
+    const lbl = { puppy: "Yavru", adult: "Yetişkin", senior: "Yaşlı" }[age] || "";
     parts.push(`${lbl} formülü`);
   }
   const protTR: Record<string, string> = { tavuk: "tavuklu", somon: "somonlu", kuzu: "kuzulu", tavsan: "tavşanlı" };
   if (meta.proteinType) parts.push(protTR[meta.proteinType] || meta.proteinType);
-  if (meta.grainFree === true && answers.allergy === "grain") parts.push("tahılsız");
+  if (meta.grainFree === true && getStr(answers, "allergy") === "grain") parts.push("tahılsız");
   if (meta.breedSize === "toy") parts.push("Toy boy'a uygun");
   return parts.length > 0 ? parts.join(" · ") : "Profilinize uygun seçim";
 }
 
-function pickRecommendations(products: any[], answers: Record<string, string>): Product[] {
+function pickRecommendations(products: any[], answers: Answers): Product[] {
   if (!products.length) return [];
   const scored = products.map(p => {
     const score = scoreProduct(p, answers);
@@ -421,36 +280,147 @@ function pickRecommendations(products: any[], answers: Record<string, string>): 
              mamaType: p.mamaType, mamaMetadata: p.mamaMetadata, score, matchPct,
              reason: buildReason(p, answers) };
   });
-  // Sort by score DESC, then price ASC for ties
   scored.sort((a, b) => b.score !== a.score ? b.score - a.score : a.price - b.price);
-  // Allergen-disqualified products go last
   const eligible = scored.filter(p => (p.score ?? 0) >= 0);
   const ineligible = scored.filter(p => (p.score ?? 0) < 0);
   return [...eligible, ...ineligible].slice(0, 3);
 }
 
-function AgePath({ step, total }: { step: number; total: number }) {
-  return (
-    <div className="mb-stepdots">
-      {Array.from({ length: total }).map((_, i) => (
-        <div key={i} className={`mb-dot ${i < step ? "done" : i === step ? "active" : ""}`} />
-      ))}
-    </div>
-  );
-}
-
-// Maps poodle profile breed to wizard weight-step value
 function breedToWeight(breed?: string | null): string | undefined {
   if (!breed) return undefined;
   const map: Record<string, string> = { toy: "toy", miniature: "mini", standard: "standard" };
   return map[breed];
 }
 
+/* ─── Poodle SVG illustration ────────────────────────────────── */
+function PoodleIllustration() {
+  return (
+    <div style={{
+      width: 200, height: 200, borderRadius: "50%",
+      background: "linear-gradient(135deg, #7B3FE4 0%, #9B6AF0 100%)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      flexShrink: 0, position: "relative", overflow: "hidden",
+      boxShadow: "0 12px 40px rgba(123,63,228,0.28)",
+    }}>
+      {/* Decorative circles */}
+      <div style={{ position: "absolute", top: -20, right: -20, width: 80, height: 80, borderRadius: "50%", background: "rgba(255,255,255,0.08)" }} />
+      <div style={{ position: "absolute", bottom: -10, left: -10, width: 60, height: 60, borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
+      {/* Poodle emoji */}
+      <span style={{ fontSize: 88, lineHeight: 1, filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.2))", userSelect: "none" }}>🐩</span>
+      {/* Heart decoration */}
+      <span style={{ position: "absolute", top: 18, right: 22, fontSize: 20 }}>💜</span>
+      <span style={{ position: "absolute", bottom: 22, left: 20, fontSize: 16 }}>🐾</span>
+    </div>
+  );
+}
+
+/* ─── Progress tracker ───────────────────────────────────────── */
+function ProgressTracker({ current, total }: { current: number; total: number }) {
+  return (
+    <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "nowrap" }}>
+      {Array.from({ length: total }).map((_, i) => {
+        const done = i < current;
+        const active = i === current;
+        return (
+          <div key={i} style={{
+            width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 11, fontWeight: 700,
+            background: done ? "#7B3FE4" : active ? "#FAF5FF" : "#F3F0FB",
+            border: active ? "2px solid #7B3FE4" : done ? "2px solid #7B3FE4" : "2px solid #E5E0F5",
+            color: done ? "#fff" : active ? "#7B3FE4" : "#BDB5D9",
+            transition: "all 0.3s ease",
+          }}>
+            {done ? <Check size={12} strokeWidth={3} /> : i + 1}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─── InfoBanner ─────────────────────────────────────────────── */
+function InfoBanner({ text }: { text: string }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 10,
+      background: "#F3EFFF", borderRadius: 12,
+      padding: "12px 16px", marginBottom: 16,
+    }}>
+      <Info size={16} color="#7B3FE4" style={{ flexShrink: 0 }} />
+      <span style={{ fontSize: 13, color: "#5B21B6", fontWeight: 500, lineHeight: 1.5 }}>{text}</span>
+    </div>
+  );
+}
+
+/* ─── OptionCard ─────────────────────────────────────────────── */
+function OptionCard({
+  opt, selected, onClick, type
+}: {
+  opt: StepOption; selected: boolean; onClick: () => void; type: StepType;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-pressed={selected}
+      style={{
+        display: "flex", alignItems: "center", gap: 14,
+        background: selected ? "#FAF5FF" : "#fff",
+        border: `2px solid ${selected ? "#7B3FE4" : "#E5E7EB"}`,
+        borderRadius: 16, padding: "16px 18px",
+        cursor: "pointer", textAlign: "left", width: "100%",
+        transition: "all 0.18s ease",
+        boxShadow: selected ? "0 4px 16px rgba(123,63,228,0.12)" : "0 1px 4px rgba(0,0,0,0.04)",
+        WebkitTapHighlightColor: "transparent",
+      }}
+      onMouseEnter={e => {
+        if (!selected) (e.currentTarget as HTMLButtonElement).style.borderColor = "#C4B5FD";
+      }}
+      onMouseLeave={e => {
+        if (!selected) (e.currentTarget as HTMLButtonElement).style.borderColor = "#E5E7EB";
+      }}
+    >
+      {opt.icon && (
+        <div style={{
+          width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+          background: selected ? "#EDE9FE" : "#F8F5FF",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 22, transition: "background 0.18s",
+        }}>
+          {opt.icon}
+        </div>
+      )}
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: selected ? "#5B21B6" : "#1A1A2E", lineHeight: 1.3, marginBottom: opt.desc ? 3 : 0 }}>
+          {opt.label}
+        </div>
+        {opt.desc && (
+          <div style={{ fontSize: 12, color: selected ? "#7B3FE4" : "#6B7280", lineHeight: 1.4 }}>
+            {opt.desc}
+          </div>
+        )}
+      </div>
+      {/* Radio / Checkbox indicator */}
+      <div style={{
+        width: 22, height: 22, flexShrink: 0,
+        borderRadius: type === "radio" ? "50%" : 6,
+        border: `2px solid ${selected ? "#7B3FE4" : "#D1D5DB"}`,
+        background: selected ? "#7B3FE4" : "#fff",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        transition: "all 0.18s",
+      }}>
+        {selected && <Check size={12} color="#fff" strokeWidth={3} />}
+      </div>
+    </button>
+  );
+}
+
+/* ─── Main component ─────────────────────────────────────────── */
 export default function YPMamaBulPage() {
   const [, navigate] = useLocation();
   const { isLoggedIn } = useCustomer();
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Answers>({});
   const [done, setDone] = useState(false);
   const [slideKey, setSlideKey] = useState(0);
   const savedRef = useRef(false);
@@ -467,27 +437,43 @@ export default function YPMamaBulPage() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Pre-fill answers from poodle profile once, on first load
   useEffect(() => {
     if (!poodle || prefillApplied.current) return;
     prefillApplied.current = true;
-    const prefill: Record<string, string> = {};
+    const prefill: Answers = {};
     const ageValues = ["puppy", "adult", "senior"];
-    if (poodle.age && ageValues.includes(poodle.age)) {
-      prefill.age = poodle.age;
-    }
+    if (poodle.age && ageValues.includes(poodle.age)) prefill.age = poodle.age;
     const weight = breedToWeight(poodle.breed);
     if (weight) prefill.weight = weight;
-    if (Object.keys(prefill).length > 0) {
-      setAnswers(a => ({ ...prefill, ...a }));
-    }
+    if (Object.keys(prefill).length > 0) setAnswers(a => ({ ...prefill, ...a }));
   }, [poodle]);
 
   const currentStep = STEPS[step];
-  const selected = answers[currentStep?.key];
-  const progress = (step / STEPS.length) * 100;
 
-  const handleSelect = (val: string) => setAnswers(a => ({ ...a, [currentStep.key]: val }));
+  const handleSelect = (val: string) => {
+    if (currentStep.type === "radio") {
+      setAnswers(a => ({ ...a, [currentStep.key]: val }));
+    } else {
+      // checkbox: toggle
+      setAnswers(a => {
+        const prev = a[currentStep.key];
+        const arr: string[] = Array.isArray(prev) ? [...prev] : (prev ? [prev as string] : []);
+        const idx = arr.indexOf(val);
+        if (idx >= 0) arr.splice(idx, 1);
+        else arr.push(val);
+        return { ...a, [currentStep.key]: arr };
+      });
+    }
+  };
+
+  const isSelected = (val: string): boolean => {
+    const v = answers[currentStep.key];
+    if (!v) return false;
+    if (Array.isArray(v)) return v.includes(val);
+    return v === val;
+  };
+
+  const hasSelection = hasAnswer(answers, currentStep.key);
 
   const handleNext = () => {
     if (step < STEPS.length - 1) {
@@ -503,9 +489,9 @@ export default function YPMamaBulPage() {
     else navigate("/yourpoodle");
   };
 
-  const buildPrefill = () => {
+  const buildPrefill = (): Answers => {
     if (!poodle) return {};
-    const prefill: Record<string, string> = {};
+    const prefill: Answers = {};
     const ageValues = ["puppy", "adult", "senior"];
     if (poodle.age && ageValues.includes(poodle.age)) prefill.age = poodle.age;
     const weight = breedToWeight(poodle.breed);
@@ -514,20 +500,20 @@ export default function YPMamaBulPage() {
   };
 
   const restart = () => {
-    setStep(0);
-    setAnswers(buildPrefill());
-    setDone(false);
-    setSlideKey(0);
-    savedRef.current = false;
+    setStep(0); setAnswers(buildPrefill()); setDone(false); setSlideKey(0); savedRef.current = false;
   };
+
   const recommendations = useMemo(() => pickRecommendations(products, answers), [products, answers]);
 
-  // Save recommendations to DB when wizard completes and user is logged in
   useEffect(() => {
     if (!done || !isLoggedIn || savedRef.current || recommendations.length === 0) return;
     savedRef.current = true;
+    const serializedAnswers: Record<string, string> = {};
+    for (const [k, v] of Object.entries(answers)) {
+      serializedAnswers[k] = Array.isArray(v) ? v.join(",") : v;
+    }
     const payload = {
-      answers,
+      answers: serializedAnswers,
       products: recommendations.map(p => ({ id: p.id, name: p.name, price: p.price, matchPct: p.matchPct, reason: p.reason })),
     };
     fetch("/api/yp/recommendations", {
@@ -535,111 +521,154 @@ export default function YPMamaBulPage() {
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify(payload),
-    }).catch(() => { /* silent — recommendation save is best-effort */ });
+    }).catch(() => {});
   }, [done, isLoggedIn, recommendations, answers]);
 
-  // ── Result screen ────────────────────────────────────────
+  /* ── Shared inline styles ── */
+  const pageStyle: React.CSSProperties = {
+    minHeight: "100svh",
+    background: "#F3EFFF",
+    fontFamily: "'Inter', 'Plus Jakarta Sans', sans-serif",
+    padding: "0 0 40px",
+  };
+
+  const cardStyle: React.CSSProperties = {
+    maxWidth: 920, margin: "0 auto",
+    background: "#fff", borderRadius: 28,
+    boxShadow: "0 20px 60px rgba(123,63,228,0.08)",
+    overflow: "hidden",
+  };
+
+  /* ── Result screen ── */
   if (done) {
+    const resultCardStyle: React.CSSProperties = {
+      background: "#fff", borderRadius: 20,
+      boxShadow: "0 2px 20px rgba(0,0,0,0.07)", overflow: "hidden", marginBottom: 14,
+    };
     return (
       <YPLayout activeLink="/yourpoodle/mama-bul">
         <title>Mama Önerileri | YourPoodle</title>
-        <style>{CSS}</style>
-        <div className="mb-page" style={{ minHeight: "unset" }}>
-          {/* topbar */}
-          <div className="mb-topbar">
-            <button className="mb-back-btn" onClick={restart} aria-label="Yeniden başla">
-              <ArrowLeft size={18} color="#7C3AED" />
-            </button>
-            <div style={{ flex: 1 }} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#7C3AED" }}>Öneriler</span>
-          </div>
-
-          {/* hero */}
-          <div className="mb-result-hero">
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, opacity: 0.75, marginBottom: 6, textTransform: "uppercase" }}>✓ Analiz Tamamlandı</div>
-            <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 8, lineHeight: 1.25, position: "relative", zIndex: 1 }}>
-              Poodle'ınıza özel<br />öneriler hazır! 🎉
-            </div>
-            <div style={{ fontSize: 13, opacity: 0.82, lineHeight: 1.55, position: "relative", zIndex: 1 }}>
-              {answers.age === "puppy" ? "Yavru" : answers.age === "senior" ? "Yaşlı" : "Yetişkin"} profil ·{" "}
-              {answers.protein === "any" ? "esnek protein" : answers.protein === "chicken" ? "tavuklu" : answers.protein === "salmon" ? "somonlu" : answers.protein === "lamb" ? "kuzulu" : "tavşanlı"} mama önerildi
-            </div>
-          </div>
-
-          {/* cards */}
-          <div className="mb-result-cards">
-            {/* No-match notice when allergen/constraint disqualifies everything */}
-            {recommendations.length > 0 && recommendations.every(p => (p.score ?? 0) < 0) && (
-              <div style={{ background: "#FFF7ED", borderRadius: 14, padding: "14px 16px", marginBottom: 4, fontSize: 13, color: "#C2410C", lineHeight: 1.6 }}>
-                <div style={{ fontWeight: 800, marginBottom: 4 }}>⚠️ Tam eşleşme bulunamadı</div>
-                Seçtiğiniz kısıtlamalara (alerji, protein tercihi vb.) tam uyan bir ürün şu an mağazamızda yok. Aşağıdaki en yakın alternatifler listelenmiştir — detaylar için ürün sayfasını inceleyin veya veterinerinize danışın.
+        <div style={{ ...pageStyle, padding: "24px 16px 60px" }}>
+          <div style={{ ...cardStyle, padding: 0 }}>
+            {/* Header */}
+            <div style={{
+              background: "linear-gradient(135deg, #5B21B6 0%, #7B3FE4 50%, #A855F7 100%)",
+              padding: "32px 36px", position: "relative", overflow: "hidden", color: "#fff",
+            }}>
+              <div style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.07)" }} />
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, opacity: 0.75, marginBottom: 8, textTransform: "uppercase" }}>✓ Analiz Tamamlandı</div>
+              <div style={{ fontSize: 24, fontWeight: 900, marginBottom: 8, lineHeight: 1.25 }}>
+                Poodle'ınıza özel öneriler hazır! 🎉
               </div>
-            )}
-            {recommendations.length > 0 ? recommendations.map((prod, idx) => {
-              const m = RESULT_META[idx];
-              return (
-                <div key={prod.id} className="mb-result-card">
-                  <div className="mb-card-badge" style={{ background: m.bg, color: m.color, justifyContent: "space-between" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span>{m.emoji}</span>
-                      <span>{m.label}</span>
-                    </div>
-                    {(prod.matchPct ?? 0) > 0 && (
-                      <span style={{ background: m.color, color: "#fff", borderRadius: 20, fontSize: 11, fontWeight: 800, padding: "2px 9px" }}>
-                        %{Math.round(prod.matchPct ?? 0)} uyum
-                      </span>
-                    )}
-                  </div>
-                  <div className="mb-card-body">
-                    <div className="mb-card-img" style={{ cursor: "pointer" }} onClick={() => navigate(`/yourpoodle/urun/${prod.id}`)}>
-                      {prod.img
-                        ? <img src={prod.img} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "contain", padding: "6px" }} />
-                        : <span>🐾</span>}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#18114a", lineHeight: 1.4, marginBottom: 6, cursor: "pointer" }}
-                           onClick={() => navigate(`/yourpoodle/urun/${prod.id}`)}>{prod.name}</div>
-                      <div style={{ fontSize: 12, color: "#777", marginBottom: 10, lineHeight: 1.5 }}>
-                        {prod.reason || m.reason}
-                      </div>
-                      <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                        <span style={{ fontSize: 18, fontWeight: 900, color: m.color }}>₺{Number(prod.price).toLocaleString("tr-TR")}</span>
-                        {prod.originalPrice && prod.originalPrice > prod.price && (
-                          <span style={{ fontSize: 12, color: "#ccc", textDecoration: "line-through" }}>₺{Number(prod.originalPrice).toLocaleString("tr-TR")}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mb-card-actions">
-                    <button className="mb-btn-detail" onClick={() => navigate(`/yourpoodle/urun/${prod.id}`)}>İncele</button>
-                    <button className="mb-btn-add" style={{ background: m.gradient }} onClick={() => navigate(`/yourpoodle/urun/${prod.id}`)}>
-                      <ShoppingCart size={14} /> Sepete Ekle
-                    </button>
-                  </div>
+              <div style={{ fontSize: 13, opacity: 0.82, lineHeight: 1.55 }}>
+                {getStr(answers, "age") === "puppy" ? "Yavru" : getStr(answers, "age") === "senior" ? "Yaşlı" : "Yetişkin"} profil ·{" "}
+                {(() => {
+                  const p = answers.protein;
+                  const pArr = Array.isArray(p) ? p : (p ? [p] : []);
+                  if (pArr.includes("any") || pArr.length === 0) return "esnek protein";
+                  return pArr.map(pv => ({ chicken: "tavuklu", salmon: "somonlu", lamb: "kuzulu", rabbit: "tavşanlı" }[pv] || pv)).join(", ");
+                })()} mama önerildi
+              </div>
+            </div>
+
+            {/* Results */}
+            <div style={{ padding: "24px 36px 36px" }}>
+              {recommendations.length > 0 && recommendations.every(p => (p.score ?? 0) < 0) && (
+                <div style={{ background: "#FFF7ED", borderRadius: 14, padding: "14px 16px", marginBottom: 16, fontSize: 13, color: "#C2410C", lineHeight: 1.6 }}>
+                  <div style={{ fontWeight: 800, marginBottom: 4 }}>⚠️ Tam eşleşme bulunamadı</div>
+                  Seçtiğiniz kısıtlamalara tam uyan bir ürün şu an mağazamızda yok. En yakın alternatifler listelenmiştir.
                 </div>
-              );
-            }) : (
-              <div style={{ textAlign: "center", padding: "48px 20px" }}>
-                <div style={{ fontSize: 52, marginBottom: 14 }}>🐾</div>
-                <div style={{ fontSize: 17, fontWeight: 800, color: "#18114a", marginBottom: 8 }}>Öneri hazırlanıyor</div>
-                <div style={{ fontSize: 13, color: "#999" }}>Ürünler yükleniyor, lütfen bekleyin.</div>
+              )}
+
+              {recommendations.length > 0 ? recommendations.map((prod, idx) => {
+                const m = RESULT_META[idx];
+                return (
+                  <div key={prod.id} style={resultCardStyle}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", background: m.bg, color: m.color, justifyContent: "space-between" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span>{m.emoji}</span>
+                        <span style={{ fontSize: 12, fontWeight: 800 }}>{m.label}</span>
+                      </div>
+                      {(prod.matchPct ?? 0) > 0 && (
+                        <span style={{ background: m.color, color: "#fff", borderRadius: 20, fontSize: 11, fontWeight: 800, padding: "2px 9px" }}>
+                          %{Math.round(prod.matchPct ?? 0)} uyum
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", gap: 14, alignItems: "flex-start", padding: "16px 16px 0" }}>
+                      <div
+                        style={{ width: 80, height: 80, borderRadius: 16, background: "#F5F0FF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, cursor: "pointer" }}
+                        onClick={() => navigate(`/yourpoodle/urun/${prod.id}`)}
+                      >
+                        {prod.img
+                          ? <img src={prod.img} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "contain", padding: "6px" }} />
+                          : <span>🐾</span>}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#18114a", lineHeight: 1.4, marginBottom: 6, cursor: "pointer" }}
+                             onClick={() => navigate(`/yourpoodle/urun/${prod.id}`)}>
+                          {prod.name}
+                        </div>
+                        <div style={{ fontSize: 12, color: "#777", marginBottom: 10, lineHeight: 1.5 }}>{prod.reason || m.reason}</div>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                          <span style={{ fontSize: 18, fontWeight: 900, color: m.color }}>₺{Number(prod.price).toLocaleString("tr-TR")}</span>
+                          {prod.originalPrice && prod.originalPrice > prod.price && (
+                            <span style={{ fontSize: 12, color: "#ccc", textDecoration: "line-through" }}>₺{Number(prod.originalPrice).toLocaleString("tr-TR")}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 8, padding: "12px 16px 16px" }}>
+                      <button
+                        onClick={() => navigate(`/yourpoodle/urun/${prod.id}`)}
+                        style={{ flex: 1, height: 44, borderRadius: 12, background: "#F5F0FF", border: "none", fontSize: 13, fontWeight: 700, color: "#7B3FE4", cursor: "pointer", fontFamily: "inherit" }}
+                      >
+                        İncele
+                      </button>
+                      <button
+                        onClick={() => navigate(`/yourpoodle/urun/${prod.id}`)}
+                        style={{ flex: 1, height: 44, borderRadius: 12, border: "none", fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "inherit", background: m.gradient, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                      >
+                        <ShoppingCart size={14} /> Sepete Ekle
+                      </button>
+                    </div>
+                  </div>
+                );
+              }) : (
+                <div style={{ textAlign: "center", padding: "48px 20px" }}>
+                  <div style={{ fontSize: 52, marginBottom: 14 }}>🐾</div>
+                  <div style={{ fontSize: 17, fontWeight: 800, color: "#18114a", marginBottom: 8 }}>Öneri hazırlanıyor</div>
+                  <div style={{ fontSize: 13, color: "#999" }}>Ürünler yükleniyor, lütfen bekleyin.</div>
+                </div>
+              )}
+
+              <div style={{ background: "#FFF9C4", borderRadius: 14, padding: "14px 16px", fontSize: 12, color: "#92400E", lineHeight: 1.55, marginBottom: 16 }}>
+                ⚠️ Bu öneriler genel profil bilgilerinize göre oluşturulmuştur. Özel sağlık sorunlarında veteriner hekiminize danışın.
               </div>
-            )}
 
-            <div style={{ background: "#FFF9C4", borderRadius: 16, padding: "14px 16px", fontSize: 12, color: "#92400E", lineHeight: 1.55 }}>
-              ⚠️ Bu öneriler genel profil bilgilerinize göre oluşturulmuştur. Özel sağlık sorunlarında veteriner hekiminize danışın.
+              <button
+                onClick={restart}
+                style={{
+                  width: "100%", height: 50, borderRadius: 16,
+                  background: "#EDE9FE", border: "none", fontSize: 15, fontWeight: 700,
+                  color: "#7B3FE4", cursor: "pointer", fontFamily: "inherit",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                }}
+              >
+                <RotateCcw size={16} /> Yeniden Ara
+              </button>
             </div>
-
-            <button className="mb-restart" onClick={restart}>
-              <RotateCcw size={16} /> Yeniden Ara
-            </button>
           </div>
         </div>
       </YPLayout>
     );
   }
 
-  // ── Wizard screen ────────────────────────────────────────
+  /* ── Wizard screen ── */
+  const isCheckbox = currentStep.type === "checkbox";
+  const isLastStep = step === STEPS.length - 1;
+  const hasHero = currentStep.hasHero !== false;
+
   return (
     <YPLayout activeLink="/yourpoodle/mama-bul">
       <title>Poodle Mama Bul | Kişiselleştirilmiş Mama Öneri Sihirbazı | YourPoodle</title>
@@ -647,62 +676,167 @@ export default function YPMamaBulPage() {
       <meta property="og:title" content="Poodle Mama Bul | YourPoodle" />
       <meta property="og:type" content="website" />
       <meta name="robots" content="index, follow" />
-      <style>{CSS}</style>
 
-      <div className="mb-page" style={{ minHeight: "unset" }}>
-        {/* Top bar */}
-        <div className="mb-topbar">
-          <button className="mb-back-btn" onClick={handleBack} aria-label="Geri">
-            <ArrowLeft size={18} color="#7C3AED" />
-          </button>
-          <AgePath step={step} total={STEPS.length} />
-          <div style={{ width: 40, flexShrink: 0 }} />
-        </div>
+      <style>{`
+        @keyframes yp-slide-in {
+          from { opacity: 0; transform: translateX(24px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        .yp-wizard-slide { animation: yp-slide-in 0.22s cubic-bezier(.4,0,.2,1) both; }
+        @media (max-width: 767px) {
+          .yp-hero-row { flex-direction: column !important; }
+          .yp-hero-img { display: none !important; }
+          .yp-options-grid { grid-template-columns: 1fr !important; }
+          .yp-card-pad { padding: 20px 16px !important; }
+          .yp-card-header { padding: 16px 16px 0 !important; }
+          .yp-footer { padding: 16px 16px 20px !important; }
+          .yp-progress-tracker { display: none !important; }
+          .yp-mobile-progress { display: block !important; }
+        }
+        @media (min-width: 768px) {
+          .yp-mobile-progress { display: none !important; }
+        }
+      `}</style>
 
-        {/* Progress bar */}
-        <div className="mb-progress-track">
-          <div className="mb-progress-fill" style={{ width: `${progress}%` }} />
-        </div>
+      <div style={pageStyle}>
+        {/* Page top padding */}
+        <div style={{ height: 20 }} />
 
-        <div className="mb-wizard-wrap">
-          {/* Question */}
-          <div className="mb-question-wrap mb-slide" key={`q-${slideKey}`}>
-            <span className="mb-step-pill">Adım {step + 1} / {STEPS.length}</span>
-            <span className="mb-emoji">{currentStep.emoji}</span>
-            <h2 className="mb-question">{currentStep.question}</h2>
-            {currentStep.hint && <p className="mb-hint">{currentStep.hint}</p>}
-          </div>
+        <div style={{ padding: "0 16px" }}>
+          <div style={cardStyle}>
+            {/* Card header: step badge + progress tracker */}
+            <div className="yp-card-header" style={{ padding: "24px 36px 0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                background: "#EDE9FE", borderRadius: 99, padding: "5px 14px",
+                fontSize: 13, fontWeight: 700, color: "#7B3FE4",
+              }}>
+                <span>{currentStep.emoji}</span>
+                Adım {step + 1} / {STEPS.length}
+              </div>
+              <div className="yp-progress-tracker">
+                <ProgressTracker current={step} total={STEPS.length} />
+              </div>
+            </div>
 
-          {/* Options */}
-          <div className="mb-options-wrap mb-slide" key={`o-${slideKey}`}>
-            {currentStep.options.map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => handleSelect(opt.value)}
-                className={`mb-option ${selected === opt.value ? "selected" : ""}`}
-                aria-pressed={selected === opt.value}
+            {/* Mobile thin progress bar */}
+            <div className="yp-mobile-progress" style={{ margin: "12px 16px 0", height: 4, background: "#EDE9FE", borderRadius: 99 }}>
+              <div style={{ height: 4, width: `${((step + 1) / STEPS.length) * 100}%`, background: "linear-gradient(90deg, #7B3FE4, #A855F7)", borderRadius: 99, transition: "width 0.4s" }} />
+            </div>
+
+            {/* Step content */}
+            <div className={`yp-wizard-slide yp-card-pad`} key={`step-${slideKey}`} style={{ padding: "28px 36px" }}>
+
+              {hasHero ? (
+                /* Hero layout: text left, poodle right */
+                <div className="yp-hero-row" style={{ display: "flex", alignItems: "center", gap: 32, marginBottom: 28 }}>
+                  <div style={{ flex: 1 }}>
+                    <h2 style={{ fontSize: 28, fontWeight: 800, color: "#1A1A2E", margin: "0 0 10px", lineHeight: 1.25 }}>
+                      {currentStep.question}
+                      {(currentStep as any).questionBold && (
+                        <em style={{ fontStyle: "normal", color: "#7B3FE4", borderBottom: "2px solid #C4B5FD" }}>
+                          {(currentStep as any).questionBold}
+                        </em>
+                      )}
+                      {(currentStep as any).question2 || ""}
+                    </h2>
+                    <p style={{ fontSize: 15, color: "#6B7280", margin: 0, lineHeight: 1.6 }}>{currentStep.hint}</p>
+                  </div>
+                  <div className="yp-hero-img">
+                    <PoodleIllustration />
+                  </div>
+                </div>
+              ) : (
+                /* No-hero layout: centered text */
+                <div style={{ marginBottom: 24 }}>
+                  <h2 style={{ fontSize: 26, fontWeight: 800, color: "#1A1A2E", margin: "0 0 8px", lineHeight: 1.25 }}>
+                    {currentStep.question}
+                    {(currentStep as any).questionBold && (
+                      <em style={{ fontStyle: "normal", color: "#7B3FE4", borderBottom: "2px solid #C4B5FD" }}>
+                        {(currentStep as any).questionBold}
+                      </em>
+                    )}
+                    {(currentStep as any).question2 || ""}
+                  </h2>
+                  <p style={{ fontSize: 15, color: "#6B7280", margin: 0, lineHeight: 1.6 }}>{currentStep.hint}</p>
+                </div>
+              )}
+
+              {/* Info banner */}
+              {currentStep.infoBanner && <InfoBanner text={currentStep.infoBanner} />}
+
+              {/* Options grid */}
+              <div
+                className="yp-options-grid"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: currentStep.options.length === 2 ? "1fr 1fr" : currentStep.options.length === 3 ? "1fr 1fr 1fr" : "1fr 1fr",
+                  gap: 10,
+                }}
               >
-                {opt.icon && <div className="mb-opt-icon">{opt.icon}</div>}
-                <div style={{ flex: 1 }}>
-                  <div className="mb-opt-label">{opt.label}</div>
-                  {opt.desc && <div className="mb-opt-desc">{opt.desc}</div>}
-                </div>
-                <div className="mb-check-ring">
-                  {selected === opt.value && <Check size={13} color="#fff" strokeWidth={3} />}
-                </div>
-              </button>
-            ))}
-          </div>
+                {currentStep.options.map(opt => (
+                  <OptionCard
+                    key={opt.value}
+                    opt={opt}
+                    selected={isSelected(opt.value)}
+                    onClick={() => handleSelect(opt.value)}
+                    type={currentStep.type}
+                  />
+                ))}
+              </div>
 
-          {/* CTA */}
-          <div className="mb-cta-wrap">
-            <button
-              className="mb-btn-next"
-              disabled={!selected}
-              onClick={handleNext}
-            >
-              {step === STEPS.length - 1 ? "Önerileri Gör 🎉" : "Devam Et →"}
-            </button>
+              {/* Step 11 tip banner */}
+              {step === 10 && (
+                <div style={{
+                  display: "flex", alignItems: "flex-start", gap: 10,
+                  background: "#F3EFFF", borderRadius: 12, padding: "14px 16px", marginTop: 14,
+                  border: "1px solid #DDD6FE",
+                }}>
+                  <span style={{ fontSize: 18 }}>⭐</span>
+                  <span style={{ fontSize: 12, color: "#5B21B6", lineHeight: 1.6, fontWeight: 500 }}>
+                    <strong>Önerimiz:</strong> 1–2 kg ve 3–5 kg paketleri dönüşümlü kullanarak hem tazeliği koruyabilir hem de ekonomik avantaj sağlayabilirsiniz.
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="yp-footer" style={{ padding: "0 36px 32px" }}>
+              <button
+                disabled={!hasSelection}
+                onClick={handleNext}
+                style={{
+                  width: "100%", height: 52, borderRadius: 9999,
+                  background: hasSelection
+                    ? "linear-gradient(135deg, #7B3FE4 0%, #A855F7 100%)"
+                    : "#E2E2F0",
+                  border: "none", fontSize: 16, fontWeight: 800,
+                  color: hasSelection ? "#fff" : "#9CA3AF",
+                  cursor: hasSelection ? "pointer" : "not-allowed",
+                  fontFamily: "inherit",
+                  boxShadow: hasSelection ? "0 6px 24px rgba(123,63,228,0.32)" : "none",
+                  transition: "all 0.2s",
+                  letterSpacing: "-0.2px",
+                }}
+              >
+                {isLastStep ? "Sonuçları Gör →" : "Devam Et →"}
+              </button>
+
+              {step > 0 && (
+                <div style={{ textAlign: "center", marginTop: 14 }}>
+                  <button
+                    onClick={handleBack}
+                    style={{
+                      background: "none", border: "none", cursor: "pointer",
+                      fontSize: 14, color: "#9CA3AF", fontFamily: "inherit",
+                      display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 500,
+                    }}
+                  >
+                    <ArrowLeft size={14} /> Geri dön
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
