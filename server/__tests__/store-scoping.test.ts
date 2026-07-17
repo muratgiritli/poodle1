@@ -3123,3 +3123,63 @@ test("payment-status exposes sourceSite=jetgo for YP orders → isYP=true → re
   assert.equal(successDest, "/yourpoodle/tesekkurler",
     "YP success redirect destination must be /yourpoodle/tesekkurler");
 });
+
+// ── Stock-guard: real-time out-of-stock rejection ─────────────────────────────
+//
+// The checkout page (yp-odeme.tsx) validates stock on mount, but the result is
+// NOT re-checked while the buyer fills in their address. If an admin zeroes a
+// product's stock while the form is open the client-side guard can be stale.
+// POST /api/orders is the authoritative last line of defence: it performs an
+// atomic conditional decrement ("UPDATE … WHERE stock >= qty") and returns
+// 400 with a message that names the offending product if the decrement fails.
+//
+// This test:
+//  1. Seeds a product with stock = 0 (simulating an admin change that happened
+//     while the buyer was filling in the form).
+//  2. Posts a valid order for that product as an authenticated customer.
+//  3. Asserts the endpoint rejects with 400 and that the response body's
+//     `message` field identifies the product by name — so the client (and any
+//     future developer) gets a human-readable, actionable error rather than a
+//     silent failure or a generic blob.
+
+test("POST /api/orders: out-of-stock product is rejected with 400 and a product-naming error message", async () => {
+  // Seed a product that is active but has stock = 0.
+  const zeroStockProd = await pool.query(
+    "INSERT INTO products (name, price, brand_category_id, is_active, stock) VALUES ($1, 99, $2, true, 0) RETURNING id",
+    [`${MARK}_ZERO_STOCK`, ids.brandCategories[0]]
+  );
+  const zeroStockId = zeroStockProd.rows[0].id as number;
+  ids.products.push(zeroStockId);
+
+  // jetgomarket.com is onlinePaymentOnly — use the same payment method as
+  // real YP checkout so the payment-gate is cleared before hitting the stock guard.
+  const payload = {
+    items: [{ productId: zeroStockId, name: `${MARK}_ZERO_STOCK`, price: 99, quantity: 1 }],
+    subtotal: 99,
+    shipping: 0,
+    discount: 0,
+    grandTotal: 99,
+    paymentMethod: "Online Kredi/Banka Kartı",
+    customerName: `${MARK}_BUYER`,
+    customerPhone: "5550000000",
+    customerAddress: `${MARK} test address for stock guard`,
+  };
+
+  // Use a dedicated XFF IP so this request does not eat into the shared
+  // per-IP order rate-limit bucket used by earlier order tests.
+  const res = await postAsCustomerXff("/api/orders", JETGO_HOST, payload, "10.202.0.1");
+
+  assert.equal(res.status, 400,
+    `out-of-stock order must be rejected with HTTP 400; got ${res.status}: ${JSON.stringify(res.body)}`);
+
+  assert.equal(typeof res.body?.message, "string",
+    "response body must have a string `message` field");
+
+  // The message must name the product so the buyer (and the UI) can identify
+  // exactly which item is causing the problem. The server sets item.name from
+  // the DB before the stock check, so the DB name is what appears here.
+  assert.ok(
+    (res.body.message as string).includes(`${MARK}_ZERO_STOCK`),
+    `error message must identify the out-of-stock product by name; got: "${res.body.message}"`
+  );
+});
