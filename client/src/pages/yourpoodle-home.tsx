@@ -122,17 +122,18 @@ export default function YourPoodleHomePage() {
     }
   }, []);
 
-  /* Cart badge */
+  /* Cart badge — same key as yp-magaza/yp-sepet */
   useEffect(() => {
     const read = () => {
       try {
-        const c = JSON.parse(localStorage.getItem("yp_cart") || "[]");
-        setCartCount(Array.isArray(c) ? c.reduce((s: number, i: any) => s + (i.qty || 1), 0) : 0);
+        const c = JSON.parse(localStorage.getItem("yp_cart_items") || "[]");
+        setCartCount(Array.isArray(c) ? c.reduce((s: number, i: any) => s + (i.qty || 0), 0) : 0);
       } catch { setCartCount(0); }
     };
     read();
     window.addEventListener("storage", read);
-    return () => window.removeEventListener("storage", read);
+    const timer = setInterval(read, 500); // same-tab updates
+    return () => { window.removeEventListener("storage", read); clearInterval(timer); };
   }, []);
 
   /* Close profile dropdown on outside click */
