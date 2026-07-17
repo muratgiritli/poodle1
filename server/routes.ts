@@ -150,12 +150,8 @@ async function sendSmsViaNetgsm(phone: string, message: string, msgheaderOverrid
     console.log("NetGSM send skipped (TEST_OTP_BYPASS active, no SMS capture)");
     return true;
   }
-  // Normalize usercode: strip leading '+' and optional '90' country-code prefix.
-  // NetGSM API expects the local 10-digit account number (e.g. 8508403959), not +908508403959.
-  const _rawUsercode = (process.env.NETGSM_USERCODE || "").replace(/\D/g, "");
-  const usercode = _rawUsercode.startsWith("90") && _rawUsercode.length > 10
-    ? _rawUsercode.slice(2)
-    : _rawUsercode;
+  // Strip leading '+' — NetGSM rejects "+908508403959" but accepts "908508403959".
+  const usercode = (process.env.NETGSM_USERCODE || "").replace(/\D/g, "");
   const password = process.env.NETGSM_PASSWORD;
   const msgheader = (msgheaderOverride && msgheaderOverride.trim()) || process.env.NETGSM_MSGHEADER;
   if (!usercode || !password || !msgheader) {
