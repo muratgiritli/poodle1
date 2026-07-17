@@ -1524,10 +1524,23 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
   const [trackCompany, setTrackCompany] = useState("");
   const [trackNumber, setTrackNumber] = useState("");
+  const [deliverySlotInput, setDeliverySlotInput] = useState("");
   useEffect(() => {
     setTrackCompany((orderDetailDialog as any)?.cargoCompany || "");
     setTrackNumber((orderDetailDialog as any)?.trackingNumber || "");
+    setDeliverySlotInput((orderDetailDialog as any)?.deliverySlot || "");
   }, [(orderDetailDialog as any)?.id]);
+  const updateDeliverySlotMutation = useMutation({
+    mutationFn: async ({ id, deliverySlot }: { id: number; deliverySlot: string }) => {
+      const res = await apiRequest("PATCH", `/api/admin/orders/${id}/delivery-slot`, { deliverySlot });
+      return res.json();
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/orders"] });
+      setOrderDetailDialog((prev: any) => prev ? { ...prev, deliverySlot: data?.delivery_slot ?? data?.deliverySlot } : prev);
+      toast({ title: "Teslimat saati kaydedildi" });
+    },
+  });
   const updateTrackingMutation = useMutation({
     mutationFn: async ({ id, cargoCompany, trackingNumber }: { id: number; cargoCompany: string; trackingNumber: string }) => {
       const res = await apiRequest("PATCH", `/api/admin/orders/${id}/tracking`, { cargoCompany, trackingNumber });
@@ -3333,12 +3346,38 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     </div>
                   )}
 
-                  {(order as any).deliverySlot && (
-                    <div className="text-sm bg-blue-50 dark:bg-blue-950/30 rounded-lg p-3">
-                      <span className="font-medium">Teslimat Zamanı: </span>
-                      {formatAdminDeliverySlot((order as any).deliverySlot)}
+                  {/* Teslimat saati — admin tarafından ayarlanabilir */}
+                  <div className="border-t pt-3 space-y-2" data-testid="section-detail-delivery-slot">
+                    <div className="flex items-center gap-1.5 text-sm font-semibold text-blue-700 dark:text-blue-400">
+                      <Clock className="w-4 h-4" />
+                      Teslimat Saati
                     </div>
-                  )}
+                    {(order as any).deliverySlot && (
+                      <div className="text-xs text-muted-foreground">
+                        Mevcut: <span className="font-medium text-blue-700 dark:text-blue-400">{formatAdminDeliverySlot((order as any).deliverySlot)}</span>
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <Input
+                        value={deliverySlotInput}
+                        onChange={(e) => setDeliverySlotInput(e.target.value)}
+                        placeholder="ör. 14:00-16:00 veya Bugün 15:00"
+                        className="text-sm h-8"
+                        maxLength={60}
+                        data-testid="input-delivery-slot"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 shrink-0"
+                        disabled={updateDeliverySlotMutation.isPending}
+                        onClick={() => updateDeliverySlotMutation.mutate({ id: order.id, deliverySlot: deliverySlotInput })}
+                        data-testid="btn-save-delivery-slot"
+                      >
+                        {updateDeliverySlotMutation.isPending ? "…" : "Kaydet"}
+                      </Button>
+                    </div>
+                  </div>
 
                   {order.customerNote && (
                     <div className="text-sm bg-yellow-50 dark:bg-yellow-950/30 rounded-lg p-3">

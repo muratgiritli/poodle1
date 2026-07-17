@@ -4665,6 +4665,24 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json(order);
   });
 
+  // Admin teslimat saati güncelleme
+  app.patch("/api/admin/orders/:id/delivery-slot", requireAdmin, async (req, res) => {
+    const id = parseInt(String(req.params.id));
+    if (isNaN(id)) return res.status(400).json({ message: "Geçersiz sipariş" });
+    const raw = req.body?.deliverySlot;
+    const deliverySlot = typeof raw === "string" ? raw.trim().slice(0, 60) : null;
+    try {
+      const result = await sharedPool.query(
+        "UPDATE orders SET delivery_slot = $1, updated_at = NOW() WHERE id = $2 RETURNING *",
+        [deliverySlot || null, id]
+      );
+      if (result.rowCount === 0) return res.status(404).json({ message: "Sipariş bulunamadı" });
+      res.json(result.rows[0]);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
   app.post("/api/otp/send", async (req, res) => {
     const ip = req.ip || "unknown";
     if (rateLimit(`otp:${ip}`, 10, 60 * 60 * 1000)) {
