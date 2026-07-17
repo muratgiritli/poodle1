@@ -233,7 +233,15 @@ export default function YPOdemePage() {
     } catch (err: any) {
       let msg = "Sipariş kaydedilemedi.";
       try { const p = JSON.parse(err?.message?.replace(/^\d+:\s*/, "") || "{}"); if (p.message) msg = p.message; } catch {}
-      setOrderError(msg);
+
+      // Stok yetersizliği → validateCart çağırarak per-item sorun panelini göster,
+      // genel hata mesajını temizle (panel zaten Kaldır butonuyla yol gösteriyor).
+      if (/stok yetersiz/i.test(msg)) {
+        setOrderError(""); // hata kutusu yerine per-item panel devreye giriyor
+        validateCart(cart); // stok bilgisini yenile → itemIssues dolacak → panel açılacak
+      } else {
+        setOrderError(msg);
+      }
     } finally {
       setOrderLoading(false);
     }
