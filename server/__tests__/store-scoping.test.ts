@@ -2894,6 +2894,132 @@ function samsunBody(p: SeoPageData): string {
 
 
 
+// ===========================================================================
+// YP PRODUCTS ENDPOINT — /api/yp-products integration tests
+//
+// The endpoint returns all active products with the mama_metadata JSONB column
+// included as "mamaMetadata". These tests verify:
+//  • the endpoint is reachable and returns a JSON array (200)
+//  • products with full mama_metadata expose every sub-field correctly
+//  • products with PARTIAL metadata (only some fields set) expose only those fields
+//  • products with NULL mama_metadata return mamaMetadata: null (not undefined)
+//    so the client-side null guard (`{product.mamaMetadata && (...)}`) works
+// ===========================================================================
+
+test("/api/yp-products: endpoint returns 200 array with mamaMetadata field present", async () => {
+  const res = await get("/api/yp-products", JETGO_HOST);
+  assert.equal(res.status, 200, "should return 200");
+  assert.ok(Array.isArray(res.body), "body should be an array");
+  // Every returned product must have a mamaMetadata key (null or object — never missing).
+  for (const p of res.body) {
+    assert.ok(
+      Object.prototype.hasOwnProperty.call(p, "mamaMetadata"),
+      `product id=${p.id} is missing the mamaMetadata field`
+    );
+  }
+});
+
+test("/api/yp-products: product with full mama_metadata exposes all sub-fields", async () => {
+  // Seed a product with complete mama_metadata (all optional sub-fields populated).
+  const fullMeta = {
+    proteinType: "tavuk",
+    grainFree: true,
+    breedSize: "toy",
+    budgetTier: "premium",
+    allergens: ["gluten"],
+    specialNeeds: ["deri-tuy-sagligi"],
+    nutritionalAnalysis: { protein: 30, fat: 15, fiber: 3, ash: 7, moisture: 10 },
+    dailyPortionGuide: "Toy Poodle 3 kg → günde 60 g",
+  };
+  const bc = await pool.query(
+    "INSERT INTO brand_categories (brand_name, brand_slug, animal, subcategory) VALUES ($1, $2, 'kopek', 'mama') RETURNING id",
+    [`${MARK}_YP_BRAND_FULL`, `${MARK}-yp-brand-full`]
+  );
+  ids.brandCategories.push(bc.rows[0].id);
+  const pr = await pool.query(
+    "INSERT INTO products (name, price, brand_category_id, is_active, stock, mama_metadata) VALUES ($1, 250, $2, true, 10, $3) RETURNING id",
+    [`${MARK}_YP_FULL_META`, bc.rows[0].id, JSON.stringify(fullMeta)]
+  );
+  const pid = pr.rows[0].id as number;
+  ids.products.push(pid);
+
+  const res = await get("/api/yp-products", JETGO_HOST);
+  assert.equal(res.status, 200);
+  const found = res.body.find((p: any) => p.id === pid);
+  assert.ok(found, "seeded product must appear in /api/yp-products");
+
+  const m = found.mamaMetadata;
+  assert.ok(m !== null && typeof m === "object", "mamaMetadata should be an object");
+  assert.equal(m.proteinType, "tavuk");
+  assert.equal(m.grainFree, true);
+  assert.equal(m.breedSize, "toy");
+  assert.equal(m.budgetTier, "premium");
+  assert.deepEqual(m.allergens, ["gluten"]);
+  assert.deepEqual(m.specialNeeds, ["deri-tuy-sagligi"]);
+  assert.equal(m.nutritionalAnalysis?.protein, 30);
+  assert.equal(m.nutritionalAnalysis?.fat, 15);
+  assert.equal(m.nutritionalAnalysis?.fiber, 3);
+  assert.equal(m.nutritionalAnalysis?.ash, 7);
+  assert.equal(m.nutritionalAnalysis?.moisture, 10);
+  assert.equal(m.dailyPortionGuide, "Toy Poodle 3 kg → günde 60 g");
+});
+
+test("/api/yp-products: product with PARTIAL mama_metadata exposes only set fields (no crash on missing keys)", async () => {
+  // Only breedSize is set; all other optional keys are absent.
+  const partialMeta = { breedSize: "miniature" };
+  const bc = await pool.query(
+    "INSERT INTO brand_categories (brand_name, brand_slug, animal, subcategory) VALUES ($1, $2, 'kopek', 'mama') RETURNING id",
+    [`${MARK}_YP_BRAND_PARTIAL`, `${MARK}-yp-brand-partial`]
+  );
+  ids.brandCategories.push(bc.rows[0].id);
+  const pr = await pool.query(
+    "INSERT INTO products (name, price, brand_category_id, is_active, stock, mama_metadata) VALUES ($1, 150, $2, true, 5, $3) RETURNING id",
+    [`${MARK}_YP_PARTIAL_META`, bc.rows[0].id, JSON.stringify(partialMeta)]
+  );
+  const pid = pr.rows[0].id as number;
+  ids.products.push(pid);
+
+  const res = await get("/api/yp-products", JETGO_HOST);
+  assert.equal(res.status, 200);
+  const found = res.body.find((p: any) => p.id === pid);
+  assert.ok(found, "partially-metadata product must appear in /api/yp-products");
+
+  const m = found.mamaMetadata;
+  assert.ok(m !== null && typeof m === "object", "mamaMetadata should be an object (not null) for partial");
+  // The set field must be present.
+  assert.equal(m.breedSize, "miniature");
+  // Missing fields must be undefined (not throw). The "kimler için?" section
+  // in yp-urun.tsx conditionally renders each badge, so missing keys are safe.
+  assert.equal(m.proteinType, undefined);
+  assert.equal(m.grainFree, undefined);
+  assert.equal(m.nutritionalAnalysis, undefined, "nutritionalAnalysis absent → besin analizi section hidden");
+});
+
+test("/api/yp-products: product with NULL mama_metadata returns mamaMetadata: null (null guard)", async () => {
+  // No mama_metadata set (default NULL in DB). The yp-urun.tsx null guard
+  // `{product.mamaMetadata && (...)}` must hide both sections.
+  const bc = await pool.query(
+    "INSERT INTO brand_categories (brand_name, brand_slug, animal, subcategory) VALUES ($1, $2, 'kopek', 'mama') RETURNING id",
+    [`${MARK}_YP_BRAND_NULL`, `${MARK}-yp-brand-null`]
+  );
+  ids.brandCategories.push(bc.rows[0].id);
+  const pr = await pool.query(
+    "INSERT INTO products (name, price, brand_category_id, is_active, stock) VALUES ($1, 100, $2, true, 3) RETURNING id",
+    [`${MARK}_YP_NULL_META`, bc.rows[0].id]
+  );
+  const pid = pr.rows[0].id as number;
+  ids.products.push(pid);
+
+  const res = await get("/api/yp-products", JETGO_HOST);
+  assert.equal(res.status, 200);
+  const found = res.body.find((p: any) => p.id === pid);
+  assert.ok(found, "null-metadata product must appear in /api/yp-products");
+  // mamaMetadata must be null (not undefined, not omitted) so the client-side
+  // conditional `{product.mamaMetadata && (...)}` evaluates to falsy and hides both panels.
+  assert.strictEqual(found.mamaMetadata, null, "mamaMetadata must be null, not undefined");
+});
+
+
 // Google Yerel Envanter (Local Inventory) feed'inin store_code kuralı: jetgo
 // (DEFAULT_STORE) varsayılan olarak Atakum fiziksel mağaza kodu ATAKUM001'e düşer;
 // diğer 8 mağaza kod girilmediği sürece BOŞ kalır → feed boş üretilir (davranış
