@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Edit3, Plus, LogIn } from "lucide-react";
+import { Edit3, Plus, LogIn, ChevronRight } from "lucide-react";
 import { useCustomer } from "@/contexts/CustomerContext";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import YPBreadcrumb from "@/components/YPBreadcrumb";
@@ -40,11 +40,30 @@ interface PoodleProfile {
   about?: string;
 }
 
+interface RecommendedProduct {
+  id: number;
+  name: string;
+  price: number;
+  matchPct?: number;
+  reason?: string;
+}
+
+interface SavedRecommendation {
+  id: number;
+  answers: Record<string, string>;
+  products: RecommendedProduct[];
+  created_at: string;
+}
+
+const AGE_LABELS: Record<string, string> = { puppy: "Yavru", adult: "Yetişkin", senior: "Yaşlı" };
+const BUDGET_LABELS: Record<string, string> = { economy: "₺500–1.000", mid: "₺1.000–2.000", premium: "₺2.000+" };
+
 export default function YPProfilPage() {
   const [, navigate] = useLocation();
   const { isLoggedIn } = useCustomer();
   const [profile, setProfile] = useState<PoodleProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [latestRec, setLatestRec] = useState<SavedRecommendation | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -69,6 +88,14 @@ export default function YPProfilPage() {
       setLoading(false);
     }
     load();
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    fetch("/api/yp/recommendations/latest", { credentials: "include" })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setLatestRec(data); })
+      .catch(() => {});
   }, [isLoggedIn]);
 
   return (
@@ -151,6 +178,73 @@ export default function YPProfilPage() {
                 </button>
               </div>
             </div>
+
+            {/* Son Mama Önerim */}
+            {latestRec && latestRec.products.length > 0 && (
+              <div style={{ background: "#fff", borderRadius: 20, boxShadow: "0 2px 16px rgba(0,0,0,0.07)", padding: "18px 18px 14px", marginBottom: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 20 }}>🍖</span>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: "#18114a" }}>Son Mama Önerim</span>
+                  </div>
+                  <button
+                    onClick={() => navigate("/yourpoodle/mama-bul")}
+                    style={{ background: "#EDE9FE", border: "none", borderRadius: 10, padding: "5px 10px", fontSize: 11, fontWeight: 700, color: "#7C3AED", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontFamily: "'Inter', sans-serif" }}
+                  >
+                    Yenile <ChevronRight size={12} />
+                  </button>
+                </div>
+
+                {/* Profile tags */}
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+                  {latestRec.answers.age && (
+                    <span style={{ background: "#EDE9FE", color: "#7C3AED", borderRadius: 99, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>
+                      {AGE_LABELS[latestRec.answers.age] || latestRec.answers.age}
+                    </span>
+                  )}
+                  {latestRec.answers.budget && (
+                    <span style={{ background: "#EDE9FE", color: "#7C3AED", borderRadius: 99, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>
+                      {BUDGET_LABELS[latestRec.answers.budget] || latestRec.answers.budget}
+                    </span>
+                  )}
+                  <span style={{ background: "#F0FDF4", color: "#059669", borderRadius: 99, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>
+                    {new Date(latestRec.created_at).toLocaleDateString("tr-TR", { day: "numeric", month: "long" })}
+                  </span>
+                </div>
+
+                {/* Top pick */}
+                <button
+                  onClick={() => navigate(`/yourpoodle/urun/${latestRec.products[0].id}`)}
+                  style={{ width: "100%", background: "linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%)", borderRadius: 14, padding: "12px 14px", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: "'Inter', sans-serif", marginBottom: latestRec.products.length > 1 ? 8 : 0 }}
+                >
+                  <div style={{ textAlign: "left" }}>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: 700, marginBottom: 2 }}>🏆 En Uygun</div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", lineHeight: 1.3 }}>{latestRec.products[0].name}</div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", marginTop: 2 }}>₺{Number(latestRec.products[0].price).toLocaleString("tr-TR")}</div>
+                  </div>
+                  {(latestRec.products[0].matchPct ?? 0) > 0 && (
+                    <span style={{ background: "rgba(255,255,255,0.22)", color: "#fff", borderRadius: 20, fontSize: 12, fontWeight: 800, padding: "4px 10px", flexShrink: 0 }}>
+                      %{Math.round(latestRec.products[0].matchPct!)} uyum
+                    </span>
+                  )}
+                </button>
+
+                {/* 2nd & 3rd picks compact */}
+                {latestRec.products.slice(1).map((p, i) => (
+                  <button
+                    key={p.id}
+                    onClick={() => navigate(`/yourpoodle/urun/${p.id}`)}
+                    style={{ width: "100%", background: "#F8F7FF", borderRadius: 12, padding: "10px 12px", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: "'Inter', sans-serif", marginTop: 6 }}
+                  >
+                    <div style={{ textAlign: "left" }}>
+                      <div style={{ fontSize: 11, color: "#7C3AED", fontWeight: 700, marginBottom: 1 }}>{i === 0 ? "💚 Fiyat Performans" : "⭐ Premium"}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#18114a" }}>{p.name}</div>
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: "#7C3AED", flexShrink: 0 }}>₺{Number(p.price).toLocaleString("tr-TR")}</span>
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Hızlı linkler */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>

@@ -6498,6 +6498,46 @@ Kurallar:
     } catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
+  // ── Mama Bul recommendations ─────────────────────────────────────────
+  const ENSURE_YP_RECOMMENDATIONS = `
+    CREATE TABLE IF NOT EXISTS yp_recommendations (
+      id SERIAL PRIMARY KEY,
+      customer_id INT NOT NULL,
+      answers JSONB NOT NULL DEFAULT '{}',
+      products JSONB NOT NULL DEFAULT '[]',
+      created_at TIMESTAMPTZ DEFAULT now()
+    )`;
+
+  // Save a new recommendation result for the logged-in user
+  app.post("/api/yp/recommendations", async (req, res) => {
+    const customerId = (req.session as any)?.customerId;
+    if (!customerId) return res.status(401).json({ error: "Giriş gerekli" });
+    const { answers, products } = req.body;
+    if (!answers || !products) return res.status(400).json({ error: "Eksik parametre" });
+    try {
+      await sharedPool.query(ENSURE_YP_RECOMMENDATIONS);
+      const result = await sharedPool.query(
+        `INSERT INTO yp_recommendations (customer_id, answers, products) VALUES ($1,$2,$3) RETURNING *`,
+        [customerId, JSON.stringify(answers), JSON.stringify(products)]
+      );
+      res.json(result.rows[0]);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  // Get latest recommendation for the logged-in user
+  app.get("/api/yp/recommendations/latest", async (req, res) => {
+    const customerId = (req.session as any)?.customerId;
+    if (!customerId) return res.status(401).json({ error: "Giriş gerekli" });
+    try {
+      await sharedPool.query(ENSURE_YP_RECOMMENDATIONS);
+      const result = await sharedPool.query(
+        `SELECT * FROM yp_recommendations WHERE customer_id = $1 ORDER BY created_at DESC LIMIT 1`,
+        [customerId]
+      );
+      res.json(result.rows[0] || null);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
   // ── Poodle photo upload ────────────────────────────────────────────────
   app.post("/api/yp/poodle/photo", upload.single("photo"), async (req, res) => {
     const customerId = (req.session as any)?.customerId;

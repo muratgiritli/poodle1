@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useLocation } from "wouter";
 import { ArrowLeft, Check, ShoppingCart, RotateCcw } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import { useCustomer } from "@/contexts/CustomerContext";
 
 const CSS = `
 *, *::before, *::after { box-sizing: border-box; }
@@ -440,10 +441,12 @@ function AgePath({ step, total }: { step: number; total: number }) {
 
 export default function YPMamaBulPage() {
   const [, navigate] = useLocation();
+  const { isLoggedIn } = useCustomer();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [done, setDone] = useState(false);
   const [slideKey, setSlideKey] = useState(0);
+  const savedRef = useRef(false);
 
   const { data: products = [] } = useQuery<any[]>({
     queryKey: ["/api/yp-products"],
@@ -470,8 +473,24 @@ export default function YPMamaBulPage() {
     else navigate("/yourpoodle");
   };
 
-  const restart = () => { setStep(0); setAnswers({}); setDone(false); setSlideKey(0); };
+  const restart = () => { setStep(0); setAnswers({}); setDone(false); setSlideKey(0); savedRef.current = false; };
   const recommendations = useMemo(() => pickRecommendations(products, answers), [products, answers]);
+
+  // Save recommendations to DB when wizard completes and user is logged in
+  useEffect(() => {
+    if (!done || !isLoggedIn || savedRef.current || recommendations.length === 0) return;
+    savedRef.current = true;
+    const payload = {
+      answers,
+      products: recommendations.map(p => ({ id: p.id, name: p.name, price: p.price, matchPct: p.matchPct, reason: p.reason })),
+    };
+    fetch("/api/yp/recommendations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    }).catch(() => { /* silent — recommendation save is best-effort */ });
+  }, [done, isLoggedIn, recommendations, answers]);
 
   // ── Result screen ────────────────────────────────────────
   if (done) {
