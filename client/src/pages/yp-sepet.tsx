@@ -141,7 +141,7 @@ export default function YPSepetPage() {
                 style={{ width: 48, height: 48, borderRadius: 12, border: "1.5px solid #7C3AFF", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <ShoppingCart size={18} color="#7C3AFF" />
               </button>
-              <button onClick={() => navigate("/odeme")}
+              <button onClick={() => navigate("/yourpoodle/odeme")}
                 style={{ flex: 1, height: 48, borderRadius: 12, border: "none", background: "linear-gradient(135deg,#7C3AFF,#A855F7)", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontFamily: "inherit" }}>
                 Siparişi Tamamla <ArrowRight size={16} />
               </button>

@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { CheckCircle2, XCircle, Loader2, Package } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/contexts/CartContext";
 
 export default function PaymentResultPage() {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const [params, setParams] = useState<URLSearchParams>(new URLSearchParams());
   const { clearCart } = useCart();
+  const redirectedRef = useRef(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -20,12 +21,6 @@ export default function PaymentResultPage() {
   const reason = params.get("msg") || "";
   const isSuccess = status === "success";
 
-  useEffect(() => {
-    if (isSuccess) {
-      clearCart();
-    }
-  }, [isSuccess, clearCart]);
-
   const { data: order, isLoading } = useQuery<any>({
     queryKey: ["/api/orders", orderId, "payment-status"],
     enabled: !!orderId,
@@ -35,6 +30,28 @@ export default function PaymentResultPage() {
       return res.json();
     },
   });
+
+  // Determine the store only once we have order data (or immediately if no orderId)
+  const isYP = order?.sourceSite === "jetgo";
+  const retryHref = isYP ? "/yourpoodle/odeme" : "/odeme";
+
+  useEffect(() => {
+    if (!isSuccess) return;
+    if (orderId && isLoading) return; // Wait for order data before redirecting
+    if (redirectedRef.current) return;
+    redirectedRef.current = true;
+
+    // Clear both carts on confirmed success
+    clearCart();
+    try { localStorage.setItem("yp_cart_items", "[]"); } catch {}
+
+    // Route to the store-appropriate success page
+    if (!orderId || isYP) {
+      // YP order (sourceSite=jetgo) or no order id — go to YP thank-you
+      navigate("/yourpoodle/tesekkurler", { replace: true });
+    }
+    // Non-YP success: stay on this page (falls through to render below)
+  }, [isSuccess, isLoading, order, orderId, isYP, clearCart, navigate]);
 
   const Icon = isSuccess ? CheckCircle2 : XCircle;
   const color = isSuccess ? "text-emerald-500" : "text-red-500";
@@ -54,6 +71,15 @@ export default function PaymentResultPage() {
     };
     return map[reason] || reason;
   }, [reason, isSuccess]);
+
+  // Still loading order data for a success redirect — show a brief spinner
+  if (isSuccess && orderId && isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]" data-testid="page-payment-result">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto px-4 py-12 min-h-[60vh] flex flex-col items-center text-center" data-testid="page-payment-result">
@@ -109,11 +135,11 @@ export default function PaymentResultPage() {
           Siparişlerim
         </Link>
         {!isSuccess && (
-          <Link href="/odeme" className="flex-1 px-4 py-3 rounded-lg border text-sm font-bold text-center block" data-testid="link-retry-payment">
+          <Link href={retryHref} className="flex-1 px-4 py-3 rounded-lg border text-sm font-bold text-center block" data-testid="link-retry-payment">
             Tekrar Dene
           </Link>
         )}
-        <Link href="/" className="flex-1 px-4 py-3 rounded-lg border text-sm font-bold text-center block" data-testid="link-home">
+        <Link href={isYP ? "/yourpoodle" : "/"} className="flex-1 px-4 py-3 rounded-lg border text-sm font-bold text-center block" data-testid="link-home">
           Ana Sayfa
         </Link>
       </div>

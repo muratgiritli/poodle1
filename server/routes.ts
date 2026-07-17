@@ -3587,7 +3587,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       if (!allowed) return res.status(403).json({ error: "forbidden" });
 
       const r = await sharedPool.query(
-        "SELECT id, grand_total, payment_status, status, payment_method FROM orders WHERE id = $1",
+        "SELECT id, grand_total, payment_status, status, payment_method, source_site FROM orders WHERE id = $1",
         [id]
       );
       const row = r.rows[0];
@@ -3599,6 +3599,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         paymentStatus: row.payment_status,
         status: row.status,
         paymentMethod: row.payment_method,
+        sourceSite: row.source_site || null,
       });
     } catch (err: any) {
       res.status(500).json({ error: err?.message || "error" });
