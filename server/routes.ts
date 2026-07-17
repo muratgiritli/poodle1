@@ -2441,7 +2441,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   app.patch("/api/admin/products/:id", requireAdmin, async (req, res) => {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) return res.status(400).json({ message: "Geçersiz ürün ID" });
-    const allowedFields = ["name", "price", "originalPrice", "skt", "img", "originalImg", "brandCategoryId", "isActive", "stock", "barcode", "costPrice", "mamaType", "preorderEnabled", "hiddenPaymentMethods", "variants", "longDescription", "metaTitle", "metaDescription", "metaKeywords"];
+    const allowedFields = ["name", "price", "originalPrice", "skt", "img", "originalImg", "brandCategoryId", "isActive", "stock", "barcode", "costPrice", "mamaType", "preorderEnabled", "hiddenPaymentMethods", "variants", "longDescription", "metaTitle", "metaDescription", "metaKeywords", "mamaMetadata"];
     const safeBody: Record<string, any> = {};
     for (const key of allowedFields) {
       if (req.body[key] !== undefined) safeBody[key] = req.body[key];

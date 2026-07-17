@@ -66,6 +66,7 @@ export const products = pgTable("products", {
   metaTitle: text("meta_title"),
   metaDescription: text("meta_description"),
   metaKeywords: text("meta_keywords"),
+  mamaMetadata: jsonb("mama_metadata"),
 });
 
 export type ProductVariant = { label: string; price: number; stock?: number; barcode?: string; skt?: string };

@@ -448,6 +448,25 @@ function ProductForm({
       skt: String(v.skt || ""),
     }))
   );
+  // Mama Metadata (YP)
+  const existingMama = (product as any)?.mamaMetadata as {
+    proteinType?: string; grainFree?: boolean; breedSize?: string; budgetTier?: string;
+    specialNeeds?: string[]; nutritionalAnalysis?: { protein?: number; fat?: number; fiber?: number; ash?: number; moisture?: number };
+    dailyPortionGuide?: string;
+  } | null | undefined;
+  const [mamaBreedSize, setMamaBreedSize] = useState(existingMama?.breedSize || "");
+  const [mamaProteinType, setMamaProteinType] = useState(existingMama?.proteinType || "");
+  const [mamaGrainFree, setMamaGrainFree] = useState<boolean | "">(existingMama?.grainFree !== undefined ? existingMama.grainFree : "");
+  const [mamaBudgetTier, setMamaBudgetTier] = useState(existingMama?.budgetTier || "");
+  const [mamaSpecialNeeds, setMamaSpecialNeeds] = useState<string[]>(existingMama?.specialNeeds || []);
+  const [mamaProteinPct, setMamaProteinPct] = useState(existingMama?.nutritionalAnalysis?.protein?.toString() || "");
+  const [mamaFatPct, setMamaFatPct] = useState(existingMama?.nutritionalAnalysis?.fat?.toString() || "");
+  const [mamaFiberPct, setMamaFiberPct] = useState(existingMama?.nutritionalAnalysis?.fiber?.toString() || "");
+  const [mamaAshPct, setMamaAshPct] = useState(existingMama?.nutritionalAnalysis?.ash?.toString() || "");
+  const [mamaMoisturePct, setMamaMoisturePct] = useState(existingMama?.nutritionalAnalysis?.moisture?.toString() || "");
+  const [mamaDailyPortionGuide, setMamaDailyPortionGuide] = useState(existingMama?.dailyPortionGuide || "");
+  const [showMamaSection, setShowMamaSection] = useState(false);
+
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [brandCategoryId, setBrandCategoryId] = useState(
@@ -540,6 +559,23 @@ function ProductForm({
               };
             })
             .filter(v => v.label && !isNaN(v.price) && v.price > 0),
+          mamaMetadata: (() => {
+            const meta: Record<string, any> = {};
+            if (mamaBreedSize) meta.breedSize = mamaBreedSize;
+            if (mamaProteinType) meta.proteinType = mamaProteinType;
+            if (mamaGrainFree !== "") meta.grainFree = mamaGrainFree;
+            if (mamaBudgetTier) meta.budgetTier = mamaBudgetTier;
+            if (mamaSpecialNeeds.length > 0) meta.specialNeeds = mamaSpecialNeeds;
+            const na: Record<string, number> = {};
+            const _p = parseFloat(mamaProteinPct); if (mamaProteinPct !== "" && !isNaN(_p)) na.protein = _p;
+            const _f = parseFloat(mamaFatPct); if (mamaFatPct !== "" && !isNaN(_f)) na.fat = _f;
+            const _fi = parseFloat(mamaFiberPct); if (mamaFiberPct !== "" && !isNaN(_fi)) na.fiber = _fi;
+            const _a = parseFloat(mamaAshPct); if (mamaAshPct !== "" && !isNaN(_a)) na.ash = _a;
+            const _m = parseFloat(mamaMoisturePct); if (mamaMoisturePct !== "" && !isNaN(_m)) na.moisture = _m;
+            if (Object.keys(na).length > 0) meta.nutritionalAnalysis = na;
+            if (mamaDailyPortionGuide.trim()) meta.dailyPortionGuide = mamaDailyPortionGuide.trim();
+            return Object.keys(meta).length > 0 ? meta : null;
+          })(),
         });
       }}
       className="space-y-4"
@@ -975,6 +1011,144 @@ function ProductForm({
             data-testid="input-meta-keywords"
           />
         </div>
+      </div>
+
+      {/* Mama Metadata (YP) */}
+      <div className="border-t pt-4 mt-2 space-y-3">
+        <button
+          type="button"
+          className="flex items-center gap-2 text-sm font-bold w-full text-left"
+          onClick={() => setShowMamaSection((v) => !v)}
+        >
+          <span>{showMamaSection ? "▼" : "▶"}</span>
+          <span>Mama Metadata (YP)</span>
+          <span className="text-xs font-normal text-muted-foreground ml-1">— protein, ırk boyutu, porsiyon rehberi</span>
+        </button>
+        {showMamaSection && (
+          <div className="space-y-4 pl-1">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Irk Boyutu</Label>
+                <Select
+                  value={mamaBreedSize || "__none__"}
+                  onValueChange={(v) => setMamaBreedSize(v === "__none__" ? "" : v)}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue placeholder="Seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">— Belirtilmedi —</SelectItem>
+                    <SelectItem value="toy">Toy (Mini)</SelectItem>
+                    <SelectItem value="miniature">Küçük Irk</SelectItem>
+                    <SelectItem value="standard">Standart Irk</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Bütçe Seviyesi</Label>
+                <Select
+                  value={mamaBudgetTier || "__none__"}
+                  onValueChange={(v) => setMamaBudgetTier(v === "__none__" ? "" : v)}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue placeholder="Seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">— Belirtilmedi —</SelectItem>
+                    <SelectItem value="ekonomik">Ekonomik</SelectItem>
+                    <SelectItem value="orta">Orta</SelectItem>
+                    <SelectItem value="premium">Premium</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Protein Tipi</Label>
+                <Input
+                  value={mamaProteinType}
+                  onChange={(e) => setMamaProteinType(e.target.value)}
+                  placeholder="Örn: tavuk, somon, kuzu"
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Tahılsız mı?</Label>
+                <Select
+                  value={mamaGrainFree === "" ? "__none__" : mamaGrainFree ? "yes" : "no"}
+                  onValueChange={(v) => setMamaGrainFree(v === "__none__" ? "" : v === "yes")}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue placeholder="Seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">— Belirtilmedi —</SelectItem>
+                    <SelectItem value="yes">Evet (Tahılsız)</SelectItem>
+                    <SelectItem value="no">Hayır (Tahıllı)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">Özel İhtiyaçlar (virgülle ayırın)</Label>
+              <Input
+                value={mamaSpecialNeeds.join(", ")}
+                onChange={(e) =>
+                  setMamaSpecialNeeds(
+                    e.target.value
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean)
+                  )
+                }
+                placeholder="Örn: hassas sindirim, eklem sağlığı, tüy bakımı"
+                className="h-8 text-sm"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold">Besin Analizi (%)</Label>
+              <div className="grid grid-cols-5 gap-2">
+                {(
+                  [
+                    { label: "Protein", val: mamaProteinPct, set: setMamaProteinPct },
+                    { label: "Yağ", val: mamaFatPct, set: setMamaFatPct },
+                    { label: "Lif", val: mamaFiberPct, set: setMamaFiberPct },
+                    { label: "Kül", val: mamaAshPct, set: setMamaAshPct },
+                    { label: "Nem", val: mamaMoisturePct, set: setMamaMoisturePct },
+                  ] as const
+                ).map(({ label, val, set }) => (
+                  <div key={label} className="space-y-1">
+                    <Label className="text-[10px]">{label}</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      value={val}
+                      onChange={(e) => set(e.target.value)}
+                      placeholder="0"
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">Günlük Porsiyon Rehberi</Label>
+              <Textarea
+                value={mamaDailyPortionGuide}
+                onChange={(e) => setMamaDailyPortionGuide(e.target.value)}
+                rows={3}
+                placeholder="Örn: 3 kg köpek için günde 2 öğün, her öğün 60g..."
+                className="text-sm"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <Button type="submit" className="w-full" disabled={isPending || !brandCategoryId} data-testid="btn-save-product">
