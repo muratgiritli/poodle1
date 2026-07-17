@@ -26,14 +26,14 @@ interface YPProduct {
 }
 
 const NEEDS = [
-  { emoji: "🍖", label: "Doğru Mama",       sub: "Yaş & kiloya göre",  color: "#F97316", bg: "#FFF7ED", href: "/yourpoodle/mama-bul" },
-  { emoji: "🚽", label: "Tuvalet Eğitimi",  sub: "Adım adım rehber",   color: "#10B981", bg: "#ECFDF5", href: "/yourpoodle/egitim" },
-  { emoji: "👁️", label: "Göz Yaşı",         sub: "Tedavi & bakım",     color: "#EC4899", bg: "#FDF2F8", href: "/yourpoodle/saglik" },
-  { emoji: "🪮", label: "Tüy & Bakım",      sub: "Tarama & tıraş",     color: "#8B5CF6", bg: "#F5F3FF", href: "/yourpoodle/bakim" },
-  { emoji: "🔊", label: "Havlama",          sub: "Eğitim teknikleri",  color: "#F59E0B", bg: "#FFFBEB", href: "/yourpoodle/egitim" },
-  { emoji: "🏠", label: "Yalnız Kalma",     sub: "Anksiyete çözümü",   color: "#3B82F6", bg: "#EFF6FF", href: "/yourpoodle/egitim" },
-  { emoji: "🍼", label: "Yavru Bakımı",     sub: "0-6 ay rehberi",     color: "#06B6D4", bg: "#ECFEFF", href: "/yourpoodle/rehber" },
-  { emoji: "🩺", label: "Sağlık Belirtileri", sub: "Belirti sorgulama", color: "#EF4444", bg: "#FEF2F2", href: "/yourpoodle/saglik" },
+  { emoji: "🍖", label: "Doğru Mama",         sub: "Yaş & kiloya göre en uygun mamayı bulun",          color: "#F97316", bg: "#FFF7ED", href: "/yourpoodle/mama-bul" },
+  { emoji: "🚽", label: "Tuvalet Eğitimi",     sub: "Adım adım tuvalet eğitimi rehberi",                color: "#10B981", bg: "#ECFDF5", href: "/yourpoodle/egitim" },
+  { emoji: "👁️", label: "Göz Yaşı",            sub: "Nedenleri, tedavi & bakım önerileri",              color: "#EC4899", bg: "#FDF2F8", href: "/yourpoodle/saglik" },
+  { emoji: "🪮", label: "Tüy & Bakım",         sub: "Tüy bakımı, tarama & profesyonel ipuçları",        color: "#8B5CF6", bg: "#F5F3FF", href: "/yourpoodle/bakim" },
+  { emoji: "🔊", label: "Havlama",             sub: "Havlama nedenleri & eğitim teknikleri",            color: "#F59E0B", bg: "#FFFBEB", href: "/yourpoodle/egitim" },
+  { emoji: "🏠", label: "Yalnız Kalma",        sub: "Ayrılık kaygısı ve çözüm önerileri",              color: "#3B82F6", bg: "#EFF6FF", href: "/yourpoodle/egitim" },
+  { emoji: "🍼", label: "Yavru Bakımı",        sub: "0–6 ay arası yavru bakım rehberi",                color: "#06B6D4", bg: "#ECFEFF", href: "/yourpoodle/rehber" },
+  { emoji: "🩺", label: "Sağlık Belirtileri",  sub: "Belirtileri kontrol edin, ne yapmanız gerektiğini öğrenin", color: "#EF4444", bg: "#FEF2F2", href: "/yourpoodle/saglik" },
 ];
 
 const TOOLS = [
@@ -445,15 +445,20 @@ export default function YourPoodleHomePage() {
             <h2 style={{ fontSize: 28, fontWeight: 900, letterSpacing: "-0.5px", marginBottom: 6 }}>Bugün ne arıyorsunuz?</h2>
             <p style={{ fontSize: 14, color: "#6B7280" }}>Poodle'ınız için ihtiyacınız olan konuyu seçin</p>
           </div>
-          <div className="yph-grid-8" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+          <div className="yph-grid-8" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
             {NEEDS.map(n => (
               <button key={n.label} onClick={() => go(n.href)}
-                style={{ background: n.bg, border: `1.5px solid ${n.color}25`, borderRadius: 18, padding: "20px 12px", cursor: "pointer", textAlign: "center", fontFamily: "inherit", transition: "all 0.2s" }}
-                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = `0 12px 28px ${n.color}25`; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
-                <div style={{ fontSize: 32, marginBottom: 8 }}>{n.emoji}</div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: n.color, marginBottom: 3 }}>{n.label}</div>
-                <div style={{ fontSize: 11, color: "#9CA3AF", fontWeight: 600 }}>{n.sub}</div>
+                style={{ background: n.bg, border: `1.5px solid ${n.color}20`, borderRadius: 20, padding: "22px 16px 16px", cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all 0.2s", position: "relative", display: "flex", flexDirection: "column" }}
+                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = `0 16px 32px ${n.color}22`; e.currentTarget.style.borderColor = `${n.color}50`; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.borderColor = `${n.color}20`; }}>
+                <div style={{ fontSize: 36, marginBottom: 12, lineHeight: 1 }}>{n.emoji}</div>
+                <div style={{ fontSize: 13.5, fontWeight: 800, color: n.color, marginBottom: 4 }}>{n.label}</div>
+                <div style={{ fontSize: 11.5, color: "#6B7280", fontWeight: 500, lineHeight: 1.4, flex: 1 }}>{n.sub}</div>
+                <div style={{
+                  marginTop: 14, width: 28, height: 28, borderRadius: "50%",
+                  background: `${n.color}18`, display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 13, color: n.color, fontWeight: 800,
+                }}>→</div>
               </button>
             ))}
           </div>
@@ -466,50 +471,99 @@ export default function YourPoodleHomePage() {
           <div className="yph-ai-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
 
             {/* AI */}
-            <div style={{ background: "linear-gradient(135deg,#1E1155 0%,#4C1D95 100%)", borderRadius: 24, padding: 28, position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: -30, right: -30, width: 140, height: 140, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
-              <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 18 }}>
-                <div style={{ width: 50, height: 50, borderRadius: 16, background: "rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>🤖</div>
+            <div style={{ background: "linear-gradient(145deg,#2D1B69 0%,#1a0e4f 55%,#1A0F3C 100%)", borderRadius: 24, padding: 28, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+              {/* Decorative sparkles */}
+              <div style={{ position: "absolute", top: -24, right: -24, width: 120, height: 120, borderRadius: "50%", background: "rgba(139,92,246,0.18)" }} />
+              <div style={{ position: "absolute", bottom: 60, left: -20, width: 80, height: 80, borderRadius: "50%", background: "rgba(139,92,246,0.1)" }} />
+              <span style={{ position: "absolute", top: 20, right: 52, fontSize: 14, opacity: 0.5 }}>✦</span>
+              <span style={{ position: "absolute", top: 50, right: 28, fontSize: 10, opacity: 0.4 }}>✦</span>
+              <span style={{ position: "absolute", bottom: 90, right: 22, fontSize: 12, opacity: 0.35 }}>✦</span>
+
+              {/* Top row: robot + badge + title */}
+              <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 20, position: "relative", zIndex: 1 }}>
+                <div style={{ width: 64, height: 64, borderRadius: 20, background: "rgba(255,255,255,0.1)", border: "1.5px solid rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, flexShrink: 0 }}>🤖</div>
                 <div>
-                  <h3 style={{ fontSize: 17, fontWeight: 900, color: "#fff", marginBottom: 5 }}>Poodle AI Asistan</h3>
-                  <p style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", margin: 0, lineHeight: 1.5 }}>Sorunuzu yazın, Poodle'ınıza özel yanıt alın</p>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(139,92,246,0.35)", border: "1px solid rgba(139,92,246,0.5)", borderRadius: 99, padding: "3px 10px", marginBottom: 6 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#A78BFA", display: "inline-block" }} />
+                    <span style={{ fontSize: 10, fontWeight: 800, color: "#C4B5FD", letterSpacing: "0.06em" }}>7/24 YANINIZDA</span>
+                  </div>
+                  <h3 style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: 0, lineHeight: 1.2 }}>Poodle AI Asistan</h3>
+                  <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.6)", margin: "4px 0 0", lineHeight: 1.4 }}>Sorunuzu yazın, Poodle'ınıza özel anında yanıt alın.</p>
                 </div>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 }}>
+
+              {/* Chat bubbles */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20, flex: 1, position: "relative", zIndex: 1 }}>
                 {["Kaç gram mama vermeliyim?", "Göz altı neden kızarıyor?", "Yalnız kalınca neden havlıyor?"].map(q => (
                   <button key={q} onClick={() => go("/yourpoodle/ai-asistan")}
-                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, padding: "11px 16px", textAlign: "left", color: "rgba(255,255,255,0.85)", fontSize: 13, cursor: "pointer", fontFamily: "inherit", transition: "background 0.15s" }}
-                    onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.14)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}>
-                    💬 {q}
+                    style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "12px 16px", textAlign: "left", color: "rgba(255,255,255,0.88)", fontSize: 13, cursor: "pointer", fontFamily: "inherit", transition: "background 0.15s", display: "flex", alignItems: "center", gap: 10 }}
+                    onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.13)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; }}>
+                    <div style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(139,92,246,0.35)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 14 }}>💬</div>
+                    {q}
+                    <span style={{ marginLeft: "auto", color: "rgba(255,255,255,0.35)", fontSize: 16 }}>›</span>
                   </button>
                 ))}
               </div>
+
               <button onClick={() => go("/yourpoodle/ai-asistan")}
-                style={{ width: "100%", height: 50, borderRadius: 14, background: "#7C3AED", border: "none", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 16px rgba(124,58,237,0.4)" }}>
-                AI Asistanı Başlat →
+                style={{ width: "100%", height: 52, borderRadius: 14, background: "linear-gradient(135deg,#7C3AED,#9B59D9)", border: "none", color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 6px 20px rgba(124,58,237,0.45)", position: "relative", zIndex: 1 }}>
+                AI Asistana Sor →
               </button>
             </div>
 
             {/* Profil */}
-            <div style={{ background: "linear-gradient(135deg,#FFF1F2 0%,#FCE7F3 100%)", borderRadius: 24, padding: 28, border: "1.5px solid #FECDD3", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-              <div>
-                <div style={{ fontSize: 58, lineHeight: 1, marginBottom: 14 }}>🐩</div>
-                <h3 style={{ fontSize: 20, fontWeight: 900, color: "#111", marginBottom: 10 }}>Poodle Profilinizi Oluşturun</h3>
-                <p style={{ fontSize: 14, color: "#6B7280", lineHeight: 1.7, marginBottom: 20 }}>
-                  Adı, yaşı ve kilosunu girin. Size özel mama önerileri, bakım takvimi ve sağlık hatırlatıcıları alın.
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 28 }}>
-                  {["🍽️ Kişiselleştirilmiş mama planı", "💊 Aşı ve veteriner takibi", "✂️ Otomatik bakım takvimi"].map(f => (
-                    <div key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5, fontWeight: 600, color: "#374151" }}>
-                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#EC4899", flexShrink: 0 }} />
-                      {f}
-                    </div>
-                  ))}
+            <div style={{ background: "#FFF0F5", borderRadius: 24, padding: 28, border: "1.5px solid #FECDD3", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
+              {/* Badge + poodle image row */}
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
+                <div>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#FCE7F3", border: "1px solid #F9A8D4", borderRadius: 99, padding: "3px 12px", marginBottom: 12 }}>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: "#BE185D", letterSpacing: "0.05em" }}>KİŞİSELLEŞTİRİN</span>
+                  </div>
+                  <h3 style={{ fontSize: 20, fontWeight: 900, color: "#111", marginBottom: 6, lineHeight: 1.2 }}>
+                    Poodle <span style={{ color: "#EC4899" }}>Profilinizi</span><br />Oluşturun
+                  </h3>
+                  <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.65, marginBottom: 0 }}>
+                    Adı, yaşı ve kilosunu girin.<br />Size özel mama önerileri, bakım takvimi ve sağlık hatırlatıcıları alın.
+                  </p>
                 </div>
+                <div style={{ fontSize: 72, lineHeight: 1, flexShrink: 0, marginLeft: 8, marginTop: -4 }}>🐩</div>
               </div>
+
+              {/* Feature list */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+                {[
+                  { icon: "🥛", label: "Kişiselleştirilmiş mama planı", sub: "Poodle'ınızın ihtiyacına özel öneriler" },
+                  { icon: "💉", label: "Aşı ve veteriner takibi",       sub: "Aşı takvimi ve randevu hatırlatıcıları" },
+                  { icon: "✂️", label: "Otomatik bakım takvimi",        sub: "Tarama, tırnak kesimi ve daha fazlası" },
+                ].map(f => (
+                  <div key={f.label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: "#FCE7F3", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{f.icon}</div>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#111", lineHeight: 1.2 }}>{f.label}</div>
+                      <div style={{ fontSize: 11.5, color: "#9CA3AF" }}>{f.sub}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Inline mini inputs */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
+                {[{ label: "Adı", placeholder: "Örn: Max" }, { label: "Yaşı", placeholder: "Örn: 2 Yıl" }, { label: "Kilosu", placeholder: "Örn: 4.5 kg" }].map(f => (
+                  <div key={f.label}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#6B7280", marginBottom: 4 }}>{f.label}</div>
+                    <input
+                      readOnly
+                      placeholder={f.placeholder}
+                      onClick={() => go("/yourpoodle/giris")}
+                      style={{ width: "100%", height: 38, borderRadius: 10, border: "1.5px solid #FECDD3", background: "#fff", padding: "0 10px", fontSize: 12, color: "#374151", fontFamily: "inherit", cursor: "pointer", outline: "none", boxSizing: "border-box" }}
+                    />
+                  </div>
+                ))}
+              </div>
+
               <button onClick={() => go("/yourpoodle/giris")}
-                style={{ width: "100%", height: 50, borderRadius: 14, background: "#EC4899", border: "none", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 16px rgba(236,72,153,0.3)" }}>
+                style={{ width: "100%", height: 52, borderRadius: 14, background: "linear-gradient(135deg,#F14A89,#EC4899)", border: "none", color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 6px 20px rgba(236,72,153,0.32)" }}>
                 Ücretsiz Profil Oluştur →
               </button>
             </div>
@@ -757,6 +811,28 @@ export default function YourPoodleHomePage() {
                 <p style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 10 }}>İstediğiniz zaman çıkabilirsiniz.</p>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── GÜVEN ŞERIDI ────────────────────────────────── */}
+      <section style={{ background: "#F9F9FC", padding: "28px 24px", borderTop: "1px solid #F0EEF8" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+          <div className="yph-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16 }}>
+            {[
+              { icon: "🛡️", label: "Güvenilir Bilgi",   sub: "Veteriner onaylı içerikler ve uzman yazarlar",  color: "#7C3AED" },
+              { icon: "🔒", label: "%100 Güvenli",       sub: "Kişisel verileriniz 256-bit SSL ile korunur",   color: "#2563EB" },
+              { icon: "🐩", label: "Poodle Odaklı",      sub: "Sadece Poodle'lara özel içerikler ve çözümler", color: "#EC4899" },
+              { icon: "🎧", label: "7/24 Destek",        sub: "AI Asistan ve uzman ekip her zaman yanınızda",  color: "#059669" },
+            ].map(t => (
+              <div key={t.label} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                <div style={{ width: 42, height: 42, borderRadius: 12, background: `${t.color}12`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{t.icon}</div>
+                <div>
+                  <div style={{ fontSize: 13.5, fontWeight: 800, color: "#111", marginBottom: 3 }}>{t.label}</div>
+                  <div style={{ fontSize: 12, color: "#9CA3AF", lineHeight: 1.5 }}>{t.sub}</div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
