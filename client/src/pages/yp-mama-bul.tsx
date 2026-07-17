@@ -273,7 +273,13 @@ function buildReason(p: any, answers: Answers): string {
 
 function pickRecommendations(products: any[], answers: Answers): Product[] {
   if (!products.length) return [];
-  const scored = products.map(p => {
+  // Only consider products that have been tagged with food metadata — this
+  // ensures non-food products (accessories, supplements without metadata) don't
+  // crowd out proper matches, and any new admin-seeded product automatically
+  // joins the candidate pool without extra steps.
+  const candidates = products.filter(p => p.mamaMetadata != null);
+  if (!candidates.length) return [];
+  const scored = candidates.map(p => {
     const score = scoreProduct(p, answers);
     const matchPct = Math.min(98, Math.max(40, score));
     return { id: p.id, name: p.name, price: p.price, img: p.img, originalPrice: p.originalPrice,
