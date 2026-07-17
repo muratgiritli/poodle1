@@ -424,13 +424,17 @@ function OptionCard({
 /* ─── Main component ─────────────────────────────────────────── */
 export default function YPMamaBulPage() {
   const [, navigate] = useLocation();
-  const { isLoggedIn } = useCustomer();
+  const { isLoggedIn, isLoading: authLoading } = useCustomer();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [done, setDone] = useState(false);
   const [slideKey, setSlideKey] = useState(0);
   const savedRef = useRef(false);
   const prefillApplied = useRef(false);
+  const historyApplied = useRef(false);
+
+  // Keys for checkbox-type steps — stored as comma-joined strings in the DB
+  const CHECKBOX_KEYS = new Set(STEPS.filter(s => s.type === "checkbox").map(s => s.key));
 
   const { data: products = [] } = useQuery<any[]>({
     queryKey: ["/api/yp-products"],
@@ -443,6 +447,45 @@ export default function YPMamaBulPage() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: latestRec } = useQuery<{ id: number; answers: Record<string, string> } | null>({
+    queryKey: ["/api/yp/recommendations/latest"],
+    enabled: isLoggedIn,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Restore all answers from the most recent run as defaults (logged-in only)
+  useEffect(() => {
+    if (historyApplied.current) return;
+    if (authLoading) return; // wait until session bootstrap completes
+    if (!isLoggedIn) { historyApplied.current = true; return; } // guest: skip
+    if (latestRec === undefined) return; // still loading
+    historyApplied.current = true;
+    if (!latestRec) return; // no history yet
+    const restored: Answers = {};
+    for (const [k, v] of Object.entries(latestRec.answers)) {
+      if (!v) continue;
+      if (CHECKBOX_KEYS.has(k)) {
+        restored[k] = v.includes(",") ? v.split(",") : [v];
+      } else {
+        restored[k] = v;
+      }
+    }
+    if (Object.keys(restored).length === 0) return;
+    // Merge: history provides defaults; any already-set answer (e.g. from
+    // poodle profile if that effect ran first) wins over the history value.
+    setAnswers(prev => {
+      const merged = { ...restored };
+      for (const k of Object.keys(prev)) {
+        const existing = prev[k];
+        if (existing && (Array.isArray(existing) ? existing.length > 0 : true)) {
+          merged[k] = existing;
+        }
+      }
+      return merged;
+    });
+  }, [authLoading, isLoggedIn, latestRec]);
+
+  // Poodle profile overrides age + weight (canonical source, always wins)
   useEffect(() => {
     if (!poodle || prefillApplied.current) return;
     prefillApplied.current = true;
@@ -451,7 +494,7 @@ export default function YPMamaBulPage() {
     if (poodle.age && ageValues.includes(poodle.age)) prefill.age = poodle.age;
     const weight = breedToWeight(poodle.breed);
     if (weight) prefill.weight = weight;
-    if (Object.keys(prefill).length > 0) setAnswers(a => ({ ...prefill, ...a }));
+    if (Object.keys(prefill).length > 0) setAnswers(a => ({ ...a, ...prefill }));
   }, [poodle]);
 
   const currentStep = STEPS[step];
