@@ -150,7 +150,12 @@ async function sendSmsViaNetgsm(phone: string, message: string, msgheaderOverrid
     console.log("NetGSM send skipped (TEST_OTP_BYPASS active, no SMS capture)");
     return true;
   }
-  const usercode = process.env.NETGSM_USERCODE;
+  // Normalize usercode: strip leading '+' and optional '90' country-code prefix.
+  // NetGSM API expects the local 10-digit account number (e.g. 8508403959), not +908508403959.
+  const _rawUsercode = (process.env.NETGSM_USERCODE || "").replace(/\D/g, "");
+  const usercode = _rawUsercode.startsWith("90") && _rawUsercode.length > 10
+    ? _rawUsercode.slice(2)
+    : _rawUsercode;
   const password = process.env.NETGSM_PASSWORD;
   const msgheader = (msgheaderOverride && msgheaderOverride.trim()) || process.env.NETGSM_MSGHEADER;
   if (!usercode || !password || !msgheader) {
@@ -158,7 +163,9 @@ async function sendSmsViaNetgsm(phone: string, message: string, msgheaderOverrid
     return false;
   }
   message = normalizeTrSms(message);
-  const gsmno = phone.replace(/\D/g, "");
+  let gsmno = phone.replace(/\D/g, "");
+  // Strip leading 0 (Turkish local format: 0542... → 542...) before adding country code
+  if (gsmno.startsWith("0")) gsmno = gsmno.slice(1);
   const fullPhone = gsmno.startsWith("90") ? gsmno : "90" + gsmno;
   const maskedPhone = fullPhone.length >= 6 ? `${fullPhone.slice(0,4)}****${fullPhone.slice(-2)}` : "****";
   console.log(`NetGSM sending to: ${maskedPhone}`);
