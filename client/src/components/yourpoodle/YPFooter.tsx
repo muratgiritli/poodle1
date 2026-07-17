@@ -34,7 +34,6 @@ const COLUMNS = [
     links: [
       { label: "Sık Sorulan Sorular",  href: "/yourpoodle/sss" },
       { label: "Kargo ve Teslimat",    href: "/yourpoodle/kargo" },
-      { label: "Uluslararası Kargo",   href: "/yourpoodle/uluslararasi-kargo" },
       { label: "İade ve Değişim",      href: "/yourpoodle/iade" },
       { label: "Güvenli Alışveriş",    href: "/yourpoodle/guvenli-alisveris" },
       { label: "KVKK / Gizlilik",      href: "/yourpoodle/gizlilik-politikasi" },
@@ -67,7 +66,7 @@ const CONTACT = [
   { Icon: Phone,  content: "0 850 840 3959", href: "tel:+908508403959" },
   { Icon: Mail,   content: "info@yourpoodle.com",  href: "mailto:info@yourpoodle.com" },
   { Icon: Clock,  content: "Hft. içi & Hft. sonu 09:00 – 22:00", href: undefined },
-  { Icon: MapPin, content: "Türkiye'den dünya geneline kargo", href: undefined },
+  { Icon: MapPin, content: "Türkiye geneline hızlı teslimat", href: undefined },
 ];
 
 const orgSchema = {
@@ -83,7 +82,7 @@ const orgSchema = {
     "addressLocality": "Samsun",
     "addressCountry": "TR",
   },
-  "areaServed": "Worldwide",
+  "areaServed": "TR",
   "sameAs": [
     "https://instagram.com/yourpoodle",
     "https://facebook.com/yourpoodle",
@@ -140,7 +139,7 @@ export default function YPFooter() {
 
             {/* Description */}
             <p className="text-[13px] text-gray-400 leading-relaxed max-w-[260px]">
-              Toy Poodle sahipleri için dünya geneline kargo yapan uzman e-ticaret ve topluluk platformu.
+              Toy Poodle sahipleri için Türkiye geneline hızlı kargo yapan uzman e-ticaret ve topluluk platformu.
             </p>
 
             {/* Social buttons */}
@@ -224,7 +223,7 @@ export default function YPFooter() {
 
           {/* Payment badges */}
           <div className="flex gap-2 flex-wrap justify-center">
-            {["VISA", "MC", "Troy", "İyzico", "Kapıda"].map(badge => (
+            {["VISA", "MC", "Troy", "İyzico"].map(badge => (
               <span
                 key={badge}
                 className="px-2.5 py-1 rounded-md text-[10px] font-bold text-gray-400"

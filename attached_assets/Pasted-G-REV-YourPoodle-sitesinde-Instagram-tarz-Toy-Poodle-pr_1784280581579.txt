@@ -1,0 +1,361 @@
+GÖREV: YourPoodle sitesinde Instagram tarzı Toy Poodle profil + Club sosyal akış sistemini kur. Önce projeyi tara: Club component'leri, routing, auth, API routes, DB schema, YPLayout/footer. Mevcut kodu yeniden kullan, sıfırdan yazma.
+
+═══════════════════════════════════════
+BAĞLAM — MEVCUT DURUM
+═══════════════════════════════════════
+URL: /yourpoodle/club
+
+Mevcut:
+- Sosyal akış var (mock/demo postlar: @poodlemom_ayse → Mocha vb.)
+- "Profil oluştur" CTA var ama public köpek profili YOK
+- /yourpoodle/profil var ama bu kişisel/AI ayar profili, Instagram'da paylaşılamaz
+- Footer'da "Köpek Dizini" linki var ama tam çalışmıyor
+- Poodlem (fotoğraf yarışması) ve Etkinlik sekmeleri var
+- Takip, takip isteği, bildirim sistemi YOK
+
+Hedef:
+Toy Poodle sahipleri köpekleri için Instagram tarzı SADE profil oluştursun, paylaşım yapsın, birbirini takip etsin, profil linkini Instagram bio'sunda paylaşsın. Tam Instagram kopyası DEĞİL — sadece Poodle'a özel, minimal sosyal ağ.
+
+═══════════════════════════════════════
+URL YAPISI
+═══════════════════════════════════════
+/yourpoodle/p/{slug}              → Public köpek profili (paylaşılabilir)
+/yourpoodle/p/{slug}/duzenle      → Sahibin düzenleme paneli (auth gerekli)
+/yourpoodle/p/olustur             → Profil oluşturma wizard
+/yourpoodle/club                  → Ana akış (Instagram home feed)
+/yourpoodle/club/kesfet           → Keşfet / yeni köpekler
+/yourpoodle/club/kopekler         → Köpek dizini
+
+Slug kuralları: mocha, luna-istanbul, biscuit-2024 — Türkçe karakter yok, benzersiz, değiştirilebilir.
+
+═══════════════════════════════════════
+1. VERİ MODELİ (DB SCHEMA)
+═══════════════════════════════════════
+Yeni tablolar ekle (Drizzle/schema):
+
+dogs {
+  id, userId (FK users), slug (unique), name,
+  breed: 'toy' | 'miniature',
+  birthDate, weightKg, color, gender,
+  city, district,
+  bio (max 150 char),
+  avatarUrl,
+  isPublic: boolean (default true),
+  isPrivate: boolean (default false),
+  followerCount, followingCount, postCount,
+  createdAt, updatedAt
+}
+
+dog_photos { id, dogId, url, caption, order, createdAt }
+
+club_posts {
+  id, dogId (FK dogs — ZORUNLU), userId,
+  content, imageUrls (json array, max 4 carousel),
+  hashtags (json array),
+  likeCount, commentCount,
+  visibility: 'public' | 'followers',
+  createdAt
+}
+
+club_post_likes { id, postId, userId, createdAt }
+club_post_comments { id, postId, userId, content, createdAt }
+
+dog_follows {
+  id, followerUserId, dogId,
+  status: 'active' | 'pending' | 'rejected',
+  createdAt
+}
+
+notifications {
+  id, userId, type, actorUserId, dogId, postId,
+  message, isRead, createdAt
+}
+-- type: 'follow_request' | 'follow_accept' | 'like' | 'comment' | 'new_follower'
+
+Mevcut club_posts varsa dogId kolonu ekle (migration).
+
+═══════════════════════════════════════
+2. KÖPEK PROFİL SAYFASI — /p/{slug}
+═══════════════════════════════════════
+Instagram profil sayfası gibi, SADE ve minimal (mobil-first):
+
+┌──────────────────────────────────────────────┐
+│  ← Geri          {slug}          ⋮           │
+├──────────────────────────────────────────────┤
+│   ┌─────┐   {name}                           │
+│   │avatar│   Toy Poodle · {gender} · {age}  │
+│   │ 🐩  │   📍 {city} · {weight} kg          │
+│   └─────┘                                    │
+│   {bio — max 150 char}                       │
+│                                              │
+│   {postCount}    {followerCount}   {followingCount} │
+│   gönderi        takipçi           takip     │
+│                                              │
+│  [Takip Et] / [Takip ediliyor ✓] / [İstek gönderildi] │
+│  [Paylaş ↗]                                  │
+├──────────────────────────────────────────────┤
+│  [📷 Gönderiler]  [ℹ Bilgi]                 │
+├──────────────────────────────────────────────┤
+│  3 sütun foto grid (Instagram tarzı)         │
+│  ┌────┐ ┌────┐ ┌────┐                       │
+│  │ 📸 │ │ 📸 │ │ 📸 │                       │
+│  └────┘ └────┘ └────┘                       │
+└──────────────────────────────────────────────┘
+
+GÖRSEL DİL:
+- Beyaz arka plan, ince gri border (#E5E7EB)
+- Mor (#7C3AED) sadece buton ve aktif sekmede
+- Yuvarlak avatar (border-radius 50%)
+- Kapak fotoğrafı YOK — sadece avatar (sade kalsın)
+- Fazla ikon/animasyon YOK
+
+"Bilgi" sekmesi (Poodle'a özel):
+- Doğum tarihi / yaş, kilo, renk, cinsiyet, şehir
+- Tıraş stili (opsiyonel)
+- Kullandığı mama (opsiyonel)
+
+PROFIL OLUŞTURMA WIZARD (/p/olustur):
+- Adım 1: İsim + slug seç (benzersizlik kontrolü, anlık)
+- Adım 2: Avatar fotoğrafı yükle
+- Adım 3: Temel bilgiler (yaş, kilo, renk, şehir, cinsiyet)
+- Adım 4: Bio (opsiyonel, max 150 char)
+- Adım 5: Gizlilik (herkese açık / gizli profil)
+- Bitince → /p/{slug} + "Instagram bio'na ekle!" CTA
+
+SEO / PAYLAŞIM:
+- Dinamik OG meta her profil için:
+  <title>{name} · Toy Poodle | YourPoodle</title>
+  <meta property="og:image" content="{avatarUrl}" />
+  <meta property="og:description" content="{age} yaşında Toy Poodle · {city}" />
+- "Linki kopyala" butonu
+- "Story kartı indir" butonu (1080x1920 PNG: köpek foto + isim + QR/link)
+- Native share API (WhatsApp vb.)
+
+═══════════════════════════════════════
+3. CLUB ANA AKIŞ — /yourpoodle/club
+═══════════════════════════════════════
+Instagram home feed — takip ettiklerinin paylaşımları:
+
+┌──────────────────────────────────────────────┐
+│  Poodle Club                    🔔  ✏️ Paylaş  │
+├──────────────────────────────────────────────┤
+│  Hikaye şeridi (takip ettiklerin, son 24 saat)│
+│  ┌──┐ ┌──┐ ┌──┐ ┌──┐ ┌──┐                   │
+│  │MO│ │LU│ │BI│ │ +│                        │
+│  └──┘ └──┘ └──┘ └──┘                        │
+├──────────────────────────────────────────────┤
+│  POST KARTI:                                 │
+│  🐩 {dogName} · {timeAgo}            ···    │
+│  [  FOTOĞRAF / CAROUSEL (max 4)  ]          │
+│  ❤️ {likeCount}  💬 {commentCount}  ↗ Paylaş│
+│  {content} #hashtag                          │
+└──────────────────────────────────────────────┘
+
+AKIŞ KURALLARI:
+- Sadece TAKİP ETTİĞİN köpeklerin postları (kronolojik, paginated)
+- Takip yoksa → "Keşfet'ten Poodle'lara göz at!" CTA
+- Post kartında avatar + isim → /p/{slug} linki
+- Hashtag tıklanabilir: #tiras #mama #egitim #saglik #oyun
+- Beğeni toggle (❤️ dolu / 🤍 boş)
+- Yorum inline veya modal
+- Mock/demo postları KALDIR, gerçek API'den çek
+
+HİKAYE ŞERİDİ (basit MVP):
+- Son 24 saatte foto paylaşan takip ettiklerin
+- Mor gradient halka (YourPoodle markası)
+- Tıklayınca tam ekran foto
+- Kendi profilinde "+" → hızlı foto paylaş
+
+═══════════════════════════════════════
+4. PAYLAŞIM AKIŞI
+═══════════════════════════════════════
+Club'da "Paylaş ✏️":
+
+1. Hangi köpeğin? → dropdown (kendi profillerinden, min 1 profil gerekli)
+2. Fotoğraf yükle (1-4 foto carousel) veya sadece metin
+3. Açıklama + hashtag (#tiras #mama vb.)
+4. Gizlilik: [Herkese açık] [Sadece takipçiler]
+5. Paylaş → Club akışı + /p/{slug} profil grid'inde görünür
+
+Validasyon:
+- Profil yoksa → "Önce köpek profili oluştur" yönlendir (/p/olustur)
+- Foto max 5MB, jpg/png/webp
+- KVKK onay checkbox
+
+═══════════════════════════════════════
+5. TAKİP SİSTEMİ + TAKİP İSTEKLERİ
+═══════════════════════════════════════
+Instagram takip mantığı, KÖPEK profiline:
+
+| Profil | Buton | Davranış |
+|--------|-------|----------|
+| Public | "Takip Et" | Anında takipçi (status: active) |
+| Public + takiptesin | "Takip ediliyor ✓" | Tıklayınca takipten çık |
+| Gizli | "Takip isteği gönder" | status: pending |
+| Gizli + istek gönderildi | "İstek gönderildi" | İptal edilebilir |
+| Sahibisin | İstekleri yönet | Kabul / Reddet |
+
+BİLDİRİMLER (🔔):
+- "{user}, {dogName} profilinizi takip etmek istiyor" [Kabul] [Reddet]
+- "{user}, {dogName} gönderinizi beğendi ❤️"
+- "{user}, {dogName} gönderinize yorum yaptı 💬"
+- "{user}, {dogName} profilinizi takip etmeye başladı"
+- Okunmamış badge sayısı header'da
+
+═══════════════════════════════════════
+6. KEŞFET — /yourpoodle/club/kesfet
+═══════════════════════════════════════
+- Popüler paylaşımlar (en çok beğenilen, son 7 gün)
+- Yeni katılan Poodle'lar (kart + Takip Et)
+- Şehre göre: "İstanbul'daki Poodle'lar (47)"
+- Takip önerileri: "Senin için önerilen Poodle'lar"
+
+═══════════════════════════════════════
+7. KÖPEK DİZİNİ — /yourpoodle/club/kopekler
+═══════════════════════════════════════
+Footer "Köpek Dizini" linkini buraya bağla.
+- Grid: avatar + isim + şehir + takipçi sayısı
+- Filtre: şehir, yaş, renk | Arama: isim/slug
+- Sıralama: en yeni, en popüler
+- Her kart → /p/{slug}
+
+═══════════════════════════════════════
+8. MOBİL ALT BAR (Instagram gibi)
+═══════════════════════════════════════
+Mobilde bottom fixed, 5 ikon:
+
+[ 🏠 Akış ]  [ 🔍 Keşfet ]  [ ➕ Paylaş ]  [ 🔔 Bildirim ]  [ 🐩 Profilim ]
+
+- Akış → /club
+- Keşfet → /club/kesfet
+- Paylaş → paylaşım modal
+- Bildirim → bildirim listesi (badge)
+- Profilim → kendi /p/{slug} (birden fazla köpek varsa seçici)
+
+Desktop: mevcut üst menü koru, alt bar gizle (md:hidden).
+
+═══════════════════════════════════════
+9. CLUB SAYFASI SADELEŞTİRME
+═══════════════════════════════════════
+Mevcut Club'u Instagram tarzına dönüştür:
+
+KALDIR/SADELE:
+- Büyük mor hero banner (500+ üye) → ince header veya kaldır
+- "Topluluk" sekmesi → Köpek Dizini'ne yönlendir
+- Club içindeki footer tekrarını kaldır (YPLayout yeter)
+- Mock/demo postları kaldır
+
+KORU:
+- Poodlem fotoğraf yarışması (profilden katılım, kazanan rozeti)
+- Etkinlikler sekmesi
+- Hashtag sistemi
+
+SEKMELER (sadeleştirilmiş):
+- Akış (ana — feed)
+- Poodlem (yarışma)
+- Etkinlikler
+- Keşfet ve Köpek Dizini ayrı route
+
+═══════════════════════════════════════
+10. API ENDPOINTS
+═══════════════════════════════════════
+POST   /api/dogs                    → profil oluştur (auth)
+GET    /api/dogs/:slug              → public profil
+PUT    /api/dogs/:slug              → güncelle (owner)
+DELETE /api/dogs/:slug              → sil (owner)
+GET    /api/dogs                    → dizin (filter, search, sort)
+GET    /api/dogs/check-slug/:slug   → slug müsait mi?
+
+GET    /api/club/feed               → takip edilenlerin postları (paginated)
+POST   /api/club/posts              → paylaşım (auth, dogId zorunlu)
+DELETE /api/club/posts/:id          → sil (owner)
+POST   /api/club/posts/:id/like     → beğen/beğenme
+GET    /api/club/posts/:id/comments → yorumlar
+POST   /api/club/posts/:id/comments → yorum ekle
+
+POST   /api/dogs/:slug/follow       → takip / istek gönder
+DELETE /api/dogs/:slug/follow       → takipten çık
+POST   /api/dogs/:slug/follow/accept → kabul (owner)
+POST   /api/dogs/:slug/follow/reject → red (owner)
+GET    /api/dogs/:slug/followers    → takipçiler
+GET    /api/dogs/:slug/following    → takip edilenler
+
+GET    /api/notifications           → bildirimler (auth)
+PUT    /api/notifications/:id/read  → okundu
+GET    /api/notifications/unread-count → badge
+
+GET    /api/dogs/:slug/og-card      → story kartı PNG (1080x1920)
+GET    /api/club/explore            → keşfet
+GET    /api/club/stories            → hikaye şeridi (24 saat)
+
+═══════════════════════════════════════
+11. FRONTEND COMPONENT'LER
+═══════════════════════════════════════
+Yeni oluştur:
+- YPDogProfilePage      → /p/:slug
+- YPDogEditPage         → /p/:slug/duzenle
+- YPDogCreateWizard     → /p/olustur
+- YPDogDirectoryPage    → /club/kopekler
+- YPExplorePage         → /club/kesfet
+- YPClubFeed            → Club ana akış (mevcut refactor)
+- YPClubPostCard        → feed post kartı
+- YPClubPostCreate      → paylaşım modal/sheet
+- YPClubNotifications   → bildirim listesi
+- YPFollowButton        → takip/istek butonu (stateful)
+- YPShareButton         → link kopyala + story kartı
+- YPMobileNav           → alt bar (5 ikon)
+- YPStoryStrip          → hikaye şeridi
+
+Mevcut refactor:
+- Club page → feed-centric, mock kaldır
+- Footer "Köpek Dizini" → /club/kopekler
+- "Profil oluştur" CTA → /p/olustur
+
+═══════════════════════════════════════
+12. GİZLİLİK VE GÜVENLİK
+═══════════════════════════════════════
+- Fotoğraf yüklemede KVKK onay checkbox
+- Tam adres YOK — sadece şehir/ilçe
+- Report post / report profile
+- Block user
+- Admin moderasyon kuyruğu
+- Profil soft delete
+
+═══════════════════════════════════════
+UYGULAMA SIRASI
+═══════════════════════════════════════
+FAZ 1 (MVP):
+  Schema + migration → Profil oluştur wizard → Profil sayfası /p/{slug} → Paylaşım → Club akış
+
+FAZ 2 (Sosyal):
+  Takip + takip istekleri → Beğeni + yorum → Bildirimler → Keşfet → Köpek dizini
+
+FAZ 3 (Cila):
+  Mobil alt bar → Hikaye şeridi → Story kartı generator → Club sadeleştirme → Poodlem profil entegrasyonu
+
+═══════════════════════════════════════
+TEST PLANI
+═══════════════════════════════════════
+1. /p/olustur → profil oluştur → /p/mocha açılsın
+2. /p/mocha → avatar, bio, istatistik, 3 sütun grid, OG meta doğru
+3. Club → paylaşım yap → akışta + profil grid'inde görünsün
+4. Başka kullanıcı → Takip Et → takipçi saysın artsın
+5. Gizli profil → takip isteği → sahip kabul/red edebilsin
+6. Bildirimler → beğeni, yorum, takip isteği gelsin
+7. /club/kesfet → yeni köpekler
+8. /club/kopekler → filtre + arama
+9. Paylaş ↗ → link kopyala + story kartı
+10. Mobil alt bar 5 ikon çalışsın
+11. Mock postlar kalkmış, gerçek API'den gelsin
+
+═══════════════════════════════════════
+KISITLAR
+═══════════════════════════════════════
+- Instagram'ın birebir kopyası YAPMA — sade, Poodle'a özel, minimal
+- DM/mesajlaşma ekleme (MVP dışı)
+- Reels/video feed ekleme (MVP dışı)
+- E-ticaret/mağaza/checkout'a DOKUNMA
+- Mevcut auth, YPLayout, routing'i koru
+- Gereksiz refactor yapma; odaklı diff
+
+Önce projeyi tara, Faz 1'den başla. Her faz bitince kısa özet ver.

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { ArrowLeft, Check, ShoppingCart, RotateCcw } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -319,13 +319,113 @@ const RESULT_META = [
   { label: "Premium Seçim", emoji: "⭐", color: "#D97706", bg: "#FEF3C7", gradient: "linear-gradient(135deg,#D97706,#F59E0B)", reason: "En yüksek kalite standartları. İçerik açısından üstün formül." },
 ];
 
-interface Product { id: number; name: string; price: number; img: string | null; originalPrice?: number; }
+interface Product {
+  id: number; name: string; price: number; img: string | null;
+  originalPrice?: number; mamaType?: string; mamaMetadata?: any;
+  score?: number; matchPct?: number; reason?: string;
+}
 
-function pickRecommendations(products: any[]): Product[] {
+/* ─── Scoring algorithm ─────────────────────────────────────── */
+function scoreProduct(p: any, answers: Record<string, string>): number {
+  let score = 50;
+  const meta = p.mamaMetadata || {};
+
+  // mamaType ↔ age: +30 match / -10 mismatch
+  const ageMap: Record<string, string> = { puppy: "yavru", adult: "yetiskin", senior: "yasli" };
+  const expectedType = ageMap[answers.age] || "";
+  if (expectedType && p.mamaType) {
+    score += p.mamaType === expectedType ? 30 : -10;
+  }
+
+  // proteinType ↔ protein: +20 match / -5 mismatch
+  const protMap: Record<string, string> = { chicken: "tavuk", salmon: "somon", lamb: "kuzu", rabbit: "tavsan" };
+  if (answers.protein && answers.protein !== "any" && meta.proteinType) {
+    score += meta.proteinType === protMap[answers.protein] ? 20 : -5;
+  } else if (answers.protein === "any") {
+    score += 6;
+  }
+
+  // grainFree ↔ allergy grain: +15
+  if (answers.allergy === "grain") {
+    score += meta.grainFree === true ? 15 : -20;
+  }
+
+  // budgetTier ↔ budget: +15 match / tiered penalty
+  const budgetMap: Record<string, string> = { economy: "ekonomik", mid: "orta", premium: "premium" };
+  const tiers = ["ekonomik", "orta", "premium"];
+  if (answers.budget && meta.budgetTier) {
+    const expected = budgetMap[answers.budget] || "";
+    if (meta.budgetTier === expected) score += 15;
+    else {
+      const diff = Math.abs(tiers.indexOf(meta.budgetTier) - tiers.indexOf(expected));
+      score += diff === 1 ? -3 : -10;
+    }
+  }
+
+  // breedSize ↔ weight: +10 match / -3 mismatch
+  const weightBreed: Record<string, string[]> = { micro: ["toy"], toy: ["toy"], mini: ["miniature"], standard: ["standart"] };
+  if (answers.weight && meta.breedSize) {
+    const ok = weightBreed[answers.weight] || [];
+    score += ok.includes(meta.breedSize) ? 10 : -3;
+  }
+
+  // allergen elimination: -100 (effectively removes)
+  if (meta.allergens && answers.allergy && answers.allergy !== "none" && answers.allergy !== "other") {
+    const allergyMap: Record<string, string[]> = { chicken: ["tavuk"], fish: ["balik", "somon"], grain: ["tahil", "bugday"] };
+    const allergyTerms = allergyMap[answers.allergy] || [];
+    const hasAllergen = meta.allergens.some((a: string) =>
+      allergyTerms.some((t: string) => a.toLowerCase().includes(t))
+    );
+    if (hasAllergen) score -= 100;
+  }
+
+  // specialNeeds ↔ coat/digestion: +10
+  if (meta.specialNeeds && Array.isArray(meta.specialNeeds)) {
+    if ((answers.coat === "dull" || answers.coat === "shedding" || answers.coat === "scratch") &&
+        meta.specialNeeds.some((n: string) => n.includes("tuy") || n.includes("deri"))) {
+      score += 10;
+    }
+    if ((answers.digestion === "sensitive" || answers.digestion === "very_sensitive") &&
+        meta.specialNeeds.some((n: string) => n.includes("sindirim") || n.includes("hassas"))) {
+      score += 10;
+    }
+  }
+
+  return score;
+}
+
+function buildReason(p: any, answers: Record<string, string>): string {
+  const meta = p.mamaMetadata || {};
+  const parts: string[] = [];
+  const ageMatch = (answers.age === "puppy" && p.mamaType === "yavru") ||
+                   (answers.age === "adult" && p.mamaType === "yetiskin") ||
+                   (answers.age === "senior" && p.mamaType === "yasli");
+  if (ageMatch) {
+    const lbl = { puppy: "Yavru", adult: "Yetişkin", senior: "Yaşlı" }[answers.age] || "";
+    parts.push(`${lbl} formülü`);
+  }
+  const protTR: Record<string, string> = { tavuk: "tavuklu", somon: "somonlu", kuzu: "kuzulu", tavsan: "tavşanlı" };
+  if (meta.proteinType) parts.push(protTR[meta.proteinType] || meta.proteinType);
+  if (meta.grainFree === true && answers.allergy === "grain") parts.push("tahılsız");
+  if (meta.breedSize === "toy") parts.push("Toy boy'a uygun");
+  return parts.length > 0 ? parts.join(" · ") : "Profilinize uygun seçim";
+}
+
+function pickRecommendations(products: any[], answers: Record<string, string>): Product[] {
   if (!products.length) return [];
-  return [...products].sort(() => Math.random() - 0.5).slice(0, 3).map(p => ({
-    id: p.id, name: p.name, price: p.price, img: p.img, originalPrice: p.originalPrice,
-  }));
+  const scored = products.map(p => {
+    const score = scoreProduct(p, answers);
+    const matchPct = Math.min(98, Math.max(40, score));
+    return { id: p.id, name: p.name, price: p.price, img: p.img, originalPrice: p.originalPrice,
+             mamaType: p.mamaType, mamaMetadata: p.mamaMetadata, score, matchPct,
+             reason: buildReason(p, answers) };
+  });
+  // Sort by score DESC, then price ASC for ties
+  scored.sort((a, b) => b.score !== a.score ? b.score - a.score : a.price - b.price);
+  // Allergen-disqualified products go last
+  const eligible = scored.filter(p => (p.score ?? 0) >= 0);
+  const ineligible = scored.filter(p => (p.score ?? 0) < 0);
+  return [...eligible, ...ineligible].slice(0, 3);
 }
 
 function AgePath({ step, total }: { step: number; total: number }) {
@@ -346,7 +446,7 @@ export default function YPMamaBulPage() {
   const [slideKey, setSlideKey] = useState(0);
 
   const { data: products = [] } = useQuery<any[]>({
-    queryKey: ["/api/products"],
+    queryKey: ["/api/yp-products"],
     staleTime: 10 * 60 * 1000,
   });
 
@@ -371,7 +471,7 @@ export default function YPMamaBulPage() {
   };
 
   const restart = () => { setStep(0); setAnswers({}); setDone(false); setSlideKey(0); };
-  const recommendations = pickRecommendations(products);
+  const recommendations = useMemo(() => pickRecommendations(products, answers), [products, answers]);
 
   // ── Result screen ────────────────────────────────────────
   if (done) {
@@ -403,23 +503,40 @@ export default function YPMamaBulPage() {
 
           {/* cards */}
           <div className="mb-result-cards">
+            {/* No-match notice when allergen/constraint disqualifies everything */}
+            {recommendations.length > 0 && recommendations.every(p => (p.score ?? 0) < 0) && (
+              <div style={{ background: "#FFF7ED", borderRadius: 14, padding: "14px 16px", marginBottom: 4, fontSize: 13, color: "#C2410C", lineHeight: 1.6 }}>
+                <div style={{ fontWeight: 800, marginBottom: 4 }}>⚠️ Tam eşleşme bulunamadı</div>
+                Seçtiğiniz kısıtlamalara (alerji, protein tercihi vb.) tam uyan bir ürün şu an mağazamızda yok. Aşağıdaki en yakın alternatifler listelenmiştir — detaylar için ürün sayfasını inceleyin veya veterinerinize danışın.
+              </div>
+            )}
             {recommendations.length > 0 ? recommendations.map((prod, idx) => {
               const m = RESULT_META[idx];
               return (
                 <div key={prod.id} className="mb-result-card">
-                  <div className="mb-card-badge" style={{ background: m.bg, color: m.color }}>
-                    <span>{m.emoji}</span>
-                    <span>{m.label}</span>
+                  <div className="mb-card-badge" style={{ background: m.bg, color: m.color, justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span>{m.emoji}</span>
+                      <span>{m.label}</span>
+                    </div>
+                    {(prod.matchPct ?? 0) > 0 && (
+                      <span style={{ background: m.color, color: "#fff", borderRadius: 20, fontSize: 11, fontWeight: 800, padding: "2px 9px" }}>
+                        %{Math.round(prod.matchPct ?? 0)} uyum
+                      </span>
+                    )}
                   </div>
                   <div className="mb-card-body">
-                    <div className="mb-card-img">
+                    <div className="mb-card-img" style={{ cursor: "pointer" }} onClick={() => navigate(`/yourpoodle/urun/${prod.id}`)}>
                       {prod.img
-                        ? <img src={prod.img} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ? <img src={prod.img} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "contain", padding: "6px" }} />
                         : <span>🐾</span>}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#18114a", lineHeight: 1.4, marginBottom: 6 }}>{prod.name}</div>
-                      <div style={{ fontSize: 12, color: "#777", marginBottom: 10, lineHeight: 1.5 }}>{m.reason}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#18114a", lineHeight: 1.4, marginBottom: 6, cursor: "pointer" }}
+                           onClick={() => navigate(`/yourpoodle/urun/${prod.id}`)}>{prod.name}</div>
+                      <div style={{ fontSize: 12, color: "#777", marginBottom: 10, lineHeight: 1.5 }}>
+                        {prod.reason || m.reason}
+                      </div>
                       <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
                         <span style={{ fontSize: 18, fontWeight: 900, color: m.color }}>₺{Number(prod.price).toLocaleString("tr-TR")}</span>
                         {prod.originalPrice && prod.originalPrice > prod.price && (
@@ -429,8 +546,8 @@ export default function YPMamaBulPage() {
                     </div>
                   </div>
                   <div className="mb-card-actions">
-                    <button className="mb-btn-detail" onClick={() => navigate(`/urun/${prod.id}`)}>İncele</button>
-                    <button className="mb-btn-add" style={{ background: m.gradient }} onClick={() => navigate(`/urun/${prod.id}`)}>
+                    <button className="mb-btn-detail" onClick={() => navigate(`/yourpoodle/urun/${prod.id}`)}>İncele</button>
+                    <button className="mb-btn-add" style={{ background: m.gradient }} onClick={() => navigate(`/yourpoodle/urun/${prod.id}`)}>
                       <ShoppingCart size={14} /> Sepete Ekle
                     </button>
                   </div>

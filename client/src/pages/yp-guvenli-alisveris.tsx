@@ -45,13 +45,13 @@ export default function YPGuvenliAlisveris() {
       </div>
 
       <div className="sp-section">
-        <h2>Kabul Edilen Ödeme Yöntemleri</h2>
+        <h2>Kabul Edilen Ödeme Yöntemi</h2>
         <ul>
           <li>Visa, Mastercard, Troy (kredi ve banka kartı)</li>
           <li>3D Secure korumalı online ödeme</li>
-          <li>Havale / EFT</li>
-          <li>Kapıda ödeme (nakit veya kart)</li>
+          <li>256-bit SSL şifreli güvenli altyapı</li>
         </ul>
+        <p style={{ marginTop: 8, fontSize: 13.5, color: "#666" }}>YourPoodle Mağazası yalnızca online kredi/banka kartı ödemesini desteklemektedir. Havale, EFT veya kapıda ödeme kabul edilmemektedir.</p>
       </div>
 
       <div className="sp-section">

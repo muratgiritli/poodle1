@@ -93,19 +93,17 @@ export default function Magaza() {
 
   /* SEO */
   useEffect(()=>{
-    const totalLabel = total > 0 ? `${total}+` : "Yükleniyor";
-    document.title = `Poodle Mağazası — ${totalLabel} Ürün | YourPoodle`;
+    document.title = "Poodle Mağazası | YourPoodle";
     const m=(attr:string,key:string,val:string)=>{
       let el=document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement|null;
       if(!el){el=document.createElement("meta");el.setAttribute(attr,key);document.head.appendChild(el);}
       el.content=val;
     };
-    m("name","description","Toy Poodle mama, ödül, tasma, oyuncak ve bakım ürünleri. Royal Canin, Hill's, Pro Plan ve daha fazlası. Türkiye ve dünya geneline hızlı kargo, güvenli ödeme.");
-    m("property","og:title","Poodle Mama Mağazası | YourPoodle");
-    m("property","og:description","Poodle mama, ödül ve aksesuar. Türkiye ve dünya geneline hızlı kargo, güvenli online ödeme.");
+    m("name","description","Toy Poodle mama, ödül, tasma, oyuncak ve bakım ürünleri. Royal Canin, Reflex Plus ve daha fazlası. Türkiye geneline hızlı kargo, güvenli online ödeme.");
+    m("property","og:title","Poodle Mağazası | YourPoodle");
+    m("property","og:description","Poodle mama, ödül ve aksesuar. Türkiye geneline hızlı kargo, güvenli online ödeme.");
     m("property","og:type","website");
     m("property","og:url","https://www.yourpoodle.com/yourpoodle/magaza");
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /* Fetch products from yp-products (joined with brand_categories) */
@@ -194,16 +192,16 @@ export default function Magaza() {
   const faqSchema = {
     "@context":"https://schema.org","@type":"FAQPage",
     "mainEntity":[
-      { "@type":"Question","name":"Türkiye dışına kargo yapıyor musunuz?",
-        "acceptedAnswer":{"@type":"Answer","text":"Evet, Türkiye ve dünya geneline kargo yapıyoruz. Uluslararası siparişler için info@yourpoodle.com adresinden bize ulaşabilirsiniz."} },
       { "@type":"Question","name":"Hangi ödeme yöntemlerini kabul ediyorsunuz?",
-        "acceptedAnswer":{"@type":"Answer","text":"Kredi/banka kartı, havale/EFT ve online güvenli ödeme yöntemlerini kabul ediyoruz."} },
+        "acceptedAnswer":{"@type":"Answer","text":"Yalnızca online kredi/banka kartı ile ödeme yapılmaktadır (Visa, Mastercard, Troy). Tüm ödemeler 256-bit SSL ve 3D Secure güvencesiyle gerçekleşir."} },
       { "@type":"Question","name":"İade politikanız nedir?",
         "acceptedAnswer":{"@type":"Answer","text":"Açılmamış ürünler 14 gün içinde iade edilebilir. Mama iadelerinde ürünün açılmamış olması şarttır."} },
       { "@type":"Question","name":"Hangi mama markalarını satıyorsunuz?",
-        "acceptedAnswer":{"@type":"Answer","text":"Royal Canin, Hill's Science Plan, Pro Plan, N&D, Econature, Reflex Plus ve daha pek çok marka mevcuttur."} },
+        "acceptedAnswer":{"@type":"Answer","text":"Royal Canin Toy Poodle ve Reflex Plus başta olmak üzere Toy Poodle için özenle seçilmiş mamalar mevcuttur."} },
       { "@type":"Question","name":"Toy Poodle için en çok satan mama hangisi?",
-        "acceptedAnswer":{"@type":"Answer","text":"Royal Canin Toy Poodle Adult ve Pro Plan Small & Mini Adult en çok tercih edilen mamalar arasında yer almaktadır."} },
+        "acceptedAnswer":{"@type":"Answer","text":"Royal Canin Toy Poodle Adult ve Royal Canin Toy Poodle Puppy en çok tercih edilen mamalar arasında yer almaktadır."} },
+      { "@type":"Question","name":"Kargo süresi ne kadar?",
+        "acceptedAnswer":{"@type":"Answer","text":"Türkiye içi siparişler 1-3 iş günü içinde teslim edilir. Stokta olan ürünler genellikle aynı gün kargoya verilir."} },
     ],
   };
 
@@ -250,11 +248,11 @@ export default function Magaza() {
           <div style={{ position:"absolute", bottom:-20, left:10, width:70, height:70, borderRadius:"50%", background:"rgba(255,255,255,0.06)" }}/>
           <div style={{ fontSize:34, marginBottom:8 }}>🛍️</div>
           <h1 style={{ fontSize:22, fontWeight:900, color:"#fff", marginBottom:4, lineHeight:1.2 }}>Poodle Mağazası</h1>
-          <p style={{ fontSize:13, color:"rgba(255,255,255,0.85)", marginBottom:14 }}>Royal Canin, Hill's, Pro Plan ve daha fazlası</p>
+          <p style={{ fontSize:13, color:"rgba(255,255,255,0.85)", marginBottom:14 }}>Royal Canin, Reflex Plus ve daha fazlası</p>
           <div style={{ display:"flex", gap:18, flexWrap:"wrap" }}>
             {[
               [isLoading?"…":total>0?`${total}+`:"Yükleniyor","Ürün"],
-              ["Dünya","Geneli Kargo"],["Güvenli","Ödeme"],
+              ["Türkiye","Geneli Kargo"],["Güvenli","Ödeme"],
             ].map(([n,l])=>(
               <div key={l}><div style={{ fontSize:14, fontWeight:900, color:"#fff" }}>{n}</div><div style={{ fontSize:10, color:"rgba(255,255,255,0.72)" }}>{l}</div></div>
             ))}
@@ -362,7 +360,7 @@ export default function Magaza() {
                     {p.img
                       ? <>
                           <img src={p.img} alt={p.name} loading="lazy"
-                            style={{ width:"100%", height:"100%", objectFit:"cover" }}
+                            style={{ width:"100%", height:"100%", objectFit:"contain", padding:"12px" }}
                             onError={e=>{
                               (e.target as HTMLImageElement).style.display="none";
                               const sib = (e.target as HTMLImageElement).nextElementSibling as HTMLElement|null;
@@ -421,16 +419,32 @@ export default function Magaza() {
 
             {filtered.length===0 && (
               <div style={{ gridColumn:"1/-1", textAlign:"center", padding:"48px 16px", color:"#aaa" }}>
-                <div style={{ fontSize:40, marginBottom:12 }}>🔍</div>
-                <div style={{ fontSize:15, fontWeight:700, color:"#555" }}>Ürün bulunamadı</div>
-                <div style={{ fontSize:13, marginTop:6, color:"#888" }}>
-                  {search ? `"${search}" için sonuç yok — farklı bir anahtar kelime deneyin` : "Bu kategoride henüz ürün bulunmuyor"}
-                </div>
-                {(search||activeCat!=="all"||filterBrands.length>0) && (
-                  <button onClick={()=>{ setSearch(""); setActiveCat("all"); setFilterBrands([]); setFilterInStock(false); setFilterMaxPrice(""); }}
-                    style={{ marginTop:16, padding:"9px 22px", borderRadius:20, border:"none", background:"#7C3AFF", color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer" }}>
-                    Filtreleri Temizle
-                  </button>
+                {(!search && activeCat!=="all" && filterBrands.length===0) ? (
+                  <>
+                    <div style={{ fontSize:48, marginBottom:12 }}>🔜</div>
+                    <div style={{ fontSize:16, fontWeight:800, color:"#7C3AFF" }}>Yakında!</div>
+                    <div style={{ fontSize:13, marginTop:8, color:"#888" }}>
+                      Bu kategori için ürünler hazırlanıyor. Çok yakında burada olacak!
+                    </div>
+                    <button onClick={()=>setActiveCat("all")}
+                      style={{ marginTop:16, padding:"9px 22px", borderRadius:20, border:"none", background:"#7C3AFF", color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer" }}>
+                      Tüm Ürünleri Gör
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontSize:40, marginBottom:12 }}>🔍</div>
+                    <div style={{ fontSize:15, fontWeight:700, color:"#555" }}>Ürün bulunamadı</div>
+                    <div style={{ fontSize:13, marginTop:6, color:"#888" }}>
+                      {search ? `"${search}" için sonuç yok — farklı bir anahtar kelime deneyin` : "Filtre kriterlerine uygun ürün bulunamadı"}
+                    </div>
+                    {(search||activeCat!=="all"||filterBrands.length>0) && (
+                      <button onClick={()=>{ setSearch(""); setActiveCat("all"); setFilterBrands([]); setFilterInStock(false); setFilterMaxPrice(""); }}
+                        style={{ marginTop:16, padding:"9px 22px", borderRadius:20, border:"none", background:"#7C3AFF", color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer" }}>
+                        Filtreleri Temizle
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -454,7 +468,7 @@ export default function Magaza() {
               {[
                 { emoji:"🍖", title:"Poodle Mamaları", desc:"Royal Canin Toy Poodle, Pro Plan Small & Mini, Hill's Science Plan. Toy ve Miniature Poodle'ın küçük çenesi ve hassas sindirimi için özel formüller." },
                 { emoji:"✨", title:"Bakım Ürünleri", desc:"Bio-Groom şampuan, Espree serisi, slicker fırça, tarak seti ve tıraş makası. Poodle tüyünü mat olmadan yumuşak tutun." },
-                { emoji:"🚚", title:"Kargo ve Ödeme", desc:"Türkiye ve dünya geneline hızlı kargo. Kredi/banka kartı, havale ve güvenli online ödeme seçenekleri. Siparişler özenle paketlenir." },
+                { emoji:"🚚", title:"Kargo ve Ödeme", desc:"Türkiye geneline hızlı kargo. Online kredi/banka kartı ile güvenli ödeme (256-bit SSL, 3D Secure). Siparişler özenle paketlenir." },
               ].map(item=>(
                 <div key={item.title} style={{ background:"#F5F0FF", borderRadius:14, padding:"18px 18px 20px" }}>
                   <div style={{ fontSize:26, marginBottom:10 }}>{item.emoji}</div>
@@ -591,7 +605,7 @@ export default function Magaza() {
                   <span style={{ fontSize:14, fontWeight:700 }}>Toplam</span>
                   <span style={{ fontSize:16, fontWeight:900, color:"#7C3AFF" }}>₺{cartTotal.toLocaleString("tr-TR",{minimumFractionDigits:0})}</span>
                 </div>
-                <button onClick={()=>{ setCartOpen(false); navigate("/sepet"); }}
+                <button onClick={()=>{ setCartOpen(false); navigate("/yourpoodle/sepet"); }}
                   style={{ width:"100%", height:46, borderRadius:14, border:"none", background:"#7C3AFF", color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer" }}>
                   Siparişe Devam →
                 </button>
@@ -606,11 +620,11 @@ export default function Magaza() {
 
 /* ─── Static SSS component ──────────────────────────── */
 const SSS_LIST = [
-  { q:"Türkiye dışına kargo yapıyor musunuz?", a:"Evet, Türkiye ve dünya geneline kargo yapıyoruz. Uluslararası siparişlerde teslimat süresi ve ücreti ülkeye göre değişir. Detaylar için info@yourpoodle.com adresine yazabilirsiniz." },
-  { q:"Hangi ödeme yöntemlerini kabul ediyorsunuz?", a:"Kredi/banka kartı, havale/EFT ve güvenli online ödeme yöntemlerini kabul ediyoruz. Tüm ödemeler 256-bit SSL ile şifrelenir." },
+  { q:"Kargo süresi ne kadar?", a:"Türkiye içi siparişlerde teslimat 1–3 iş günüdür. Stokta olan ürünler genellikle aynı gün kargoya verilir." },
+  { q:"Hangi ödeme yöntemlerini kabul ediyorsunuz?", a:"Yalnızca online kredi/banka kartı ile ödeme yapılmaktadır (Visa, Mastercard, Troy). Tüm ödemeler 256-bit SSL ve 3D Secure güvencesiyle gerçekleşir." },
   { q:"İade politikanız nedir?", a:"Açılmamış ürünler 14 gün içinde iade edilebilir. Mama ürünlerinde açılmamış orijinal ambalaj şarttır. İade için info@yourpoodle.com adresine yazabilirsiniz." },
-  { q:"Hangi mama markalarını satıyorsunuz?", a:"Royal Canin, Hill's Science Plan, Pro Plan, N&D, Econature, Reflex, Reflex Plus, Wanpy, LaVital, Felicia ve daha birçok marka mevcuttur." },
-  { q:"Toy Poodle için en çok satan mama hangisi?", a:"Royal Canin Toy Poodle Adult ve Pro Plan Small & Mini Adult en çok tercih edilen mamalar arasındadır. Mama Bul sihirbazıyla kişiselleştirilmiş öneri alabilirsiniz." },
+  { q:"Hangi mama markalarını satıyorsunuz?", a:"Royal Canin Toy Poodle ve Reflex Plus başta olmak üzere Toy Poodle için özenle seçilmiş mamalar mevcuttur." },
+  { q:"Toy Poodle için en çok satan mama hangisi?", a:"Royal Canin Toy Poodle Adult ve Royal Canin Toy Poodle Puppy en çok tercih edilen mamalar arasındadır. Mama Bul sihirbazıyla kişiselleştirilmiş öneri alabilirsiniz." },
 ];
 function StaticSSS() {
   const [open, setOpen] = useState<number|null>(null);

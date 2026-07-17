@@ -167,7 +167,7 @@ const jetgo: StoreConfig = {
   commerce: {
     fulfillment: "local",
     shippingLabel: "Getirmesi",
-    onlinePaymentOnly: false,
+    onlinePaymentOnly: true,
     preorderEnabled: true,
     quickAddToCart: true,
     guestCheckout: true,

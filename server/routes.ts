@@ -582,6 +582,7 @@ export async function registerRoutes(
     await sharedPool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS meta_title text;`);
     await sharedPool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS meta_description text;`);
     await sharedPool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS meta_keywords text;`);
+    await sharedPool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS mama_metadata JSONB;`);
   } catch (e) {
     console.error("Products rich description / SEO columns migration error:", e);
   }
@@ -2095,6 +2096,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
                p.img, p.stock, p.is_active AS "isActive", p.mama_type AS "mamaType",
                p.barcode, p.preorder_enabled AS "preorderEnabled",
                p.long_description AS "longDescription",
+               p.mama_metadata AS "mamaMetadata",
                bc.animal, bc.subcategory, bc.brand_name AS "brandName", bc.brand_slug AS "brandSlug"
         FROM products p
         LEFT JOIN brand_categories bc ON p.brand_category_id = bc.id

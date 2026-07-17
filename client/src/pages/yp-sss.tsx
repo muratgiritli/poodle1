@@ -14,7 +14,7 @@ const SECTIONS = [
     title: "Mağaza & Sipariş",
     items: [
       { q: "Sipariş nasıl veririm?", a: "Ürün sayfasına gidin, adet seçin, 'Sepete Ekle' butonuna tıklayın ve ödeme adımlarını takip edin. Üye olmadan misafir olarak da sipariş verebilirsiniz." },
-      { q: "Hangi ödeme yöntemleri kabul ediliyor?", a: "Kredi kartı (Visa, Mastercard, Troy), 3D Secure, kapıda ödeme ve havale/EFT kabul edilmektedir. Kredi kartı ile 12 taksit imkânı mevcuttur." },
+      { q: "Hangi ödeme yöntemleri kabul ediliyor?", a: "Yalnızca online kredi/banka kartı ile ödeme yapılmaktadır (Visa, Mastercard, Troy). Tüm ödemeler 256-bit SSL şifreleme ve 3D Secure güvencesiyle gerçekleşir. Kredi kartı ile 12 taksit imkânı mevcuttur." },
       { q: "Siparişimi nasıl iptal edebilirim?", a: "Sipariş kargoya verilmeden önce 'Siparişlerim' bölümünden iptal edebilirsiniz. Kargoya verildikten sonra iade sürecini başlatmanız gerekir." },
       { q: "Fatura bilgilerimi nasıl güncelleyebilirim?", a: "Hesabım > Fatura Bilgileri bölümünden güncelleyebilirsiniz. Verilen siparişlerin faturası değiştirilemez." },
     ],

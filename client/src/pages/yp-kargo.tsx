@@ -61,7 +61,7 @@ export default function YPKargo() {
       </div>
 
       <div style={{ display:"flex", gap:12, flexWrap:"wrap" }}>
-        <a href="/yourpoodle/uluslararasi-kargo" className="sp-cta-btn" style={{ background:"#F5F0FF", color:"#7C3AED" }}>Uluslararası Kargo →</a>
+        <a href="/yourpoodle/sss" className="sp-cta-btn" style={{ background:"#F5F0FF", color:"#7C3AED" }}>Sık Sorulan Sorular →</a>
         <a href="/yourpoodle/iade" className="sp-cta-btn" style={{ background:"#F5F0FF", color:"#7C3AED" }}>İade & Değişim →</a>
       </div>
     </YPStaticPage>

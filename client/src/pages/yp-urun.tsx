@@ -5,11 +5,22 @@ import { ChevronLeft, ShoppingCart, Heart, Plus, Minus, Share2 } from "lucide-re
 import YPLayout from "@/components/yourpoodle/YPLayout";
 
 /* ─── Types ─────────────────────────────────────────── */
+interface MamaMetadata {
+  proteinType?: string;
+  grainFree?: boolean;
+  breedSize?: string;
+  budgetTier?: string;
+  allergens?: string[];
+  specialNeeds?: string[];
+  nutritionalAnalysis?: { protein?: number; fat?: number; fiber?: number; ash?: number; moisture?: number };
+  dailyPortionGuide?: string;
+}
 interface Product {
   id: number; name: string; price: number; originalPrice?: number;
   img?: string; stock: number; isActive: boolean;
   mamaType?: string; subcategory?: string; brandName?: string; brandSlug?: string;
   animal?: string; barcode?: string; longDescription?: string;
+  mamaMetadata?: MamaMetadata | null;
 }
 interface CartItem { id: number; name: string; price: number; img?: string; qty: number; }
 
@@ -242,8 +253,74 @@ export default function YPUrunPage() {
           {product.longDescription && (
             <div style={{ marginBottom: 24 }}>
               <h2 style={{ fontSize: 15, fontWeight: 800, color: "#1a1a1a", marginBottom: 10 }}>Ürün Hakkında</h2>
-              <div style={{ fontSize: 13.5, color: "#555", lineHeight: 1.7 }}
+              <div className="prose-product" style={{ fontSize: 13.5, color: "#555", lineHeight: 1.7 }}
                 dangerouslySetInnerHTML={{ __html: product.longDescription }} />
+            </div>
+          )}
+
+          {/* Bu mama kimler için? */}
+          {product.mamaMetadata && (
+            <div style={{ marginBottom: 24, background: "#F5F0FF", borderRadius: 14, padding: "16px 18px" }}>
+              <h2 style={{ fontSize: 14, fontWeight: 800, color: "#7C3AFF", marginBottom: 12 }}>Bu mama kimler için?</h2>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+                {product.mamaMetadata.breedSize && (
+                  <span style={{ background: "#EDE8FF", color: "#7C3AFF", fontSize: 12, fontWeight: 700, borderRadius: 20, padding: "4px 12px" }}>
+                    🐩 {product.mamaMetadata.breedSize === "toy" ? "Toy Poodle" : product.mamaMetadata.breedSize === "miniature" ? "Minyatür Poodle" : "Standart Poodle"}
+                  </span>
+                )}
+                {product.mamaType && (
+                  <span style={{ background: "#EDE8FF", color: "#7C3AFF", fontSize: 12, fontWeight: 700, borderRadius: 20, padding: "4px 12px" }}>
+                    {product.mamaType === "yavru" ? "🌱 Yavru (0–12 ay)" : product.mamaType === "yasli" ? "❤️ Yaşlı (7+ yaş)" : "💪 Yetişkin (1–7 yaş)"}
+                  </span>
+                )}
+                {product.mamaMetadata.grainFree === true && (
+                  <span style={{ background: "#F0FDF4", color: "#16A34A", fontSize: 12, fontWeight: 700, borderRadius: 20, padding: "4px 12px" }}>
+                    🌿 Tahılsız
+                  </span>
+                )}
+                {product.mamaMetadata.budgetTier && (
+                  <span style={{ background: "#FFF7ED", color: "#C2410C", fontSize: 12, fontWeight: 700, borderRadius: 20, padding: "4px 12px" }}>
+                    {product.mamaMetadata.budgetTier === "premium" ? "⭐ Premium" : product.mamaMetadata.budgetTier === "orta" ? "💳 Orta Segment" : "💰 Ekonomik"}
+                  </span>
+                )}
+              </div>
+              {product.mamaMetadata.specialNeeds && product.mamaMetadata.specialNeeds.length > 0 && (
+                <div style={{ fontSize: 12.5, color: "#555", lineHeight: 1.6 }}>
+                  <span style={{ fontWeight: 700, color: "#7C3AFF" }}>Özellikler: </span>
+                  {product.mamaMetadata.specialNeeds.map((n: string) =>
+                    n.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())
+                  ).join(", ")}
+                </div>
+              )}
+              {product.mamaMetadata.dailyPortionGuide && (
+                <div style={{ marginTop: 8, fontSize: 12.5, color: "#555" }}>
+                  <span style={{ fontWeight: 700, color: "#7C3AFF" }}>Günlük Porsiyon: </span>
+                  {product.mamaMetadata.dailyPortionGuide}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Nutritional analysis */}
+          {product.mamaMetadata?.nutritionalAnalysis && (
+            <div style={{ marginBottom: 24 }}>
+              <h2 style={{ fontSize: 14, fontWeight: 800, color: "#1a1a1a", marginBottom: 10 }}>Besin Analizi (kuru madde bazında)</h2>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <tbody>
+                  {[
+                    ["Ham Protein", `${product.mamaMetadata.nutritionalAnalysis.protein ?? "—"}%`],
+                    ["Ham Yağ", `${product.mamaMetadata.nutritionalAnalysis.fat ?? "—"}%`],
+                    ["Ham Selüloz", `${product.mamaMetadata.nutritionalAnalysis.fiber ?? "—"}%`],
+                    ["Ham Kül", `${product.mamaMetadata.nutritionalAnalysis.ash ?? "—"}%`],
+                    ["Nem", `${product.mamaMetadata.nutritionalAnalysis.moisture ?? "—"}%`],
+                  ].map(([label, val], i) => (
+                    <tr key={label} style={{ background: i % 2 === 0 ? "#F9FAFB" : "#fff" }}>
+                      <td style={{ padding: "7px 12px", color: "#555", borderRadius: i === 0 ? "8px 0 0 0" : "0" }}>{label}</td>
+                      <td style={{ padding: "7px 12px", fontWeight: 700, color: "#1a1a1a", textAlign: "right" }}>{val}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
 

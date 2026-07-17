@@ -547,7 +547,126 @@ export async function seedDatabase() {
   await seedBreedStats();
   await seedCrossSellSections();
   await seedCampaignItems();
+  await seedYPMamaMetadata();
   console.log("Database seeding complete!");
+}
+
+/* ─── YourPoodle Mama Metadata seed ─────────────────────────────────────── */
+async function seedYPMamaMetadata(): Promise<void> {
+  try {
+    // Ensure column exists
+    await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS mama_metadata JSONB`);
+
+    // Narrow duplicate Reflex Plus deactivation: only deactivate if there is an
+    // exact-name duplicate (same name, brand_category_id) and keep the one with
+    // the highest stock (most recent/active). This avoids accidentally disabling
+    // unrelated Reflex Plus variants.
+    const reflexDups = await pool.query(`
+      SELECT id, name, brand_category_id, stock
+      FROM products
+      WHERE name ILIKE '%Reflex Plus%Poodle%'
+      ORDER BY stock DESC, id DESC
+    `);
+    if (reflexDups.rows.length > 1) {
+      const keepId = reflexDups.rows[0].id;
+      const dupIds = reflexDups.rows.slice(1).map((r: any) => r.id);
+      await pool.query(
+        `UPDATE products SET is_active = false WHERE id = ANY($1::int[])`,
+        [dupIds]
+      );
+      console.log(`Deactivated duplicate Reflex Plus Poodle products (keeping id=${keepId}, deactivated: ${dupIds.join(",")})`);
+    }
+
+    const RC_ADULT_META = {
+      proteinType: "tavuk",
+      grainFree: false,
+      breedSize: "toy",
+      budgetTier: "premium",
+      allergens: [],
+      specialNeeds: ["tuy-bakimi", "sindirim-sagligi", "dis-sagligi"],
+      nutritionalAnalysis: { protein: 30, fat: 14, fiber: 2.2, ash: 7.5, moisture: 8 },
+      dailyPortionGuide: "2 kg: 55 g/gün · 3 kg: 72 g/gün · 4 kg: 86 g/gün",
+    };
+    const RC_ADULT_DESC = `<p>Royal Canin Toy Poodle Adult, Toy Poodle ırkının kendine özgü ihtiyaçları için bilimsel olarak formüle edilmiş bir mamadır. 10 ay ve üzeri Toy Poodle'lar için idealdir.</p>
+<ul>
+  <li><strong>Tüy Bakımı:</strong> Omega 3 ve 6 yağ asitleri ile zengin formül, poodle tüyünün yumuşak ve parlak kalmasını destekler.</li>
+  <li><strong>Sindirim Desteği:</strong> Hassas sindirim için özel prebiyotikler ve lif kaynakları içerir.</li>
+  <li><strong>Diş Sağlığı:</strong> Kibble şekli ve boyutu, Toy Poodle'ın küçük çenesiyle uyumlu; diş plağı oluşumunu azaltır.</li>
+  <li><strong>Kalp Sağlığı:</strong> Taurin ve L-karnitin içeriği kalp kasını destekler.</li>
+</ul>`;
+
+    const RC_PUPPY_META = {
+      proteinType: "tavuk",
+      grainFree: false,
+      breedSize: "toy",
+      budgetTier: "premium",
+      allergens: [],
+      specialNeeds: ["buyume-gelisim", "bagisiklik-guclendirme", "kemik-dis-sagligi"],
+      nutritionalAnalysis: { protein: 31, fat: 18, fiber: 2.2, ash: 8, moisture: 8 },
+      dailyPortionGuide: "2–4 ay: 58–105 g/gün · 4–6 ay: 70–105 g/gün · 6–10 ay: 55–95 g/gün",
+    };
+    const RC_PUPPY_DESC = `<p>Royal Canin Toy Poodle Puppy, doğumdan 10 aya kadar Toy Poodle yavrularının hızlı büyüme dönemini desteklemek için özel olarak geliştirilmiş mamadır.</p>
+<ul>
+  <li><strong>Büyüme Desteği:</strong> Yüksek protein ve enerji yoğunluğu, yavrunun kas ve kemik gelişimini destekler.</li>
+  <li><strong>Bağışıklık Sistemi:</strong> Antioksidanlar, prebiyotikler ve kolostrum içeriği ile doğal savunmayı güçlendirir.</li>
+  <li><strong>Sindirim:</strong> Anne sütünden geçişi kolaylaştıran prebiyotik lifler ve sindirime dost protein kaynakları içerir.</li>
+  <li><strong>Küçük Çene İçin:</strong> Kibble boyutu ve şekli Toy Poodle yavrusunun minik ağzına özel tasarlanmıştır.</li>
+</ul>`;
+
+    const REFLEX_META = {
+      proteinType: "somon",
+      grainFree: true,
+      breedSize: "toy",
+      budgetTier: "orta",
+      allergens: ["balik"],
+      specialNeeds: ["hassas-sindirim", "tuy-bakimi", "deri-sagligi"],
+      nutritionalAnalysis: { protein: 28, fat: 14, fiber: 4, ash: 7, moisture: 10 },
+      dailyPortionGuide: "2–3 kg: 60–75 g/gün · 3–5 kg: 75–90 g/gün",
+    };
+    const REFLEX_DESC = `<p>Reflex Plus Tahılsız Somon Köpek Maması, tahıl hassasiyeti olan veya glüten içeren maddelerden kaçınması gereken Toy Poodle'lar için tahılsız formülle üretilmiştir.</p>
+<ul>
+  <li><strong>Tahılsız Formula:</strong> Buğday, arpa veya mısır içermez; hassas sindirimli köpekler için idealdir.</li>
+  <li><strong>Somon Proteinli:</strong> Omega 3 yağ asitlerince zengin somon, cilt ve tüy sağlığını destekler.</li>
+  <li><strong>Sindirim Kolaylığı:</strong> Patates bazlı karbonhidrat kaynağı ile kolayca sindirilen bir formüldür.</li>
+  <li><strong>Antioksidanlar:</strong> Vitamin E ve C, serbest radikallere karşı koruma sağlar.</li>
+</ul>`;
+
+    // Update Royal Canin Toy Poodle Adult
+    await pool.query(`
+      UPDATE products SET
+        mama_type = 'yetiskin',
+        long_description = $1,
+        mama_metadata = $2
+      WHERE name ILIKE '%Toy Poodle%Adult%'
+         OR (name ILIKE '%Toy Poodle%' AND name ILIKE '%Yetiskin%')
+    `, [RC_ADULT_DESC, JSON.stringify(RC_ADULT_META)]);
+    console.log("YP: RC Toy Poodle Adult metadata seeded");
+
+    // Update Royal Canin Toy Poodle Puppy
+    await pool.query(`
+      UPDATE products SET
+        mama_type = 'yavru',
+        long_description = $1,
+        mama_metadata = $2
+      WHERE name ILIKE '%Toy Poodle%Puppy%'
+         OR (name ILIKE '%Toy Poodle%' AND name ILIKE '%Yavru%')
+    `, [RC_PUPPY_DESC, JSON.stringify(RC_PUPPY_META)]);
+    console.log("YP: RC Toy Poodle Puppy metadata seeded");
+
+    // Update Reflex Plus (active one only)
+    await pool.query(`
+      UPDATE products SET
+        mama_type = COALESCE(NULLIF(mama_type, ''), 'yetiskin'),
+        long_description = $1,
+        mama_metadata = $2
+      WHERE name ILIKE '%Reflex Plus%' AND is_active = true
+    `, [REFLEX_DESC, JSON.stringify(REFLEX_META)]);
+    console.log("YP: Reflex Plus metadata seeded");
+
+    console.log("YP mama metadata seeding complete!");
+  } catch (e) {
+    console.error("seedYPMamaMetadata error:", e);
+  }
 }
 
 const KEDI_BREEDS = [

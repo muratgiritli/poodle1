@@ -43,6 +43,7 @@ export const STORE_SCOPED_SETTING_KEYS = new Set<string>([
   "konum_link", "whatsapp_number",
   "breed_banners", "category_banners",
   "cargo_fee", "cargo_free_limit", "cargo_min_order",
+  "yp_daily_tip", "yp_poodle_name", "yp_poodle_city", "yp_poodle_desc", "yp_poodle_img",
 ]);
 
 // Belirli bir mağaza görünümündeyken ORTAK (mağazaya özel olmayan) ayarların
