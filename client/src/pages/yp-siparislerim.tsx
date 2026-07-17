@@ -196,6 +196,26 @@ export default function YPSiparislerimPage() {
                       )}
                     </div>
 
+                    {/* Delivery address + slot */}
+                    {(order.customerAddress || order.deliverySlot) && (
+                      <div style={{ margin: "0 16px 12px", background: "#F5F3FF", borderRadius: 12, padding: "10px 14px", display: "flex", flexDirection: "column", gap: 5 }}>
+                        {order.deliverySlot && (
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#5B21B6", fontWeight: 700 }}>
+                            <span>🕐</span>
+                            <span>Tahmini Teslimat: {order.deliverySlot}</span>
+                          </div>
+                        )}
+                        {order.customerAddress && (
+                          <div style={{ display: "flex", alignItems: "flex-start", gap: 6, fontSize: 12, color: "#555" }}>
+                            <span style={{ flexShrink: 0 }}>📍</span>
+                            <span style={{ overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                              {order.customerAddress}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Totals + payment method */}
                     <div style={{ padding: "10px 16px 12px", borderTop: "1px solid #F3F4F6", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 6 }}>
                       <div style={{ fontSize: 12, color: "#888" }}>
