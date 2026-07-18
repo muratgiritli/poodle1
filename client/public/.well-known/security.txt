@@ -1,0 +1,6 @@
+Contact: mailto:info@yourpoodle.com
+Contact: tel:+908508403959
+Expires: 2027-07-18T00:00:00.000Z
+Preferred-Languages: tr, en
+Canonical: https://www.yourpoodle.com/.well-known/security.txt
+Policy: https://www.yourpoodle.com/yourpoodle/gizlilik-politikasi

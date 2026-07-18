@@ -748,7 +748,8 @@ export async function registerRoutes(
       resave: false,
       saveUninitialized: false,
       rolling: true,
-      cookie: { secure: process.env.NODE_ENV === "production", httpOnly: true, maxAge: 30 * 24 * 60 * 60 * 1000, sameSite: "lax" },
+      // Task 1: httpOnly, Secure, SameSite=Lax (Strict breaks OAuth flows), 8h session
+      cookie: { secure: process.env.NODE_ENV === "production", httpOnly: true, maxAge: 8 * 60 * 60 * 1000, sameSite: "lax" },
     })
   );
 
@@ -756,25 +757,36 @@ export async function registerRoutes(
   await ensureAdminExists();
 
   app.use((req, res, next) => {
+    // Task 15: Correct security headers — no X-XSS-Protection (deprecated)
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("X-Frame-Options", "SAMEORIGIN");
-    res.setHeader("X-XSS-Protection", "1; mode=block");
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     res.setHeader("Permissions-Policy", "camera=(self), microphone=(), geolocation=(self)");
-    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+    // Task 10: Single correct HSTS header (2 years + preload)
+    res.setHeader("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
     res.setHeader("X-Download-Options", "noopen");
     res.setHeader("X-Permitted-Cross-Domain-Policies", "none");
-    res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://googleads.g.doubleclick.net https://www.googleadservices.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com; frame-src 'self' https://www.google.com https://maps.google.com https://www.google.com.tr; frame-ancestors 'self'; base-uri 'self'; form-action 'self';");
+    // Task 4: Harden CSP — remove unsafe-eval; restrict img-src to known domains; add object-src none + upgrade-insecure-requests
+    res.setHeader("Content-Security-Policy", [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://googleads.g.doubleclick.net https://www.googleadservices.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data: blob: https://www.yourpoodle.com https://www.enuygunpet.com https://www.google-analytics.com https://www.googletagmanager.com https://googleads.g.doubleclick.net",
+      "connect-src 'self' https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com",
+      "frame-src 'self' https://www.google.com https://maps.google.com https://www.google.com.tr",
+      "frame-ancestors 'self'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "object-src 'none'",
+      "upgrade-insecure-requests",
+    ].join("; "));
 
+    // Task 14: Global API rate limiting — 100 req / 15 min / IP for all /api/*
     if (req.path.startsWith("/api/")) {
       const ip = req.ip || "unknown";
-      if (req.method === "POST") {
-        if (rateLimit(`global:post:${ip}`, 60, 60 * 1000)) {
-          return res.status(429).json({ message: "Çok fazla istek. Lütfen bekleyin." });
-        }
-      }
-      if (rateLimit(`global:all:${ip}`, 300, 60 * 1000)) {
-        return res.status(429).json({ message: "Çok fazla istek. Lütfen bekleyin." });
+      if (rateLimit(`global:api:${ip}`, 100, 15 * 60 * 1000)) {
+        return res.status(429).json({ error: "Too many requests", retryAfter: 900 });
       }
     }
 
@@ -2302,34 +2314,79 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json({ ok: true });
   });
 
+  // Task 1: Admin login — rate-limit 5/15min, hard-block 30min after 10 fails,
+  // ADMIN_ALLOWED_IPS allowlist, session regeneration, attempt logging, generic error.
+  const ADMIN_ALLOWED_IPS = process.env.ADMIN_ALLOWED_IPS
+    ? process.env.ADMIN_ALLOWED_IPS.split(",").map(s => s.trim()).filter(Boolean)
+    : [];
+
   app.post("/api/admin/login", async (req, res) => {
     const ip = req.ip || "unknown";
+    const ua = req.headers["user-agent"] || "";
     const now = Date.now();
-    const attempt = loginAttempts.get(ip);
+
+    // IP allowlist check
+    if (ADMIN_ALLOWED_IPS.length > 0 && !ADMIN_ALLOWED_IPS.includes(ip)) {
+      console.warn(`[admin-login] blocked non-allowlisted IP=${ip} ua="${ua}"`);
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    // Rate limit: 5 per 15 min per IP
+    if (rateLimit(`adminlogin:rate:${ip}`, 5, 15 * 60 * 1000)) {
+      console.warn(`[admin-login] rate-limited IP=${ip}`);
+      res.setHeader("Retry-After", "900");
+      return res.status(429).json({ message: "Too many requests", retryAfter: 900 });
+    }
+
+    // Hard block: 30 min after 10 cumulative fails
+    const attempt = loginAttempts.get(`admin:${ip}`);
     if (attempt && attempt.blockedUntil > now) {
       const wait = Math.ceil((attempt.blockedUntil - now) / 1000);
+      res.setHeader("Retry-After", String(wait));
       return res.status(429).json({ message: `Çok fazla deneme. ${wait} saniye bekleyin.` });
     }
 
     const { username, password } = req.body;
     if (!username || !password) {
-      return res.status(400).json({ message: "Username and password required" });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
+
     const user = await storage.getUserByUsername(username);
-    if (!user) {
+    const valid = user ? await bcrypt.compare(password, user.password) : false;
+
+    if (!user || !valid) {
       const c = (attempt?.count || 0) + 1;
-      loginAttempts.set(ip, { count: c, blockedUntil: c >= 5 ? now + 5 * 60 * 1000 : 0 });
+      const blockAt = c >= 10 ? now + 30 * 60 * 1000 : 0;
+      loginAttempts.set(`admin:${ip}`, { count: c, blockedUntil: blockAt });
+      // Log failure — never log the password
+      console.warn(`[admin-login] FAIL ip=${ip} attempt=${c} user="${username}" ua="${ua}"`);
       return res.status(401).json({ message: "Invalid credentials" });
     }
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) {
-      const c = (attempt?.count || 0) + 1;
-      loginAttempts.set(ip, { count: c, blockedUntil: c >= 5 ? now + 5 * 60 * 1000 : 0 });
-      return res.status(401).json({ message: "Invalid credentials" });
+
+    // Success — clear attempts, regenerate session ID
+    loginAttempts.delete(`admin:${ip}`);
+    console.info(`[admin-login] SUCCESS ip=${ip} user="${username}" ua="${ua}"`);
+    req.session.regenerate((err) => {
+      if (err) {
+        console.error("Session regenerate error:", err);
+        return res.status(500).json({ message: "Session error" });
+      }
+      (req.session as any).userId = user.id;
+      req.session.save((saveErr) => {
+        if (saveErr) return res.status(500).json({ message: "Session save error" });
+        res.json({ message: "Login successful" });
+      });
+    });
+  });
+
+  // IP allowlist for admin UI — returns 403 before login form is served
+  app.use("/admin", (req, res, next) => {
+    if (ADMIN_ALLOWED_IPS.length === 0) return next();
+    const ip = req.ip || "unknown";
+    if (!ADMIN_ALLOWED_IPS.includes(ip)) {
+      return res.status(403).json({ message: "Access denied" });
     }
-    loginAttempts.delete(ip);
-    (req.session as any).userId = user.id;
-    res.json({ message: "Login successful" });
+    next();
   });
 
   app.post("/api/admin/logout", (req, res) => {
@@ -6624,14 +6681,36 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   });
 
   // ── YourPoodle AI Chat ─────────────────────────────────────────────────────
+  // Task 8: Daily limits (guest=10/day/IP, logged-in=50/day), prompt injection filter, 30s timeout
+  const PROMPT_INJECTION_RE = /ignore\s+(previous|prior|above)\s+instructions?|you\s+are\s+now\s+|system\s+prompt|act\s+as\s+|forget\s+everything|pretend\s+you\s+are|disregard\s+your|new\s+instructions?:/i;
+
   app.post("/api/yp-chat", async (req: Request, res: Response) => {
     const ip = req.ip || "unknown";
-    if (rateLimit(`ypchat:${ip}`, 12, 60 * 1000)) {
+    const customerId = (req.session as any)?.customerId;
+
+    // Per-minute burst limit (both guests and logged-in)
+    if (rateLimit(`ypchat:burst:${ip}`, 12, 60 * 1000)) {
       return res.status(429).json({ error: "Çok fazla mesaj. Lütfen biraz bekleyin." });
     }
+
+    // Daily limit per user type
+    if (customerId) {
+      // Logged-in: 50 messages / day / user
+      if (rateLimit(`ypchat:day:user:${customerId}`, 50, 24 * 60 * 60 * 1000)) {
+        return res.status(429).json({ error: "Günlük mesaj limitinize ulaştınız. Yarın tekrar deneyin." });
+      }
+    } else {
+      // Guest: 10 messages / day / IP
+      if (rateLimit(`ypchat:day:guest:${ip}`, 10, 24 * 60 * 60 * 1000)) {
+        return res.status(429).json({ error: "Daily limit reached. Please log in or try again tomorrow." });
+      }
+    }
+
+    // Global cost protection
     if (rateLimit(`ypchat:global`, 300, 60 * 60 * 1000)) {
       return res.status(429).json({ error: "Sistem yoğun. Lütfen daha sonra tekrar deneyin." });
     }
+
     try {
       const { messages, systemPrompt } = req.body;
       if (!Array.isArray(messages) || messages.length === 0) {
@@ -6640,6 +6719,13 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       const lastMsg = messages[messages.length - 1];
       if (!lastMsg?.content || typeof lastMsg.content !== "string" || lastMsg.content.trim().length > 1000) {
         return res.status(400).json({ error: "Mesaj 1-1000 karakter arasında olmalıdır." });
+      }
+
+      // Prompt injection filter — log but do not reveal filter to user
+      const userText = String(lastMsg.content);
+      if (PROMPT_INJECTION_RE.test(userText)) {
+        console.warn(`[yp-chat] prompt-injection attempt ip=${ip} text="${userText.slice(0, 100)}"`);
+        return res.status(400).json({ error: "Geçersiz mesaj." });
       }
 
       const defaultSystem = `Sen YourPoodle'ın AI asistanısın. Yalnızca Toy Poodle ve Miniature Poodle sahiplerine yardımcı oluyorsun.
@@ -6651,21 +6737,33 @@ Kurallar:
 - Kısa ve net cevaplar ver (max 4-5 cümle). Gerektiğinde madde madde açıkla.
 - Türkçe cevap ver.`;
 
-      const completion = await petAI.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: typeof systemPrompt === "string" ? systemPrompt : defaultSystem },
-          ...(messages.slice(-10).map((m: any) => ({
-            role: (m.role === "user" ? "user" : "assistant") as "user" | "assistant",
-            content: String(m.content).slice(0, 1000),
-          }))),
-        ],
-        max_tokens: 400,
-        temperature: 0.7,
-      });
+      // 30-second timeout via AbortController
+      const ctrl = new AbortController();
+      const timeout = setTimeout(() => ctrl.abort(), 30000);
 
-      const reply = completion.choices[0]?.message?.content || "Üzgünüm, şu an cevap veremiyorum.";
-      res.json({ reply });
+      try {
+        const completion = await petAI.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: typeof systemPrompt === "string" ? systemPrompt.slice(0, 2000) : defaultSystem },
+            ...(messages.slice(-10).map((m: any) => ({
+              role: (m.role === "user" ? "user" : "assistant") as "user" | "assistant",
+              content: String(m.content).slice(0, 1000),
+            }))),
+          ],
+          max_tokens: 400,
+          temperature: 0.7,
+        }, { signal: ctrl.signal as any });
+        clearTimeout(timeout);
+        const reply = completion.choices[0]?.message?.content || "Üzgünüm, şu an cevap veremiyorum.";
+        res.json({ reply });
+      } catch (aiErr: any) {
+        clearTimeout(timeout);
+        if (aiErr?.name === "AbortError" || aiErr?.message?.includes("abort")) {
+          return res.status(504).json({ error: "Yanıt süresi doldu, lütfen tekrar deneyin." });
+        }
+        throw aiErr;
+      }
     } catch (error: any) {
       console.error("[yp-chat] error:", error?.message);
       res.status(500).json({ error: "Yapay zeka şu an meşgul, lütfen tekrar deneyin." });
@@ -7089,22 +7187,40 @@ Kurallar:
   }
 
   // Ziyaret kaydı (public, sayfa açılışında çağrılır)
+  // Task 9: Rate limit 60/hour/IP, validate payload, hash IP for KVKK privacy
   app.post("/api/track/visit", async (req: Request, res: Response) => {
+    // Always return 204 — do not reveal processing status
     res.status(204).end();
     try {
-      const ua = String(req.headers["user-agent"] || "");
       const ip = clientIpFrom(req);
-      const referrer = typeof req.body?.referrer === "string" ? req.body.referrer.slice(0, 500) : null;
-      const utmSource = typeof req.body?.utmSource === "string" ? req.body.utmSource.slice(0, 100) : null;
-      const path = typeof req.body?.path === "string" ? req.body.path.slice(0, 300) : null;
+      // Rate limit: 60/hour/IP
+      if (rateLimit(`track:${ip}`, 60, 60 * 60 * 1000)) return;
+
+      const ua = String(req.headers["user-agent"] || "");
+
+      // Validate + sanitize payload — silently drop invalid
+      const rawPath     = req.body?.path;
+      const rawReferrer = req.body?.referrer;
+      const rawUtm      = req.body?.utmSource;
+      if (typeof rawPath !== "string" || !rawPath.startsWith("/")) return;
+
+      const path      = rawPath.slice(0, 500);
+      const referrer  = typeof rawReferrer === "string" ? rawReferrer.slice(0, 500) : null;
+      const utmSource = typeof rawUtm      === "string" ? rawUtm.slice(0, 100) : null;
+
       if (path && /^\/admin/i.test(path)) return;
+
       const source = detectVisitSource(referrer, utmSource);
-      const geo = await resolveVisitGeo(ip);
-      // Bot/otomatik: bot user-agent VEYA veri merkezi/bulut IP'si (gerçek kullanıcı değil).
-      const isBot = UA_BOT_RE.test(ua) || !!geo?.hosting;
+      const geo    = await resolveVisitGeo(ip);
+      const isBot  = UA_BOT_RE.test(ua) || !!geo?.hosting;
+
+      // Task 9: Hash IP with a daily rotating salt for KVKK compliance
+      const daySalt = new Date().toISOString().slice(0, 10);
+      const hashedIp = crypto.createHash("sha256").update(`${ip}:${daySalt}`).digest("hex").slice(0, 16);
+
       await sharedPool.query(
         "INSERT INTO site_visits (ip, source, referrer, path, city, region, country, isp, user_agent, is_bot) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)",
-        [ip, source, referrer, path, geo?.city ?? null, geo?.region ?? null, geo?.country ?? null, geo?.isp ?? null, ua.slice(0, 300), isBot]
+        [hashedIp, source, referrer, path, geo?.city ?? null, geo?.region ?? null, geo?.country ?? null, geo?.isp ?? null, ua.slice(0, 300), isBot]
       );
     } catch (e) {
       console.error("track/visit error:", e);
@@ -7314,16 +7430,40 @@ Kurallar:
     res.json({ message: "Silindi" });
   });
 
+  // Task 2: Contact form — rate limit 3/hour/IP, honeypot, sanitize, minimal response
   app.post("/api/contact-messages", async (req, res) => {
+    const ip = req.ip || "unknown";
+    // Rate limit: 3 per hour per IP
+    if (rateLimit(`contact:${ip}`, 3, 60 * 60 * 1000)) {
+      return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
+    }
     try {
-      const data = insertContactMessageSchema.parse(req.body);
-      if (data.message.length > 2000 || data.name.length > 100 || data.phone.length > 30) {
-        return res.status(400).json({ message: "Geçersiz veri uzunluğu" });
+      // Honeypot: if 'website' field is filled, silently accept but discard
+      if (req.body?.website && String(req.body.website).trim().length > 0) {
+        return res.json({ success: true, message: "Mesajınız alındı." });
       }
-      const created = await storage.createContactMessage(data);
-      res.json(created);
+
+      // Input validation
+      const name    = String(req.body?.name || "").trim().replace(/<[^>]*>/g, "").slice(0, 100);
+      const phone   = String(req.body?.phone || "").trim().replace(/[^0-9+\-\s()]/g, "").slice(0, 30);
+      const email   = req.body?.email ? String(req.body.email).trim().slice(0, 200) : undefined;
+      const message = String(req.body?.message || "").trim().replace(/<[^>]*>/g, "").slice(0, 2000);
+
+      if (name.length < 2)     return res.status(400).json({ message: "Ad Soyad en az 2 karakter olmalı." });
+      if (phone.length < 7)    return res.status(400).json({ message: "Geçerli bir telefon numarası girin." });
+      if (message.length < 10) return res.status(400).json({ message: "Mesaj en az 10 karakter olmalı." });
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ message: "Geçerli bir e-posta adresi girin." });
+      }
+
+      const sanitizedBody = { ...req.body, name, phone, email, message };
+      const data = insertContactMessageSchema.parse(sanitizedBody);
+      await storage.createContactMessage(data);
+
+      // Task 2: Never return internal fields — only success
+      res.json({ success: true, message: "Mesajınız alındı." });
     } catch (e: any) {
-      res.status(400).json({ message: e?.message || "Geçersiz veri" });
+      res.status(400).json({ message: "Geçersiz veri." });
     }
   });
 

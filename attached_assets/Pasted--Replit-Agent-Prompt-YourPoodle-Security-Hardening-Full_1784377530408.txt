@@ -1,0 +1,427 @@
+# Replit Agent Prompt — YourPoodle Security Hardening (Full Fix)
+
+Copy and paste everything below into Replit Agent:
+
+---
+
+## Project Context
+
+You are working on **YourPoodle** (`yourpoodle.com`) — a React + Vite SPA with a Node/Express backend, multi-tenant e-commerce platform (Sizpa stack). The site includes: content/guides, AI assistant, community (Club), auth, and admin panel at `/admin`.
+
+A security audit found **critical and high-severity issues**. Fix **all** items below. Do not skip any task. Test each fix before moving on.
+
+---
+
+## GLOBAL RULES
+
+1. **Do not break existing functionality** — auth, AI assistant, contact form, club, checkout must still work.
+2. **Minimal, focused diffs** — match existing code style and patterns.
+3. **Production-safe only** — no hardcoded secrets in client bundle.
+4. After all changes, provide a **Security Fix Summary** listing what was changed and how to verify each fix.
+
+---
+
+## TASK 1 — Lock Down Admin Panel (CRITICAL)
+
+**Problem:** `/admin` is publicly accessible with username/password login. `POST /api/admin/login` has no rate limiting.
+
+**Do:**
+
+1. Protect `/admin` and all `/api/admin/*` routes with:
+   - **Rate limiting:** max 5 failed login attempts per IP per 15 minutes; return `429 Too Many Requests` with `Retry-After` header.
+   - After 3 failed attempts, require **CAPTCHA** (Cloudflare Turnstile or hCaptcha — use env var `CAPTCHA_SECRET_KEY`).
+   - Lock account/IP temporarily after 10 failed attempts (30 min).
+
+2. Add **2FA support** for admin accounts (TOTP via `speakeasy` or similar) — mandatory for admin role after first login.
+
+3. Move admin UI to a **non-obvious path** OR add **IP allowlist** via env var `ADMIN_ALLOWED_IPS` (comma-separated). If IP not in list, return `403` before showing login form.
+
+4. Ensure admin session uses:
+   - `httpOnly`, `Secure`, `SameSite=Strict` cookies
+   - Session expiry: 8 hours max
+   - Regenerate session ID on login
+
+5. Log all admin login attempts (success/fail) with timestamp, IP, user-agent — store in DB or file log. Never log passwords.
+
+6. Return generic error on failed login: `"Invalid credentials"` — do not reveal whether username exists.
+
+**Verify:** 6 wrong passwords from same IP → 429. Admin panel inaccessible from non-allowlisted IP (if configured).
+
+---
+
+## TASK 2 — Secure Contact Form API (CRITICAL)
+
+**Problem:** `POST /api/contact-messages` accepts unauthenticated requests with no rate limit or CAPTCHA. Response leaks internal fields (`id`, `isRead`, `createdAt`).
+
+**Do:**
+
+1. Add **rate limiting:** max **3 submissions per IP per hour**.
+2. Add **CAPTCHA verification** (same provider as admin) — reject if CAPTCHA fails.
+3. Add **honeypot field** `website` (hidden via CSS) — if filled, silently reject (return 200 but do not save).
+4. Change response to only:
+   ```json
+   { "success": true, "message": "Mesajınız alındı." }
+   ```
+   Never return `id`, `isRead`, or internal DB fields to the client.
+5. Validate inputs server-side:
+   - `name`: 2–100 chars, no HTML
+   - `phone`: Turkish phone format regex
+   - `email`: optional, valid email
+   - `message`: 10–2000 chars, strip HTML tags
+6. Sanitize all inputs before DB insert (`DOMPurify` server-side or manual strip).
+7. Keep `GET /api/admin/contact-messages` protected (must stay 401 without admin auth).
+
+**Verify:** 4 rapid POSTs → 4th returns 429. Response has no internal fields.
+
+---
+
+## TASK 3 — Rate Limit All Auth Endpoints (HIGH)
+
+**Problem:** No rate limiting on login, register, magic link.
+
+**Do:**
+
+Apply rate limits to:
+
+| Endpoint | Limit |
+|----------|-------|
+| `POST /api/auth/login` | 10 req / 15 min / IP |
+| `POST /api/auth/register` | 5 req / hour / IP |
+| `POST /api/auth/magic-link` | 3 req / hour / IP + email |
+| `POST /api/auth/forgot-password` | 3 req / hour / IP + email |
+| OAuth callbacks | 20 req / 15 min / IP |
+
+- Return `429` with clear message.
+- Add CAPTCHA after 3 failed login attempts.
+- Magic link: always return same response whether email exists or not:
+  ```json
+  { "success": true, "message": "If this email is registered, a link has been sent." }
+  ```
+  Prevent email enumeration.
+
+**Verify:** Spam magic-link requests → blocked after 3rd.
+
+---
+
+## TASK 4 — Harden Content-Security-Policy (HIGH)
+
+**Problem:** CSP allows `'unsafe-inline'`, `'unsafe-eval'`, and `img-src https:` (any domain).
+
+**Do:**
+
+1. Remove `'unsafe-eval'` from `script-src` entirely.
+2. Replace `'unsafe-inline'` in `script-src` with **nonce-based** or **hash-based** CSP. If not feasible immediately, use strict-dynamic with nonce on inline scripts.
+3. Restrict `img-src` to:
+   ```
+   img-src 'self' data: blob: https://www.yourpoodle.com https://www.google-analytics.com https://www.googletagmanager.com;
+   ```
+   Add product CDN domain if used.
+4. Add `object-src 'none'`.
+5. Add `upgrade-insecure-requests`.
+6. Keep `frame-ancestors 'self'`.
+7. Test all pages (home, rehber, AI asistan, club, giris, magaza) — no CSP console errors.
+
+**Verify:** Browser DevTools → no CSP violations on main flows.
+
+---
+
+## TASK 5 — Remove Internal Comments from Production HTML (HIGH)
+
+**Problem:** SPA fallback HTML exposes internal file paths in comments:
+```html
+<!-- server/seo-meta.ts -> injectGoogleTags, shared/stores.ts -> StoreConfig.google -->
+```
+
+**Do:**
+
+1. Find where HTML is served/injected (likely `server/seo-meta.ts` or index template).
+2. Strip ALL HTML comments from production build output.
+3. Add build step or server middleware to remove `<!-- ... -->` from served HTML in production (`NODE_ENV=production`).
+4. Do not remove comments from source files — only from **served output**.
+
+**Verify:** View source on homepage → no internal path comments.
+
+---
+
+## TASK 6 — Disable Demo/Test Routes in Production (HIGH)
+
+**Problem:** Demo routes are live in production.
+
+**Do:**
+
+In production (`NODE_ENV=production`), return **404** or redirect to `/` for:
+
+```
+/demo, /demo1, /demo2, /demo-anasayfa
+/demo-kampanya, /demo-kampanya/urun/:id
+/urun-demo/:id
+/kampanya-demo, /kampanya-urun-demo
+```
+
+Implementation options:
+- Router guard that checks `NODE_ENV` before rendering demo components.
+- Server middleware that blocks these paths before SPA fallback.
+
+Do NOT remove demo code from repo — only block access in production.
+
+**Verify:** `yourpoodle.com/demo` → 404 in production.
+
+---
+
+## TASK 7 — Secure Client-Side Storage (MEDIUM)
+
+**Problem:** Sensitive data in `localStorage`: `yp_ai_messages`, `yp_ai_profile`, `yp_cart_items`.
+
+**Do:**
+
+1. **Never store auth tokens in localStorage.** Move JWT/session to `httpOnly` cookies only.
+2. `yp_ai_messages`: sync to server for logged-in users; keep localStorage only as offline cache with max 50 messages, cleared on logout.
+3. `yp_ai_profile`: save to user account via API when logged in; localStorage as fallback only.
+4. Clear all `yp_*` localStorage keys on logout.
+5. Add logout handler that wipes: `yp_ai_messages`, `yp_ai_profile`, `yp_cart_items`, `yp_cookie_consent` (keep consent if legally required).
+
+**Verify:** After logout, localStorage has no auth or profile data.
+
+---
+
+## TASK 8 — AI Assistant Rate Limiting & Cost Protection (MEDIUM)
+
+**Problem:** AI chat usable without login, no visible rate limit → cost abuse risk.
+
+**Do:**
+
+1. Find AI chat API endpoint (likely in `yp-ai-asistan` chunk or `/api/.../chat`).
+2. Apply limits:
+
+| User type | Limit |
+|-----------|-------|
+| Guest (no auth) | 10 messages / day / IP |
+| Logged-in user | 50 messages / day / user |
+| Premium (if exists) | 200 / day |
+
+3. Return `429` with:
+   ```json
+   { "error": "Daily limit reached. Please log in or try again tomorrow." }
+   ```
+4. Add server-side **prompt injection filter** — block messages containing patterns like:
+   - "ignore previous instructions"
+   - "system prompt"
+   - "you are now"
+   Log but do not expose filter to user.
+5. Do NOT expose OpenAI/LLM API key in client bundle — all AI calls must go through backend proxy.
+6. Add request timeout: 30 seconds max per AI call.
+
+**Verify:** 11th guest message in one day → 429. No API keys in browser bundle (`grep -r "sk-" dist/` → empty).
+
+---
+
+## TASK 9 — Visit Tracking Rate Limit (MEDIUM)
+
+**Problem:** `POST /api/track/visit` accepts unlimited unauthenticated requests.
+
+**Do:**
+
+1. Rate limit: **60 requests / hour / IP**.
+2. Validate payload:
+   - `path`: string, max 500 chars, must start with `/`
+   - `referrer`: string, max 500 chars
+   - `utmSource`: string, max 100 chars
+3. Do not store raw IP in DB — hash IP with daily rotating salt for privacy (KVKK).
+4. Return `204 No Content` on success (keep current behavior).
+5. Silently drop invalid/spam requests (return 204, do not save).
+
+**Verify:** 61 rapid track calls → 429.
+
+---
+
+## TASK 10 — Fix HSTS Header (MEDIUM)
+
+**Problem:** Duplicate/malformed HSTS:
+```
+max-age=63072000; includeSubDomains, max-age=31536000; includeSubDomains; preload
+```
+
+**Do:**
+
+Replace with single correct header:
+```
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+```
+
+Find where headers are set (server middleware, nginx config, or `vercel.json` / hosting config) and fix. Remove duplicate HSTS entries.
+
+**Verify:** `curl -I https://www.yourpoodle.com` → exactly one HSTS header.
+
+---
+
+## TASK 11 — Sanitize Club User-Generated Content (MEDIUM)
+
+**Problem:** Club posts, dog profiles, comments — stored XSS risk.
+
+**Do:**
+
+1. All user-submitted text (club posts, dog names, bios, comments) must be:
+   - **Sanitized on server** before DB save using `sanitize-html` or `DOMPurify` (isomorphic).
+   - Allowed tags: **none** (plain text only) OR only `b, i, br` if rich text needed.
+2. Escape output in React (default) — never use `dangerouslySetInnerHTML` for user content.
+3. Validate image uploads:
+   - Allowed: jpg, png, webp only
+   - Max size: 5MB
+   - Strip EXIF metadata
+   - Store outside web root or serve via signed URLs
+4. Add report/flag button on posts (store report in DB for admin review).
+
+**Verify:** Post containing `<script>alert(1)</script>` → stored as plain text, not executed.
+
+---
+
+## TASK 12 — Add security.txt (LOW)
+
+**Do:**
+
+Create `public/.well-known/security.txt`:
+
+```
+Contact: mailto:info@yourpoodle.com
+Contact: tel:+908508403959
+Expires: 2027-07-18T00:00:00.000Z
+Preferred-Languages: tr, en
+Canonical: https://www.yourpoodle.com/.well-known/security.txt
+Policy: https://www.yourpoodle.com/yourpoodle/gizlilik-politikasi
+```
+
+Serve as static file with `Content-Type: text/plain`. Ensure server does NOT return SPA fallback for this path.
+
+**Verify:** `https://www.yourpoodle.com/.well-known/security.txt` → plain text, not HTML.
+
+---
+
+## TASK 13 — Fix Favoriler Route 404 (LOW)
+
+**Problem:** Header "Favoriler" button links to `/yourpoodle/favoriler` (404). Correct route is `/favoriler`.
+
+**Do:**
+
+1. Find Favoriler button/link in header component.
+2. Update href to `/favoriler` OR add redirect:
+   ```js
+   /yourpoodle/favoriler → redirect to /favoriler
+   ```
+3. Ensure favorites page requires login; redirect to `/yourpoodle/giris` if not authenticated.
+
+**Verify:** Click Favoriler in header → favorites page loads (or login redirect), no 404.
+
+---
+
+## TASK 14 — Add Global API Rate Limiting Middleware (HIGH)
+
+**Do:**
+
+Create Express middleware applied to ALL `/api/*` routes:
+
+```js
+// Default: 100 requests / 15 min / IP
+// Auth routes: stricter (see Task 3)
+// Admin routes: 30 / 15 min / IP
+```
+
+Use `express-rate-limit` with Redis store if available, otherwise in-memory (document limitation).
+
+Return consistent JSON on 429:
+```json
+{ "error": "Too many requests", "retryAfter": 900 }
+```
+
+**Verify:** Rapid API calls → 429 with JSON response.
+
+---
+
+## TASK 15 — Security Headers Audit (MEDIUM)
+
+Ensure ALL responses include:
+
+```
+X-Content-Type-Options: nosniff
+X-Frame-Options: SAMEORIGIN
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: camera=(self), microphone=(), geolocation=(self)
+X-Permitted-Cross-Domain-Policies: none
+```
+
+Remove deprecated:
+```
+X-XSS-Protection  ← remove this header
+```
+
+**Verify:** `curl -I` shows all headers, no X-XSS-Protection.
+
+---
+
+## TASK 16 — Environment Variables Check (HIGH)
+
+**Do:**
+
+1. Ensure these are in `.env` (NOT committed to git):
+   ```
+   ADMIN_ALLOWED_IPS=
+   CAPTCHA_SECRET_KEY=
+   CAPTCHA_SITE_KEY=
+   SESSION_SECRET=
+   OPENAI_API_KEY=          (or LLM provider key)
+   RATE_LIMIT_REDIS_URL=    (optional)
+   ```
+2. Add `.env` to `.gitignore` — verify not tracked.
+3. Run `grep -r "sk-\|api_key\|secret\|password" dist/ client/src/` — no secrets in client code.
+4. Add `.env.example` with placeholder values (no real secrets).
+
+**Verify:** `git log --all -- .env` → empty. Client bundle has no API keys.
+
+---
+
+## TASK 17 — robots.txt Review (LOW)
+
+**Do:**
+
+Keep `Disallow: /admin` and other private paths. Add comment that Disallow is NOT access control.
+
+Optionally remove `/admin` from robots.txt (security through obscurity is weak anyway) — but ensure Task 1 IP restriction is in place first.
+
+Do NOT remove Disallow for `/api`, `/giris`, `/hesabim`.
+
+---
+
+## TESTING CHECKLIST (Run All Before Finishing)
+
+```
+[ ] /admin → blocked or CAPTCHA + rate limit works
+[ ] POST /api/admin/login → 429 after 5 fails
+[ ] POST /api/contact-messages → 429 after 3/hour, no internal fields in response
+[ ] POST /api/auth/magic-link → 429 after 3/hour, no email enumeration
+[ ] AI assistant → 429 after daily guest limit
+[ ] /demo → 404 in production
+[ ] /.well-known/security.txt → plain text file
+[ ] /yourpoodle/favoriler → works or redirects
+[ ] View source → no internal HTML comments
+[ ] curl -I → single correct HSTS header
+[ ] curl -I → no X-XSS-Protection
+[ ] Club post with <script> → not executed
+[ ] grep dist/ for API keys → none found
+[ ] Logout → localStorage cleared
+```
+
+---
+
+## DELIVERABLE
+
+When done, output a **Security Fix Summary** with:
+
+1. List of every file changed
+2. Each task (1–17) marked ✅ or ⚠️ with notes
+3. Any tasks that could not be completed and why
+4. Recommended next steps (WAF, penetration test, bug bounty)
+
+**Start with Task 1 (Admin Panel) and Task 2 (Contact API) — these are CRITICAL. Do not proceed to lower priority tasks until critical ones are verified.**
+
+---
+
+*End of prompt.*

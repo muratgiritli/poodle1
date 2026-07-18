@@ -49,10 +49,18 @@ export function serveStatic(app: Express) {
     return cachedTemplate;
   };
 
+  // Task 5: Strip HTML comments from production output so internal paths are never exposed
+  function stripHtmlComments(html: string): string {
+    return html.replace(/<!--[\s\S]*?-->/g, "");
+  }
+
   app.use("/{*path}", async (req, res, next) => {
     try {
       const template = getTemplate();
-      const html = await injectAllMeta(template, req.originalUrl, req.hostname);
+      let html = await injectAllMeta(template, req.originalUrl, req.hostname);
+      if (process.env.NODE_ENV === "production") {
+        html = stripHtmlComments(html);
+      }
       res.setHeader("Content-Type", "text/html; charset=utf-8");
       res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
       res.status(200).end(html);

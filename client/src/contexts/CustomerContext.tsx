@@ -102,6 +102,12 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
     queryClient.removeQueries({ queryKey: ["/api/customer/favorites/details"] });
     queryClient.removeQueries({ queryKey: ["/api/customer/addresses"] });
     queryClient.removeQueries({ queryKey: ["/api/customer/pets"] });
+    // Task 7: Clear sensitive localStorage keys on logout
+    const YP_KEYS = [
+      "yp_ai_messages", "yp_ai_profile", "yp_cart_items",
+      "jetgo_trusted_devices",
+    ];
+    YP_KEYS.forEach(k => { try { localStorage.removeItem(k); } catch {} });
   }, []);
 
   const updateProfile = useCallback(async (data: { name?: string; address?: string; email?: string | null; tcNo?: string | null }) => {

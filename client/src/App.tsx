@@ -195,10 +195,11 @@ function Router() {
         <Route path="/sokak-canlari" component={SokakCanlariPage} />
         <Route path="/hesabim" component={ProfilePage} />
         <Route path="/abone" component={AbonePage} />
-        <Route path="/demo" component={DemoLanding} />
-        <Route path="/demo1" component={Demo1Page} />
-        <Route path="/demo2" component={Demo2Page} />
-        <Route path="/demo-anasayfa" component={DemoAnasayfaPage as any} />
+        {/* Task 6: Demo routes blocked in production — code kept, access disabled */}
+        {import.meta.env.DEV && <Route path="/demo" component={DemoLanding} />}
+        {import.meta.env.DEV && <Route path="/demo1" component={Demo1Page} />}
+        {import.meta.env.DEV && <Route path="/demo2" component={Demo2Page} />}
+        {import.meta.env.DEV && <Route path="/demo-anasayfa" component={DemoAnasayfaPage as any} />}
         <Route path="/yourpoodle"                component={YourPoodleHomePage} />
         <Route path="/yourpoodle/rehber/:slug">
           {(params) => <YPRehberPage routeSlug={params?.slug} />}
@@ -247,11 +248,11 @@ function Router() {
         <Route path="/yourpoodle/fotograf-yarismasi"   component={YPFotografYarismasi} />
         <Route path="/yourpoodle/ozel-tasarim"         component={YPOzelTasarimPage} />
         <Route path="/yourpoodle/urun/:id/:slug?" component={lazy(() => import("@/pages/yp-urun"))} />
-        <Route path="/demo-kampanya" component={DemoKampanyaPage} />
-        <Route path="/demo-kampanya/urun/:id" component={DemoKampanyaUrunPage} />
+        {import.meta.env.DEV && <Route path="/demo-kampanya" component={DemoKampanyaPage} />}
+        {import.meta.env.DEV && <Route path="/demo-kampanya/urun/:id" component={DemoKampanyaUrunPage} />}
         <Route path="/kampanya" component={CampaignPage} />
-        <Route path="/kampanya-demo" component={CampaignDemoPage} />
-        <Route path="/kampanya-urun-demo" component={CampaignProductDemoPage} />
+        {import.meta.env.DEV && <Route path="/kampanya-demo" component={CampaignDemoPage} />}
+        {import.meta.env.DEV && <Route path="/kampanya-urun-demo" component={CampaignProductDemoPage} />}
         <Route path="/yarisma" component={PetContestPage} />
         <Route path="/ozel-patiler" component={PetDashboardPage} />
         <Route path="/kayip-ilan" component={LostFoundPage} />
