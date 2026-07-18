@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 /* ─── Types ──────────────────────────────────────────────── */
-interface Msg    { id: string; role: "user" | "assistant"; content: string; ts: number; }
+interface Msg    { id: string; role: "user" | "assistant"; content: string; ts: number; articleLinks?: {slug:string; title:string}[]; }
 interface Profile { name: string; age: string; weight: string; }
 
 /* ─── Data ───────────────────────────────────────────────── */
@@ -138,12 +138,10 @@ Kurallar:
         }),
       });
       const data = await res.json();
-      let reply: string = data.reply ?? "Üzgünüm, şu anda yanıt veremiyorum. Lütfen tekrar deneyin.";
+      const reply: string = data.reply ?? "Üzgünüm, şu anda yanıt veremiyorum. Lütfen tekrar deneyin.";
       const arts = ARTICLE_LINKS[activeCat];
-      if (arts?.length >= 2) {
-        reply += `\n\nİlgili rehberler:\n` + arts.slice(0, 2).map(a => `📖 ${a.title} → /yourpoodle/rehber/${a.slug}`).join("\n");
-      }
-      setMessages(prev => [...prev, { id: String(Date.now()), role: "assistant", content: reply, ts: Date.now() }]);
+      const articleLinks = arts?.length ? arts.slice(0, 2) : undefined;
+      setMessages(prev => [...prev, { id: String(Date.now()), role: "assistant", content: reply, ts: Date.now(), articleLinks }]);
     } catch {
       setMessages(prev => [...prev, { id: String(Date.now()), role: "assistant", content: "Bağlantı hatası oluştu. Lütfen tekrar deneyin.", ts: Date.now() }]);
     }
@@ -480,6 +478,28 @@ Kurallar:
                         {m.content}
                       </div>
                       <span style={{ fontSize:10.5, color:"#D1D5DB" }}>{fmtTime(m.ts)}</span>
+
+                      {/* İlgili rehber butonları */}
+                      {m.role === "assistant" && m.articleLinks && m.articleLinks.length > 0 && (
+                        <div style={{ marginTop:8, display:"flex", flexDirection:"column", gap:6 }}>
+                          <span style={{ fontSize:11.5, fontWeight:700, color:"#9CA3AF", letterSpacing:"0.04em" }}>İLGİLİ REHBERLER</span>
+                          {m.articleLinks.map(a => (
+                            <button key={a.slug}
+                              onClick={() => { window.location.href = `/yourpoodle/rehber/${a.slug}`; }}
+                              style={{ display:"flex", alignItems:"center", gap:8,
+                                       padding:"10px 14px", borderRadius:12,
+                                       border:"1.5px solid #C4B5FD", background:"#F5F3FF",
+                                       color:"#7C3AED", fontSize:13, fontWeight:700,
+                                       cursor:"pointer", textAlign:"left", fontFamily:"inherit",
+                                       transition:"background .15s" }}
+                              onMouseEnter={e => (e.currentTarget.style.background = "#EDE9FE")}
+                              onMouseLeave={e => (e.currentTarget.style.background = "#F5F3FF")}>
+                              📖 {a.title}
+                              <span style={{ marginLeft:"auto", fontSize:16 }}>→</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
 
                       {/* Category pills — last AI message only */}
                       {m.role === "assistant" && idx === messages.length - 1 && (

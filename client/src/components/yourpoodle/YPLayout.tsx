@@ -127,7 +127,7 @@ export default function YPLayout({
       <div className="yp-desktop-hdr" style={{ position: "sticky", top: 0, zIndex: 200 }}>
 
         {/* ── Duyuru çubuğu ── */}
-        <div style={{ background: "#7022C4", color: "#fff", textAlign: "center", padding: "9px 20px", fontSize: 13.5, fontWeight: 500 }}>
+        <div style={{ background: "#3B0082", color: "#fff", textAlign: "center", padding: "9px 20px", fontSize: 13.5, fontWeight: 500 }}>
           Toy Poodle dünyasının adresi — 500₺ üzeri ücretsiz kargo 🚚
         </div>
 
