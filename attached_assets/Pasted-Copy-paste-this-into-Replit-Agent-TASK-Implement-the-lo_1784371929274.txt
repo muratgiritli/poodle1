@@ -1,0 +1,354 @@
+Copy-paste this into **Replit Agent**:
+
+---
+
+```
+TASK: Implement the login/signup page at `/yourpoodle/giris` to match the approved UI mockup EXACTLY. This is a pixel-accurate redesign — not a concept. Replace the current cluttered auth page with this clean split-screen layout.
+
+Reference mockup description:
+- 50/50 split screen (desktop)
+- Left: real Toy Poodle lifestyle photo with brand overlay text
+- Right: cream background + centered white auth card
+- 6 social login buttons in 2×3 grid
+- Login tab with email/password form
+- Minimal chrome — NO site nav, NO footer, NO FAQ on this page
+
+---
+
+## STEP 1 — FIND EXISTING CODE
+
+1. Locate the route/component for `/yourpoodle/giris`
+2. Locate existing auth logic: Google OAuth, phone OTP, guest mode, session/API calls
+3. Do NOT break any working auth endpoints — reuse them, only change UI/UX layer
+
+---
+
+## STEP 2 — PAGE STRUCTURE
+
+Create or refactor into these components:
+
+- `AuthPage.tsx` — page wrapper, sets document title immediately: "Giriş Yap / Üye Ol | YourPoodle"
+- `AuthLayout.tsx` — split-screen layout
+- `AuthHeroPanel.tsx` — left panel with photo + overlay text
+- `AuthCard.tsx` — right panel card container
+- `AuthTabs.tsx` — Giriş Yap / Üye Ol tab switcher
+- `SocialLoginGrid.tsx` — 6 social buttons
+- `LoginForm.tsx` — email + password form (Login tab)
+- `SignupForm.tsx` — signup form (Sign Up tab)
+- `AuthTrustFooter.tsx` — SSL/KVKK line
+
+---
+
+## STEP 3 — DESKTOP LAYOUT (≥1024px)
+
+Full viewport height, NO scroll on desktop unless content overflows on small laptops.
+
+```
+┌──────────────────────┬──────────────────────┐
+│  LEFT 50%            │  RIGHT 50%           │
+│  Poodle photo        │  bg: #FAF8F5         │
+│  full height cover   │  flex center         │
+│                      │  "Yardım" top-right  │
+│  Logo top-left       │  Auth card centered  │
+│  Text bottom-left    │                      │
+└──────────────────────┴──────────────────────┘
+```
+
+### LEFT PANEL — AuthHeroPanel
+
+- Background: full-bleed `<img>` or CSS `background-image`
+  - Use a warm lifestyle photo of an apricot/cream Toy Poodle on a beige rug in a sunlit living room
+  - `object-fit: cover`, `height: 100vh`, `width: 100%`
+  - If no asset exists: use `/assets/auth-poodle-hero.jpg` or add placeholder from Unsplash (Toy Poodle, cozy home) and save to project
+- Subtle bottom gradient overlay for text readability:
+  `linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)`
+
+**Top-left logo (white):**
+- Paw icon + "YourPoodle" wordmark
+- Font: clean sans-serif, ~18px semibold, white
+- Padding: 32px from top and left
+
+**Bottom-left text block (white), padding 32px:**
+- H2: `Poodle'ınızın en iyi arkadaşı`
+  - ~28px, font-weight 700, line-height 1.3, white
+- Subtext: `Beslenme rehberi, sağlık tavsiyeleri ve AI asistan — tek platformda.`
+  - ~15px, white/90% opacity, margin-top 8px
+- Social proof row (margin-top 16px):
+  - Small people/users icon + `12.000+ poodle sahibi burada`
+  - ~13px, white/80%
+
+### RIGHT PANEL
+
+- Background: `#FAF8F5` (warm cream)
+- Min-height: 100vh
+- Position relative
+
+**Top-right help link:**
+- Text: `Yardım`
+- Color: `#6B7280`, ~14px
+- Position: absolute, top 24px, right 32px
+- Link to existing help/FAQ page or `/yardim/giris`
+
+**Auth card — centered vertically and horizontally:**
+- Background: `#FFFFFF`
+- Max-width: `420px`
+- Width: `100%`
+- Padding: `32px`
+- Border-radius: `16px`
+- Box-shadow: `0 4px 24px rgba(0, 0, 0, 0.08)`
+- Margin: `24px`
+
+---
+
+## STEP 4 — AUTH CARD CONTENT (LOGIN TAB — default active)
+
+### Tab switcher
+Two tabs, full width, side by side:
+- `Giriş Yap` — ACTIVE
+- `Üye Ol` — inactive
+
+Active tab style:
+- Text: `#1A1A2E`, font-weight 600
+- Purple underline bar: `#7C3AED`, height 2px, full tab width
+- Border-bottom on tab container: `#E5E7EB`
+
+Inactive tab:
+- Text: `#6B7280`, font-weight 500
+- No underline
+
+Tab click switches content without page reload.
+Support URL param: `?tab=login` | `?tab=signup`
+
+---
+
+### Social login grid — 2 columns × 3 rows
+
+Gap: 10px between buttons. Each button:
+- Height: 44px
+- Background: white
+- Border: 1px solid `#E5E7EB`
+- Border-radius: 10px
+- Display: flex, align center, gap 10px, padding 0 14px
+- Font: 13px, color `#374151`, font-weight 500
+- Hover: `box-shadow: 0 2px 8px rgba(0,0,0,0.08)`
+- Left: official brand SVG icon (correct colors)
+- Full label text (Turkish):
+
+| Button | Label |
+|--------|-------|
+| Google | Google ile Devam Et |
+| Apple | Apple ile Devam Et |
+| Facebook | Facebook ile Devam Et |
+| X | X ile Devam Et |
+| Microsoft | Microsoft ile Devam Et |
+| LinkedIn | LinkedIn ile Devam Et |
+
+Wire Google to EXISTING OAuth handler (must keep working).
+Other providers: wire to OAuth routes if they exist; otherwise env-gated stub with toast "Bu giriş yöntemi yakında aktif olacak".
+
+Margin-top after tabs: 24px
+
+---
+
+### Divider
+Horizontal rule with centered text:
+- Line: `#E5E7EB`
+- Text: `veya e-posta ile devam et`
+- Text style: 13px, `#9CA3AF`, white background padding 0 12px
+- Margin: 20px 0
+
+---
+
+### Login form fields
+
+**E-posta**
+- Label above input: `E-posta` — 14px, font-weight 500, `#374151`, margin-bottom 6px
+- Input height: 48px
+- Border: 1px `#E5E7EB`, border-radius 10px, padding 0 14px
+- Placeholder: `ahmet@email.com`
+- Focus: ring 2px `#7C3AED33`, border `#7C3AED`
+
+**Şifre**
+- Label: `Şifre`
+- Same input style
+- Value: masked dots
+- Right side: eye icon toggle (show/hide password)
+- Margin-top: 16px
+
+**Beni hatırla**
+- Checkbox with purple checked state `#7C3AED`
+- Label: `Beni hatırla`, 14px `#374151`
+- Margin-top: 14px
+
+---
+
+### Primary button
+- Full width
+- Height: 48px
+- Background: `#7C3AED`
+- Hover: `#6D28D9`
+- Text: `Giriş Yap` — white, 15px, font-weight 600
+- Border-radius: 10px
+- Margin-top: 20px
+- Loading state: spinner + disabled
+
+Wire to existing email/password login API. If none exists, create stub and show validation errors inline in Turkish.
+
+---
+
+### Secondary links (centered, below button)
+
+Row 1 (margin-top 16px, 13px, `#6B7280`):
+- `Şifremi unuttum` → `/yourpoodle/sifremi-unuttum`
+- `|` separator
+- `Şifresiz giriş linki gönder` → magic link flow
+
+Row 2 (margin-top 12px, 14px):
+- `Hesabınız yok mu?` (gray) + `Ücretsiz üye olun` (purple `#7C3AED`, font-weight 600, clickable → switches to Üye Ol tab)
+
+Row 3 (margin-top 8px, 13px, `#9CA3AF`):
+- `Misafir olarak devam et` → existing guest auth flow (text link only, NOT a button)
+
+---
+
+### Trust footer (bottom of card, margin-top 24px, centered)
+- Padlock icon (gray) + `256-bit SSL · KVKK uyumlu`
+- Font: 12px, `#9CA3AF`
+
+---
+
+## STEP 5 — SIGN UP TAB (Üye Ol)
+
+When "Üye Ol" tab is active, replace form with:
+
+Social grid: SAME 6 buttons (reuse SocialLoginGrid)
+
+Divider: `veya e-posta ile devam et`
+
+Fields:
+- `Adınız` (text input)
+- `E-posta` (email input)
+- `Şifre` (password + optional strength indicator bar)
+
+Primary button: `Hesap Oluştur` — same purple style
+
+Legal text (12px, `#9CA3AF`, margin-top 12px):
+`Devam ederek Kullanım Şartlarını ve Gizlilik Politikasını kabul etmiş olursunuz.`
+Link "Kullanım Şartlarını" and "Gizlilik Politikasını" to existing legal pages.
+
+Bottom link:
+`Zaten hesabınız var mı? Giriş yapın` → switches to Login tab
+
+After email signup submit → show inline Step 2 (OTP verification) inside the card, NOT a full-page wizard.
+Reuse existing phone/SMS OTP logic as a collapsible secondary option: small link `Telefon ile kaydol` below divider.
+
+---
+
+## STEP 6 — REMOVE FROM THIS PAGE
+
+Delete or conditionally hide on `/yourpoodle/giris`:
+- Full site header navigation (Ana Sayfa, Rehber, Mama Bul, etc.)
+- Full site footer (Kurumsal, Mağaza, Destek columns)
+- FAQ accordion section
+- E-commerce trust badges (Hızlı Kargo, 12 Taksit, etc.)
+- 3-step stepper visible on first load (Telefon → Doğrulama → Profil)
+- Breadcrumb "Ana Sayfa > Giriş Yap"
+- Purple gradient left panel (replace with photo panel)
+- "Devam Et →" phone-first flow as default
+
+Use a minimal auth-only layout wrapper for this route so other pages keep their normal header/footer.
+
+---
+
+## STEP 7 — RESPONSIVE
+
+### Tablet (768px–1023px)
+- Keep split layout but left panel 40%, right 60%
+- Auth card max-width 380px
+
+### Mobile (<768px)
+- Stack vertically
+- Hide full left panel
+- Show 120px hero banner at top: cropped poodle photo + centered logo
+- Auth card: full width, margin 16px, no shadow or lighter shadow
+- Social buttons: stack 1 column (full width), show all 6
+- Maintain same card content and Turkish labels
+
+---
+
+## STEP 8 — DESIGN TOKENS
+
+```css
+--auth-bg: #FAF8F5;
+--auth-card: #FFFFFF;
+--auth-primary: #7C3AED;
+--auth-primary-hover: #6D28D9;
+--auth-text: #1A1A2E;
+--auth-text-muted: #6B7280;
+--auth-text-light: #9CA3AF;
+--auth-border: #E5E7EB;
+--auth-radius-card: 16px;
+--auth-radius-input: 10px;
+--auth-radius-button: 10px;
+```
+
+Font: load "Plus Jakarta Sans" from Google Fonts (weights 400, 500, 600, 700).
+Fallback: system-ui, sans-serif.
+
+---
+
+## STEP 9 — UX POLISH
+
+- Show skeleton loader on mount (card placeholder shimmer) — no blank white flash
+- Set page title on first render, not after JS hydration delay
+- All copy in Turkish exactly as specified above
+- Form validation messages in Turkish
+- Keyboard accessible tabs (arrow keys), focus trap in OTP modal if used
+- `aria-selected` on active tab
+- Social buttons have `aria-label` matching their text
+
+---
+
+## STEP 10 — ACCEPTANCE CHECKLIST
+
+Before finishing, verify:
+
+- [ ] Desktop matches mockup: 50/50 split, photo left, card right
+- [ ] Logo + hero text + "12.000+ poodle sahibi burada" on left panel
+- [ ] "Yardım" link top-right on cream panel
+- [ ] White card with tabs, 6 social buttons in 2×3 grid
+- [ ] Divider "veya e-posta ile devam et"
+- [ ] E-posta + Şifre fields + Beni hatırla checkbox
+- [ ] Purple "Giriş Yap" button
+- [ ] All secondary links present (forgot password, magic link, sign up, guest)
+- [ ] "256-bit SSL · KVKK uyumlu" at card bottom
+- [ ] NO full nav, NO footer, NO FAQ on this page
+- [ ] Google OAuth still works
+- [ ] Mobile layout works at 375px
+- [ ] Üye Ol tab functional with signup form
+
+---
+
+## DO NOT
+
+- Do not use flat purple gradient as left panel background
+- Do not show phone number as the primary/default login method
+- Do not render the old 3-step wizard stepper on initial page load
+- Do not add full site header or footer to this route
+- Do not hardcode OAuth secrets in source code
+- Do not create a duplicate route — refactor the existing `/yourpoodle/giris` page
+
+Start by listing files you will change, then implement. Summarize all changed files when done.
+```
+
+---
+
+**Optional add-on** (paste after the main prompt if the hero image is missing in the repo):
+
+```
+Also add the left-panel hero image:
+- Download or add a royalty-free Toy Poodle lifestyle photo (apricot/cream coat, cozy home, warm light)
+- Save as `/public/assets/auth-poodle-hero.jpg` (or project equivalent)
+- Use it as the left panel background with object-fit: cover
+- Add subtle bottom dark gradient for text contrast
+```

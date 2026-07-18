@@ -1,0 +1,359 @@
+Copy-paste this into **Replit Agent** for the **mobile login screen**:
+
+---
+
+```
+TASK: Implement the MOBILE layout for `/yourpoodle/giris` to match the approved mobile UI mockup EXACTLY. Desktop split-screen is already done (or will be done separately) — this task focuses on `<768px` breakpoint only. The mobile auth page must look like a native iOS-quality app screen.
+
+Reference: mobile mockup with hero banner + overlapping white card, stacked social buttons, email/password form.
+
+---
+
+## SCOPE
+
+- Route: `/yourpoodle/giris`
+- Breakpoint: `@media (max-width: 767px)` only
+- Do NOT add full site header nav or footer on mobile either
+- Reuse existing auth logic (Google OAuth, email login, guest mode, signup API)
+- All UI text in Turkish — exact strings below
+
+---
+
+## MOBILE PAGE STRUCTURE
+
+```
+┌─────────────────────────┐
+│  iOS status bar area    │  ← safe-area-inset-top
+├─────────────────────────┤
+│                         │
+│   HERO (~32vh)          │  poodle photo full width
+│   Logo + slogan         │  centered white text
+│                         │
+╰─── rounded card top ───╯  ← white card overlaps hero by ~24px
+│  [Giriş Yap | Üye Ol]   │
+│  Social buttons         │
+│  Divider                │
+│  Email + Password       │
+│  Remember me            │
+│  Giriş Yap button       │
+│  Links                  │
+│  SSL · KVKK             │
+└─────────────────────────┘
+```
+
+Full page background below hero: `#FAF8F5` (warm cream)
+
+---
+
+## SECTION 1 — HERO BANNER (top ~32vh, min-height 240px)
+
+### Background image
+- Full width, height: `32vh` (min 240px, max 320px)
+- Same Toy Poodle hero image as desktop: apricot/cream puppy, warm cozy tone
+- `object-fit: cover`, `object-position: center`
+- No purple gradient — real photo only
+
+### Overlay content — centered horizontally and vertically in hero
+- **Logo row:** `YourPoodle` + paw icon 🐾 (or SVG paw to the right of text)
+  - Color: white
+  - Font: 22px, font-weight 700, letter-spacing -0.3px
+  - Text shadow: `0 1px 4px rgba(0,0,0,0.3)` for readability
+
+- **Slogan below logo (8px gap):**
+  - Text: `Poodle'ınızın en iyi arkadaşı`
+  - Color: white/90%
+  - Font: 14px, font-weight 400
+  - Text shadow: same as above
+
+### Safe area
+- Respect `env(safe-area-inset-top)` for notched iPhones
+- No "Yardım" link in hero on mobile (optional: small link top-right over hero, 14px white/80% — skip if cluttered)
+
+---
+
+## SECTION 2 — AUTH CARD (overlapping white sheet)
+
+### Card container
+- Background: `#FFFFFF`
+- Border-radius: `24px 24px 0 0` (only top corners rounded — bottom sheet style)
+- Margin-top: `-24px` (overlaps hero image)
+- Position: relative, z-index 2
+- Padding: `24px 20px 32px`
+- Min-height: fills remaining viewport (`calc(100vh - 32vh + 24px)`)
+- NO box shadow on mobile (flat sheet) OR very subtle top shadow: `0 -4px 20px rgba(0,0,0,0.06)`
+
+---
+
+## SECTION 3 — TAB SWITCHER
+
+Full-width two-tab layout:
+
+| Tab | State |
+|-----|-------|
+| Giriş Yap | ACTIVE (default) |
+| Üye Ol | inactive |
+
+**Active tab ("Giriş Yap"):**
+- Text color: `#7C3AED` (purple)
+- Font-weight: 600, font-size 15px
+- Bottom border: 2px solid `#7C3AED`
+
+**Inactive tab ("Üye Ol"):**
+- Text color: `#6B7280`
+- Font-weight: 500
+- Bottom border: none
+
+Tab row bottom border: 1px `#E5E7EB`
+Tab padding: 12px 0
+Margin-bottom: 20px
+
+Tap switches tab content without page reload.
+
+---
+
+## SECTION 4 — SOCIAL LOGIN BUTTONS (stacked, full width)
+
+Each button:
+- Width: 100%
+- Height: 48px (touch-friendly)
+- Background: white
+- Border: 1px solid `#E5E7EB`
+- Border-radius: 12px
+- Display: flex, align-items center, gap 12px
+- Padding: 0 16px
+- Font: 14px, font-weight 500, color `#374151`
+- Margin-bottom: 10px
+- Active/press state: background `#F9FAFB`
+
+Buttons in order (all full width, stacked):
+
+1. **Google** — multi-color G icon + `Google ile Devam Et`
+2. **Apple** — black Apple logo + `Apple ile Devam Et`
+3. **Facebook** — blue f icon + `Facebook ile Devam Et`
+4. **X** — black X icon + `X ile Devam Et`
+5. **Microsoft** — colored Microsoft icon + `Microsoft ile Devam Et`
+6. **LinkedIn** — blue LinkedIn icon + `LinkedIn ile Devam Et`
+
+Mockup shows 3 buttons — implement ALL 6 in same stacked style (scrollable card if needed).
+
+Wire Google to existing OAuth. Others: existing handlers or env-gated stub toast.
+
+---
+
+## SECTION 5 — DIVIDER
+
+Margin: 16px 0
+
+```
+──────── veya e-posta ile devam et ────────
+```
+
+- Line: 1px `#E5E7EB`
+- Text: 13px, `#9CA3AF`, white background, padding 0 10px
+
+---
+
+## SECTION 6 — LOGIN FORM (Giriş Yap tab)
+
+### E-posta field
+- Label above: `E-posta`
+  - 14px, font-weight 500, color `#374151`, margin-bottom 6px
+- Input:
+  - Height: 48px
+  - Border: 1px `#E5E7EB`
+  - Border-radius: 12px
+  - Padding: 0 14px
+  - Font-size: 16px (prevents iOS zoom on focus)
+  - Placeholder: `ahmet@email.com`, color `#9CA3AF`
+  - Focus: border `#7C3AED`, outline none, box-shadow `0 0 0 3px rgba(124,58,237,0.15)`
+
+### Şifre field (margin-top 14px)
+- Label: `Şifre`
+- Same input styling
+- Input type: password, masked dots
+- **Eye icon** on right inside input (toggle show/hide)
+  - Icon color: `#9CA3AF`, size 20px
+  - Padding-right on input: 44px for icon space
+
+### Beni hatırla (margin-top 14px)
+- Custom checkbox:
+  - Size: 18px
+  - Checked: purple fill `#7C3AED`, white checkmark
+  - Unchecked: border `#D1D5DB`
+- Label: `Beni hatırla`, 14px `#374151`, margin-left 8px
+- Align: flex row, center
+
+---
+
+## SECTION 7 — PRIMARY BUTTON
+
+- Full width
+- Height: 52px
+- Background: `#7C3AED`
+- Active/pressed: `#6D28D9`
+- Border-radius: 12px
+- Text: `Giriş Yap`
+  - White, 16px, font-weight 600
+- Margin-top: 20px
+- No gradient — solid purple flat button
+- Loading: spinner centered, button disabled
+
+---
+
+## SECTION 8 — SECONDARY LINKS (centered)
+
+**Row 1** (margin-top 16px):
+- `Şifremi unuttum`
+- Color: `#7C3AED`
+- Font: 14px, font-weight 500
+- Centered, no underline (or subtle underline on tap)
+
+**Row 2** (margin-top 12px, centered, 14px):
+- `Hesabınız yok mu?` — color `#6B7280`
+- `Ücretsiz üye olun` — color `#7C3AED`, font-weight 600
+- Tapping "Ücretsiz üye olun" switches to Üye Ol tab
+
+**Row 3** (margin-top 10px):
+- `Misafir olarak devam et`
+- Color: `#9CA3AF`
+- Font: 13px
+- Text-decoration: underline
+- Wire to existing guest auth flow
+
+---
+
+## SECTION 9 — TRUST FOOTER
+
+- Margin-top: 24px
+- Text-align: center
+- Lock icon (gray, 14px) + `SSL · KVKK uyumlu`
+- Font: 12px, color `#9CA3AF`
+- Padding-bottom: `env(safe-area-inset-bottom)` for home indicator
+
+---
+
+## SECTION 10 — ÜYE OL TAB (mobile)
+
+When "Üye Ol" is active, same card shell, replace form:
+
+- Same 6 stacked social buttons
+- Same divider
+- Fields: `Adınız`, `E-posta`, `Şifre`
+- Primary button: `Hesap Oluştur` (same purple style, 52px height)
+- Legal (12px, `#9CA3AF`, centered):
+  `Devam ederek Kullanım Şartlarını ve Gizlilik Politikasını kabul etmiş olursunuz.`
+- Link: `Zaten hesabınız var mı? Giriş yapın` → switches tab
+
+---
+
+## DESIGN TOKENS (mobile)
+
+```css
+--mobile-bg: #FAF8F5;
+--mobile-card: #FFFFFF;
+--mobile-primary: #7C3AED;
+--mobile-primary-pressed: #6D28D9;
+--mobile-text: #1A1A2E;
+--mobile-text-secondary: #6B7280;
+--mobile-text-muted: #9CA3AF;
+--mobile-border: #E5E7EB;
+--mobile-input-radius: 12px;
+--mobile-card-top-radius: 24px;
+--mobile-btn-height: 48px;
+--mobile-primary-btn-height: 52px;
+```
+
+Font: "Plus Jakarta Sans" (Google Fonts), fallback `-apple-system, BlinkMacSystemFont, sans-serif`
+
+---
+
+## HIDE ON MOBILE
+
+- Desktop left panel (50% photo column)
+- Full site header navigation
+- Full site footer
+- FAQ accordion
+- 3-step phone wizard stepper on first load
+- E-commerce badges (shipping, installments)
+- Breadcrumbs
+- "Devam Et →" phone-first CTA as primary action
+
+---
+
+## UX REQUIREMENTS
+
+- `viewport-fit=cover` in meta tag for safe areas
+- Input font-size minimum 16px (prevent iOS auto-zoom)
+- Card content scrolls if keyboard open or content overflows (`overflow-y: auto`)
+- Skeleton loader on mount — no blank flash
+- Page title: `Giriş Yap / Üye Ol | YourPoodle`
+- Touch targets minimum 44×44px
+- Smooth tab transition (150ms opacity fade)
+- Form errors inline below field, red `#EF4444`, Turkish messages
+
+---
+
+## FILE CHANGES
+
+Add or update mobile styles in existing auth components:
+
+```
+AuthLayout.tsx        → mobile: hide left panel, show hero + sheet
+AuthHeroMobile.tsx      → NEW: mobile hero banner component
+AuthCard.tsx            → mobile: full-width sheet, top radius 24px
+SocialLoginGrid.tsx     → mobile: flex-col, w-full, 6 stacked buttons
+LoginForm.tsx           → mobile spacing adjustments
+auth-mobile.css         → OR Tailwind responsive classes md:hidden / max-md:
+```
+
+Use Tailwind if project already uses it:
+```
+- Hero: `h-[32vh] min-h-[240px] relative`
+- Card: ` -mt-6 rounded-t-3xl bg-white px-5 pt-6 pb-8`
+- Inputs: `h-12 rounded-xl text-base`
+- Primary btn: `h-[52px] rounded-xl bg-violet-600 w-full`
+```
+
+---
+
+## ACCEPTANCE CHECKLIST (mobile 375px width)
+
+- [ ] Hero photo top ~1/3 with centered "YourPoodle 🐾" + slogan
+- [ ] White card overlaps hero with rounded top corners (24px)
+- [ ] Tabs: Giriş Yap active (purple text + underline), Üye Ol inactive
+- [ ] 6 social buttons stacked full-width with correct icons + Turkish labels
+- [ ] Divider: "veya e-posta ile devam et"
+- [ ] E-posta + Şifre fields with eye toggle
+- [ ] Purple "Beni hatırla" checkbox
+- [ ] Full-width purple "Giriş Yap" button (52px)
+- [ ] "Şifremi unuttum" link in purple
+- [ ] "Hesabınız yok mu? Ücretsiz üye olun"
+- [ ] "Misafir olarak devam et" underlined gray link
+- [ ] "SSL · KVKK uyumlu" centered at bottom
+- [ ] No site nav, no footer, no FAQ
+- [ ] Safe area insets respected on iPhone
+- [ ] Google OAuth works on mobile
+- [ ] No horizontal scroll at 375px
+
+---
+
+## DO NOT
+
+- Do not use desktop 2-column split on mobile
+- Do not use purple gradient instead of poodle photo in hero
+- Do not render social buttons in 2-column grid on mobile — stack them
+- Do not use phone number as default primary login
+- Do not show old 3-step wizard on first paint
+- Do not break existing auth API integrations
+
+Implement mobile styles, test at 375×812 (iPhone X/14), summarize changed files when done.
+```
+
+---
+
+**Note:** The mockup shows 3 social buttons; the prompt includes **all 6** in the same stacked style. If you want **only 3** on mobile (exact mockup), replace the social button section with:
+
+```
+Show only 3 stacked buttons on mobile: Google, Apple, Facebook.
+Add a text link below: "Diğer giriş yöntemleri" → expands to show X, Microsoft, LinkedIn.
+```
