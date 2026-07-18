@@ -23,17 +23,14 @@ const CATS = [
     starter:"Toy Poodle davranışı hakkında bilgi almak istiyorum." },
 ] as const;
 
-const HISTORY_TODAY = [
-  { id:"new",  title:"Yeni sohbet" },
-  { id:"h1",   title:"Toy Poodle beslenme rehberi" },
-  { id:"h2",   title:"Tüy bakımı nasıl yapılır?" },
-  { id:"h3",   title:"Tuvalet eğitimi ne zaman?" },
-];
-const HISTORY_YESTERDAY = [
-  { id:"h4",  title:"Poodle tüy döker mi?" },
-  { id:"h5",  title:"Yavru Poodle aşı takvimi" },
-  { id:"h6",  title:"Poodle diş bakımı" },
-];
+const LS_HIST = "yp_ai_history";
+interface HistEntry { id: string; title: string; ts: number; msgs: Msg[]; }
+function loadHistory(): HistEntry[] {
+  try { return JSON.parse(localStorage.getItem(LS_HIST) || "[]"); } catch { return []; }
+}
+function saveHistory(entries: HistEntry[]) {
+  try { localStorage.setItem(LS_HIST, JSON.stringify(entries.slice(0, 30))); } catch {}
+}
 
 const SUGGESTIONS = [
   { icon:"🍖", text:"4 aylık Toy Poodle için ne kadar mama vermeliyim?" },
@@ -77,6 +74,7 @@ export default function YPAiAsistanPage() {
   const [sidebarOpen,    setSidebarOpen]    = useState(false);
   const [activeHistId,   setActiveHistId]   = useState("new");
   const [activeCat,      setActiveCat]      = useState("beslenme");
+  const [history, setHistory] = useState<HistEntry[]>(loadHistory);
 
   /* refs */
   const bottomRef    = useRef<HTMLDivElement>(null);
@@ -154,9 +152,29 @@ Kurallar:
   };
 
   const resetChat = () => {
+    /* Save current conversation to history before clearing */
+    const firstUser = messages.find(m => m.role === "user");
+    if (firstUser) {
+      const entry: HistEntry = {
+        id: String(firstUser.ts),
+        title: firstUser.content.slice(0, 50),
+        ts: firstUser.ts,
+        msgs: messages,
+      };
+      const updated = [entry, ...history.filter(h => h.id !== entry.id)].slice(0, 30);
+      setHistory(updated);
+      saveHistory(updated);
+    }
     setMessages([]);
     setActiveHistId("new");
     try { localStorage.removeItem(LS_MSG); } catch {}
+  };
+
+  const loadHistEntry = (entry: HistEntry) => {
+    setMessages(entry.msgs);
+    setActiveHistId(entry.id);
+    setSidebarOpen(false);
+    try { localStorage.setItem(LS_MSG, JSON.stringify(entry.msgs)); } catch {}
   };
 
   const isEmpty = messages.length === 0;
@@ -315,45 +333,49 @@ Kurallar:
                 Sohbet Geçmişi
               </div>
 
-              <div style={{ fontSize:10.5, fontWeight:600, color:"#A78BFA",
-                            padding:"4px 8px 3px" }}>Bugün</div>
-              {HISTORY_TODAY.map(h => {
-                const active = activeHistId === h.id;
-                return (
-                  <button key={h.id} className="ai-hist-btn"
-                    onClick={() => { setActiveHistId(h.id); setSidebarOpen(false); if (h.id === "new") resetChat(); }}
-                    style={{ width:"100%", display:"flex", alignItems:"center", gap:8,
-                             padding:"8px 10px", background: active ? "rgba(124,58,237,0.12)" : "transparent",
-                             border:"none", cursor:"pointer", textAlign:"left", borderRadius:8 }}>
-                    <MessageSquare size={13} color={active ? "#7C3AED" : "#9CA3AF"} />
-                    <span style={{ fontSize:12.5, color: active ? "#7C3AED" : "#374151",
-                                   fontWeight: active ? 700 : 400,
-                                   overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                      {h.title}
-                    </span>
-                  </button>
-                );
-              })}
+              {/* Current session */}
+              <button className="ai-hist-btn"
+                onClick={() => { setActiveHistId("new"); setSidebarOpen(false); }}
+                style={{ width:"100%", display:"flex", alignItems:"center", gap:8,
+                         padding:"8px 10px", background: activeHistId === "new" ? "rgba(124,58,237,0.12)" : "transparent",
+                         border:"none", cursor:"pointer", textAlign:"left", borderRadius:8 }}>
+                <MessageSquare size={13} color={activeHistId === "new" ? "#7C3AED" : "#9CA3AF"} />
+                <span style={{ fontSize:12.5, color: activeHistId === "new" ? "#7C3AED" : "#374151",
+                               fontWeight: activeHistId === "new" ? 700 : 400,
+                               overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                  Aktif sohbet
+                </span>
+              </button>
 
-              <div style={{ fontSize:10.5, fontWeight:600, color:"#A78BFA",
-                            padding:"8px 8px 3px" }}>Dün</div>
-              {HISTORY_YESTERDAY.map(h => {
-                const active = activeHistId === h.id;
-                return (
-                  <button key={h.id} className="ai-hist-btn"
-                    onClick={() => setActiveHistId(h.id)}
-                    style={{ width:"100%", display:"flex", alignItems:"center", gap:8,
-                             padding:"8px 10px", background: active ? "rgba(124,58,237,0.12)" : "transparent",
-                             border:"none", cursor:"pointer", textAlign:"left", borderRadius:8 }}>
-                    <MessageSquare size={13} color={active ? "#7C3AED" : "#9CA3AF"} />
-                    <span style={{ fontSize:12.5, color: active ? "#7C3AED" : "#374151",
-                                   fontWeight: active ? 700 : 400,
-                                   overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                      {h.title}
-                    </span>
-                  </button>
-                );
-              })}
+              {/* Real saved history */}
+              {history.length > 0 && (
+                <>
+                  <div style={{ fontSize:10.5, fontWeight:600, color:"#A78BFA", padding:"8px 8px 3px" }}>Önceki</div>
+                  {history.map(h => {
+                    const active = activeHistId === h.id;
+                    return (
+                      <button key={h.id} className="ai-hist-btn"
+                        onClick={() => loadHistEntry(h)}
+                        style={{ width:"100%", display:"flex", alignItems:"center", gap:8,
+                                 padding:"8px 10px", background: active ? "rgba(124,58,237,0.12)" : "transparent",
+                                 border:"none", cursor:"pointer", textAlign:"left", borderRadius:8 }}>
+                        <MessageSquare size={13} color={active ? "#7C3AED" : "#9CA3AF"} />
+                        <span style={{ fontSize:12.5, color: active ? "#7C3AED" : "#374151",
+                                       fontWeight: active ? 700 : 400,
+                                       overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                          {h.title}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </>
+              )}
+
+              {history.length === 0 && messages.length === 0 && (
+                <div style={{ padding:"8px 10px", fontSize:12, color:"#C4B5FD", fontStyle:"italic" }}>
+                  Henüz sohbet geçmişi yok
+                </div>
+              )}
             </div>
 
             {/* Quick categories */}

@@ -3945,7 +3945,8 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
 
       const { name: bName, surname: bSurname } = splitName(o.customer_name || "");
       const gsm = normalizeGsm(o.customer_phone || "");
-      const address = String(o.customer_address || "Samsun").slice(0, 500) || "Samsun";
+      const address = String(o.customer_address || o.city || "Türkiye").slice(0, 500) || "Türkiye";
+      const orderCity = String(o.city || "Istanbul").slice(0, 40);
 
       const buyer = {
         id: `cust-${customerId || o.id}`,
@@ -3956,17 +3957,17 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         identityNumber: "11111111111",
         registrationAddress: address,
         ip: (req.ip || req.headers["x-forwarded-for"]?.toString() || "127.0.0.1").split(",")[0].trim(),
-        city: "Samsun",
+        city: orderCity,
         country: "Turkey",
-        zipCode: "55200",
+        zipCode: "00000",
       };
 
       const addressBlock = {
         contactName: `${bName} ${bSurname}`.trim().slice(0, 100) || "Müşteri",
-        city: "Samsun",
+        city: orderCity,
         country: "Turkey",
         address: address,
-        zipCode: "55200",
+        zipCode: "00000",
       };
 
       const basketItems = [

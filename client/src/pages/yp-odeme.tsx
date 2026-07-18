@@ -56,7 +56,7 @@ export default function YPOdemePage() {
   /* Compute totals from (possibly updated) cart */
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const shipping = subtotal >= KARGO_UCRETSIZ_LIMIT ? 0 : KARGO_UCRET;
-  const total = subtotal + shipping;
+  const total = Math.max(0, subtotal - couponDiscount + shipping);
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
   /* ─── Form ─── */
@@ -93,6 +93,27 @@ export default function YPOdemePage() {
     const t = setTimeout(() => setOtpCountdown(c => c - 1), 1000);
     return () => clearTimeout(t);
   }, [otpCountdown]);
+
+  /* ─── Coupon ─── */
+  const [couponCode, setCouponCode]       = useState("");
+  const [couponApplied, setCouponApplied] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponError, setCouponError]     = useState("");
+
+  const applyCoupon = () => {
+    const code = couponCode.trim().toUpperCase();
+    if (!code) return;
+    setCouponError("");
+    /* Sunucu sipariş oluştururken doğrulayacak; burada sadece kodu kaydediyoruz */
+    setCouponApplied(code);
+    setCouponCode("");
+  };
+
+  const removeCoupon = () => {
+    setCouponApplied("");
+    setCouponDiscount(0);
+    setCouponError("");
+  };
 
   /* ─── Order ─── */
   const [orderLoading, setOrderLoading] = useState(false);
@@ -187,8 +208,9 @@ export default function YPOdemePage() {
     })),
     subtotal,
     shipping,
-    discount: 0,
+    discount: couponDiscount,
     grandTotal: total,
+    ...(couponApplied ? { couponCode: couponApplied } : {}),
     paymentMethod: "Online Kredi/Banka Kartı",
     customerName: name.trim(),
     customerPhone: phone.replace(/\D/g, ""),
@@ -528,11 +550,49 @@ export default function YPOdemePage() {
                   {shipping === 0 ? "Ücretsiz" : `₺${shipping}`}
                 </span>
               </div>
+              {couponDiscount > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#16A34A", fontWeight: 700, marginBottom: 6 }}>
+                  <span>Kupon İndirimi</span>
+                  <span>-₺{couponDiscount.toLocaleString("tr-TR")}</span>
+                </div>
+              )}
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 17, fontWeight: 900, color: "#1a1a1a" }}>
                 <span>Toplam</span>
                 <span style={{ color: purple }}>₺{total.toLocaleString("tr-TR")}</span>
               </div>
             </div>
+          </div>
+
+          {/* Kupon kodu */}
+          <div style={{ background: "#F9FAFB", borderRadius: 16, padding: "14px 16px", marginBottom: 16, border: "1px solid #E5E7EB" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a", marginBottom: 10 }}>🎟️ Kupon Kodu</div>
+            {couponApplied ? (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#ECFDF5", border: "1.5px solid #6EE7B7", borderRadius: 10, padding: "10px 14px" }}>
+                <div>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: "#065F46" }}>{couponApplied}</span>
+                  <span style={{ fontSize: 12, color: "#059669", marginLeft: 8 }}>uygulandı ✓</span>
+                </div>
+                <button onClick={removeCoupon}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "#DC2626", fontSize: 12, fontWeight: 700, padding: 0 }}>
+                  Kaldır
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  value={couponCode}
+                  onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponError(""); }}
+                  onKeyDown={e => e.key === "Enter" && applyCoupon()}
+                  placeholder="Kupon kodunu girin"
+                  style={{ flex: 1, height: 42, borderRadius: 10, border: "1.5px solid #E5E7EB", padding: "0 14px", fontSize: 13, fontFamily: "inherit", outline: "none", letterSpacing: "0.05em" }}
+                />
+                <button onClick={applyCoupon} disabled={!couponCode.trim()}
+                  style={{ height: 42, padding: "0 18px", borderRadius: 10, border: "none", background: couponCode.trim() ? purple : "#E5E7EB", color: couponCode.trim() ? "#fff" : "#9CA3AF", fontSize: 13, fontWeight: 700, cursor: couponCode.trim() ? "pointer" : "not-allowed", fontFamily: "inherit", flexShrink: 0 }}>
+                  Uygula
+                </button>
+              </div>
+            )}
+            {couponError && <p style={{ fontSize: 12, color: "#DC2626", marginTop: 6, margin: "6px 0 0" }}>{couponError}</p>}
           </div>
 
           {orderError && (

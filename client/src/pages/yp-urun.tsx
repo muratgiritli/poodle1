@@ -3,6 +3,8 @@ import { useLocation, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ShoppingCart, Heart, Plus, Minus, Share2 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import { useCustomer } from "@/contexts/CustomerContext";
+import { apiRequest } from "@/lib/queryClient";
 
 /* ─── Types ─────────────────────────────────────────── */
 interface MamaMetadata {
@@ -42,6 +44,33 @@ export default function YPUrunPage() {
   const [cart, setCart] = useState<CartItem[]>(loadCart);
   const [qty, setQty] = useState(1);
   const [wishlisted, setWishlisted] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const { isLoggedIn } = useCustomer();
+
+  /* Sync wishlist state with server */
+  useEffect(() => {
+    if (!isLoggedIn || !productId) return;
+    apiRequest("GET", "/api/customer/favorites")
+      .then(r => r.json())
+      .then((ids: number[]) => { if (Array.isArray(ids)) setWishlisted(ids.includes(productId)); })
+      .catch(() => {});
+  }, [isLoggedIn, productId]);
+
+  const toggleWishlist = useCallback(async () => {
+    if (wishlistLoading) return;
+    if (!isLoggedIn) { window.location.href = "/yourpoodle/giris"; return; }
+    setWishlistLoading(true);
+    const next = !wishlisted;
+    setWishlisted(next);
+    try {
+      if (next) {
+        await apiRequest("POST", "/api/customer/favorites", { productId });
+      } else {
+        await apiRequest("DELETE", `/api/customer/favorites/${productId}`);
+      }
+    } catch { setWishlisted(!next); }
+    setWishlistLoading(false);
+  }, [wishlisted, wishlistLoading, isLoggedIn, productId]);
   const [added, setAdded] = useState(false);
   const [imgError, setImgError] = useState(false);
 
@@ -156,8 +185,8 @@ export default function YPUrunPage() {
               <span style={{ fontSize: 11, fontWeight: 800, color: "#fff" }}>%{discount} İNDİRİM</span>
             </div>
           )}
-          <button onClick={() => setWishlisted(w => !w)}
-            style={{ position: "absolute", top: 12, right: 12, width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.9)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}>
+          <button onClick={toggleWishlist}
+            style={{ position: "absolute", top: 12, right: 12, width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.9)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2, opacity: wishlistLoading ? 0.6 : 1 }}>
             <Heart size={17} color={wishlisted ? "#E75480" : "#bbb"} fill={wishlisted ? "#E75480" : "none"} strokeWidth={2} />
           </button>
           {product.img && !imgError
