@@ -281,7 +281,7 @@ export default function YPSepetPage() {
 
         {/* Checkout CTA */}
         {cart.length > 0 && (
-          <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#fff", borderTop: "1px solid #f0f0f0", padding: "12px 16px", zIndex: 200 }}>
+          <div style={{ position: "fixed", bottom: "72px", left: 0, right: 0, background: "#fff", borderTop: "1px solid #f0f0f0", padding: "12px 16px", zIndex: 300, boxShadow: "0 -4px 16px rgba(0,0,0,0.10)" }}>
             <div style={{ maxWidth: 640, margin: "0 auto", display: "flex", gap: 10 }}>
               <button onClick={() => navigate("/yourpoodle/magaza")}
                 style={{ width: 48, height: 48, borderRadius: 12, border: "1.5px solid #7C3AFF", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>

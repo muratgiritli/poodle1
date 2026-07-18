@@ -320,10 +320,22 @@ export default function YPLayout({
                 ☰
               </button>
             </div>
-            <button onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
-              style={{ padding: "5px 11px", borderRadius: 20, border: "1.5px solid #7C3AED", background: "#F5F0FF", color: "#7C3AED", fontSize: 11.5, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
-              {isLoggedIn ? "Hesabım" : "Giriş"}
-            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {/* Sepet ikonu */}
+              <button onClick={() => navigate("/yourpoodle/sepet")}
+                style={{ position: "relative", width: 38, height: 38, borderRadius: "50%", border: "1.5px solid #E5E7EB", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                <ShoppingCart size={18} color="#7C3AED" strokeWidth={2} />
+                {cartCount > 0 && (
+                  <span style={{ position: "absolute", top: -3, right: -3, background: "#7022C4", color: "#fff", fontSize: 9, fontWeight: 800, width: 17, height: 17, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #fff" }}>
+                    {cartCount > 9 ? "9+" : cartCount}
+                  </span>
+                )}
+              </button>
+              <button onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
+                style={{ padding: "5px 11px", borderRadius: 20, border: "1.5px solid #7C3AED", background: "#F5F0FF", color: "#7C3AED", fontSize: 11.5, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
+                {isLoggedIn ? "Hesabım" : "Giriş"}
+              </button>
+            </div>
           </div>
         )}
       </header>

@@ -421,7 +421,7 @@ before(async () => {
   ids.customers.push(customerId);
   sessionCookie = await forgeSessionCookie({ customerId });
 
-  // ---- Forge an admin session (requireAdmin only checks session.userId) ----
+  // ---- Forge an admin session (requireAdmin checks session.userId + isAdmin) ----
   // Reuse an existing admin user if present; otherwise seed a throwaway one.
   const existingUser = await pool.query("SELECT id FROM users LIMIT 1");
   let adminUserId: string = existingUser.rows[0]?.id;
@@ -433,7 +433,7 @@ before(async () => {
     adminUserId = u.rows[0].id;
     ids.users.push(adminUserId);
   }
-  adminCookie = await forgeSessionCookie({ userId: adminUserId });
+  adminCookie = await forgeSessionCookie({ userId: adminUserId, isAdmin: true });
 
   // ---- Seed a SAMSUN customer with a valid numeric phone + forge its session ----
   // The phone must be numeric (the order schema validates it) and is reused as the
