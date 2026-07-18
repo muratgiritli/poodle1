@@ -1,0 +1,258 @@
+Build a complete, production-ready "AI Poodle Assistant" page for a pet care website called YourPoodle. This is a FULL standalone AI chat page — NOT a landing page with a sidebar widget. The chat experience must be the primary focus, similar to ChatGPT/Claude, but specialized ONLY for Toy Poodle dogs.
+
+---
+
+## PROJECT GOAL
+
+Create a modern, responsive AI assistant page with:
+- Desktop layout (1440px+)
+- Tablet layout (768px–1024px)
+- Mobile layout (320px–767px)
+
+The page must feel like a real AI chat product: clean, fast, intuitive, and pet-owner friendly. All content, examples, and assistant behavior must be Toy Poodle–specific only (not generic dogs, not other Poodle sizes like Miniature or Standard).
+
+---
+
+## TECH STACK (use unless project already has conventions)
+
+- React + TypeScript (or Next.js App Router if starting fresh)
+- Tailwind CSS for styling
+- Lucide React for icons
+- Fully responsive with mobile-first CSS
+- No external UI library required unless already in project — build custom components matching the mockup
+
+---
+
+## PAGE STRUCTURE
+
+### 1. TOP HEADER BAR (fixed, full width)
+- Left: YourPoodle logo (small poodle icon + "YourPoodle" text)
+- Center-left: Page title "AI Poodle Asistanı" with a green online status dot and "Online" label
+- Right: User profile chip showing Toy Poodle info:
+  - Circular avatar (poodle image placeholder)
+  - Name: "Luna"
+  - Subtitle: "Toy Poodle · 4 months"
+  - Clickable to open/edit profile (modal or slide-over panel)
+
+Header height: ~64px. White background, subtle bottom border/shadow.
+
+---
+
+### 2. MAIN LAYOUT (below header, full viewport height minus header)
+
+Use a 3-column flex/grid layout on desktop:
+
+#### LEFT SIDEBAR (240px, fixed, collapsible on tablet/mobile)
+Background: light lavender (#F5F3FF or similar)
+
+Sections top to bottom:
+
+**A. New Chat Button**
+- Full-width purple button: "+ Yeni Sohbet"
+- Resets conversation to empty/welcome state
+
+**B. Chat History — "Sohbet Geçmişi"**
+- Grouped by date: "Bugün", "Dün"
+- List items with chat title snippets, e.g.:
+  - "4 aylık mama miktarı"
+  - "Tüy bakımı ne sıklıkla"
+  - "Aşı takvimi"
+- Active chat highlighted with purple background
+- Clicking loads that conversation in main area
+
+**C. Quick Categories — "Hızlı Kategoriler"**
+Compact vertical list with icons (NOT large cards):
+- Beslenme (Nutrition) — bowl icon
+- Tüy Bakımı (Grooming) — comb/scissors icon
+- Eğitim (Training) — graduation cap icon
+- Sağlık (Health) — heart/shield icon
+- Davranış (Behavior) — paw icon
+
+Clicking a category inserts a contextual starter message or filters suggested questions.
+
+**D. Bottom Profile Mini Card**
+- Small poodle avatar + "Luna" + "Toy Poodle"
+- Links to profile settings
+
+On tablet: sidebar collapses to icon-only or slide-over drawer.
+On mobile: sidebar hidden behind hamburger menu (top-left in header).
+
+---
+
+#### CENTER — MAIN CHAT AREA (flex-grow, primary focus)
+
+This is the hero of the page. Must take 70%+ of viewport.
+
+**Empty / Welcome State (shown on first load or new chat):**
+- Centered cute minimal poodle line-art illustration
+- Heading: "Merhaba! Ben YourPoodle, poodle dostunuz için buradayım."
+- Subtext: short friendly intro about Toy Poodle help
+- 6 suggestion cards in a 3×2 grid (desktop) / 2×3 (tablet) / horizontal scroll or stacked (mobile):
+
+  1. "4 aylık Toy Poodle ne kadar mama yemeli?"
+  2. "Tüy bakımı ne sıklıkla yapılmalı?"
+  3. "Aşı takvimi nasıl olmalı?"
+  4. "Evde tuvalet eğitimi nasıl verilir?"
+  5. "Toy Poodle neden aşırı havlıyor?"
+  6. "Göz akıntısı normal mi?"
+
+Each card: white background, rounded-xl, subtle shadow, hover lift effect, small icon, one-line question text. Clicking a card sends that question as user message.
+
+**Active Chat State:**
+- Scrollable message list, auto-scroll to latest message
+- User messages: right-aligned, solid purple bubble (#7C3AED or #7C6CF0), white text, rounded-2xl, max-width 70%
+- AI messages: left-aligned, white bubble with light gray border, dark text, small robot/poodle AI avatar on left, max-width 75%
+- AI responses support:
+  - Bold headings
+  - Bullet points
+  - Numbered lists
+  - Short paragraphs (readable, not walls of text)
+- Below each AI response: quick action pill buttons:
+  - "Beslenme", "Sağlık", "Eğitim", "Davranış", "Tüy Bakımı"
+  - Clicking sends a follow-up contextual question
+
+Include at least ONE sample active conversation pre-loaded or triggerable via demo:
+- User: "4 aylık Toy Poodle ne kadar mama yemeli?"
+- AI: Detailed helpful answer with bullet points about daily grams, meal frequency, food type, and vet consultation note.
+
+---
+
+#### RIGHT PANEL (optional on desktop only, ~280px, collapsible)
+
+"My Poodle Profile" summary card:
+- Poodle photo placeholder
+- Name: Luna
+- Breed: Toy Poodle (locked — this page is Toy Poodle only)
+- Age: 4 months
+- Weight: 2.1 kg
+- Notes field
+- "Edit Profile" button
+
+On tablet/mobile: this becomes a modal or bottom sheet accessed from header profile chip. Do NOT take space from chat on small screens.
+
+---
+
+### 3. STICKY BOTTOM INPUT BAR (always visible, fixed to bottom of chat area)
+
+This is critical — input must NEVER be buried below scroll content.
+
+Layout:
+- Rounded container spanning chat area width (not full page if sidebar exists)
+- Light gray/white background with subtle top border/shadow
+- Inside input row:
+  - Left: attachment icon button (paperclip) — can be placeholder/disabled
+  - Center: textarea with placeholder "Sorunuzu yazın..." 
+    - Auto-grow up to 4 lines
+    - Enter to send, Shift+Enter for new line
+  - Right: microphone icon button (placeholder) + circular purple Send button with paper plane icon
+- Below input, small disclaimer text centered:
+  "AI yanıtları yalnızca bilgilendirme amaçlıdır. Sağlık sorunları için veterinerinize danışın."
+  Include small lock/privacy icon.
+
+On mobile: input bar spans full width, sticks to bottom with safe-area-inset padding for iOS.
+
+---
+
+## RESPONSIVE BEHAVIOR
+
+### Desktop (≥1024px)
+- 3-column: sidebar (240px) + chat (flex) + optional profile panel (280px)
+- All elements visible
+- Suggestion cards in 3×2 grid
+
+### Tablet (768px–1023px)
+- Sidebar collapses to hamburger drawer OR icon-only rail (64px)
+- Profile panel hidden, accessible via header
+- Chat takes full remaining width
+- Suggestion cards 2×3 grid
+- Input bar full width of chat column
+
+### Mobile (≤767px)
+- Single column, full-screen chat
+- Hamburger menu (top-left) opens sidebar drawer overlay
+- Header: logo + title + profile avatar only
+- Welcome illustration smaller
+- Suggestion cards: horizontal scroll row OR stacked 1-column
+- Messages: max-width 85%
+- Input bar: fixed bottom, full width, safe-area padding
+- Sidebar drawer: slides from left with backdrop overlay
+
+Test and verify at: 375px (iPhone), 768px (iPad), 1440px (desktop).
+
+---
+
+## VISUAL DESIGN SYSTEM
+
+Colors:
+- Primary purple: #7C3AED / #7C6CF0
+- Light lavender background: #F5F3FF / #F3E8FF
+- White: #FFFFFF
+- Text primary: #1F2937
+- Text secondary: #6B7280
+- Border: #E5E7EB
+- Online green: #22C55E
+- User bubble: solid purple
+- AI bubble: white with #E5E7EB border
+
+Typography:
+- Font: Inter, system-ui, or similar clean sans-serif
+- Headings: semibold/bold
+- Body: 16px, line-height 1.6
+- Small/disclaimer: 12px
+
+UI Style:
+- Border radius: 12px–16px on cards, 24px on bubbles and input
+- Soft shadows: shadow-sm / shadow-md
+- Smooth transitions (200ms) on hover/focus
+- Generous whitespace — never cramped
+- Premium, friendly, modern — NOT childish, NOT corporate-boring
+
+Icons: Lucide React (MessageSquare, Send, Plus, Menu, X, Paperclip, Mic, Lock, etc.)
+
+---
+
+## FUNCTIONAL REQUIREMENTS
+
+1. **Chat state management**
+   - messages array: { id, role: 'user' | 'assistant', content, timestamp }
+   - activeChatId, chatHistory list
+   - New chat clears messages to welcome state
+   - Clicking history item loads that chat
+
+2. **Send message flow**
+   - User types or clicks suggestion → message added → show typing indicator (3 dots animation) → AI response after 1–2s delay
+   - For now, AI responses can be rule-based/mock responses tailored to Toy Poodle keywords (nutrition, grooming, training, health, behavior)
+   - Structure mock AI to mention "Toy Poodle" specifically in answers
+
+3. **Category shortcuts**
+   - Clicking sidebar category pre-fills or sends a category-specific starter question
+
+4. **Profile personalization**
+   - Store profile in local state (name, age, weight)
+   - AI welcome message references profile: "Luna için size nasıl yardımcı olabilirim?"
+
+5. **Accessibility**
+   - Proper aria labels on buttons
+   - Keyboard navigable
+   - Focus states visible
+   - Color contrast WCAG AA
+
+6. **Performance**
+   - Smooth scroll in chat
+   - No layout shift when input grows
+   - Sidebar drawer doesn't break scroll on mobile
+
+---
+
+## CONTENT RULES (IMPORTANT)
+
+- This assistant is EXCLUSIVELY for **Toy Poodle** owners
+- All example questions, AI responses, and suggestions must reference Toy Poodle specifically
+- Do NOT mention Miniature Poodle, Standard Poodle, or generic "dog" without specifying Toy Poodle
+- Categories covered: Beslenme (Nutrition), Tüy Bakımı (Grooming), Eğitim (Training), Sağlık (Health), Davranış (Behavior)
+- UI labels in Turkish (as shown in mockup)
+- AI response content in Turkish
+
+---
+
+## FILE STRUCTURE (suggested)
