@@ -1,0 +1,179 @@
+## `/rehber` — Kategori, konu başlıkları ve açıklamalar
+
+YourPoodle rehber hub’ı için önerilen tam içerik planı. Her kategori altında makale başlığı + kısa açıklama (kart özet metni) var.
+
+---
+
+### Genel sayfa metinleri
+
+| Alan | Metin |
+|---|---|
+| **Sayfa başlığı** | Poodle Rehberi |
+| **Alt başlık** | Veteriner onaylı içerikler, uzman yazarlar |
+| **Hero açıklama** | Toy Poodle ve Miniature Poodle sahipleri için mama seçiminden tuvalet eğitimine, tüy bakımından sağlık belirtilerine kadar ihtiyacınız olan tüm rehberler tek yerde. |
+| **Arama placeholder** | Makale, konu veya yazar ara… |
+| **Boş sonuç mesajı** | Aramanızla eşleşen makale bulunamadı. Filtreleri temizleyip tekrar deneyin. |
+
+---
+
+## 1. Beslenme (6 makale)
+
+**Kategori açıklaması:** Toy ve Mini Poodle’lar için doğru mama seçimi, porsiyon hesaplama, alerji ve beslenme sorunları.
+
+| # | Başlık | Açıklama (kart özeti) | Okuma | Yazar |
+|---|---|---|---|---|
+| ⭐ | **Toy Poodle İçin En İyi Mama Markaları 2026** | Royal Canin, Pro Plan, Hill’s ve daha fazlası — veteriner görüşleriyle karşılaştırmalı mama rehberi. Hangi marka hangi Toy Poodle için uygun? | 8 dk | Dr. Ayşe Kaya |
+| 2 | **Toy Poodle Günlük Mama Miktarı Nasıl Hesaplanır?** | Kilo, yaş ve aktivite seviyesine göre günlük mama gramajını adım adım hesaplayın. Aşırı veya yetersiz beslenmeden kaçının. | 6 dk | Dr. Ayşe Kaya |
+| 3 | **Tahıllı mı Tahılsız mı? Poodle İçin Doğru Seçim** | Tahıllı ve tahılsız mamaların artı/eksileri, alerji riskleri ve Poodle’larda sindirim sağlığı açısından karşılaştırma. | 7 dk | Dr. Ayşe Kaya |
+| 4 | **Toy Poodle Yavru Mama Rehberi: 0–12 Ay Beslenme** | Yavru döneminde mama geçişleri, öğün sıklığı, büyüme döneminde protein ihtiyacı ve dikkat edilmesi gerekenler. | 9 dk | Dr. Mehmet Öz |
+| 5 | **Poodle’da Gıda Alerjisi: Belirtiler ve Çözüm Yolları** | Kaşıntı, tüy dökülmesi, kulak enfeksiyonu — gıda alerjisi belirtilerini tanıyın ve eliminasyon diyeti uygulayın. | 8 dk | Dr. Mehmet Öz |
+| 6 | **Yaşlı Toy Poodle Beslenmesi: 7+ Yaş İçin Öneriler** | Yaşlı Poodle’larda böbrek, eklem ve kilo yönetimi için özel beslenme stratejileri ve mama seçimi ipuçları. | 6 dk | Dr. Ayşe Kaya |
+
+---
+
+## 2. Sağlık (6 makale)
+
+**Kategori açıklaması:** Erken teşhis, aşı takvimi, yaygın hastalıklar ve ne zaman veterinere gitmeniz gerektiği.
+
+| # | Başlık | Açıklama | Okuma | Yazar |
+|---|---|---|---|---|
+| ⭐ | **Toy Poodle Sağlık Belirtileri: Ne Zaman Veterinere Gitmeli?** | İştahsızlık, halsizlik, kusma, ishal — acil müdahale gerektiren ve bekleyebileceğiniz belirtilerin ayrımı. | 7 dk | Dr. Mehmet Öz |
+| 2 | **Toy Poodle Aşı Takvimi 2026: Tam Rehber** | Yavru ve yetişkin Poodle aşı programı, karma aşılar, kuduz ve yıllık boosters hakkında bilmeniz gerekenler. | 6 dk | Dr. Mehmet Öz |
+| 3 | **Poodle’da Yaygın Sağlık Sorunları ve Korunma** | Displazi, göz sorunları, diş hastalıkları, Addison hastalığı — Poodle ırkına özgü riskler ve önleme yöntemleri. | 10 dk | Dr. Mehmet Öz |
+| 4 | **Toy Poodle İdeal Kilo Tablosu ve Kilo Kontrolü** | Yaşa ve boya göre ideal kilo aralıkları, obezite belirtileri ve sağlıklı kilo verme programı. | 5 dk | Dr. Ayşe Kaya |
+| 5 | **Poodle Diş Sağlığı: Temizlik, Tartar ve Diş Eti Hastalıkları** | Evde diş bakımı, diş fırçalama tekniği, profesyonel temizlik ne zaman gerekir? | 6 dk | Dr. Ayşe Kaya |
+| 6 | **Poodle Kulak Enfeksiyonu: Belirtiler, Tedavi ve Önleme** | Sarkan kulak yapısına sahip Poodle’larda kulak enfeksiyonu nedenleri, evde bakım ve veteriner tedavisi. | 7 dk | Dr. Mehmet Öz |
+
+---
+
+## 3. Bakım (6 makale)
+
+**Kategori açıklaması:** Tüy bakımı, tıraş modelleri, banyo, göz ve kulak temizliği.
+
+| # | Başlık | Açıklama | Okuma | Yazar |
+|---|---|---|---|---|
+| ⭐ | **Toy Poodle Tüy Bakımı ve Tıraş Rehberi** | Fırçalama sıklığı, mat oluşumunu önleme, evde bakım vs profesyonel groomer — kapsamlı tüy bakım rehberi. | 9 dk | Groomer Elif Yılmaz |
+| 2 | **Toy Poodle Tıraş Modelleri: 2026 Trendleri** | Teddy bear, lamb cut, kennel cut, continental — her modelin özellikleri, bakım zorluğu ve fotoğraflı karşılaştırma. | 8 dk | Groomer Elif Yılmaz |
+| 3 | **Toy Poodle Banyo Rehberi: Ne Sıklıkla, Nasıl?** | Doğru şampuan seçimi, banyo adımları, kurutma teknikleri ve banyo sonrası tüy bakımı. | 5 dk | Groomer Elif Yılmaz |
+| 4 | **Poodle Göz Altı Lekesi (Tear Stain) Temizliği** | Göz altı kahverengi lekelerin nedenleri, temizleme ürünleri ve önleme yöntemleri. | 4 dk | Dr. Ayşe Kaya |
+| 5 | **Toy Poodle Tırnak ve Pati Bakımı** | Tırnak kesim sıklığı, pati padı bakımı, kırılgan tırnak sorunları ve evde güvenli kesim tekniği. | 4 dk | Groomer Elif Yılmaz |
+| 6 | **Poodle Bakım Takvimi: Aylık, Haftalık, Günlük Checklist** | Fırçalama, banyo, tırnak, diş, kulak — tüm bakım görevlerini takip edebileceğiniz hazır takvim. | 5 dk | Groomer Elif Yılmaz |
+
+---
+
+## 4. Eğitim (5 makale)
+
+**Kategori açıklaması:** Tuvalet eğitimi, temel komutlar, yavru ve yetişkin Poodle eğitimi.
+
+| # | Başlık | Açıklama | Okuma | Yazar |
+|---|---|---|---|---|
+| ⭐ | **Toy Poodle Tuvalet Eğitimi: Adım Adım Rehber** | 8 haftalık yavruya tuvalet eğitimi, kazalar, crate training ve pozitif pekiştirme yöntemleri. | 10 dk | Eğitmen Can Demir |
+| 2 | **Toy Poodle Temel Komutlar: Otur, Gel, Bekle** | Zeki Poodle’ınıza otur, gel, bekle, bırak komutlarını 2 haftada öğretin — adım adım eğitim planı. | 8 dk | Eğitmen Can Demir |
+| 3 | **Poodle Yavru Sosyalleştirme Rehberi** | 8–16 hafta kritik dönem: insan, köpek ve çevre sosyalleştirmesi için pratik ipuçları. | 7 dk | Eğitmen Can Demir |
+| 4 | **Toy Poodle Tasma ve Yürüyüş Eğitimi** | Tasma alıştırma, çekme sorunu, yürüyüşte dikkat dağınıklığı — sakin yürüyüşler için rehber. | 6 dk | Eğitmen Can Demir |
+| 5 | **Poodle’da Crate (Kafes) Eğitimi: Doğru Kullanım** | Kafes eğitiminin faydaları, doğru kafes boyutu, gece rutini ve yalnız kalma alıştırması. | 6 dk | Eğitmen Can Demir |
+
+---
+
+## 5. Davranış (5 makale)
+
+**Kategori açıklaması:** Havlama, ayrılık kaygısı, ısırma, saldırganlık ve davranış düzeltme.
+
+| # | Başlık | Açıklama | Okuma | Yazar |
+|---|---|---|---|---|
+| ⭐ | **Toy Poodle Havlama Sorunu Nasıl Çözülür?** | Aşırı havlamanın nedenleri (koruma, dikkat, kaygı), adım adım azaltma teknikleri ve ne zaman uzman desteği alınmalı. | 8 dk | Eğitmen Can Demir |
+| 2 | **Poodle’da Ayrılık Kaygısı: Belirtiler ve Çözüm** | Yalnız bırakıldığında havlama, yıkım, tuvalet kazaları — ayrılık kaygısını yönetme rehberi. | 9 dk | Eğitmen Can Demir |
+| 3 | **Toy Poodle Isırma Davranışı: Neden Olur, Nasıl Durdurulur?** | Yavru ısırması vs agresif ısırma ayrımı, sınır koyma teknikleri ve profesyonel yardım ne zaman gerekir. | 7 dk | Eğitmen Can Demir |
+| 4 | **Poodle ve Çocuklar: Güvenli Birliktelik Rehberi** | Küçük çocuklarla Poodle’ın güvenli etkileşimi, sınır koyma ve çocuklara köpek eğitimi. | 5 dk | Eğitmen Can Demir |
+| 5 | **Toy Poodle ve Diğer Evcil Hayvanlar: Uyum Sağlama** | Kedi, kuş veya başka köpekle tanıştırma, kaynak koruması ve barışçıl bir ev ortamı oluşturma. | 6 dk | Eğitmen Can Demir |
+
+---
+
+## 6. Üreme (3 makale)
+
+**Kategori açıklama:** Çiftleştirme, gebelik, yavru bakımı ve sorumlu üreticilik.
+
+| # | Başlık | Açıklama | Okuma | Yazar |
+|---|---|---|---|---|
+| ⭐ | **Toy Poodle Üreme Rehberi: Bilmeniz Gerekenler** | Çiftleştirme yaşı, sağlık taramaları, gebelik süreci ve yavru bakımı — sorumlu üreticilik rehberi. | 12 dk | Dr. Mehmet Öz |
+| 2 | **Toy Poodle Gebelik Takvimi ve Bakımı** | Gebelik belirtileri, haftalık gelişim, beslenme değişiklikleri ve doğum hazırlığı. | 8 dk | Dr. Mehmet Öz |
+| 3 | **Poodle Yavru Seçerken Dikkat Edilecekler** | Güvenilir üretici nasıl bulunur, sağlık belgeleri, yavru seçimi ve eve getirme hazırlığı. | 7 dk | Dr. Ayşe Kaya |
+
+---
+
+## Özet istatistikler (hero için)
+
+| Metrik | Değer |
+|---|---|
+| Toplam makale | **31** |
+| Kategori | **6** |
+| Erişim | **Ücretsiz** |
+| Ortalama okuma | **~7 dk** |
+
+---
+
+## Öne çıkan makale rotasyonu (kategori bazlı)
+
+Hub’da tek featured kart göster; kategoriye göre değişebilir:
+
+| Aktif filtre | Öne çıkan makale |
+|---|---|
+| Tümü | Toy Poodle İçin En İyi Mama Markaları 2026 |
+| Beslenme | Toy Poodle İçin En İyi Mama Markaları 2026 |
+| Sağlık | Toy Poodle Sağlık Belirtileri: Ne Zaman Veterinere Gitmeli? |
+| Bakım | Toy Poodle Tüy Bakımı ve Tıraş Rehberi |
+| Eğitim | Toy Poodle Tuvalet Eğitimi: Adım Adım Rehber |
+| Davranış | Toy Poodle Havlama Sorunu Nasıl Çözülür? |
+| Üreme | Toy Poodle Üreme Rehberi: Bilmeniz Gerekenler |
+
+---
+
+## Yazar profilleri (seed data)
+
+| Yazar | Unvan | Uzmanlık |
+|---|---|---|
+| Dr. Ayşe Kaya | Veteriner Hekim | Beslenme, genel sağlık |
+| Dr. Mehmet Öz | Veteriner Hekim | Sağlık, aşı, üreme |
+| Groomer Elif Yılmaz | Profesyonel Groomer | Tüy bakımı, tıraş |
+| Eğitmen Can Demir | Köpek Eğitmeni | Eğitim, davranış |
+
+---
+
+## Replit prompt’a eklenecek içerik bloğu (English)
+
+Önceki prompt’un sonuna şunu ekle:
+
+```
+### Seed content — 31 articles across 6 categories
+
+Use this exact content for mock/seed data. All copy in Turkish.
+
+**Categories with descriptions:**
+- beslenme: "Toy ve Mini Poodle'lar için doğru mama seçimi, porsiyon hesaplama, alerji ve beslenme sorunları."
+- saglik: "Erken teşhis, aşı takvimi, yaygın hastalıklar ve ne zaman veterinere gitmeniz gerektiği."
+- bakim: "Tüy bakımı, tıraş modelleri, banyo, göz ve kulak temizliği."
+- egitim: "Tuvalet eğitimi, temel komutlar, yavru ve yetişkin Poodle eğitimi."
+- davranis: "Havlama, ayrılık kaygısı, ısırma, saldırganlık ve davranış düzeltme."
+- ureme: "Çiftleştirme, gebelik, yavru bakımı ve sorumlu üreticilik."
+
+**Hero stats:** 31 Makale · 6 Kategori · Ücretsiz Erişim
+
+**Featured article (default):**
+- Title: "Toy Poodle İçin En İyi Mama Markaları 2026"
+- Excerpt: "Royal Canin, Pro Plan, Hill's ve daha fazlası — veteriner görüşleriyle karşılaştırmalı mama rehberi."
+- Category: beslenme | 8 dk | Dr. Ayşe Kaya | vetApproved: true
+
+Include all 31 articles from the content spec with: slug, title, excerpt (description), category, readTimeMinutes, author {name, role}, publishedAt, vetApproved (for vet-written articles).
+
+**Authors:**
+- Dr. Ayşe Kaya — Veteriner Hekim
+- Dr. Mehmet Öz — Veteriner Hekim
+- Groomer Elif Yılmaz — Profesyonel Groomer
+- Eğitmen Can Demir — Köpek Eğitmeni
+
+When a category filter is active, show that category's featured article at the top instead of the default.
+```
+
+---
+
+Toplam **31 makale**, **6 kategori**, **4 yazar** ile rehber hub’ı dolu ve gerçekçi görünür. İstersen bir sonraki adımda her makale için tam **slug** listesini veya makale detay sayfası (`/rehber/[slug]`) şablonunu da çıkarabilirim.

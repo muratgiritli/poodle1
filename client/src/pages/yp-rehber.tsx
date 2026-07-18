@@ -734,179 +734,267 @@ export default function Rehber({ routeSlug }: { routeSlug?: string } = {}) {
     window.history.replaceState({}, "", "/yourpoodle/rehber" + (qStr ? "?" + qStr : ""));
   };
 
+  /* ── Category-based featured article ── */
+  const CAT_FEATURED: Record<string, string> = {
+    "Tümü":     "toy-poodle-en-iyi-mama-markalari-2026",
+    "Beslenme": "toy-poodle-en-iyi-mama-markalari-2026",
+    "Sağlık":   "poodle-saglik-sorunlari",
+    "Bakım":    "evde-poodle-tirasi-adim-adim-rehber",
+    "Eğitim":   "temel-komut-egitimi",
+    "Davranış": "poodle-anksiyetesi",
+    "Üreme":    "poodle-kizginlik-ciftlestirme",
+  };
+  const activeFeatured = ARTICLES.find(a => a.slug === (CAT_FEATURED[activeCat] ?? CAT_FEATURED["Tümü"])) ?? featuredArticle;
+
+  const CAT_EMOJI: Record<string, string> = {
+    Tümü: "✦", Beslenme: "🌿", Sağlık: "❤️", Bakım: "🛁", Eğitim: "🎓", Davranış: "💬", Üreme: "🥚",
+  };
+
+  const formatDate = (d: string) => {
+    const [, m] = d.split("-");
+    const months: Record<string, string> = { "01":"Oca","02":"Şub","03":"Mar","04":"Nis","05":"May","06":"Haz","07":"Tem","08":"Ağu","09":"Eyl","10":"Eki","11":"Kas","12":"Ara" };
+    return (months[m] ?? m) + " " + d.split("-")[0];
+  };
+
   return (
     <YPLayout activeLink="/yourpoodle/rehber">
       <style>{`
-        .art-row-reh:hover { background: #F5F1FF !important; border-color: #E9D5FF !important; }
+        /* scrollbar */
         .noscroll-reh::-webkit-scrollbar { display: none; }
         .noscroll-reh { -ms-overflow-style: none; scrollbar-width: none; }
-        .cat-scroll-wrap { position: relative; }
-        .cat-scroll-wrap::after {
+        /* hero dots */
+        .reh-hero-dots {
+          position: absolute; left: 0; top: 0; bottom: 0; width: 110px;
+          background-image: radial-gradient(circle, rgba(255,255,255,0.22) 1.5px, transparent 1.5px);
+          background-size: 14px 14px; pointer-events: none;
+        }
+        /* featured hover */
+        .reh-featured:hover { box-shadow: 0 6px 28px rgba(124,58,237,0.13) !important; border-color: #D8B4FE !important; }
+        /* card hover */
+        .art-row-reh { transition: box-shadow .15s, border-color .15s; }
+        .art-row-reh:hover { box-shadow: 0 4px 18px rgba(0,0,0,0.07) !important; border-color: #E9D5FF !important; }
+        /* cat pill edge fade */
+        .cat-fade-wrap { position: relative; }
+        .cat-fade-wrap::after {
           content: ""; position: absolute; right: 0; top: 0; bottom: 0;
-          width: 40px; background: linear-gradient(to right, transparent, #fff);
-          pointer-events: none; border-radius: 0 20px 20px 0;
+          width: 48px; background: linear-gradient(to right, transparent, #fff);
+          pointer-events: none;
         }
-        @media (min-width: 768px) {
-          .reh-art-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 14px !important; }
-          .reh-featured-inner { max-width: 100%; }
+        /* grid */
+        @media (min-width: 640px) {
+          .reh-art-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
         }
-        @media (max-width: 767px) {
+        @media (max-width: 639px) {
           .reh-art-grid { display: flex; flex-direction: column; gap: 10px; }
-          .reh-modal-inner { border-radius: 16px 16px 0 0 !important; position: fixed !important; bottom: 0 !important; top: auto !important; left: 0 !important; right: 0 !important; width: 100% !important; max-width: 100% !important; max-height: 92vh !important; }
         }
+        /* modal mobile */
+        @media (max-width: 639px) {
+          .reh-modal-box { border-radius: 20px 20px 0 0 !important; position: fixed !important; bottom: 0 !important; top: auto !important; left: 0 !important; right: 0 !important; width: 100% !important; max-width: 100% !important; max-height: 92vh !important; }
+        }
+        /* page wrapper */
+        .reh-page { max-width: 900px; margin: 0 auto; }
       `}</style>
 
       {selected && <ArticleDetail article={selected} onClose={closeArticle} allArticles={ARTICLES} />}
 
-      {/* Hero */}
-      <div style={{ background: "linear-gradient(135deg,#7C3AFF,#A855F7)", padding: "28px 24px 32px", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: -30, right: -20, width: 140, height: 140, borderRadius: "50%", background: "rgba(255,255,255,0.08)" }} />
-        <div style={{ position: "absolute", bottom: -20, left: -10, width: 90, height: 90, borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
-        <div style={{ fontSize: 38, marginBottom: 10 }}>📖</div>
-        <h1 style={{ fontSize: 26, fontWeight: 900, color: "#fff", marginBottom: 6, lineHeight: 1.2 }}>Poodle Rehberi</h1>
-        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.88)", lineHeight: 1.5, marginBottom: 16 }}>Veteriner onaylı içerikler, uzman yazarlar</p>
-        <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-          {[[String(ARTICLES.length), "Makale"], ["6", "Kategori"], ["Ücretsiz", "Erişim"]].map(([n, l]) => (
-            <div key={l}>
-              <div style={{ fontSize: 15, fontWeight: 900, color: "#fff" }}>{n}</div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.72)" }}>{l}</div>
+      <div className="reh-page">
+
+        {/* ── Hero ── */}
+        <div style={{ background: "linear-gradient(135deg,#6D28D9 0%,#7C3AED 55%,#8B5CF6 100%)", padding: "32px 28px 36px", position: "relative", overflow: "hidden" }}>
+          {/* dot pattern left */}
+          <div className="reh-hero-dots" />
+          {/* top-right circle blur */}
+          <div style={{ position: "absolute", top: -40, right: -40, width: 180, height: 180, borderRadius: "50%", background: "rgba(255,255,255,0.07)", pointerEvents: "none" }} />
+
+          <div style={{ position: "relative", display: "flex", alignItems: "flex-start", gap: 20 }}>
+            {/* book icon box */}
+            <div style={{ width: 64, height: 64, background: "rgba(255,255,255,0.18)", borderRadius: 18, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30, flexShrink: 0, backdropFilter: "blur(4px)" }}>
+              📖
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Breadcrumb (hub) */}
-      <nav aria-label="breadcrumb" style={{ padding: "10px 16px 0", display: "flex", gap: 4, alignItems: "center", fontSize: 12, color: "#aaa" }}>
-        <a href="/yourpoodle" style={{ color: "#7C3AED", textDecoration: "none", fontWeight: 600 }}>Ana Sayfa</a>
-        <ChevronRight size={11} />
-        <span style={{ color: "#555", fontWeight: 600 }}>Rehber</span>
-      </nav>
-
-      {/* Search */}
-      <div style={{ padding: "10px 16px 0" }}>
-        <div style={{ display: "flex", alignItems: "center", background: "#F7F7F7", border: "1.5px solid #ececec", borderRadius: 14, height: 50, overflow: "hidden" }}>
-          <div style={{ paddingLeft: 14, color: "#bbb", display: "flex" }}><Search size={18} strokeWidth={2} /></div>
-          <input
-            value={query}
-            onChange={e => changeQuery(e.target.value)}
-            placeholder="Makale ara..."
-            aria-label="Makale ara"
-            style={{ flex: 1, border: "none", outline: "none", fontSize: 14, fontWeight: 600, color: "#333", background: "transparent", padding: "0 12px" }}
-          />
-          {query && (
-            <button onClick={() => changeQuery("")} aria-label="Aramayı temizle" style={{ background: "none", border: "none", cursor: "pointer", paddingRight: 12, color: "#bbb" }}>
-              <X size={16} strokeWidth={2} />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Category chips */}
-      <div style={{ padding: "12px 16px 0" }}>
-        <div className="cat-scroll-wrap" style={{ position: "relative" }}>
-          <div ref={catScrollRef} className="noscroll-reh" style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2, paddingRight: 40 }}>
-            {CATS.map(c => (
-              <button key={c} onClick={() => changeCategory(c)} aria-pressed={activeCat === c}
-                style={{ flexShrink: 0, padding: "7px 16px", borderRadius: 20, border: "1.5px solid", borderColor: activeCat === c ? "#7C3AFF" : "#e8e8e8", background: activeCat === c ? "#7C3AFF" : "#fff", color: activeCat === c ? "#fff" : "#555", fontSize: 12.5, fontWeight: 700, cursor: "pointer" }}>
-                {c}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Featured */}
-      {activeCat === "Tümü" && query === "" && featuredArticle && (
-        <div style={{ padding: "16px 16px 0" }}>
-          <a href={"/yourpoodle/rehber/" + featuredArticle.slug}
-            onClick={e => { e.preventDefault(); openArticle(featuredArticle); }}
-            aria-label={`Öne çıkan: ${featuredArticle.title}`}
-            className="reh-featured-inner"
-            style={{ width: "100%", background: "linear-gradient(135deg,#EDE8FF,#F5F0FF)", borderRadius: 18, padding: "20px", display: "flex", gap: 16, alignItems: "center", cursor: "pointer", textDecoration: "none" }}>
-            <div style={{ width: 72, height: 72, borderRadius: 18, background: CAT_COLORS[featuredArticle.cat]?.bg || "#F5F0FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, flexShrink: 0, border: "2px solid rgba(124,58,237,0.15)" }}>
-              {featuredArticle.emoji}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: "#7C3AFF", letterSpacing: "0.06em", marginBottom: 6 }}>⭐ ÖNE ÇIKAN</div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "#1a1a1a", lineHeight: 1.35, marginBottom: 8 }}>{featuredArticle.title}</div>
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 11, color: "#888", display: "flex", alignItems: "center", gap: 3 }}><Clock size={11} strokeWidth={2} />{featuredArticle.min} dk</span>
-                <span style={{ fontSize: 11, color: "#888" }}>✍️ {featuredArticle.author}</span>
-                <span style={{ fontSize: 11, color: "#888" }}>📅 {featuredArticle.updated.split("-")[0]}</span>
-              </div>
-            </div>
-            <ChevronRight size={18} color="#7C3AFF" />
-          </a>
-        </div>
-      )}
-
-      {/* Article list */}
-      <div style={{ padding: "16px 16px 0" }}>
-        {pageItems.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "48px 24px", color: "#aaa" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#555", marginBottom: 6 }}>
-              {query ? `"${query}" için makale bulunamadı` : "Bu kategoride henüz makale yok"}
-            </div>
-            <div style={{ fontSize: 13 }}>Farklı bir kategori veya arama terimi deneyin.</div>
-            <button onClick={() => { changeQuery(""); changeCategory("Tümü"); }}
-              style={{ marginTop: 16, padding: "10px 24px", borderRadius: 20, background: "#7C3AFF", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
-              Tümünü Göster
-            </button>
-          </div>
-        ) : (
-          <div className="reh-art-grid" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {pageItems.map(a => {
-              const cs = CAT_COLORS[a.cat] || { bg: "#F5F0FF", color: "#7C3AED" };
-              return (
-                <a key={a.slug}
-                  href={"/yourpoodle/rehber/" + a.slug}
-                  aria-label={`${a.title} makalesini oku`}
-                  className="art-row-reh"
-                  onClick={e => { e.preventDefault(); openArticle(a); }}
-                  style={{ display: "flex", gap: 14, alignItems: "center", padding: "14px", background: "#FAFAFA", borderRadius: 14, cursor: "pointer", border: "1.5px solid #F3F4F6", textDecoration: "none", transition: "all 0.15s" }}>
-                  <div style={{ width: 58, height: 58, borderRadius: 14, background: cs.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, flexShrink: 0 }}>
-                    {a.emoji}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: cs.color, marginBottom: 4 }}>{a.cat}</div>
-                    <div style={{ fontSize: 13.5, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.4, marginBottom: 5 }}>{a.title}</div>
-                    <div style={{ fontSize: 11, color: "#aaa", marginBottom: 3 }}>{a.author} · {a.role}</div>
-                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 11, color: "#bbb", display: "flex", alignItems: "center", gap: 3 }}><Clock size={10} strokeWidth={2} />{a.min} dk</span>
-                      <span style={{ fontSize: 11, color: "#bbb" }}>📅 {a.updated.split("-").slice(0,2).join("/")}</span>
+            <div style={{ flex: 1 }}>
+              <h1 style={{ fontSize: 28, fontWeight: 900, color: "#fff", margin: "0 0 6px", lineHeight: 1.15 }}>Poodle Rehberi</h1>
+              <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.85)", margin: "0 0 20px", lineHeight: 1.4 }}>Veteriner onaylı içerikler, uzman yazarlar</p>
+              <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>
+                {[
+                  { icon: "📄", n: String(ARTICLES.length), l: "Articles" },
+                  { icon: "⊞",  n: "6",                    l: "Categories" },
+                  { icon: "⭐", n: "Free",                  l: "Access" },
+                ].map(({ icon, n, l }) => (
+                  <div key={l} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ width: 32, height: 32, background: "rgba(255,255,255,0.18)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0 }}>{icon}</div>
+                    <div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{n}</div>
+                      <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.72)", marginTop: 2 }}>{l}</div>
                     </div>
                   </div>
-                  <ChevronRight size={16} color="#ccc" style={{ flexShrink: 0 }} />
-                </a>
-              );
-            })}
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Breadcrumb ── */}
+        <nav aria-label="breadcrumb" style={{ padding: "14px 20px 0", display: "flex", gap: 6, alignItems: "center", fontSize: 12.5, color: "#aaa" }}>
+          <a href="/yourpoodle" style={{ color: "#7C3AED", textDecoration: "none", fontWeight: 600 }}>Ana Sayfa</a>
+          <ChevronRight size={12} />
+          <span style={{ color: "#555", fontWeight: 600 }}>Rehber</span>
+        </nav>
+
+        {/* ── Search ── */}
+        <div style={{ padding: "12px 20px 0" }}>
+          <div style={{ display: "flex", alignItems: "center", background: "#fff", border: "1.5px solid #E5E7EB", borderRadius: 14, height: 52, overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+            <div style={{ paddingLeft: 16, color: "#bbb", display: "flex", flexShrink: 0 }}><Search size={18} strokeWidth={2} /></div>
+            <input
+              value={query}
+              onChange={e => changeQuery(e.target.value)}
+              placeholder="Makale, konu veya yazar ara…"
+              aria-label="Makale ara"
+              style={{ flex: 1, border: "none", outline: "none", fontSize: 14, color: "#333", background: "transparent", padding: "0 14px" }}
+            />
+            {query && (
+              <button onClick={() => changeQuery("")} aria-label="Aramayı temizle" style={{ background: "none", border: "none", cursor: "pointer", paddingRight: 14, color: "#bbb" }}>
+                <X size={16} strokeWidth={2} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ── Category pills ── */}
+        <div style={{ padding: "14px 20px 0" }}>
+          <div className="cat-fade-wrap">
+            <div ref={catScrollRef} className="noscroll-reh" style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2, paddingRight: 48 }}>
+              {CATS.map(c => {
+                const active = activeCat === c;
+                return (
+                  <button key={c} onClick={() => changeCategory(c)} aria-pressed={active}
+                    style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 6, padding: "8px 18px", borderRadius: 24, border: "1.5px solid", borderColor: active ? "#7C3AED" : "#E5E7EB", background: active ? "#7C3AED" : "#fff", color: active ? "#fff" : "#555", fontSize: 13, fontWeight: 700, cursor: "pointer", transition: "all .15s" }}>
+                    <span style={{ fontSize: 14 }}>{CAT_EMOJI[c]}</span>
+                    {c}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Featured card ── */}
+        {query === "" && activeFeatured && (
+          <div style={{ padding: "18px 20px 0" }}>
+            <a href={"/yourpoodle/rehber/" + activeFeatured.slug}
+              onClick={e => { e.preventDefault(); openArticle(activeFeatured); }}
+              aria-label={`Öne çıkan: ${activeFeatured.title}`}
+              className="reh-featured"
+              style={{ display: "flex", gap: 0, background: "#fff", borderRadius: 18, border: "1.5px solid #E9D5FF", overflow: "hidden", cursor: "pointer", textDecoration: "none", boxShadow: "0 2px 12px rgba(124,58,237,0.08)", transition: "box-shadow .15s, border-color .15s" }}>
+              {/* thumbnail */}
+              <div style={{ width: 140, minWidth: 140, background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 52, flexShrink: 0 }}>
+                {activeFeatured.emoji}
+              </div>
+              {/* content */}
+              <div style={{ flex: 1, padding: "20px 18px 20px 20px", minWidth: 0 }}>
+                {/* badges */}
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: 4, background: "#FEF3C7", color: "#D97706", fontSize: 10.5, fontWeight: 800, borderRadius: 20, padding: "3px 10px", letterSpacing: "0.04em" }}>
+                    ⭐ ÖNE ÇIKAN
+                  </span>
+                  <span style={{ fontSize: 10.5, fontWeight: 800, color: CAT_COLORS[activeFeatured.cat]?.color ?? "#7C3AED", letterSpacing: "0.05em" }}>
+                    {activeFeatured.cat.toUpperCase()}
+                  </span>
+                </div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: "#111", lineHeight: 1.35, marginBottom: 14 }}>{activeFeatured.title}</div>
+                <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
+                  <span style={{ fontSize: 11.5, color: "#888", display: "flex", alignItems: "center", gap: 4 }}>
+                    <Clock size={12} strokeWidth={2} />{activeFeatured.min} dk okuma
+                  </span>
+                  <span style={{ fontSize: 11.5, color: "#888", display: "flex", alignItems: "center", gap: 4 }}>
+                    👤 {activeFeatured.author}
+                  </span>
+                  <span style={{ fontSize: 11.5, color: "#888", display: "flex", alignItems: "center", gap: 4 }}>
+                    📅 {activeFeatured.updated.split("-")[0]}
+                  </span>
+                </div>
+              </div>
+              {/* arrow */}
+              <div style={{ display: "flex", alignItems: "center", paddingRight: 18, paddingLeft: 4, flexShrink: 0 }}>
+                <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#7C3AED", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <ChevronRight size={20} color="#fff" strokeWidth={2.5} />
+                </div>
+              </div>
+            </a>
           </div>
         )}
-      </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div style={{ display: "flex", justifyContent: "center", gap: 8, padding: "20px 16px 8px", flexWrap: "wrap" }}>
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-            style={{ padding: "8px 14px", borderRadius: 20, border: "1.5px solid #e8e8e8", background: "#fff", cursor: page === 1 ? "default" : "pointer", color: page === 1 ? "#ccc" : "#555", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
-            <ChevronLeft size={14} /> Önceki
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
-            <button key={n} onClick={() => setPage(n)}
-              style={{ width: 38, height: 38, borderRadius: "50%", border: "1.5px solid", borderColor: page === n ? "#7C3AFF" : "#e8e8e8", background: page === n ? "#7C3AFF" : "#fff", color: page === n ? "#fff" : "#555", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
-              {n}
-            </button>
-          ))}
-          <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-            style={{ padding: "8px 14px", borderRadius: 20, border: "1.5px solid #e8e8e8", background: "#fff", cursor: page === totalPages ? "default" : "pointer", color: page === totalPages ? "#ccc" : "#555", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
-            Sonraki <ChevronRight size={14} />
-          </button>
+        {/* ── Article grid ── */}
+        <div style={{ padding: "18px 20px 0" }}>
+          {pageItems.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "56px 24px", color: "#aaa" }}>
+              <div style={{ fontSize: 44, marginBottom: 14 }}>🔍</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#555", marginBottom: 6 }}>
+                {query ? `"${query}" için makale bulunamadı` : "Bu kategoride henüz makale yok"}
+              </div>
+              <div style={{ fontSize: 13 }}>Farklı bir kategori veya arama terimi deneyin.</div>
+              <button onClick={() => { changeQuery(""); changeCategory("Tümü"); }}
+                style={{ marginTop: 18, padding: "10px 24px", borderRadius: 20, background: "#7C3AED", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+                Tümünü Göster
+              </button>
+            </div>
+          ) : (
+            <div className="reh-art-grid" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {pageItems.map(a => {
+                const cs = CAT_COLORS[a.cat] || { bg: "#F5F0FF", color: "#7C3AED" };
+                return (
+                  <a key={a.slug}
+                    href={"/yourpoodle/rehber/" + a.slug}
+                    aria-label={`${a.title} makalesini oku`}
+                    className="art-row-reh"
+                    onClick={e => { e.preventDefault(); openArticle(a); }}
+                    style={{ display: "flex", gap: 0, background: "#fff", borderRadius: 16, border: "1.5px solid #F0F0F0", cursor: "pointer", textDecoration: "none", overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+                    {/* thumbnail */}
+                    <div style={{ width: 90, minWidth: 90, background: cs.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, flexShrink: 0 }}>
+                      {a.emoji}
+                    </div>
+                    {/* body */}
+                    <div style={{ flex: 1, padding: "13px 14px", minWidth: 0 }}>
+                      <div style={{ fontSize: 10, fontWeight: 800, color: cs.color, marginBottom: 5, letterSpacing: "0.04em" }}>{a.cat.toUpperCase()}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#111", lineHeight: 1.4, marginBottom: 6 }}>{a.title}</div>
+                      <div style={{ fontSize: 11, color: "#999", marginBottom: 5 }}>{a.author} — {a.role}</div>
+                      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 11, color: "#bbb", display: "flex", alignItems: "center", gap: 3 }}><Clock size={10} strokeWidth={2} />{a.min} dk okuma</span>
+                        <span style={{ fontSize: 11, color: "#bbb", display: "flex", alignItems: "center", gap: 3 }}>📅 {formatDate(a.updated)}</span>
+                      </div>
+                    </div>
+                    {/* chevron */}
+                    <div style={{ display: "flex", alignItems: "center", paddingRight: 14, paddingLeft: 4, flexShrink: 0 }}>
+                      <ChevronRight size={16} color="#D1D5DB" strokeWidth={2.5} />
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          )}
         </div>
-      )}
 
-      {/* Bottom padding for mobile nav */}
-      <div style={{ height: 32 }} />
+        {/* ── Pagination ── */}
+        {totalPages > 1 && (
+          <div style={{ display: "flex", justifyContent: "center", gap: 8, padding: "24px 20px 8px", flexWrap: "wrap" }}>
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+              style={{ padding: "8px 16px", borderRadius: 20, border: "1.5px solid #E5E7EB", background: "#fff", cursor: page === 1 ? "default" : "pointer", color: page === 1 ? "#ccc" : "#555", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
+              <ChevronLeft size={14} /> Önceki
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+              <button key={n} onClick={() => setPage(n)}
+                style={{ width: 38, height: 38, borderRadius: "50%", border: "1.5px solid", borderColor: page === n ? "#7C3AED" : "#E5E7EB", background: page === n ? "#7C3AED" : "#fff", color: page === n ? "#fff" : "#555", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+                {n}
+              </button>
+            ))}
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+              style={{ padding: "8px 16px", borderRadius: 20, border: "1.5px solid #E5E7EB", background: "#fff", cursor: page === totalPages ? "default" : "pointer", color: page === totalPages ? "#ccc" : "#555", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
+              Sonraki <ChevronRight size={14} />
+            </button>
+          </div>
+        )}
+
+        <div style={{ height: 40 }} />
+      </div>
     </YPLayout>
   );
 }
