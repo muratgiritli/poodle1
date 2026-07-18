@@ -1,0 +1,347 @@
+# Replit Agent Prompt: YourPoodle E-Commerce Store Page
+
+Build a **fully responsive, production-quality e-commerce store page** for **YourPoodle** — a Turkish pet brand specializing in Poodle products. Match the provided design mockup as closely as possible. Use **React + Vite + Tailwind CSS** (or Next.js if preferred). All visible UI text must be in **Turkish**.
+
+---
+
+## Project Overview
+
+**Brand:** YourPoodle  
+**Page:** Store / Mağaza (`/magaza`)  
+**Goal:** A polished, modern e-commerce landing + product listing page for Poodle food, treats, accessories, and care products.
+
+---
+
+## Design System
+
+### Colors
+| Token | Usage |
+|-------|--------|
+| **Primary Purple** | `#7C3AED` or similar vibrant purple — logo, primary buttons, active nav, prices, accents |
+| **Purple Dark** | Hover states, footer background |
+| **Orange** | Secondary CTA buttons (e.g. "Mama Bul") — `#F97316` or similar |
+| **White** | Main background |
+| **Light Gray** | `#F9FAFB` / `#F3F4F6` — section backgrounds, cards |
+| **Border Gray** | `#E5E7EB` — inputs, dividers |
+| **Text Dark** | `#111827` — headings |
+| **Text Muted** | `#6B7280` — body, subtitles |
+
+### Typography
+- Modern sans-serif: **Inter**, **Plus Jakarta Sans**, or **DM Sans**
+- Headings: bold, tight letter-spacing
+- Body: regular, readable line-height
+
+### UI Style
+- Rounded corners: `rounded-xl` / `rounded-2xl` on cards, buttons, inputs
+- Soft shadows on cards and header
+- Smooth hover transitions (150–200ms)
+- Consistent spacing: 4px grid system
+- Mobile-first, fully responsive
+
+---
+
+## Page Structure (Top to Bottom)
+
+### 1. Top Promo Bar
+- Full-width thin bar, **purple background**, white text, centered
+- Text: **"500₺ üzeri kargo bedava! 🚚"**
+- Sticky or fixed at very top
+
+---
+
+### 2. Main Header (Sticky)
+**Layout:** Logo (left) | Nav links (center-left) | Search (center) | Icons + CTA (right)
+
+**Logo:**
+- Paw icon + **"YourPoodle"** in purple, left-aligned
+
+**Navigation links:**
+- Ana Sayfa
+- Mama Bul
+- Rehber
+- Araçlar
+- AI Asistan
+- **Mağaza** ← active state (underline or bold purple)
+
+**Search bar:**
+- Centered, rounded, magnifying glass icon
+- Placeholder: e.g. **"Ürün, marka veya kategori ara..."**
+
+**Right side utilities:**
+- Heart icon (Favorites / Favoriler)
+- Shopping cart icon with **badge showing "2"**
+- User profile icon
+- Purple button: **"Ücretsiz Başla"**
+
+**Behavior:**
+- Sticky on scroll
+- Collapse to hamburger menu on mobile
+- Subtle bottom shadow when scrolled
+
+---
+
+### 3. Breadcrumbs
+- Below header: **"Ana Sayfa > Mağaza"**
+- Muted text, "Mağaza" slightly darker/bold
+
+---
+
+### 4. Hero Section — "Poodle Mağazası"
+**Background:** Light gradient (white → very light purple/gray)
+
+**Left content:**
+- **H1:** "Poodle Mağazası"
+- **Subtitle:** "Royal Canin, Reflex Plus ve daha fazlası"
+- Short paragraph (2–3 lines) about curated Poodle products, trusted brands, fast delivery
+
+**Value prop mini-cards (3 inline):**
+| Icon | Label |
+|------|-------|
+| Box/package | **3+ Ürün** |
+| Truck | **Türkiye Geneli Kargo** |
+| Shield/lock | **Güvenli Ödeme** |
+
+**Right side imagery:**
+- Floating product images (dog food bags: Reflex Plus, Royal Canin)
+- High-quality photo of a **toy Poodle puppy** with purple bandana, purple toy, and bowl
+- Slight overlap / layered composition with soft shadows
+
+---
+
+### 5. CTA Banner — "Don't Know Which Food?"
+- Horizontal banner, light background, rounded
+- Bone icon on the left
+- Text: **"Hangi mamayı seçeceğinizi bilmiyor musunuz?"**
+- Orange button on the right: **"Mama Bul →"**
+
+---
+
+### 6. Product Search, Categories & Filters
+
+**Product search bar:**
+- Full-width or contained, with search icon
+- Placeholder: **"Mağazada ara..."**
+
+**Category grid (horizontal scroll on mobile):**
+| Icon | Label |
+|------|-------|
+| Grid | **Tümü** (active) |
+| Bowl | **Mama** |
+| Bone | **Ödül** |
+| Leash | **Tasma** |
+| Carrier | **Taşıma** |
+| Ball | **Oyuncak** |
+| Shampoo | **Bakım / Hijyen** |
+| Pill | **Sağlık / Vitamin** |
+
+**Quick filter chips (pill buttons):**
+- Puppy → **Yavru**
+- Adult → **Yetişkin**
+- Royal Canin
+- Reflex Plus
+- (Add 2–3 more relevant chips)
+
+**Sort dropdown (right-aligned):**
+- Label: **"Sırala:"**
+- Default: **"Önerilen"**
+- Options: Fiyat (Düşükten Yükseğe), Fiyat (Yüksekten Düşüğe), En Çok Satan, En Yeni
+
+---
+
+### 7. Featured Products — "Öne Çıkan Ürünler"
+**Section title:** "Öne Çıkan Ürünler"
+
+**Grid:** 3 columns desktop, 2 tablet, 1 mobile
+
+**Each product card includes:**
+- Product image (top)
+- **Discount badge** top-left: e.g. **"%20 İNDİRİM"** (red/orange badge)
+- **Heart icon** top-right (toggle favorite)
+- **Star rating** + review count: e.g. ★★★★★ **(128)**
+- **Product title:** e.g. "Reflex Plus Poodle Yetişkin Köpek Maması 2kg"
+- **Price:** Current price large purple (e.g. **₺800**), old price struck through (e.g. ~~₺1000~~)
+- **Badge:** "Hızlı Teslimat" (small green or purple pill)
+- **Full-width purple button:** **"Sepete Ekle"** with cart icon
+
+**Sample products (use placeholder images if needed):**
+1. Reflex Plus Poodle Yetişkin Köpek Maması 2kg — ₺800 (was ₺1000) — %20
+2. Royal Canin Poodle Adult 1.5kg — ₺950 (was ₺1100) — %14
+3. Poodle Özel Bakım Şampuanı 250ml — ₺320 (was ₺400) — %20
+
+**Interactions:**
+- Hover: card lifts slightly, shadow increases
+- "Sepete Ekle" updates cart badge count
+- Heart toggles filled/outline state
+
+---
+
+### 8. Secondary Feature Banners (3 columns)
+Three equal cards with image, title, description, and link:
+
+| Title | Description | Link |
+|-------|-------------|------|
+| **Poodle Mamaları** | Premium yetişkin ve yavru mamalar | **Ürünleri Gör →** |
+| **Bakım Ürünleri** | Tüy, cilt ve hijyen ürünleri | **Ürünleri Gör →** |
+| **Kargo & Ödeme** | Hızlı teslimat ve güvenli ödeme | **Ürünleri Gör →** |
+
+Light card background, rounded corners, image on top or left.
+
+---
+
+### 9. Trust Bar
+Four equal columns with icon + text:
+
+| Icon | Title | Subtitle |
+|------|-------|----------|
+| Truck | **Hızlı Kargo** | 1–3 iş günü |
+| Return arrow | **Kolay İade** | 14 gün içinde |
+| Lock | **Güvenli Ödeme** | 256-bit SSL |
+| Credit card | **Taksit İmkanı** | Tüm kartlara |
+
+Light gray background, centered icons, compact layout.
+
+---
+
+### 10. FAQ Section — "Sık Sorulan Sorular"
+- Section title centered or left-aligned
+- **Two-column accordion** on desktop, single column on mobile
+
+**Sample questions:**
+1. Poodle'lar için hangi mama en uygun?
+2. Kargo ne kadar sürede gelir?
+3. İade politikanız nedir?
+4. Taksit seçenekleri var mı?
+5. Yavru Poodle için önerileriniz neler?
+6. Ürünler orijinal mi?
+
+Accordion: click to expand/collapse with chevron icon, smooth animation.
+
+---
+
+### 11. Footer
+**Background:** Dark purple or dark gray
+
+**Left column:**
+- YourPoodle logo (white/light version)
+- Social icons: Instagram, Facebook, YouTube, TikTok
+
+**Link columns:**
+
+| Kurumsal | Mağaza | Destek | Topluluk |
+|----------|--------|--------|----------|
+| Hakkımızda | Mama | SSS | Blog |
+| Kariyer | Bakım | İletişim | Forum |
+| Basın | Oyuncak | Kargo Takibi | Etkinlikler |
+| Gizlilik | Sağlık | İade | Sosyal Medya |
+
+**Contact block:**
+- Phone: **0850 XXX XX XX**
+- Email: **destek@yourpoodle.com**
+- Hours: **Pzt–Cmt 09:00–18:00**
+
+**Bottom bar:**
+- Copyright: **© 2026 YourPoodle. Tüm hakları saklıdır.**
+- Payment logos: Visa, Mastercard, Troy, iyzico
+- SSL badge / "Güvenli Alışveriş"
+
+---
+
+## Technical Requirements
+
+### Stack
+- **React 18+** with **Vite**
+- **Tailwind CSS** for styling
+- **Lucide React** or **Heroicons** for icons
+- Optional: **Framer Motion** for subtle animations
+
+### Data & State
+- Mock product data in a `products.js` or JSON file
+- Cart state (React Context or Zustand): add to cart, badge count
+- Favorites toggle (local state)
+- Filter chips update visible products (client-side)
+- Sort dropdown works on product list
+
+### Assets
+- Use **Unsplash / Pexels** or placeholder images for products and Poodle hero photo
+- Paw icon via Lucide (`PawPrint`) or custom SVG
+
+### Responsive Breakpoints
+- Mobile: < 768px — hamburger nav, stacked hero, 1-col products
+- Tablet: 768–1024px — 2-col products
+- Desktop: > 1024px — full layout as mockup
+
+### Accessibility
+- Semantic HTML (`header`, `nav`, `main`, `section`, `footer`)
+- Alt text on all images
+- Keyboard-navigable accordion and buttons
+- Sufficient color contrast
+
+### Performance
+- Lazy-load below-fold images
+- Optimize images (WebP where possible)
+- No external UI libraries beyond Tailwind
+
+---
+
+## File Structure (Suggested)
+
+```
+src/
+├── components/
+│   ├── layout/
+│   │   ├── PromoBar.jsx
+│   │   ├── Header.jsx
+│   │   ├── Footer.jsx
+│   │   └── Breadcrumbs.jsx
+│   ├── home/
+│   │   ├── Hero.jsx
+│   │   ├── CTABanner.jsx
+│   │   ├── CategoryFilter.jsx
+│   │   ├── ProductGrid.jsx
+│   │   ├── ProductCard.jsx
+│   │   ├── FeatureBanners.jsx
+│   │   ├── TrustBar.jsx
+│   │   └── FAQ.jsx
+│   └── ui/
+│       ├── Button.jsx
+│       ├── Badge.jsx
+│       └── Accordion.jsx
+├── data/
+│   └── products.js
+├── context/
+│   └── CartContext.jsx
+├── pages/
+│   └── StorePage.jsx
+├── App.jsx
+└── index.css
+```
+
+---
+
+## Acceptance Criteria
+
+- [ ] Page visually matches the purple/white/orange mockup
+- [ ] All text is in Turkish
+- [ ] Sticky header with working mobile menu
+- [ ] Hero section with gradient, value props, and Poodle imagery
+- [ ] Category filters and sort dropdown functional
+- [ ] 3+ product cards with discount badges, ratings, add-to-cart
+- [ ] Cart badge updates when adding products
+- [ ] FAQ accordion expands/collapses
+- [ ] Full footer with links, contact, payment logos
+- [ ] Fully responsive on mobile, tablet, desktop
+- [ ] Clean, readable, well-organized code
+
+---
+
+## Do NOT
+
+- Use generic Bootstrap default styling
+- Leave Lorem Ipsum — all copy must be real Turkish
+- Skip mobile layout
+- Use heavy animation libraries
+- Build backend/API — frontend only with mock data
+
+---
+
+**Start by scaffolding the project, then build section by section from top to bottom. Prioritize pixel-accurate layout and polish over extra features.**
