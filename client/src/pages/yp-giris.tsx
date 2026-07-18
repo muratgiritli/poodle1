@@ -109,11 +109,7 @@ const CSS = `
   }
 
   /* mobile hero banner */
-  .auth-mobile-hero {
-    display: none;
-    width: 100%; height: 120px; border-radius: 16px; overflow: hidden;
-    position: relative; margin-bottom: 20px; display: flex; align-items: flex-end;
-  }
+  .auth-mobile-hero { display: none !important; }
   .auth-mobile-hero img {
     position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
   }
