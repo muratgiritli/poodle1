@@ -460,7 +460,7 @@ export default function YourPoodleHomePage() {
         </div>
 
         {/* Stats şeridi */}
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px" }}>
+        <div className="yph-desktop-only" style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px" }}>
           <div style={{ background: "#F9F8FF", borderRadius: 20, padding: "28px 32px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
             <div style={{ flex: 1, minWidth: 220 }}>
               <p style={{ fontSize: 18, fontWeight: 900, color: "#111", margin: "0 0 2px" }}>Binlerce Poodle sahibi bize güveniyor 💜</p>
@@ -726,7 +726,7 @@ export default function YourPoodleHomePage() {
       </section>
 
       {/* ─── ÜRÜNLER (static curated) ────────────────────── */}
-      <section style={{ background: "#fff", padding: "56px 24px", borderTop: "1px solid #F3F4F6" }}>
+      <section className="yph-desktop-only" style={{ background: "#fff", padding: "56px 24px", borderTop: "1px solid #F3F4F6" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24 }}>
             <div>
