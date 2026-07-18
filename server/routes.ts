@@ -275,7 +275,8 @@ async function ensureAdminExists() {
 }
 
 function requireAdmin(req: Request, res: Response, next: NextFunction) {
-  if (!(req.session as any)?.userId) {
+  const sess = req.session as any;
+  if (!sess?.userId || sess?.isAdmin !== true) {
     return res.status(401).json({ message: "Unauthorized" });
   }
   next();
@@ -2372,6 +2373,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         return res.status(500).json({ message: "Session error" });
       }
       (req.session as any).userId = user.id;
+      (req.session as any).isAdmin = true;
       req.session.save((saveErr) => {
         if (saveErr) return res.status(500).json({ message: "Session save error" });
         res.json({ message: "Login successful" });
@@ -4655,6 +4657,18 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json(enriched);
   });
 
+  app.delete("/api/admin/orders/:id", requireAdmin, async (req, res) => {
+    const id = Number(req.params.id);
+    if (!id || isNaN(id)) return res.status(400).json({ message: "Geçersiz sipariş ID" });
+    try {
+      await sharedPool.query(`DELETE FROM orders WHERE id = $1`, [id]);
+      res.json({ ok: true });
+    } catch (err: any) {
+      console.error("[delete-order] error:", err?.message);
+      res.status(500).json({ message: "Sipariş silinemedi", detail: err?.message });
+    }
+  });
+
   app.delete("/api/admin/orders/clear-all", requireAdmin, async (_req, res) => {
     try {
       await sharedPool.query(`DELETE FROM orders`);
@@ -5031,7 +5045,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     if (!customerId) return res.status(401).json({ message: "Giriş yapılmamış" });
     const customer = await storage.getCustomer(customerId);
     if (!customer) return res.status(401).json({ message: "Giriş yapılmamış" });
-    res.json({ id: customer.id, phone: customer.phone, name: customer.name, address: customer.address, email: customer.email, tcNo: customer.tcNo, notifyStock: customer.notifyStock, notifyCampaign: customer.notifyCampaign });
+    res.json({ id: customer.id, phone: customer.phone, name: customer.name, address: customer.address, email: customer.email, notifyStock: customer.notifyStock, notifyCampaign: customer.notifyCampaign });
   });
 
   app.patch("/api/customer/profile", requireCustomer, async (req, res) => {
@@ -5104,7 +5118,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       }
     }
 
-    res.json({ id: customer.id, phone: customer.phone, name: customer.name, address: customer.address, email: customer.email, tcNo: customer.tcNo, notifyStock: customer.notifyStock, notifyCampaign: customer.notifyCampaign });
+    res.json({ id: customer.id, phone: customer.phone, name: customer.name, address: customer.address, email: customer.email, notifyStock: customer.notifyStock, notifyCampaign: customer.notifyCampaign });
   });
 
   app.patch("/api/customer/password", requireCustomer, async (req, res) => {

@@ -178,14 +178,14 @@ export default function YPSepetPage() {
                       {/* Qty controls */}
                       <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
                         <button onClick={() => item.qty === 1 ? remove(item.id) : changeQty(item.id, -1)}
-                          style={{ width: 30, height: 30, borderRadius: 8, border: "1.5px solid #e5e7eb", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          {item.qty === 1 ? <Trash2 size={13} color="#EF4444" /> : <Minus size={13} />}
+                          style={{ width: 44, height: 44, borderRadius: 10, border: "1.5px solid #e5e7eb", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {item.qty === 1 ? <Trash2 size={15} color="#EF4444" /> : <Minus size={15} />}
                         </button>
-                        <span style={{ width: 26, textAlign: "center", fontSize: 14, fontWeight: 800 }}>{item.qty}</span>
+                        <span style={{ width: 30, textAlign: "center", fontSize: 15, fontWeight: 800 }}>{item.qty}</span>
                         <button onClick={() => changeQty(item.id, 1)}
                           disabled={isOut || (info != null && item.qty >= info.stock)}
-                          style={{ width: 30, height: 30, borderRadius: 8, border: "1.5px solid #e5e7eb", background: "#fff", cursor: (isOut || (info != null && item.qty >= info.stock)) ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", opacity: (isOut || (info != null && item.qty >= info.stock)) ? 0.4 : 1 }}>
-                          <Plus size={13} />
+                          style={{ width: 44, height: 44, borderRadius: 10, border: "1.5px solid #e5e7eb", background: "#fff", cursor: (isOut || (info != null && item.qty >= info.stock)) ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", opacity: (isOut || (info != null && item.qty >= info.stock)) ? 0.4 : 1 }}>
+                          <Plus size={15} />
                         </button>
                       </div>
                     </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Edit3, Plus, LogIn, ChevronRight } from "lucide-react";
+import { Edit3, Plus, LogIn, ChevronRight, Check, X, Loader2 } from "lucide-react";
 import { useCustomer } from "@/contexts/CustomerContext";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import YPBreadcrumb from "@/components/YPBreadcrumb";
@@ -58,12 +58,28 @@ interface SavedRecommendation {
 const AGE_LABELS: Record<string, string> = { puppy: "Yavru", adult: "Yetişkin", senior: "Yaşlı" };
 const BUDGET_LABELS: Record<string, string> = { economy: "₺500–1.000", mid: "₺1.000–2.000", premium: "₺2.000+" };
 
+const inp: React.CSSProperties = {
+  width: "100%", height: 46, borderRadius: 12, border: "1.5px solid #E5E7EB",
+  padding: "0 14px", fontSize: 14, fontFamily: "inherit", outline: "none",
+  boxSizing: "border-box", color: "#111",
+};
+const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 700, color: "#6B7280", display: "block", marginBottom: 5 };
+
 export default function YPProfilPage() {
   const [, navigate] = useLocation();
-  const { isLoggedIn } = useCustomer();
+  const { isLoggedIn, customer } = useCustomer();
   const [profile, setProfile] = useState<PoodleProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [latestRec, setLatestRec] = useState<SavedRecommendation | null>(null);
+
+  /* Edit mode */
+  const [editMode, setEditMode] = useState(false);
+  const [editName, setEditName]       = useState("");
+  const [editEmail, setEditEmail]     = useState("");
+  const [editAddress, setEditAddress] = useState("");
+  const [saving, setSaving]           = useState(false);
+  const [saveError, setSaveError]     = useState("");
+  const [saveOk, setSaveOk]           = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -72,15 +88,10 @@ export default function YPProfilPage() {
           const res = await fetch("/api/yp/poodle", { credentials: "include" });
           if (res.ok) {
             const data = await res.json();
-            if (data) {
-              setProfile(data);
-              setLoading(false);
-              return;
-            }
+            if (data) { setProfile(data); setLoading(false); return; }
           }
         } catch {}
       }
-      // Fallback: localStorage
       try {
         const saved = localStorage.getItem("yp_poodle");
         if (saved) setProfile(JSON.parse(saved));
@@ -97,6 +108,44 @@ export default function YPProfilPage() {
       .then(data => { if (data) setLatestRec(data); })
       .catch(() => {});
   }, [isLoggedIn]);
+
+  const openEdit = () => {
+    setEditName(customer?.name || "");
+    setEditEmail((customer as any)?.email || "");
+    setEditAddress(customer?.address || "");
+    setSaveError("");
+    setSaveOk(false);
+    setEditMode(true);
+  };
+
+  const saveProfile = async () => {
+    if (!editName.trim() || editName.trim().length < 2) {
+      setSaveError("Ad soyad en az 2 karakter olmalı.");
+      return;
+    }
+    setSaving(true);
+    setSaveError("");
+    try {
+      const res = await fetch("/api/customer/profile", {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editName.trim(), email: editEmail.trim() || undefined, address: editAddress.trim() || undefined }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.message || "Kayıt başarısız");
+      }
+      setSaveOk(true);
+      setTimeout(() => { setEditMode(false); setSaveOk(false); }, 1200);
+    } catch (e: any) {
+      setSaveError(e.message || "Bir hata oluştu");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const purple = "#7C3AFF";
 
   return (
     <YPLayout activeLink="/yourpoodle/profil">
@@ -120,31 +169,30 @@ export default function YPProfilPage() {
         {loading ? (
           <div style={{ textAlign: "center", padding: "48px 0", color: "#aaa" }}>Yükleniyor…</div>
         ) : profile ? (
-          /* ── Profil kartı ── */
           <>
             <div style={{ background: "#fff", borderRadius: 24, boxShadow: "0 4px 20px rgba(0,0,0,0.08)", overflow: "hidden", marginBottom: 16 }}>
+
               {/* Fotoğraf */}
               <div style={{ position: "relative", background: "linear-gradient(135deg, #EDE8FF, #F5F0FF)", height: 140, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {profile.photo ? (
-                  <img src={profile.photo} alt={profile.name} style={{ width: 110, height: 110, borderRadius: "50%", objectFit: "cover", border: "4px solid #fff", boxShadow: "0 4px 16px rgba(0,0,0,0.15)" }} />
-                ) : (
-                  <div style={{ width: 110, height: 110, borderRadius: "50%", background: "#7C3AFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, border: "4px solid #fff" }}>🐩</div>
-                )}
+                {profile.photo
+                  ? <img src={profile.photo} alt={profile.name} style={{ width: 110, height: 110, borderRadius: "50%", objectFit: "cover", border: "4px solid #fff", boxShadow: "0 4px 16px rgba(0,0,0,0.15)" }} />
+                  : <div style={{ width: 110, height: 110, borderRadius: "50%", background: purple, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, border: "4px solid #fff" }}>🐩</div>
+                }
               </div>
 
               {/* Bilgiler */}
               <div style={{ padding: "20px 20px 24px", textAlign: "center" }}>
                 <h2 style={{ fontSize: 24, fontWeight: 900, color: "#1a1a1a", marginBottom: 4 }}>{profile.name}</h2>
-                <p style={{ fontSize: 14, color: "#7C3AFF", fontWeight: 700, marginBottom: 16 }}>
+                <p style={{ fontSize: 14, color: purple, fontWeight: 700, marginBottom: 16 }}>
                   {BREED_LABELS[profile.breed || "toy"] || profile.breed || "Toy Poodle"}
                 </p>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
                   {[
-                    { label: "Yaş", value: profile.age ? `${profile.age} yaşında` : "—", emoji: "🎂" },
-                    { label: "Cinsiyet", value: profile.gender === "erkek" ? "Erkek" : profile.gender === "disi" ? "Dişi" : profile.gender || "—", emoji: "♡" },
-                    { label: "Renk", value: COLOR_LABELS[profile.color || ""] || profile.color || "—", emoji: "🎨" },
-                    { label: "Irk", value: BREED_LABELS[profile.breed || "toy"] || "—", emoji: "🐾" },
+                    { label: "Yaş",     value: profile.age ? `${profile.age} yaşında` : "—", emoji: "🎂" },
+                    { label: "Cinsiyet",value: profile.gender === "erkek" ? "Erkek" : profile.gender === "disi" ? "Dişi" : profile.gender || "—", emoji: "♡" },
+                    { label: "Renk",    value: COLOR_LABELS[profile.color || ""] || profile.color || "—", emoji: "🎨" },
+                    { label: "Irk",     value: BREED_LABELS[profile.breed || "toy"] || "—", emoji: "🐾" },
                   ].map(item => (
                     <div key={item.label} style={{ background: "#F8F7FF", borderRadius: 14, padding: "12px 10px", textAlign: "center" }}>
                       <div style={{ fontSize: 20, marginBottom: 4 }}>{item.emoji}</div>
@@ -169,13 +217,59 @@ export default function YPProfilPage() {
                   </div>
                 )}
 
-                <button
-                  onClick={() => navigate("/yourpoodle/giris")}
-                  style={{ width: "100%", height: 48, borderRadius: 14, background: "#7C3AFF", border: "none", color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontFamily: "'Inter', sans-serif" }}
-                >
-                  <Edit3 size={18} />
-                  Profili Düzenle
-                </button>
+                {/* ── Profili Düzenle butonu veya form ── */}
+                {editMode ? (
+                  <div style={{ textAlign: "left", marginTop: 4 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: "#1a1a1a", marginBottom: 14 }}>Hesap Bilgilerini Güncelle</div>
+
+                    <div style={{ marginBottom: 12 }}>
+                      <label style={lbl}>Ad Soyad *</label>
+                      <input style={inp} value={editName} onChange={e => setEditName(e.target.value)} placeholder="Ad Soyad" />
+                    </div>
+                    <div style={{ marginBottom: 12 }}>
+                      <label style={lbl}>E-posta</label>
+                      <input style={inp} type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)} placeholder="e-posta@örnek.com" />
+                    </div>
+                    <div style={{ marginBottom: 16 }}>
+                      <label style={lbl}>Teslimat Adresi</label>
+                      <textarea
+                        value={editAddress}
+                        onChange={e => setEditAddress(e.target.value)}
+                        placeholder="Cadde, sokak, bina no, daire…"
+                        style={{ ...inp, height: "auto", minHeight: 72, padding: "10px 14px", resize: "vertical" } as React.CSSProperties}
+                      />
+                    </div>
+
+                    {saveError && (
+                      <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#B91C1C", marginBottom: 12 }}>
+                        {saveError}
+                      </div>
+                    )}
+                    {saveOk && (
+                      <div style={{ background: "#F0FDF4", border: "1px solid #86EFAC", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#166534", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
+                        <Check size={15} /> Kaydedildi!
+                      </div>
+                    )}
+
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <button onClick={saveProfile} disabled={saving}
+                        style={{ flex: 1, height: 48, borderRadius: 14, background: saving ? "#C4B5FD" : purple, border: "none", color: "#fff", fontSize: 15, fontWeight: 800, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontFamily: "inherit" }}>
+                        {saving ? <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Kaydediliyor…</> : <><Check size={16} /> Kaydet</>}
+                      </button>
+                      <button onClick={() => setEditMode(false)} disabled={saving}
+                        style={{ width: 48, height: 48, borderRadius: 14, border: "1.5px solid #E5E7EB", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <X size={18} color="#6B7280" />
+                      </button>
+                    </div>
+                    <style>{`@keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }`}</style>
+                  </div>
+                ) : (
+                  <button onClick={isLoggedIn ? openEdit : () => navigate("/yourpoodle/giris")}
+                    style={{ width: "100%", height: 48, borderRadius: 14, background: purple, border: "none", color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontFamily: "'Inter', sans-serif" }}>
+                    <Edit3 size={18} />
+                    Profili Düzenle
+                  </button>
+                )}
               </div>
             </div>
 
@@ -188,22 +282,17 @@ export default function YPProfilPage() {
                     <span style={{ fontSize: 14, fontWeight: 800, color: "#18114a" }}>Son Mama Önerim</span>
                   </div>
                   <div style={{ display: "flex", gap: 6 }}>
-                    <button
-                      onClick={() => navigate("/yourpoodle/gecmis-oneriler")}
-                      style={{ background: "#F0FDF4", border: "none", borderRadius: 10, padding: "5px 10px", fontSize: 11, fontWeight: 700, color: "#059669", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontFamily: "'Inter', sans-serif" }}
-                    >
+                    <button onClick={() => navigate("/yourpoodle/gecmis-oneriler")}
+                      style={{ background: "#F0FDF4", border: "none", borderRadius: 10, padding: "5px 10px", fontSize: 11, fontWeight: 700, color: "#059669", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontFamily: "inherit" }}>
                       Geçmiş <ChevronRight size={12} />
                     </button>
-                    <button
-                      onClick={() => navigate("/yourpoodle/mama-bul")}
-                      style={{ background: "#EDE9FE", border: "none", borderRadius: 10, padding: "5px 10px", fontSize: 11, fontWeight: 700, color: "#7C3AED", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontFamily: "'Inter', sans-serif" }}
-                    >
+                    <button onClick={() => navigate("/yourpoodle/mama-bul")}
+                      style={{ background: "#EDE9FE", border: "none", borderRadius: 10, padding: "5px 10px", fontSize: 11, fontWeight: 700, color: "#7C3AED", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontFamily: "inherit" }}>
                       Yenile <ChevronRight size={12} />
                     </button>
                   </div>
                 </div>
 
-                {/* Profile tags */}
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
                   {latestRec.answers.age && (
                     <span style={{ background: "#EDE9FE", color: "#7C3AED", borderRadius: 99, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>
@@ -220,11 +309,8 @@ export default function YPProfilPage() {
                   </span>
                 </div>
 
-                {/* Top pick */}
-                <button
-                  onClick={() => navigate(`/yourpoodle/urun/${latestRec.products[0].id}`)}
-                  style={{ width: "100%", background: "linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%)", borderRadius: 14, padding: "12px 14px", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: "'Inter', sans-serif", marginBottom: latestRec.products.length > 1 ? 8 : 0 }}
-                >
+                <button onClick={() => navigate(`/yourpoodle/urun/${latestRec.products[0].id}`)}
+                  style={{ width: "100%", background: "linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%)", borderRadius: 14, padding: "12px 14px", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: "inherit", marginBottom: latestRec.products.length > 1 ? 8 : 0 }}>
                   <div style={{ textAlign: "left" }}>
                     <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: 700, marginBottom: 2 }}>🏆 En Uygun</div>
                     <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", lineHeight: 1.3 }}>{latestRec.products[0].name}</div>
@@ -237,13 +323,9 @@ export default function YPProfilPage() {
                   )}
                 </button>
 
-                {/* 2nd & 3rd picks compact */}
                 {latestRec.products.slice(1).map((p, i) => (
-                  <button
-                    key={p.id}
-                    onClick={() => navigate(`/yourpoodle/urun/${p.id}`)}
-                    style={{ width: "100%", background: "#F8F7FF", borderRadius: 12, padding: "10px 12px", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: "'Inter', sans-serif", marginTop: 6 }}
-                  >
+                  <button key={p.id} onClick={() => navigate(`/yourpoodle/urun/${p.id}`)}
+                    style={{ width: "100%", background: "#F8F7FF", borderRadius: 12, padding: "10px 12px", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: "inherit", marginTop: 6 }}>
                     <div style={{ textAlign: "left" }}>
                       <div style={{ fontSize: 11, color: "#7C3AED", fontWeight: 700, marginBottom: 1 }}>{i === 0 ? "💚 Fiyat Performans" : "⭐ Premium"}</div>
                       <div style={{ fontSize: 12, fontWeight: 700, color: "#18114a" }}>{p.name}</div>
@@ -257,16 +339,13 @@ export default function YPProfilPage() {
             {/* Hızlı linkler */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
               {[
-                { emoji: "🍖", label: "Mama Bul", href: "/yourpoodle/mama-bul" },
-                { emoji: "🤖", label: "AI Asistan", href: "/yourpoodle/ai-asistan" },
+                { emoji: "🍖", label: "Mama Bul",     href: "/yourpoodle/mama-bul" },
+                { emoji: "🤖", label: "AI Asistan",   href: "/yourpoodle/ai-asistan" },
                 { emoji: "📦", label: "Siparişlerim", href: "/yourpoodle/siparislerim" },
-                { emoji: "🏆", label: "Poodle Club", href: "/yourpoodle/club" },
+                { emoji: "🏆", label: "Poodle Club",  href: "/yourpoodle/club" },
               ].map(item => (
-                <button
-                  key={item.href}
-                  onClick={() => navigate(item.href)}
-                  style={{ background: "#fff", borderRadius: 16, padding: "18px 14px", border: "none", boxShadow: "0 2px 10px rgba(0,0,0,0.06)", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontFamily: "'Inter', sans-serif" }}
-                >
+                <button key={item.href} onClick={() => navigate(item.href)}
+                  style={{ background: "#fff", borderRadius: 16, padding: "18px 14px", border: "none", boxShadow: "0 2px 10px rgba(0,0,0,0.06)", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontFamily: "inherit" }}>
                   <span style={{ fontSize: 24 }}>{item.emoji}</span>
                   <span style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>{item.label}</span>
                 </button>
@@ -274,7 +353,6 @@ export default function YPProfilPage() {
             </div>
           </>
         ) : (
-          /* ── Profil yok ── */
           <div style={{ textAlign: "center", padding: "32px 0" }}>
             <div style={{ fontSize: 72, marginBottom: 20 }}>🐩</div>
             <h2 style={{ fontSize: 22, fontWeight: 900, color: "#1a1a1a", marginBottom: 10 }}>
@@ -283,22 +361,16 @@ export default function YPProfilPage() {
             <p style={{ fontSize: 14, color: "#888", lineHeight: 1.7, marginBottom: 28, maxWidth: 320, margin: "0 auto 28px" }}>
               Poodle'ınızın bilgilerini kaydedin, kişiselleştirilmiş bakım önerileri alın.
             </p>
-
-            <button
-              onClick={() => navigate("/yourpoodle/giris")}
-              style={{ height: 52, borderRadius: 16, background: "#7C3AFF", border: "none", color: "#fff", fontSize: 16, fontWeight: 800, padding: "0 32px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "'Inter', sans-serif", marginBottom: 14 }}
-            >
+            <button onClick={() => navigate("/yourpoodle/p/olustur")}
+              style={{ height: 52, borderRadius: 16, background: purple, border: "none", color: "#fff", fontSize: 16, fontWeight: 800, padding: "0 32px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "inherit", marginBottom: 14 }}>
               <Plus size={20} />
-              Ücretsiz Başla
+              Profil Oluştur
             </button>
-
             {!isLoggedIn && (
               <div>
                 <p style={{ fontSize: 12, color: "#aaa", marginBottom: 12 }}>ya da</p>
-                <button
-                  onClick={() => navigate("/yourpoodle/giris")}
-                  style={{ height: 44, borderRadius: 14, border: "2px solid #7C3AFF", background: "transparent", color: "#7C3AFF", fontSize: 14, fontWeight: 700, padding: "0 24px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "'Inter', sans-serif" }}
-                >
+                <button onClick={() => navigate("/yourpoodle/giris")}
+                  style={{ height: 44, borderRadius: 14, border: "2px solid #7C3AFF", background: "transparent", color: purple, fontSize: 14, fontWeight: 700, padding: "0 24px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "inherit" }}>
                   <LogIn size={16} />
                   Giriş Yap
                 </button>
@@ -307,7 +379,6 @@ export default function YPProfilPage() {
           </div>
         )}
       </div>
-
     </div>
     </YPLayout>
   );

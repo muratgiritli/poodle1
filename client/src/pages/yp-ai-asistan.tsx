@@ -148,7 +148,10 @@ Kurallar:
   }, [input, loading, messages, profile, activeCat]);
 
   const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+    /* Desktop: Enter gönderir. Mobil klavyede Shift+Enter yeni satır ekler */
+    if (e.key === "Enter" && !e.shiftKey && !("ontouchstart" in window)) {
+      e.preventDefault(); send();
+    }
   };
 
   const resetChat = () => {

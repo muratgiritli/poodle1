@@ -190,7 +190,7 @@ export default function YPUrunPage() {
             <Heart size={17} color={wishlisted ? "#E75480" : "#bbb"} fill={wishlisted ? "#E75480" : "none"} strokeWidth={2} />
           </button>
           {product.img && !imgError
-            ? <img src={product.img} alt={product.name} onError={() => setImgError(true)}
+            ? <img src={product.img} alt={product.name} loading="lazy" onError={() => setImgError(true)}
                 style={{ width: "100%", height: "100%", objectFit: "contain", padding: 16 }} />
             : <span style={{ fontSize: 80 }}>🐾</span>
           }
