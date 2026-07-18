@@ -203,11 +203,10 @@ export default function Magaza() {
                         background: #fff; z-index: 9991; box-shadow: -4px 0 24px rgba(0,0,0,.15);
                         display: flex; flex-direction: column; }
         .feat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
-        .all-grid  { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
+        .all-grid  { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
         .faq-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
         @media (max-width: 1023px) { .feat-grid { grid-template-columns: repeat(2,1fr); } }
-        @media (max-width: 767px)  { .feat-grid { grid-template-columns: 1fr; } .faq-grid { grid-template-columns: 1fr; } }
-        @media (min-width: 640px)  { .all-grid { grid-template-columns: repeat(2,1fr); } }
+        @media (max-width: 767px)  { .feat-grid { grid-template-columns: repeat(2,1fr); } .faq-grid { grid-template-columns: 1fr; } }
         @media (min-width: 1024px) { .all-grid { grid-template-columns: repeat(3,1fr); } }
         @media (min-width: 1280px) { .all-grid { grid-template-columns: repeat(4,1fr); } }
         .banner-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.10) !important; }
@@ -284,29 +283,6 @@ export default function Magaza() {
             <div style={{ position:"absolute", top:30, right:60, fontSize:36,
                           filter:"drop-shadow(0 4px 12px rgba(0,0,0,0.15))" }}>🦴</div>
           </div>
-        </div>
-
-        {/* ── Mama Bul CTA banner ───────────────────────── */}
-        <div style={{ background:"#FFF7ED", borderRadius:16, border:"1px solid #FED7AA",
-                      padding:"16px 24px", marginBottom:16,
-                      display:"flex", alignItems:"center", gap:14 }}>
-          <div style={{ width:44, height:44, borderRadius:12, background:"#FFEDD5",
-                        display:"flex", alignItems:"center", justifyContent:"center",
-                        fontSize:22, flexShrink:0 }}>🦴</div>
-          <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontSize:14.5, fontWeight:800, color:"#9A3412", marginBottom:2 }}>
-              Hangi mamayı seçeceğinizi bilmiyor musunuz?
-            </div>
-            <div style={{ fontSize:13, color:"#C2410C" }}>
-              Poodle'ınızın yaşına, kilosuna ve ihtiyaçlarına uygun mamayı birlikte bulalım.
-            </div>
-          </div>
-          <button onClick={()=>navigate("/yourpoodle/mama-bul")}
-            style={{ flexShrink:0, padding:"10px 20px", borderRadius:24, border:"none",
-                     background:"#EA580C", color:"#fff", fontSize:13.5, fontWeight:800,
-                     cursor:"pointer", whiteSpace:"nowrap", display:"flex", alignItems:"center", gap:6 }}>
-            Mama Bul <ChevronRight size={15}/>
-          </button>
         </div>
 
         {/* ── Search + Filters ──────────────────────────── */}
