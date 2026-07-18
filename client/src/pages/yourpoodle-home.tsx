@@ -191,6 +191,8 @@ export default function YourPoodleHomePage() {
         }
         /* ── Mobile <768px ── */
         @media (max-width: 767px) {
+          .yph-home-header { padding: 0 !important; }
+          .yph-home-pill   { border-radius: 0 !important; box-shadow: none !important; padding: 8px 12px !important; height: 58px; border-bottom: 1px solid #EDE9FE; }
           .yph-desktop-only { display: none !important; }
           .yph-btm-nav      { display: block !important; }
           .yph-hero-right   { display: none !important; }

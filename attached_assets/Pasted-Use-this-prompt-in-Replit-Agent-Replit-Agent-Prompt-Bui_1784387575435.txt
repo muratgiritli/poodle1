@@ -1,0 +1,107 @@
+Use this prompt in **Replit Agent**:
+
+---
+
+## Replit Agent Prompt
+
+Build a responsive website header for a Turkish e-commerce brand called **YourPoodle** (Toy Poodle pet shop). Match the design below as closely as possible. Use **HTML, CSS, and vanilla JavaScript** (or React if the project already uses it). Do not build the full page — only the header component.
+
+### Design reference
+Recreate a clean, modern header with:
+- Primary color: vibrant purple (`#7022C4` or similar)
+- Background: white (`#FFFFFF`)
+- Light gray UI surfaces: `#F3F4F6`
+- Rounded/pill-shaped elements
+- Generous spacing and a premium, minimal look
+
+---
+
+### 1. Top announcement bar
+- Full-width bar with solid purple background
+- Centered white text:
+  **"Toy Poodle dünyasının adresi — 500₺ üzeri ücretsiz kargo"**
+- Small white delivery truck icon at the end of the text
+- Compact height, readable on mobile
+
+---
+
+### 2. Main header row (3-column layout)
+
+**Left — Logo**
+- Brand name: **"YourPoodle"**
+- Elegant handwritten/cursive font (e.g. Pacifico, Dancing Script, or similar Google Font)
+- Black text
+- Small brown paw print icon after the word
+
+**Center — Search bar**
+- Wide pill-shaped search input
+- Light gray background (`#F3F4F6`)
+- Magnifying glass icon on the left (gray)
+- Placeholder: **"Mama, aksesuar veya rehber ara..."**
+- Subtle border or shadow optional; keep it clean
+
+**Right — User actions**
+- Text link: **"Giriş Yap"** (Login)
+- Pill button: **"Üye Ol"** — purple background, white text, rounded corners
+- Wishlist icon inside a light gray circular border (heart icon)
+- Cart icon inside a light gray circular border
+- Cart badge: small purple circle, top-right of cart icon, white text **"2"**
+
+Align all items vertically centered. Use flexbox. On mobile, stack or collapse gracefully.
+
+---
+
+### 3. Bottom navigation row
+Centered horizontal nav with dot separators between items (light gray dots).
+
+Nav items:
+1. **Mağaza** — active state: purple pill button, white text, white shopping bag icon on the left
+2. **Club** — text link + small purple paw icon
+3. **AI Asistan** — text link + small purple robot icon
+4. **Rehber** — text link + small purple open book icon
+
+Inactive links: dark gray/black text, purple icons.
+
+---
+
+### Typography
+- Logo: decorative cursive Google Font
+- Everything else: clean modern sans-serif (Inter, Poppins, or similar)
+
+---
+
+### Technical requirements
+- Semantic HTML (`header`, `nav`, etc.)
+- CSS variables for colors
+- Flexbox for layout
+- Icons: Lucide, Heroicons, or Font Awesome
+- Hover states on buttons and nav links
+- Responsive:
+  - Desktop: full layout as described
+  - Tablet/mobile: logo + icons visible; search may shrink or move below
+- No backend — static UI only
+- Turkish characters must render correctly (ü, ş, ı, ö, ç, ğ)
+
+---
+
+### Deliverables
+1. Complete header HTML/CSS/JS (or React component)
+2. All styles included
+3. A simple demo page showing only the header on white background
+4. Brief comment at top explaining file structure
+
+---
+
+### Quality checklist
+- [ ] Purple matches design (`~#7022C4`)
+- [ ] Pill-shaped search bar and active nav button
+- [ ] Cart badge shows **"2"**
+- [ ] All Turkish labels exact
+- [ ] Spacing feels airy and premium
+- [ ] Header looks polished and production-ready
+
+Start by scaffolding the header, then refine spacing, colors, and responsive behavior until it closely matches the reference.
+
+---
+
+Copy everything above into Replit Agent. If you want, I can also give you a shorter one-paragraph version or a React/Tailwind-specific variant.
