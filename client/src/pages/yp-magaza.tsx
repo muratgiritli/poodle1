@@ -206,7 +206,7 @@ export default function Magaza() {
         .all-grid  { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
         .faq-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
         @media (max-width: 1023px) { .feat-grid { grid-template-columns: repeat(2,1fr); } }
-        @media (max-width: 767px)  { .feat-grid { grid-template-columns: repeat(2,1fr); } .faq-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 767px)  { .feat-grid { grid-template-columns: repeat(2,1fr); } .faq-grid { grid-template-columns: 1fr; } .magaza-hero { display: none !important; } }
         @media (min-width: 1024px) { .all-grid { grid-template-columns: repeat(3,1fr); } }
         @media (min-width: 1280px) { .all-grid { grid-template-columns: repeat(4,1fr); } }
         .banner-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.10) !important; }
@@ -238,7 +238,7 @@ export default function Magaza() {
       <div style={{ maxWidth:1200, margin:"0 auto", width:"100%", padding:"0 20px" }}>
 
         {/* ── Hero ─────────────────────────────────────── */}
-        <div style={{ background:"linear-gradient(135deg,#F9FAFB 0%,#F3E8FF 60%,#EDE9FE 100%)",
+        <div className="magaza-hero" style={{ background:"linear-gradient(135deg,#F9FAFB 0%,#F3E8FF 60%,#EDE9FE 100%)",
                       borderRadius:20, margin:"16px 0", overflow:"hidden",
                       display:"flex", alignItems:"center", justifyContent:"space-between",
                       minHeight:200, position:"relative" }}>

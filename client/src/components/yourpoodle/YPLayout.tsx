@@ -352,24 +352,22 @@ export default function YPLayout({
           </Link>
         ) : (
           <div style={{
-            width: "100%", background: "#fff", borderRadius: 9999,
-            boxShadow: "0 4px 16px rgba(139,92,246,0.12)",
-            display: "flex", alignItems: "center",
-            justifyContent: "space-between", padding: "5px 8px 5px 14px", height: 42,
+            width: "100%", display: "flex", alignItems: "center",
+            justifyContent: "space-between",
           }}>
-            <Link href="/yourpoodle">
-              <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 17, color: "#6B21A8", cursor: "pointer" }}>YourPoodle 🐾</span>
-            </Link>
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <button onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
-                style={{ padding: "5px 11px", borderRadius: 20, border: "1.5px solid #7C3AED", background: "#F5F0FF", color: "#7C3AED", fontSize: 11.5, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
-                {isLoggedIn ? "Hesabım" : "Giriş"}
-              </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <Link href="/yourpoodle">
+                <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 17, color: "#6B21A8", cursor: "pointer" }}>YourPoodle 🐾</span>
+              </Link>
               <button onClick={() => setDrawerOpen(true)}
                 style={{ background: "#EDE9FE", border: "none", cursor: "pointer", padding: "5px 8px", fontSize: 18, color: "#7C3AED", borderRadius: 10, lineHeight: 1 }}>
                 ☰
               </button>
             </div>
+            <button onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
+              style={{ padding: "5px 11px", borderRadius: 20, border: "1.5px solid #7C3AED", background: "#F5F0FF", color: "#7C3AED", fontSize: 11.5, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
+              {isLoggedIn ? "Hesabım" : "Giriş"}
+            </button>
           </div>
         )}
       </header>
