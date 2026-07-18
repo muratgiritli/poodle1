@@ -98,10 +98,11 @@ export default function YPLayout({
         .yp-page-body   { padding-bottom: 80px; }
 
         @media (min-width: 900px) {
-          .yp-desktop-hdr { display: flex !important; }
-          .yp-mobile-hdr  { display: none !important; }
-          .yp-btm-nav     { display: none !important; }
-          .yp-page-body   { padding-bottom: 48px !important; }
+          .yp-desktop-hdr      { display: flex !important; }
+          .yp-mobile-hdr       { display: none !important; }
+          .yp-btm-nav          { display: none !important; }
+          .yp-mobile-cat-strip { display: none !important; }
+          .yp-page-body        { padding-bottom: 48px !important; }
           .yp-constrain   { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
           .yp-art-grid    { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 14px !important; }
           .yp-3col-grid   { display: grid !important; grid-template-columns: 1fr 1fr 1fr !important; gap: 14px !important; }
@@ -371,6 +372,39 @@ export default function YPLayout({
           </div>
         )}
       </header>
+
+      {/* ════════════ MOBILE CATEGORY STRIP ════════════ */}
+      {!authMode && (
+        <div className="yp-mobile-cat-strip" style={{
+          display: "flex", overflowX: "auto", gap: 8,
+          padding: "8px 12px", background: "#fff",
+          borderBottom: "1px solid #F3F4F6",
+          position: "sticky", top: 58, zIndex: 99,
+        }}>
+          {([
+            { label: "Mağaza",     href: "/yourpoodle/magaza",      emoji: "🛍️" },
+            { label: "Club",       href: "/yourpoodle/club",         emoji: "🐾" },
+            { label: "AI Asistan", href: "/yourpoodle/ai-asistan",   emoji: "🤖" },
+            { label: "Rehber",     href: "/yourpoodle/rehber",       emoji: "📖" },
+          ] as const).map(({ label, href, emoji }) => {
+            const active = isActive(effectiveBottomLink, href);
+            return (
+              <button key={href} onClick={() => navigate(href)}
+                style={{
+                  flexShrink: 0, display: "flex", alignItems: "center", gap: 5,
+                  padding: "6px 14px", borderRadius: 20, border: "1.5px solid",
+                  borderColor: active ? "#7C3AED" : "#E5E7EB",
+                  background: active ? "#7C3AED" : "#fff",
+                  color: active ? "#fff" : "#555",
+                  fontSize: 12.5, fontWeight: 700, cursor: "pointer",
+                  fontFamily: "inherit", whiteSpace: "nowrap",
+                }}>
+                <span style={{ fontSize: 14 }}>{emoji}</span> {label}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* ════════════ PAGE CONTENT ════════════ */}
       <div className="yp-page-body">

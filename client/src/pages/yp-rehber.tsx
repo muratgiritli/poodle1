@@ -638,6 +638,32 @@ function ArticleDetail({ article, onClose, allArticles }: { article: Article; on
   );
 }
 
+/* ─── Reusable article row card ─────────────────────── */
+function ArticleRow({ a, onOpen }: { a: Article; onOpen: (a: Article) => void }) {
+  const cs = CAT_COLORS[a.cat] || { bg: "#F5F0FF", color: "#7C3AED" };
+  return (
+    <a href={"/yourpoodle/rehber/" + a.slug}
+      aria-label={`${a.title} makalesini oku`}
+      className="art-row-reh"
+      onClick={e => { e.preventDefault(); onOpen(a); }}
+      style={{ display: "flex", gap: 0, background: "#fff", borderRadius: 16, border: "1.5px solid #F0F0F0", cursor: "pointer", textDecoration: "none", overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+      <div style={{ width: 90, minWidth: 90, background: cs.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, flexShrink: 0 }}>
+        {a.emoji}
+      </div>
+      <div style={{ flex: 1, padding: "13px 14px", minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#111", lineHeight: 1.4, marginBottom: 6 }}>{a.title}</div>
+        <div style={{ fontSize: 11, color: "#999", marginBottom: 5 }}>{a.author} — {a.role}</div>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 11, color: "#bbb", display: "flex", alignItems: "center", gap: 3 }}><Clock size={10} strokeWidth={2} />{a.min} dk okuma</span>
+        </div>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", paddingRight: 14, paddingLeft: 4, flexShrink: 0 }}>
+        <ChevronRight size={16} color="#D1D5DB" strokeWidth={2.5} />
+      </div>
+    </a>
+  );
+}
+
 /* ─── Main Page ──────────────────────────────────────── */
 export default function Rehber({ routeSlug }: { routeSlug?: string } = {}) {
   const [, navigate] = useLocation();
@@ -859,22 +885,30 @@ export default function Rehber({ routeSlug }: { routeSlug?: string } = {}) {
           </div>
         </div>
 
-        {/* ── Category pills ── */}
-        <div style={{ padding: "14px 20px 0" }}>
-          <div className="cat-fade-wrap">
-            <div ref={catScrollRef} className="noscroll-reh" style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2, paddingRight: 48 }}>
-              {CATS.map(c => {
-                const active = activeCat === c;
-                return (
-                  <button key={c} onClick={() => changeCategory(c)} aria-pressed={active}
-                    style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 6, padding: "8px 18px", borderRadius: 24, border: "1.5px solid", borderColor: active ? "#7C3AED" : "#E5E7EB", background: active ? "#7C3AED" : "#fff", color: active ? "#fff" : "#555", fontSize: 13, fontWeight: 700, cursor: "pointer", transition: "all .15s" }}>
-                    <span style={{ fontSize: 14 }}>{CAT_EMOJI[c]}</span>
-                    {c}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+        {/* ── Section tabs: Sağlık / Bakım / Eğitim / Araçlar ── */}
+        <div style={{ padding: "16px 20px 0", display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8 }}>
+          {([
+            { label: "Sağlık",  cat: "Sağlık",  emoji: "💊", color: "#E11D48", bg: "#FFF1F2" },
+            { label: "Bakım",   cat: "Bakım",   emoji: "🛁", color: "#0369A1", bg: "#F0F9FF" },
+            { label: "Eğitim",  cat: "Eğitim",  emoji: "🎓", color: "#16A34A", bg: "#F0FDF4" },
+            { label: "Araçlar", cat: "Araçlar", emoji: "🔧", color: "#7C3AED", bg: "#F5F0FF" },
+          ] as const).map(({ label, cat, emoji, color, bg }) => {
+            const active = activeCat === cat;
+            return (
+              <button key={cat}
+                onClick={() => cat === "Araçlar" ? navigate("/yourpoodle/bilgi") : changeCategory(active ? "Tümü" : cat)}
+                style={{
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                  padding: "12px 6px", borderRadius: 14, border: "2px solid",
+                  borderColor: active ? color : "#E5E7EB",
+                  background: active ? bg : "#fff",
+                  cursor: "pointer", fontFamily: "inherit", transition: "all .15s",
+                }}>
+                <span style={{ fontSize: 22 }}>{emoji}</span>
+                <span style={{ fontSize: 11.5, fontWeight: 800, color: active ? color : "#555" }}>{label}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* ── Featured card ── */}
@@ -937,38 +971,36 @@ export default function Rehber({ routeSlug }: { routeSlug?: string } = {}) {
                 Tümünü Göster
               </button>
             </div>
-          ) : (
-            <div className="reh-art-grid" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {pageItems.map(a => {
-                const cs = CAT_COLORS[a.cat] || { bg: "#F5F0FF", color: "#7C3AED" };
+          ) : activeCat === "Tümü" && query === "" ? (
+            /* ── Grouped by section when showing all ── */
+            <>
+              {([
+                { label: "Sağlık",  emoji: "💊", color: "#E11D48" },
+                { label: "Bakım",   emoji: "🛁", color: "#0369A1" },
+                { label: "Eğitim",  emoji: "🎓", color: "#16A34A" },
+                { label: "Beslenme",emoji: "🌿", color: "#EA580C" },
+                { label: "Davranış",emoji: "💬", color: "#9333EA" },
+              ] as const).map(({ label, emoji, color }) => {
+                const group = pageItems.filter(a => a.cat === label);
+                if (group.length === 0) return null;
                 return (
-                  <a key={a.slug}
-                    href={"/yourpoodle/rehber/" + a.slug}
-                    aria-label={`${a.title} makalesini oku`}
-                    className="art-row-reh"
-                    onClick={e => { e.preventDefault(); openArticle(a); }}
-                    style={{ display: "flex", gap: 0, background: "#fff", borderRadius: 16, border: "1.5px solid #F0F0F0", cursor: "pointer", textDecoration: "none", overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
-                    {/* thumbnail */}
-                    <div style={{ width: 90, minWidth: 90, background: cs.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, flexShrink: 0 }}>
-                      {a.emoji}
+                  <div key={label} style={{ marginBottom: 24 }}>
+                    {/* Section header */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, paddingBottom: 8, borderBottom: `2px solid ${color}20` }}>
+                      <span style={{ fontSize: 18 }}>{emoji}</span>
+                      <span style={{ fontSize: 15, fontWeight: 900, color }}>{label}</span>
+                      <span style={{ fontSize: 11, color: "#bbb", fontWeight: 600, marginLeft: "auto" }}>{group.length} makale</span>
                     </div>
-                    {/* body */}
-                    <div style={{ flex: 1, padding: "13px 14px", minWidth: 0 }}>
-                      <div style={{ fontSize: 10, fontWeight: 800, color: cs.color, marginBottom: 5, letterSpacing: "0.04em" }}>{a.cat.toUpperCase()}</div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#111", lineHeight: 1.4, marginBottom: 6 }}>{a.title}</div>
-                      <div style={{ fontSize: 11, color: "#999", marginBottom: 5 }}>{a.author} — {a.role}</div>
-                      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                        <span style={{ fontSize: 11, color: "#bbb", display: "flex", alignItems: "center", gap: 3 }}><Clock size={10} strokeWidth={2} />{a.min} dk okuma</span>
-                        <span style={{ fontSize: 11, color: "#bbb", display: "flex", alignItems: "center", gap: 3 }}>📅 {formatDate(a.updated)}</span>
-                      </div>
+                    <div className="reh-art-grid" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {group.map(a => <ArticleRow key={a.slug} a={a} onOpen={openArticle} />)}
                     </div>
-                    {/* chevron */}
-                    <div style={{ display: "flex", alignItems: "center", paddingRight: 14, paddingLeft: 4, flexShrink: 0 }}>
-                      <ChevronRight size={16} color="#D1D5DB" strokeWidth={2.5} />
-                    </div>
-                  </a>
+                  </div>
                 );
               })}
+            </>
+          ) : (
+            <div className="reh-art-grid" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {pageItems.map(a => <ArticleRow key={a.slug} a={a} onOpen={openArticle} />)}
             </div>
           )}
         </div>
