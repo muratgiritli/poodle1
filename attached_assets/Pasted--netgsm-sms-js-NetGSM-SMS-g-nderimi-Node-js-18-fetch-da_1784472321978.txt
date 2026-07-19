@@ -1,0 +1,90 @@
+// netgsm-sms.js — NetGSM SMS gönderimi (Node.js 18+, fetch dahili)
+// Gerekli ortam değişkenleri (değerleri Replit Secrets/hosting panelinden gir):
+//   NETGSM_USERCODE  -> NetGSM abone no / kullanıcı kodu
+//   NETGSM_PASSWORD  -> NetGSM şifresi
+//   NETGSM_MSGHEADER -> Onaylı SMS başlığı (gönderici adı)
+
+// Türkçe karakterleri sadeleştirir (SMS'in tek parça gitmesi için)
+function normalizeTrSms(s) {
+  if (!s) return "";
+  const map = {
+    "ı":"i","İ":"I","ş":"s","Ş":"S","ğ":"g","Ğ":"G",
+    "ü":"u","Ü":"U","ö":"o","Ö":"O","ç":"c","Ç":"C",
+  };
+  return s.replace(/[ıİşŞğĞüÜöÖçÇ]/g, (c) => map[c] || c);
+}
+
+async function sendSmsViaNetgsm(phone, message, msgheaderOverride) {
+  const usercode = process.env.NETGSM_USERCODE;
+  const password = process.env.NETGSM_PASSWORD;
+  const msgheader = (msgheaderOverride && msgheaderOverride.trim()) || process.env.NETGSM_MSGHEADER;
+  if (!usercode || !password || !msgheader) {
+    console.error("NetGSM bilgileri eksik (NETGSM_USERCODE / NETGSM_PASSWORD / NETGSM_MSGHEADER)");
+    return false;
+  }
+  message = normalizeTrSms(message);
+  const gsmno = phone.replace(/\D/g, "");
+  const fullPhone = gsmno.startsWith("90") ? gsmno : "90" + gsmno;
+
+  // 1) XML API — 3 deneme
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const xmlBody = `<?xml version="1.0" encoding="UTF-8"?>
+<mainbody>
+<header>
+<company dession="1">Netgsm</company>
+<usercode>${usercode}</usercode>
+<password>${password}</password>
+<type>1:n</type>
+<msgheader>${msgheader}</msgheader>
+</header>
+<body>
+<msg><![CDATA[${message}]]></msg>
+<no>${fullPhone}</no>
+</body>
+</mainbody>`;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      const res = await fetch("https://api.netgsm.com.tr/sms/send/xml", {
+        method: "POST",
+        headers: { "Content-Type": "application/xml" },
+        body: xmlBody,
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      const text = await res.text();
+      const code = text.split(" ")[0];
+      if (["00", "01", "02"].includes(code)) return true;          // başarılı
+      if (["30", "40", "50", "51", "70", "80", "85"].includes(code)) {
+        console.error("NetGSM kalıcı hata kodu:", code);           // yanlış şifre/başlık vb.
+        return false;
+      }
+    } catch (err) {
+      if (attempt < 3) { await new Promise(r => setTimeout(r, 1000 * attempt)); continue; }
+    }
+  }
+
+  // 2) GET fallback
+  try {
+    const params = new URLSearchParams({
+      usercode, password, gsmno: fullPhone, message, msgheader, dil: "TR",
+    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const res = await fetch(`https://api.netgsm.com.tr/sms/send/get/?${params.toString()}`, {
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    const text = await res.text();
+    return ["00", "01", "02"].includes(text.split(" ")[0]);
+  } catch (err) {
+    console.error("NetGSM GET fallback hatası:", err?.message || err);
+    return false;
+  }
+}
+
+module.exports = { sendSmsViaNetgsm };
+
+// Kullanım:
+// const { sendSmsViaNetgsm } = require("./netgsm-sms");
+// await sendSmsViaNetgsm("05XXXXXXXXX", "Deneme mesajı");
