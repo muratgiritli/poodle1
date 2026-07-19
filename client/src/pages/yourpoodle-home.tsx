@@ -336,19 +336,19 @@ export default function YourPoodleHomePage() {
 
           {/* Mobile satır */}
           <div className="yph-mobile-only" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", height: 58 }}>
-            <button onClick={() => go("/yourpoodle")} style={{ display: "flex", alignItems: "center", gap: 3, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-              <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 17, color: "#6B21A8" }}>YourPoodle 🐾</span>
-            </button>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <button onClick={() => go(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
-                style={{ padding: "5px 11px", borderRadius: 20, border: "1.5px solid #7C3AED", background: "#F5F0FF", color: "#7C3AED", fontSize: 11.5, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
-                {isLoggedIn ? "Hesabım" : "Giriş"}
-              </button>
               <button onClick={() => setDrawerOpen(true)}
                 style={{ background: "#EDE9FE", border: "none", cursor: "pointer", padding: "5px 8px", fontSize: 18, color: "#7C3AED", borderRadius: 10, lineHeight: 1 }}>
                 ☰
               </button>
+              <button onClick={() => go("/yourpoodle")} style={{ display: "flex", alignItems: "center", gap: 3, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 17, color: "#6B21A8" }}>YourPoodle 🐾</span>
+              </button>
             </div>
+            <button onClick={() => go(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
+              style={{ padding: "5px 11px", borderRadius: 20, border: "1.5px solid #7C3AED", background: "#F5F0FF", color: "#7C3AED", fontSize: 11.5, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
+              {isLoggedIn ? "Hesabım" : "Giriş"}
+            </button>
           </div>
         </div>
 
