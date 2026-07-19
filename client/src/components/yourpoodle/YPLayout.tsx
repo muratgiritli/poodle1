@@ -345,8 +345,8 @@ export default function YPLayout({
       {/* ════════════ MOBILE CATEGORY STRIP ════════════ */}
       {!authMode && (
         <div className="yp-mobile-cat-strip" style={{
-          display: "flex", overflowX: "auto", gap: 8,
-          padding: "8px 12px", background: "#fff",
+          display: "flex", gap: 6,
+          padding: "7px 10px", background: "#fff",
           borderBottom: "1px solid #F3F4F6",
           position: "sticky", top: 58, zIndex: 99,
         }}>
@@ -360,15 +360,16 @@ export default function YPLayout({
             return (
               <button key={href} onClick={() => navigate(href)}
                 style={{
-                  flexShrink: 0, display: "flex", alignItems: "center", gap: 5,
-                  padding: "6px 14px", borderRadius: 20, border: "1.5px solid",
+                  flex: 1, minWidth: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+                  padding: "5px 4px", borderRadius: 18, border: "1.5px solid",
                   borderColor: active ? "#7C3AED" : "#E5E7EB",
                   background: active ? "#7C3AED" : "#fff",
                   color: active ? "#fff" : "#555",
-                  fontSize: 12.5, fontWeight: 700, cursor: "pointer",
-                  fontFamily: "inherit", whiteSpace: "nowrap",
+                  fontSize: 11.5, fontWeight: 700, cursor: "pointer",
+                  fontFamily: "inherit", whiteSpace: "nowrap", overflow: "hidden",
                 }}>
-                <span style={{ fontSize: 14 }}>{emoji}</span> {label}
+                <span style={{ fontSize: 13, flexShrink: 0 }}>{emoji}</span>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>
               </button>
             );
           })}
