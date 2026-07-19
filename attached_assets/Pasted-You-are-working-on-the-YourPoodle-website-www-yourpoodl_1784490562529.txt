@@ -1,0 +1,41 @@
+You are working on the YourPoodle website (www.yourpoodle.com) — a Turkey-wide pet e-commerce + Toy Poodle content platform. The site serves ALL of Turkey, NOT Samsun only. Audit the codebase and implement all fixes below. Do not break existing routes under /yourpoodle/*.
+
+---
+
+## PRIORITY 1 — Fix Turkey-wide positioning (remove Samsun-only messaging)
+
+The site must be positioned as a national (Turkey-wide) platform, not a local Samsun shop.
+
+Search the entire codebase for: "Samsun", "Atakum", "Atakum'da", "Samsun'da", "mahalle pet shop", "1 Saatte Kapında", "Atakum içi", "kapıya teslim" (when implying Samsun-only), and any page titles/meta like "Samsun Pet Shop".
+
+Replace with Turkey-wide copy, for example:
+- "Same-day or fast delivery across Turkey" (only if actually supported — otherwise use honest shipping copy)
+- "Free shipping on orders over X TL" (single threshold — see Priority 2)
+- "YourPoodle — Turkey's Poodle & Pet Platform"
+- Product titles: remove "Samsun Fiyatı", "Samsun Petshop" suffixes
+- Category H1: "Köpek Ürünleri" not "Köpek Ürünleri Samsun"
+- Contact/delivery: describe nationwide shipping zones, not Atakum-only delivery
+- About page: keep company legal address if needed, but marketing copy must say Turkey-wide service
+- Remove or rewrite local SEO landing pages that are Samsun-specific (/samsun-petshop, /atakum-petshop, /ilkadim-petshop, /canik-petshop, /atakum-*-petshop) — either:
+  (a) redirect them to relevant category pages with 301, OR
+  (b) convert to generic Turkey pages (e.g. /kopek-mamasi, /kedi-mamasi already exist in sitemap-seo.xml)
+- Update sitemap-seo.xml generation to stop creating city/neighborhood petshop pages unless you have real local landing content for each city
+
+Files likely affected: page components, meta/SEO helpers, sitemap generators, product page templates, category pages, hakkimizda, iletisim, magaza (physical store page), hero banners, structured data (JSON-LD).
+
+---
+
+## PRIORITY 2 — Unify free shipping threshold (single source of truth)
+
+Currently inconsistent:
+- Homepage banner: "500₺ üzeri ücretsiz kargo"
+- Category/product/contact: "1000 TL üzeri ücretsiz kargo"
+- Contact page: min order 500 TL, free delivery 1000 TL+, delivery fee 89 TL below 1000 TL
+
+Pick ONE business rule (confirm with config/env if exists) and centralize in a constants file, e.g.:
+```js
+export const SHIPPING = {
+  FREE_SHIPPING_MIN_TL: 1000,  // or 500 — use actual business rule
+  MIN_ORDER_TL: 500,
+  DELIVERY_FEE_TL: 89,
+};

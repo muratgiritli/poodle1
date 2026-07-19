@@ -130,7 +130,7 @@ export default function YPLayout({
 
         {/* ── Duyuru çubuğu ── */}
         <div style={{ background: "#3B0082", color: "#fff", textAlign: "center", padding: "9px 20px", fontSize: 13.5, fontWeight: 500 }}>
-          Toy Poodle dünyasının adresi — 500₺ üzeri ücretsiz kargo 🚚
+          Toy Poodle dünyasının adresi — 1.000₺ üzeri ücretsiz kargo 🚚
         </div>
 
         {/* ── Ana satır ── */}

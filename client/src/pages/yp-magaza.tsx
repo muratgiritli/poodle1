@@ -221,7 +221,7 @@ export default function Magaza() {
 
       {/* ── Promo bar ────────────────────────────────────── */}
       <div style={{ background:"#7C3AED", padding:"7px 16px", textAlign:"center" }}>
-        <span style={{ fontSize:13, fontWeight:700, color:"#fff" }}>🚚 500₺ üzeri kargo bedava! 🎉</span>
+        <span style={{ fontSize:13, fontWeight:700, color:"#fff" }}>🚚 1.000₺ üzeri kargo bedava! 🎉</span>
       </div>
 
       {/* ── Breadcrumb ───────────────────────────────────── */}
