@@ -259,8 +259,8 @@ export default function YPSepetPage() {
               </div>
             )}
 
-            {/* Özet */}
-            <div style={{ margin: "12px 16px 100px", background: "#F9FAFB", borderRadius: 16, padding: "16px 18px" }}>
+            {/* Özet — bottom margin clears fixed CTA bar (72px) + bottom nav (72px) + buffer */}
+            <div style={{ margin: "12px 16px 170px", background: "#F9FAFB", borderRadius: 16, padding: "16px 18px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#555", marginBottom: 8 }}>
                 <span>Ürünler ({cartCount} adet)</span>
                 <span>₺{subtotal.toLocaleString("tr-TR", { minimumFractionDigits: 0 })}</span>
@@ -288,7 +288,7 @@ export default function YPSepetPage() {
                 <ShoppingCart size={18} color="#7C3AFF" />
               </button>
               <button
-                onClick={() => !hasBlockingIssue && navigate("/yourpoodle/odeme")}
+                onClick={() => navigate("/yourpoodle/odeme")}
                 disabled={hasBlockingIssue}
                 title={hasBlockingIssue ? "Stok sorunu olan ürünleri düzeltin" : undefined}
                 style={{
