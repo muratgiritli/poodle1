@@ -1,8 +1,8 @@
 // YourPoodle — /yourpoodle/p/:slug — Public köpek profili
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, Share2, Grid3X3, Info, Heart, MessageCircle, Plus, Scale, Stethoscope, Trash2 } from "lucide-react";
+import { ChevronLeft, Share2, Grid3X3, Info, Heart, MessageCircle, Plus, Scale, Stethoscope, Trash2, Camera, X } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { useCustomer } from "@/contexts/CustomerContext";
@@ -61,7 +61,10 @@ export default function YPDogProfilePage({ routeSlug }: { routeSlug?: string }) 
   const [, navigate] = useLocation();
   const qc = useQueryClient();
   const { isLoggedIn } = useCustomer();
-  const [activeTab, setActiveTab] = useState<"posts" | "info" | "kilo" | "veteriner">("posts");
+  const [activeTab, setActiveTab] = useState<"posts" | "info" | "galeri" | "kilo" | "veteriner">("posts");
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [showWeightForm, setShowWeightForm] = useState(false);
   const [newWeight, setNewWeight] = useState("");
   const [newWeightNote, setNewWeightNote] = useState("");
@@ -133,6 +136,36 @@ export default function YPDogProfilePage({ routeSlug }: { routeSlug?: string }) 
     mutationFn: (id: number) => apiRequest("DELETE", `/api/dogs/${routeSlug}/vet-visits/${id}`, {}),
     onSuccess: () => refetchVetVisits(),
   });
+
+  const { data: photos = [], refetch: refetchPhotos } = useQuery<any[]>({
+    queryKey: [`/api/dogs/${routeSlug}/photos`],
+    queryFn: async () => {
+      const r = await fetch(`/api/dogs/${routeSlug}/photos`);
+      if (!r.ok) return [];
+      return r.json();
+    },
+    enabled: !!routeSlug && !!dog,
+    staleTime: 0,
+  });
+
+  const deletePhotoMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/dogs/${routeSlug}/photos/${id}`, {}),
+    onSuccess: () => refetchPhotos(),
+  });
+
+  const uploadPhoto = (file: File) => {
+    if (file.size > 5 * 1024 * 1024) { alert("Fotoğraf 5MB'tan büyük olamaz"); return; }
+    setPhotoUploading(true);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        await apiRequest("POST", `/api/dogs/${routeSlug}/photos`, { imageBase64: reader.result as string, caption: "" });
+        refetchPhotos();
+      } catch (e: any) { alert(e?.message || "Yükleme başarısız"); }
+      finally { setPhotoUploading(false); if (photoInputRef.current) photoInputRef.current.value = ""; }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const followMutation = useMutation({
     mutationFn: async () => {
@@ -349,6 +382,58 @@ export default function YPDogProfilePage({ routeSlug }: { routeSlug?: string }) 
                 {!dog.city && !dog.weight_kg && !dog.color && (
                   <div style={{ textAlign: "center", padding: "32px", color: "#aaa", fontSize: 13 }}>Bilgi eklenmemiş</div>
                 )}
+              </div>
+            )}
+
+            {/* Photo gallery tab */}
+            {activeTab === "galeri" && (
+              <div style={{ padding: "12px" }}>
+                {dog.isOwner && (
+                  <>
+                    <input ref={photoInputRef} type="file" accept="image/jpeg,image/png,image/webp"
+                      style={{ display: "none" }}
+                      onChange={e => { const f = e.target.files?.[0]; if (f) uploadPhoto(f); }} />
+                    <button onClick={() => photoInputRef.current?.click()} disabled={photoUploading}
+                      style={{ width: "100%", padding: "11px", borderRadius: 12, border: "1.5px dashed #D8B4FE", background: "#F5F0FF", color: "#7C3AED", fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 12, fontFamily: "inherit", opacity: photoUploading ? 0.6 : 1 }}>
+                      <Camera size={16} /> {photoUploading ? "Yükleniyor…" : "Fotoğraf Ekle (maks. 30)"}
+                    </button>
+                  </>
+                )}
+                {photos.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "40px 16px", color: "#aaa" }}>
+                    <Camera size={36} color="#D8B4FE" style={{ marginBottom: 12 }} />
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#555", marginBottom: 6 }}>Henüz Fotoğraf Yok</div>
+                    {dog.isOwner && <div style={{ fontSize: 12 }}>Yukarıdaki butonu kullanarak fotoğraf ekleyin.</div>}
+                  </div>
+                ) : (
+                  <div className="dog-photo-grid">
+                    {photos.map((p: any) => (
+                      <div key={p.id} className="dog-photo-cell" style={{ position: "relative" }}
+                        onClick={() => setSelectedPhoto(p.url)}>
+                        <img src={p.url} alt={p.caption || ""} loading="lazy" />
+                        {dog.isOwner && (
+                          <button
+                            onClick={e => { e.stopPropagation(); if (confirm("Fotoğrafı sil?")) deletePhotoMutation.mutate(p.id); }}
+                            style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.5)", border: "none", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", zIndex: 2 }}>
+                            <X size={12} color="#fff" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Photo lightbox */}
+            {selectedPhoto && (
+              <div onClick={() => setSelectedPhoto(null)}
+                style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", zIndex: 600, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <button onClick={() => setSelectedPhoto(null)}
+                  style={{ position: "absolute", top: 16, right: 16, background: "rgba(255,255,255,0.15)", border: "none", borderRadius: "50%", width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <X size={20} color="#fff" />
+                </button>
+                <img src={selectedPhoto} alt="" style={{ maxWidth: "95vw", maxHeight: "90vh", objectFit: "contain", borderRadius: 8 }} />
               </div>
             )}
 

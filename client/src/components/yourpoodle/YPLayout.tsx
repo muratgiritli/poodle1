@@ -28,8 +28,9 @@ const DRAWER_LINKS_BASE = [
   { label: "Bakım",      href: "/yourpoodle/bakim" },
   { label: "Eğitim",     href: "/yourpoodle/egitim" },
   { label: "Topluluk",   href: "/yourpoodle/topluluk" },
-  { label: "Etkinlik",   href: "/yourpoodle/etkinlikler" },
-  { label: "Ayarlar",   href: "/yourpoodle/ayarlar"    },
+  { label: "Etkinlik",    href: "/yourpoodle/etkinlikler" },
+  { label: "Bildirimler", href: "/yourpoodle/bildirimler" },
+  { label: "Ayarlar",    href: "/yourpoodle/ayarlar"    },
 ];
 
 interface Props {

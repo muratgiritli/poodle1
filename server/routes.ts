@@ -3467,6 +3467,30 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   setInterval(runStalePendingCleanup, 10 * 60 * 1000);
   runStalePendingCleanup();
 
+  // ── YP Birthday SMS (daily) ──────────────────────────────────
+  const runBirthdayReminders = async () => {
+    if (process.env.TEST_OTP_BYPASS) return; // skip in test mode
+    try {
+      const r = await sharedPool.query(`
+        SELECT d.name AS dog_name, c.phone, c.name AS owner_name
+        FROM dogs d
+        JOIN customers c ON c.id = d.user_id
+        WHERE d.birth_date IS NOT NULL
+          AND EXTRACT(MONTH FROM d.birth_date) = EXTRACT(MONTH FROM CURRENT_DATE)
+          AND EXTRACT(DAY   FROM d.birth_date) = EXTRACT(DAY   FROM CURRENT_DATE)
+          AND c.phone IS NOT NULL AND c.phone <> ''
+      `);
+      for (const row of r.rows) {
+        const msg = `Mutlu Dogum Gunu ${row.dog_name}! 🐩🎂 YourPoodle ailesi olarak sizinle kutluyoruz. ${row.owner_name ? row.owner_name + " ve" : ""} ${row.dog_name} icin harika gunler dileriz! — YourPoodle`;
+        try { await sendSmsViaNetgsm(row.phone, msg); } catch { /* non-critical */ }
+      }
+      if (r.rows.length) console.log(`[birthday-sms] Sent to ${r.rows.length} dogs.`);
+    } catch (e) { console.error("[birthday-sms] error:", e); }
+  };
+  // Run once on startup then every 24 h
+  runBirthdayReminders();
+  setInterval(runBirthdayReminders, 24 * 60 * 60 * 1000);
+
   app.post("/api/tosla/init-payment", async (req: Request, res: Response) => {
     try {
       const customerId = (req.session as any)?.customerId;

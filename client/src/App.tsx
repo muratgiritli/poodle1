@@ -99,6 +99,7 @@ const YPMamaPage          = lazy(() => import("@/pages/yp-mama"));
 const YPEgitimPage        = lazy(() => import("@/pages/yp-egitim"));
 const YPSaglikPage        = lazy(() => import("@/pages/yp-saglik"));
 const YPBakimPage         = lazy(() => import("@/pages/yp-bakim"));
+const YPBildirimlerPage   = lazy(() => import("@/pages/yp-bildirimler"));
 const YPEtkinliklerPage   = lazy(() => import("@/pages/yp-etkinlikler"));
 const YPAiAsistanPage     = lazy(() => import("@/pages/yp-ai-asistan"));
 const YPMamaBulPage       = lazy(() => import("@/pages/yp-mama-bul"));
@@ -221,9 +222,10 @@ function Router() {
         <Route path="/yourpoodle/giris"          component={YPGirisPage} />
         <Route path="/yourpoodle/topluluk"       component={YPToplulukPage} />
         <Route path="/yourpoodle/mama"           component={YPMamaPage} />
-        <Route path="/yourpoodle/egitim">{() => <Redirect to="/yourpoodle/rehber?tab=egitim" />}</Route>
-        <Route path="/yourpoodle/saglik">{() => <Redirect to="/yourpoodle/rehber?tab=saglik" />}</Route>
-        <Route path="/yourpoodle/bakim">{() => <Redirect to="/yourpoodle/rehber?tab=bakim" />}</Route>
+        <Route path="/yourpoodle/egitim"       component={YPEgitimPage} />
+        <Route path="/yourpoodle/saglik"       component={YPSaglikPage} />
+        <Route path="/yourpoodle/bakim"        component={YPBakimPage} />
+        <Route path="/yourpoodle/bildirimler"  component={YPBildirimlerPage} />
         <Route path="/yourpoodle/etkinlikler"    component={YPEtkinliklerPage} />
         <Route path="/yourpoodle/ai-asistan"     component={YPAiAsistanPage} />
         <Route path="/yourpoodle/mama-bul"       component={YPMamaBulPage} />

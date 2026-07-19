@@ -718,6 +718,38 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
     res.json({ ok: true });
   });
 
+  // ── Dog photos (gallery) ───────────────────────────
+  app.get("/api/dogs/:slug/photos", async (req, res) => {
+    const dog = await pool.query(`SELECT id FROM dogs WHERE slug=$1`, [req.params.slug]);
+    if (!dog.rows.length) return res.status(404).json({ message: "Bulunamadı" });
+    const r = await pool.query(`SELECT * FROM dog_photos WHERE dog_id=$1 ORDER BY "order" ASC, created_at DESC LIMIT 100`, [dog.rows[0].id]);
+    res.json(r.rows);
+  });
+
+  app.post("/api/dogs/:slug/photos", requireCustomer, async (req, res) => {
+    const userId = (req as any).session.customerId as number;
+    const dog = await pool.query(`SELECT id FROM dogs WHERE slug=$1 AND user_id=$2`, [req.params.slug, userId]);
+    if (!dog.rows.length) return res.status(403).json({ message: "Yetkisiz" });
+    const { imageBase64, caption } = req.body;
+    if (!imageBase64) return res.status(400).json({ message: "Fotoğraf zorunlu" });
+    if (imageBase64.length > 6 * 1024 * 1024) return res.status(400).json({ message: "Fotoğraf 5MB'tan büyük olamaz" });
+    const count = await pool.query(`SELECT COUNT(*) AS cnt FROM dog_photos WHERE dog_id=$1`, [dog.rows[0].id]);
+    if (parseInt(count.rows[0].cnt) >= 30) return res.status(400).json({ message: "En fazla 30 fotoğraf ekleyebilirsiniz" });
+    const r = await pool.query(
+      `INSERT INTO dog_photos (dog_id, url, caption) VALUES ($1,$2,$3) RETURNING *`,
+      [dog.rows[0].id, imageBase64, caption || null]
+    );
+    res.json(r.rows[0]);
+  });
+
+  app.delete("/api/dogs/:slug/photos/:photoId", requireCustomer, async (req, res) => {
+    const userId = (req as any).session.customerId as number;
+    const dog = await pool.query(`SELECT id FROM dogs WHERE slug=$1 AND user_id=$2`, [req.params.slug, userId]);
+    if (!dog.rows.length) return res.status(403).json({ message: "Yetkisiz" });
+    await pool.query(`DELETE FROM dog_photos WHERE id=$1 AND dog_id=$2`, [parseInt(String(req.params.photoId)), dog.rows[0].id]);
+    res.json({ ok: true });
+  });
+
   // ── Event registrations ────────────────────────────
   app.get("/api/yp/event-registrations", requireCustomer, async (req, res) => {
     const userId = (req as any).session.customerId as number;
