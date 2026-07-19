@@ -247,6 +247,7 @@ function Router() {
         <Route path="/yourpoodle/bayi-basvurusu"       component={YPBayiBasvurusuPage} />
         <Route path="/yourpoodle/fotograf-yarismasi"   component={YPFotografYarismasi} />
         <Route path="/yourpoodle/ozel-tasarim"         component={YPOzelTasarimPage} />
+        <Route path="/yourpoodle/ayarlar"          component={lazy(() => import("@/pages/yp-ayarlar"))} />
         <Route path="/yourpoodle/urun/:id/:slug?" component={lazy(() => import("@/pages/yp-urun"))} />
         {import.meta.env.DEV && <Route path="/demo-kampanya" component={DemoKampanyaPage} />}
         {import.meta.env.DEV && <Route path="/demo-kampanya/urun/:id" component={DemoKampanyaUrunPage} />}

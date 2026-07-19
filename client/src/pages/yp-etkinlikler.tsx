@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { MapPin, Calendar, Check } from "lucide-react";
+import { MapPin, Calendar, Check, X } from "lucide-react";
 import { useCustomer } from "@/contexts/CustomerContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import YPLayout from "@/components/yourpoodle/YPLayout";
@@ -18,6 +18,7 @@ export default function Etkinlikler() {
   const [, navigate] = useLocation();
   const { isLoggedIn } = useCustomer();
   const [filter, setFilter] = useState("Tümü");
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const qc = useQueryClient();
 
   const { data: apiEvents } = useQuery<any[]>({
@@ -95,7 +96,7 @@ export default function Etkinlikler() {
         {/* Events list */}
         <div className="etk-grid" style={{ padding:"16px 16px 0", display:"flex", flexDirection:"column", gap:14 }}>
           {filtered.map((ev:any) => (
-            <div key={ev.id||ev.title} className="ev-card" style={{ background:"#fff", borderRadius:18, boxShadow:"0 2px 16px rgba(0,0,0,0.07)", overflow:"hidden" }}>
+            <div key={ev.id||ev.title} className="ev-card" onClick={() => setSelectedEvent(ev)} style={{ background:"#fff", borderRadius:18, boxShadow:"0 2px 16px rgba(0,0,0,0.07)", overflow:"hidden", cursor:"pointer" }}>
               <div style={{ display:"flex", alignItems:"stretch" }}>
                 <div style={{ width:72, flexShrink:0, background:ev.color+"22", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"16px 8px" }}>
                   <div style={{ fontSize:22, fontWeight:900, color:ev.color, lineHeight:1 }}>{ev.day}</div>
@@ -140,6 +141,79 @@ export default function Etkinlikler() {
             </div>
           ))}
         </div>
+
+        {/* Event detail bottom sheet */}
+        {selectedEvent && (
+          <div style={{ position:"fixed", inset:0, zIndex:500, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}
+            onClick={() => setSelectedEvent(null)}>
+            <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.45)" }} />
+            <div onClick={e => e.stopPropagation()}
+              style={{ position:"relative", background:"#fff", borderRadius:"24px 24px 0 0", padding:"24px 20px 40px", maxHeight:"85vh", overflowY:"auto" }}>
+              <div style={{ width:40, height:4, borderRadius:2, background:"#E5E7EB", margin:"-12px auto 20px", display:"block" }} />
+              {/* Date + color strip */}
+              <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:16 }}>
+                <div style={{ width:60, height:60, borderRadius:14, background:selectedEvent.color+"22", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                  <div style={{ fontSize:22, fontWeight:900, color:selectedEvent.color, lineHeight:1 }}>{selectedEvent.day}</div>
+                  <div style={{ fontSize:10, fontWeight:800, color:selectedEvent.color }}>{selectedEvent.month}</div>
+                  <div style={{ fontSize:9, color:selectedEvent.color, opacity:0.7 }}>{selectedEvent.year||""}</div>
+                </div>
+                <div>
+                  <div style={{ display:"flex", gap:6, marginBottom:5, flexWrap:"wrap" }}>
+                    <span style={{ fontSize:10, fontWeight:800, background:selectedEvent.color+"22", color:selectedEvent.color, borderRadius:6, padding:"2px 8px" }}>{selectedEvent.type}</span>
+                    {selectedEvent.free && <span style={{ fontSize:10, fontWeight:800, background:"#DCFCE7", color:"#16A34A", borderRadius:6, padding:"2px 8px" }}>ÜCRETSİZ</span>}
+                  </div>
+                  <div style={{ fontSize:18, fontWeight:900, color:"#1a1a1a", lineHeight:1.3, fontFamily:"Inter,sans-serif" }}>{selectedEvent.title}</div>
+                </div>
+              </div>
+              {/* Description */}
+              {selectedEvent.desc && (
+                <p style={{ fontSize:14, color:"#555", lineHeight:1.7, marginBottom:16, fontFamily:"Inter,sans-serif" }}>{selectedEvent.desc}</p>
+              )}
+              {/* Details */}
+              <div style={{ background:"#F9FAFB", borderRadius:12, padding:"12px 14px", marginBottom:16, display:"flex", flexDirection:"column", gap:8 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <MapPin size={14} color="#7C3AFF" />
+                  <span style={{ fontSize:13, color:"#374151", fontFamily:"Inter,sans-serif" }}>{selectedEvent.location||selectedEvent.loc}</span>
+                </div>
+                {selectedEvent.venue && (
+                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <Calendar size={14} color="#7C3AFF" />
+                    <span style={{ fontSize:13, color:"#374151", fontFamily:"Inter,sans-serif" }}>{selectedEvent.venue}</span>
+                  </div>
+                )}
+                {selectedEvent.time && (
+                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{ fontSize:13, marginLeft:1 }}>🕐</span>
+                    <span style={{ fontSize:13, color:"#374151", fontFamily:"Inter,sans-serif" }}>{selectedEvent.time}</span>
+                  </div>
+                )}
+                {selectedEvent.participants && (
+                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{ fontSize:13, marginLeft:1 }}>👥</span>
+                    <span style={{ fontSize:13, color:"#374151", fontFamily:"Inter,sans-serif" }}>{selectedEvent.participants} katılımcı</span>
+                  </div>
+                )}
+              </div>
+              {/* CTA */}
+              {isLoggedIn ? (() => {
+                const joined = myRegistrations.includes(selectedEvent.id);
+                return (
+                  <button
+                    onClick={() => registerMutation.mutate({ eventId: selectedEvent.id, join: !joined })}
+                    disabled={registerMutation.isPending}
+                    style={{ width:"100%", height:50, borderRadius:14, border:`1.5px solid ${joined ? "#16A34A" : "#7C3AFF"}`, background: joined ? "#DCFCE7" : "#7C3AFF", color: joined ? "#16A34A" : "#fff", fontSize:15, fontWeight:800, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8, fontFamily:"Inter,sans-serif" }}>
+                    {joined ? <><Check size={16} /> Katılıyorum — İptal Et</> : <><Calendar size={16} /> Katılacağım</>}
+                  </button>
+                );
+              })() : (
+                <button onClick={() => { setSelectedEvent(null); navigate("/yourpoodle/giris"); }}
+                  style={{ width:"100%", height:50, borderRadius:14, border:"none", background:"#7C3AFF", color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
+                  Katılmak için Üye Ol
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Submit event CTA */}
         <div style={{ margin:"24px 16px", background:"#F5F0FF", borderRadius:18, padding:"20px", textAlign:"center" }}>

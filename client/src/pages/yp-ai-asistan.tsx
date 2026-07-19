@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 import {
   Send, Plus, Paperclip, Mic, MessageSquare, Menu,
-  ChevronDown, Utensils, Scissors, GraduationCap, HeartPulse, PawPrint,
+  ChevronDown, Utensils, Scissors, GraduationCap, HeartPulse, PawPrint, Trash2,
 } from "lucide-react";
 
 /* ─── Types ──────────────────────────────────────────────── */
@@ -168,6 +168,21 @@ Kurallar:
       setHistory(updated);
       saveHistory(updated);
     }
+    setMessages([]);
+    setActiveHistId("new");
+    try { localStorage.removeItem(LS_MSG); } catch {}
+  };
+
+  const deleteHistEntry = (id: string) => {
+    const updated = history.filter(h => h.id !== id);
+    setHistory(updated);
+    saveHistory(updated);
+    if (activeHistId === id) { setMessages([]); setActiveHistId("new"); try { localStorage.removeItem(LS_MSG); } catch {} }
+  };
+
+  const clearAllHistory = () => {
+    setHistory([]);
+    saveHistory([]);
     setMessages([]);
     setActiveHistId("new");
     try { localStorage.removeItem(LS_MSG); } catch {}
@@ -353,22 +368,37 @@ Kurallar:
               {/* Real saved history */}
               {history.length > 0 && (
                 <>
-                  <div style={{ fontSize:10.5, fontWeight:600, color:"#A78BFA", padding:"8px 8px 3px" }}>Önceki</div>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"8px 8px 3px" }}>
+                    <span style={{ fontSize:10.5, fontWeight:600, color:"#A78BFA" }}>Önceki</span>
+                    <button onClick={() => { if (confirm("Tüm sohbet geçmişi silinsin mi?")) clearAllHistory(); }}
+                      style={{ background:"none", border:"none", cursor:"pointer", color:"#EF4444", fontSize:10, fontWeight:700, padding:"2px 5px", borderRadius:4 }}>
+                      Tümünü Sil
+                    </button>
+                  </div>
                   {history.map(h => {
                     const active = activeHistId === h.id;
                     return (
-                      <button key={h.id} className="ai-hist-btn"
-                        onClick={() => loadHistEntry(h)}
-                        style={{ width:"100%", display:"flex", alignItems:"center", gap:8,
-                                 padding:"8px 10px", background: active ? "rgba(124,58,237,0.12)" : "transparent",
-                                 border:"none", cursor:"pointer", textAlign:"left", borderRadius:8 }}>
-                        <MessageSquare size={13} color={active ? "#7C3AED" : "#9CA3AF"} />
-                        <span style={{ fontSize:12.5, color: active ? "#7C3AED" : "#374151",
-                                       fontWeight: active ? 700 : 400,
-                                       overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                          {h.title}
-                        </span>
-                      </button>
+                      <div key={h.id} style={{ display:"flex", alignItems:"center", borderRadius:8, overflow:"hidden" }}>
+                        <button className="ai-hist-btn"
+                          onClick={() => loadHistEntry(h)}
+                          style={{ flex:1, display:"flex", alignItems:"center", gap:8,
+                                   padding:"8px 6px 8px 10px", background: active ? "rgba(124,58,237,0.12)" : "transparent",
+                                   border:"none", cursor:"pointer", textAlign:"left" }}>
+                          <MessageSquare size={13} color={active ? "#7C3AED" : "#9CA3AF"} />
+                          <span style={{ fontSize:12.5, color: active ? "#7C3AED" : "#374151",
+                                         fontWeight: active ? 700 : 400,
+                                         overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                            {h.title}
+                          </span>
+                        </button>
+                        <button onClick={() => deleteHistEntry(h.id)}
+                          title="Sil"
+                          style={{ background:"none", border:"none", cursor:"pointer", padding:"8px 8px", color:"#D1D5DB", flexShrink:0 }}
+                          onMouseEnter={e => (e.currentTarget.style.color = "#EF4444")}
+                          onMouseLeave={e => (e.currentTarget.style.color = "#D1D5DB")}>
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
                     );
                   })}
                 </>

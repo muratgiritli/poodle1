@@ -119,7 +119,7 @@ function CommentSection({ postId, isLoggedIn, onJoin }: { postId: number; isLogg
 }
 
 /* ─── Post Card ─────────────────────────────────────────── */
-function PostCard({ post, isLoggedIn, onJoin, onLike }: { post: ApiPost; isLoggedIn: boolean; onJoin: () => void; onLike: (id: number) => void }) {
+function PostCard({ post, isLoggedIn, onJoin, onLike, onTag }: { post: ApiPost; isLoggedIn: boolean; onJoin: () => void; onLike: (id: number) => void; onTag?: (tag: string) => void }) {
   const [, navigate] = useLocation();
   const [showComments, setShowComments] = useState(false);
   const imgs: string[] = Array.isArray(post.image_urls) ? post.image_urls : (typeof post.image_urls === "string" ? JSON.parse(post.image_urls || "[]") : []);
@@ -150,7 +150,7 @@ function PostCard({ post, isLoggedIn, onJoin, onLike }: { post: ApiPost; isLogge
       {/* Content */}
       {post.content && (
         <p style={{ fontSize: 13.5, color: "#374151", lineHeight: 1.7, padding: "0 14px 10px", margin: 0 }}>
-          {renderText(post.content)}
+          {renderText(post.content, onTag)}
         </p>
       )}
 
@@ -521,7 +521,7 @@ export default function Club() {
                 <div role="feed">
                   {filteredPosts.map(post => (
                     <PostCard key={post.id} post={post} isLoggedIn={isLoggedIn} onJoin={goLogin}
-                      onLike={id => likeMutation.mutate(id)} />
+                      onLike={id => likeMutation.mutate(id)} onTag={tag => { setFeedCat(tag); }} />
                   ))}
                 </div>
               )}
@@ -656,7 +656,7 @@ export default function Club() {
       {/* FAB */}
       {isLoggedIn && activeTab === "akis" && (
         <button onClick={() => setShowCompose(true)}
-          style={{ position: "fixed", bottom: 80, right: 20, width: 52, height: 52, borderRadius: "50%", background: "#7C3AED", border: "none", boxShadow: "0 6px 20px rgba(124,58,237,0.4)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", zIndex: 150 }}>
+          style={{ position: "fixed", bottom: 90, right: 20, width: 52, height: 52, borderRadius: "50%", background: "#7C3AED", border: "none", boxShadow: "0 6px 20px rgba(124,58,237,0.4)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", zIndex: 150 }}>
           <Plus size={22} color="#fff" strokeWidth={2.5} />
         </button>
       )}

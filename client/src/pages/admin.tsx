@@ -2950,6 +2950,24 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               ))}
             </div>
           )}
+          {/* YP Platform filter — always visible */}
+          <div className="flex items-center gap-2 mb-4 flex-wrap overflow-x-auto">
+            <span className="text-xs text-muted-foreground shrink-0">Platform:</span>
+            {([
+              { id: "all", label: "Tüm Siparişler" },
+              { id: "yourpoodle", label: "🐩 YP Siparişleri" },
+              { id: "jetgo", label: "JetGo" },
+            ] as const).map((s) => (
+              <button key={s.id} onClick={() => setOrderSiteFilter(s.id)}
+                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                  orderSiteFilter === s.id
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-muted-foreground border-border hover:bg-muted"
+                }`}>
+                {s.label}
+              </button>
+            ))}
+          </div>
 
           {ordersLoading ? (
             <div className="flex items-center justify-center py-12">
@@ -7330,6 +7348,52 @@ function YPArticlesCard() {
 }
 
 /* ─── YP Events Admin ───────────────────────────────────────── */
+function YPEventRegistrationsCard() {
+  const { data: registrations = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/admin/yp-event-registrations"],
+    queryFn: async () => {
+      const r = await fetch("/api/admin/yp-event-registrations", { credentials: "include" });
+      if (!r.ok) return [];
+      return r.json();
+    },
+    staleTime: 0,
+  });
+
+  // Group by event
+  const byEvent = registrations.reduce((acc: Record<string, any>, reg: any) => {
+    const key = reg.event_id ?? reg.eventId;
+    if (!acc[key]) acc[key] = { count: 0, title: reg.event_title || `Etkinlik #${key}`, id: key };
+    acc[key].count++;
+    return acc;
+  }, {});
+  const events = Object.values(byEvent) as { id: number; title: string; count: number }[];
+
+  return (
+    <Card className="border-violet-300">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">🗓️ YP Etkinlik Katılımları</CardTitle>
+      </CardHeader>
+      <CardContent className="p-3">
+        {isLoading ? (
+          <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /></div>
+        ) : events.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-3">Henüz katılım kaydı yok.</p>
+        ) : (
+          <div className="space-y-2">
+            {events.sort((a, b) => b.count - a.count).map(ev => (
+              <div key={ev.id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-violet-50 border border-violet-100">
+                <span className="text-xs font-semibold text-violet-900 truncate mr-3">{ev.title}</span>
+                <span className="text-xs font-black text-violet-700 shrink-0 bg-violet-200 px-2 py-0.5 rounded-full">{ev.count} kişi</span>
+              </div>
+            ))}
+            <p className="text-[10px] text-muted-foreground text-center pt-1">Toplam {registrations.length} kayıt</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function YPEventsCard() {
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -9998,6 +10062,7 @@ function SettingsSection() {
       </div>
       <YPProductsCard />
       <YPEmailSubscribersCard />
+      <YPEventRegistrationsCard />
       <YourPoodleSettingsCard />
       <YPArticlesCard />
       <YPEventsCard />
@@ -10018,6 +10083,7 @@ function SettingsSection() {
 
       <YPProductsCard />
       <YPEmailSubscribersCard />
+      <YPEventRegistrationsCard />
       <YourPoodleSettingsCard />
       <YPArticlesCard />
       <YPEventsCard />

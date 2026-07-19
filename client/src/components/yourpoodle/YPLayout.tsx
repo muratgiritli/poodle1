@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { useCustomer } from "@/contexts/CustomerContext";
 import {
   ShoppingBag, BookOpen, Bot, Utensils, Wrench,
-  PawPrint, Search, Heart, ShoppingCart, ChevronDown, X, User,
+  PawPrint, Search, Heart, ShoppingCart, ChevronDown, X, User, Users,
 } from "lucide-react";
 import YPFooter from "./YPFooter";
 
@@ -29,6 +29,7 @@ const DRAWER_LINKS_BASE = [
   { label: "Eğitim",     href: "/yourpoodle/egitim" },
   { label: "Topluluk",   href: "/yourpoodle/topluluk" },
   { label: "Etkinlik",   href: "/yourpoodle/etkinlikler" },
+  { label: "Ayarlar",   href: "/yourpoodle/ayarlar"    },
 ];
 
 interface Props {
@@ -393,8 +394,8 @@ export default function YPLayout({
           }}>
             {/* Sol 2 tab */}
             {[
-              { label: "Ana Sayfa", href: "/yourpoodle",          Icon: PawPrint  },
-              { label: "Mama Bul",  href: "/yourpoodle/mama-bul", Icon: Utensils  },
+              { label: "Ana Sayfa", href: "/yourpoodle",        Icon: PawPrint },
+              { label: "Club",      href: "/yourpoodle/club",   Icon: Users    },
             ].map(({ label, href, Icon }) => {
               const active = isActive(effectiveBottomLink, href);
               return (
@@ -445,8 +446,8 @@ export default function YPLayout({
 
             {/* Sağ 2 tab */}
             {[
-              { label: "Mağaza", href: "/yourpoodle/magaza",  Icon: ShoppingBag },
-              { label: "Rehber", href: "/yourpoodle/rehber",  Icon: BookOpen    },
+              { label: "Mağaza", href: "/yourpoodle/magaza",     Icon: ShoppingBag },
+              { label: "AI",     href: "/yourpoodle/ai-asistan", Icon: Bot         },
             ].map(({ label, href, Icon }) => {
               const active = isActive(effectiveBottomLink, href);
               return (
