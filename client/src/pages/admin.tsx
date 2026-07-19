@@ -7464,7 +7464,109 @@ function YPEventsCard() {
   );
 }
 
+function YPProductsCard() {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editPrice, setEditPrice] = useState("");
+  const [editStock, setEditStock] = useState("");
+
+  const { data: products = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/yp-products"],
+    staleTime: 0,
+  });
+
+  const toggleActiveMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: number; isActive: boolean }) => {
+      const r = await fetch(`/api/admin/products/${id}`, {
+        method: "PATCH", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive }),
+      });
+      if (!r.ok) throw new Error("İşlem başarısız");
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["/api/yp-products"] }); toast({ title: "Güncellendi" }); },
+  });
+
+  const saveEditMutation = useMutation({
+    mutationFn: async ({ id }: { id: number }) => {
+      const body: any = {};
+      if (editPrice) body.price = Number(editPrice);
+      if (editStock) body.stock = Number(editStock);
+      if (!Object.keys(body).length) return;
+      const r = await fetch(`/api/admin/products/${id}`, {
+        method: "PATCH", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!r.ok) throw new Error("Güncelleme başarısız");
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["/api/yp-products"] }); setEditingId(null); toast({ title: "Kaydedildi" }); },
+  });
+
+  return (
+    <Card className="border-violet-300">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">🐩 YP Ürün Yönetimi</CardTitle>
+      </CardHeader>
+      <CardContent className="p-3">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs text-muted-foreground">
+            {isLoading ? "Yükleniyor…" : `${products.length} ürün`}
+          </span>
+        </div>
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {products.map((p: any) => (
+            <div key={p.id} className={`rounded-lg border p-2 text-xs ${p.isActive ? "bg-white" : "bg-muted/30 opacity-60"}`}>
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold truncate">{p.name}</div>
+                  <div className="flex items-center gap-3 mt-1 text-muted-foreground">
+                    {editingId === p.id ? (
+                      <>
+                        <label className="flex items-center gap-1">Fiyat: <input type="number" value={editPrice} onChange={e => setEditPrice(e.target.value)} placeholder={String(p.price)} className="w-20 border rounded px-1 py-0.5 text-xs" /></label>
+                        <label className="flex items-center gap-1">Stok: <input type="number" value={editStock} onChange={e => setEditStock(e.target.value)} placeholder={String(p.stock ?? 0)} className="w-16 border rounded px-1 py-0.5 text-xs" /></label>
+                      </>
+                    ) : (
+                      <>
+                        <span>₺{p.price}</span>
+                        <span>Stok: {p.stock ?? 0}</span>
+                        {p.mamaType && <span className="bg-violet-100 text-violet-700 rounded px-1">{p.mamaType}</span>}
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  {editingId === p.id ? (
+                    <>
+                      <Button size="sm" className="h-6 text-[10px] px-2" onClick={() => saveEditMutation.mutate({ id: p.id })} disabled={saveEditMutation.isPending}>Kaydet</Button>
+                      <Button size="sm" variant="outline" className="h-6 text-[10px] px-2" onClick={() => setEditingId(null)}>İptal</Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button size="sm" variant="outline" className="h-6 text-[10px] px-2" onClick={() => { setEditingId(p.id); setEditPrice(""); setEditStock(""); }}>Düzenle</Button>
+                      <Button size="sm" variant={p.isActive ? "outline" : "default"} className="h-6 text-[10px] px-2"
+                        onClick={() => toggleActiveMutation.mutate({ id: p.id, isActive: !p.isActive })}>
+                        {p.isActive ? "Gizle" : "Yayınla"}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+          {!isLoading && products.length === 0 && (
+            <p className="text-xs text-muted-foreground text-center py-4">Henüz YP ürünü yok.</p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function YPEmailSubscribersCard() {
+  const { toast } = useToast();
+  const qc = useQueryClient();
   const { data: subscribers = [], isLoading, refetch } = useQuery<any[]>({
     queryKey: ["/api/admin/yp-email-subscribers"],
     queryFn: async () => {
@@ -7473,6 +7575,14 @@ function YPEmailSubscribersCard() {
       return res.json();
     },
     staleTime: 0,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const r = await fetch(`/api/admin/yp-email-subscribers/${id}`, { method: "DELETE", credentials: "include" });
+      if (!r.ok) throw new Error("Silinemedi");
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["/api/admin/yp-email-subscribers"] }); toast({ title: "Abone silindi" }); },
   });
 
   return (
@@ -7499,9 +7609,13 @@ function YPEmailSubscribersCard() {
             {subscribers.slice(0, 60).map((s: any) => (
               <div key={s.id} className="flex items-center justify-between text-xs px-2 py-1.5 rounded bg-muted/40">
                 <span className="font-mono truncate mr-2">{s.email}</span>
-                <span className="text-muted-foreground whitespace-nowrap">
-                  {new Date(s.created_at).toLocaleDateString("tr-TR")}
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-muted-foreground whitespace-nowrap">
+                    {new Date(s.created_at).toLocaleDateString("tr-TR")}
+                  </span>
+                  <button onClick={() => { if (confirm(`${s.email} silinsin mi?`)) deleteMutation.mutate(s.id); }}
+                    className="text-muted-foreground hover:text-red-500 transition-colors" title="Sil">✕</button>
+                </div>
               </div>
             ))}
             {subscribers.length > 60 && (
@@ -9882,6 +9996,7 @@ function SettingsSection() {
         <span>Ayarlar yüklenemedi. Lütfen tekrar deneyin.</span>
         <Button size="sm" variant="outline" onClick={() => refetch()} className="shrink-0">Yeniden Dene</Button>
       </div>
+      <YPProductsCard />
       <YPEmailSubscribersCard />
       <YourPoodleSettingsCard />
       <YPArticlesCard />
@@ -9901,6 +10016,7 @@ function SettingsSection() {
     <div className="space-y-4" data-testid="section-ayarlar">
       <h2 className="text-lg font-bold">Puan & Besleme Ayarları</h2>
 
+      <YPProductsCard />
       <YPEmailSubscribersCard />
       <YourPoodleSettingsCard />
       <YPArticlesCard />

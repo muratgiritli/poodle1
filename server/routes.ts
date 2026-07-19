@@ -7068,6 +7068,13 @@ Kurallar:
     } catch { res.json([]); }
   });
 
+  app.delete("/api/admin/yp-email-subscribers/:id", requireAdmin, async (req, res) => {
+    try {
+      await sharedPool.query(`DELETE FROM yp_email_subscribers WHERE id=$1`, [parseInt(String(req.params.id))]);
+      res.json({ ok: true });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
   app.get("/api/admin/yp-email-subscribers/export", requireAdmin, async (_req, res) => {
     try {
       const result = await sharedPool.query(

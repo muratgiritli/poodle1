@@ -129,6 +129,40 @@ async function migrate(pool: Pool) {
     );
   `);
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS dog_weight_log (
+      id          SERIAL PRIMARY KEY,
+      dog_id      INTEGER NOT NULL REFERENCES dogs(id) ON DELETE CASCADE,
+      weight_kg   NUMERIC(4,2) NOT NULL,
+      note        TEXT,
+      measured_at DATE NOT NULL DEFAULT CURRENT_DATE,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS dog_vet_visits (
+      id              SERIAL PRIMARY KEY,
+      dog_id          INTEGER NOT NULL REFERENCES dogs(id) ON DELETE CASCADE,
+      visit_date      DATE NOT NULL,
+      vet_name        TEXT,
+      visit_type      TEXT NOT NULL DEFAULT 'Rutin Kontrol',
+      notes           TEXT,
+      next_visit_date DATE,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS yp_event_registrations (
+      id         SERIAL PRIMARY KEY,
+      user_id    INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+      event_id   INTEGER NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(user_id, event_id)
+    );
+  `);
+
   console.log("[dogs] DB migration complete");
 }
 
@@ -619,6 +653,104 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
       FROM club_posts cp WHERE cp.dog_id=$1 ORDER BY cp.created_at DESC LIMIT 30
     `, [dog.rows[0].id]);
     res.json(r.rows.map(p => ({ ...p, timeAgo: timeAgo(new Date(p.created_at)) })));
+  });
+
+  // ── Weight log ─────────────────────────────────────
+  app.get("/api/dogs/:slug/weight-log", requireCustomer, async (req, res) => {
+    const userId = (req as any).session.customerId as number;
+    const dog = await pool.query(`SELECT * FROM dogs WHERE slug=$1 AND user_id=$2`, [req.params.slug, userId]);
+    if (!dog.rows.length) return res.status(403).json({ message: "Yetkisiz" });
+    const r = await pool.query(`SELECT * FROM dog_weight_log WHERE dog_id=$1 ORDER BY measured_at DESC, id DESC LIMIT 50`, [dog.rows[0].id]);
+    res.json(r.rows);
+  });
+
+  app.post("/api/dogs/:slug/weight-log", requireCustomer, async (req, res) => {
+    const userId = (req as any).session.customerId as number;
+    const dog = await pool.query(`SELECT * FROM dogs WHERE slug=$1 AND user_id=$2`, [req.params.slug, userId]);
+    if (!dog.rows.length) return res.status(403).json({ message: "Yetkisiz" });
+    const { weight_kg, note, measured_at } = req.body;
+    if (!weight_kg || isNaN(Number(weight_kg))) return res.status(400).json({ message: "Geçerli kilo girin" });
+    const r = await pool.query(
+      `INSERT INTO dog_weight_log (dog_id, weight_kg, note, measured_at) VALUES ($1,$2,$3,$4) RETURNING *`,
+      [dog.rows[0].id, Number(weight_kg), note || null, measured_at || null]
+    );
+    // Also update dog's current weight
+    await pool.query(`UPDATE dogs SET weight_kg=$1 WHERE id=$2`, [Number(weight_kg), dog.rows[0].id]);
+    res.json(r.rows[0]);
+  });
+
+  app.delete("/api/dogs/:slug/weight-log/:id", requireCustomer, async (req, res) => {
+    const userId = (req as any).session.customerId as number;
+    const dog = await pool.query(`SELECT * FROM dogs WHERE slug=$1 AND user_id=$2`, [req.params.slug, userId]);
+    if (!dog.rows.length) return res.status(403).json({ message: "Yetkisiz" });
+    await pool.query(`DELETE FROM dog_weight_log WHERE id=$1 AND dog_id=$2`, [parseInt(String(req.params.id)), dog.rows[0].id]);
+    res.json({ ok: true });
+  });
+
+  // ── Vet visits ─────────────────────────────────────
+  app.get("/api/dogs/:slug/vet-visits", requireCustomer, async (req, res) => {
+    const userId = (req as any).session.customerId as number;
+    const dog = await pool.query(`SELECT * FROM dogs WHERE slug=$1 AND user_id=$2`, [req.params.slug, userId]);
+    if (!dog.rows.length) return res.status(403).json({ message: "Yetkisiz" });
+    const r = await pool.query(`SELECT * FROM dog_vet_visits WHERE dog_id=$1 ORDER BY visit_date DESC`, [dog.rows[0].id]);
+    res.json(r.rows);
+  });
+
+  app.post("/api/dogs/:slug/vet-visits", requireCustomer, async (req, res) => {
+    const userId = (req as any).session.customerId as number;
+    const dog = await pool.query(`SELECT * FROM dogs WHERE slug=$1 AND user_id=$2`, [req.params.slug, userId]);
+    if (!dog.rows.length) return res.status(403).json({ message: "Yetkisiz" });
+    const { visit_date, vet_name, visit_type, notes, next_visit_date } = req.body;
+    if (!visit_date) return res.status(400).json({ message: "Ziyaret tarihi zorunlu" });
+    const r = await pool.query(
+      `INSERT INTO dog_vet_visits (dog_id, visit_date, vet_name, visit_type, notes, next_visit_date)
+       VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+      [dog.rows[0].id, visit_date, vet_name || null, visit_type || "Rutin Kontrol", notes || null, next_visit_date || null]
+    );
+    res.json(r.rows[0]);
+  });
+
+  app.delete("/api/dogs/:slug/vet-visits/:id", requireCustomer, async (req, res) => {
+    const userId = (req as any).session.customerId as number;
+    const dog = await pool.query(`SELECT * FROM dogs WHERE slug=$1 AND user_id=$2`, [req.params.slug, userId]);
+    if (!dog.rows.length) return res.status(403).json({ message: "Yetkisiz" });
+    await pool.query(`DELETE FROM dog_vet_visits WHERE id=$1 AND dog_id=$2`, [parseInt(String(req.params.id)), dog.rows[0].id]);
+    res.json({ ok: true });
+  });
+
+  // ── Event registrations ────────────────────────────
+  app.get("/api/yp/event-registrations", requireCustomer, async (req, res) => {
+    const userId = (req as any).session.customerId as number;
+    const r = await pool.query(`SELECT event_id FROM yp_event_registrations WHERE user_id=$1`, [userId]);
+    res.json(r.rows.map((x: any) => x.event_id));
+  });
+
+  app.post("/api/yp/event-registrations/:eventId", requireCustomer, async (req, res) => {
+    const userId = (req as any).session.customerId as number;
+    const eventId = parseInt(String(req.params.eventId));
+    try {
+      await pool.query(`INSERT INTO yp_event_registrations (user_id, event_id) VALUES ($1,$2) ON CONFLICT DO NOTHING`, [userId, eventId]);
+      res.json({ ok: true });
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.delete("/api/yp/event-registrations/:eventId", requireCustomer, async (req, res) => {
+    const userId = (req as any).session.customerId as number;
+    const eventId = parseInt(String(req.params.eventId));
+    await pool.query(`DELETE FROM yp_event_registrations WHERE user_id=$1 AND event_id=$2`, [userId, eventId]);
+    res.json({ ok: true });
+  });
+
+  // ── Admin: event registrations overview ───────────
+  app.get("/api/admin/yp-event-registrations", async (req, res) => {
+    const r = await pool.query(`
+      SELECT er.event_id, COUNT(*) AS count,
+             json_agg(json_build_object('id', c.id, 'name', c.name, 'phone', c.phone) ORDER BY er.created_at DESC) AS attendees
+      FROM yp_event_registrations er
+      JOIN customers c ON c.id = er.user_id
+      GROUP BY er.event_id ORDER BY er.event_id
+    `);
+    res.json(r.rows);
   });
 
   console.log("[dogs] Routes registered");

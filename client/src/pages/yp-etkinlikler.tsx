@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { MapPin, Calendar, ExternalLink } from "lucide-react";
+import { MapPin, Calendar, Check } from "lucide-react";
 import { useCustomer } from "@/contexts/CustomerContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 
 const FALLBACK_EVENTS = [
@@ -18,12 +18,33 @@ export default function Etkinlikler() {
   const [, navigate] = useLocation();
   const { isLoggedIn } = useCustomer();
   const [filter, setFilter] = useState("Tümü");
+  const qc = useQueryClient();
 
   const { data: apiEvents } = useQuery<any[]>({
     queryKey: ["/api/yp-events"],
     staleTime: 2 * 60 * 1000,
   });
   const events = (apiEvents && apiEvents.length > 0) ? apiEvents : FALLBACK_EVENTS;
+
+  const { data: myRegistrations = [] } = useQuery<number[]>({
+    queryKey: ["/api/yp/event-registrations"],
+    queryFn: async () => {
+      const r = await fetch("/api/yp/event-registrations", { credentials: "include" });
+      if (!r.ok) return [];
+      return r.json();
+    },
+    enabled: isLoggedIn,
+    staleTime: 0,
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: async ({ eventId, join }: { eventId: number; join: boolean }) => {
+      const method = join ? "POST" : "DELETE";
+      const r = await fetch(`/api/yp/event-registrations/${eventId}`, { method, credentials: "include" });
+      if (!r.ok) throw new Error("İşlem başarısız");
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/yp/event-registrations"] }),
+  });
   const types = ["Tümü", ...Array.from(new Set(events.map((e:any) => e.type)))];
   const filtered = filter === "Tümü" ? events : events.filter((e:any) => e.type === filter);
 
@@ -100,13 +121,22 @@ export default function Etkinlikler() {
                     style={{ padding:"6px 14px", borderRadius:10, border:"none", background:"#7C3AFF", color:"#fff", fontSize:12, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>Üye Ol</button>
                 </div>
               )}
-              {isLoggedIn && (
-                <div style={{ borderTop:"1px solid #f5f5f5", padding:"10px 14px" }}>
-                  <button style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none", cursor:"pointer", color:"#7C3AFF", fontSize:13, fontWeight:700, fontFamily:"Inter,sans-serif" }}>
-                    <Calendar size={14} />Takvime ekle <ExternalLink size={12} />
-                  </button>
-                </div>
-              )}
+              {isLoggedIn && (() => {
+                const joined = myRegistrations.includes(ev.id);
+                return (
+                  <div style={{ borderTop:"1px solid #f5f5f5", padding:"10px 14px", display:"flex", gap:8 }}>
+                    <button
+                      onClick={() => registerMutation.mutate({ eventId: ev.id, join: !joined })}
+                      disabled={registerMutation.isPending}
+                      style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:10, border:`1.5px solid ${joined ? "#16A34A" : "#7C3AFF"}`, background: joined ? "#DCFCE7" : "#7C3AFF", color: joined ? "#16A34A" : "#fff", fontSize:13, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
+                      {joined ? <><Check size={14} /> Katılıyorum</> : <><Calendar size={14} /> Katılacağım</>}
+                    </button>
+                    {joined && (
+                      <span style={{ fontSize:11, color:"#16A34A", alignSelf:"center" }}>✓ Kayıtlısın</span>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           ))}
         </div>

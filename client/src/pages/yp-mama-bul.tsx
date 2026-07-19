@@ -430,6 +430,7 @@ export default function YPMamaBulPage() {
   const [done, setDone] = useState(false);
   const [slideKey, setSlideKey] = useState(0);
   const [historyLoaded, setHistoryLoaded] = useState(false); // #34: notice
+  const [addedIds, setAddedIds] = useState<Set<number>>(new Set()); // direct add-to-cart feedback
   const [clearingHistory, setClearingHistory] = useState(false); // #33: loading state
   const savedRef = useRef(false);
   const prefillApplied = useRef(false);
@@ -702,10 +703,22 @@ export default function YPMamaBulPage() {
                         İncele
                       </button>
                       <button
-                        onClick={() => navigate(`/yourpoodle/urun/${prod.id}`)}
-                        style={{ flex: 1, height: 44, borderRadius: 12, border: "none", fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "inherit", background: m.gradient, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                        onClick={() => {
+                          const LS_CART = "yp_cart_items";
+                          try {
+                            const raw = localStorage.getItem(LS_CART);
+                            const items: any[] = raw ? JSON.parse(raw) : [];
+                            const idx = items.findIndex((i: any) => i.id === prod.id);
+                            if (idx >= 0) { items[idx].qty += 1; }
+                            else { items.push({ id: prod.id, name: prod.name, price: prod.price, img: prod.img ?? null, qty: 1 }); }
+                            localStorage.setItem(LS_CART, JSON.stringify(items));
+                          } catch {}
+                          setAddedIds(prev => new Set(prev).add(prod.id));
+                          setTimeout(() => setAddedIds(prev => { const s = new Set(prev); s.delete(prod.id); return s; }), 2000);
+                        }}
+                        style={{ flex: 1, height: 44, borderRadius: 12, border: "none", fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "inherit", background: addedIds.has(prod.id) ? "#16A34A" : m.gradient, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "background 0.3s" }}
                       >
-                        <ShoppingCart size={14} /> Sepete Ekle
+                        {addedIds.has(prod.id) ? <><span>✓</span> Eklendi</> : <><ShoppingCart size={14} /> Sepete Ekle</>}
                       </button>
                     </div>
                   </div>
