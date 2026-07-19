@@ -53,12 +53,6 @@ export default function YPOdemePage() {
   const [stockChecked, setStockChecked] = useState(false);
   const [stockError, setStockError] = useState("");
 
-  /* Compute totals from (possibly updated) cart */
-  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const shipping = subtotal >= KARGO_UCRETSIZ_LIMIT ? 0 : KARGO_UCRET;
-  const total = Math.max(0, subtotal - couponDiscount + shipping);
-  const cartCount = cart.reduce((s, i) => s + i.qty, 0);
-
   /* ─── Form ─── */
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -99,6 +93,12 @@ export default function YPOdemePage() {
   const [couponApplied, setCouponApplied] = useState("");
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponError, setCouponError]     = useState("");
+
+  /* Compute totals — must come after couponDiscount is declared */
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const shipping = subtotal >= KARGO_UCRETSIZ_LIMIT ? 0 : KARGO_UCRET;
+  const total = Math.max(0, subtotal - couponDiscount + shipping);
+  const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
   const applyCoupon = () => {
     const code = couponCode.trim().toUpperCase();
