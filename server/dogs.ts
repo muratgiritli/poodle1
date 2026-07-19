@@ -447,7 +447,7 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
   // ── Delete post ─────────────────────────────────────
   app.delete("/api/club/posts/:id", requireCustomer, async (req, res) => {
     const userId = (req as any).session.customerId as number;
-    const id = parseInt(req.params.id);
+    const id = parseInt(String(req.params.id));
     const p = await pool.query(`SELECT * FROM club_posts WHERE id=$1`, [id]);
     if (!p.rows.length) return res.status(404).json({ message: "Bulunamadı" });
     if (p.rows[0].user_id !== userId) return res.status(403).json({ message: "Yetkisiz" });
@@ -459,7 +459,7 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
   // ── Like/unlike ─────────────────────────────────────
   app.post("/api/club/posts/:id/like", requireCustomer, async (req, res) => {
     const userId = (req as any).session.customerId as number;
-    const id = parseInt(req.params.id);
+    const id = parseInt(String(req.params.id));
     const p = await pool.query(`SELECT * FROM club_posts WHERE id=$1`, [id]);
     if (!p.rows.length) return res.status(404).json({ message: "Bulunamadı" });
     const existing = await pool.query(`SELECT id FROM club_post_likes WHERE post_id=$1 AND user_id=$2`, [id, userId]);
@@ -496,7 +496,7 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
 
   app.post("/api/club/posts/:id/comments", requireCustomer, async (req, res) => {
     const userId = (req as any).session.customerId as number;
-    const id = parseInt(req.params.id);
+    const id = parseInt(String(req.params.id));
     const { content } = req.body;
     if (!content?.trim()) return res.status(400).json({ message: "Yorum boş olamaz" });
     const p = await pool.query(`SELECT * FROM club_posts WHERE id=$1`, [id]);

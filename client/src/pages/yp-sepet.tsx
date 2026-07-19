@@ -46,7 +46,8 @@ export default function YPSepetPage() {
       .finally(() => { if (showSpinner) setStockLoading(false); });
   };
 
-  // Validate stock whenever cart item ids change
+  // Validate stock whenever cart item ids change — debounced 400ms to prevent
+  // flickering when multiple qty updates land in quick succession (#38)
   useEffect(() => {
     if (cart.length === 0) {
       setStockMap({});
@@ -56,7 +57,8 @@ export default function YPSepetPage() {
     const idsKey = ids.slice().sort((a,b)=>a-b).join(",");
     if (idsKey === prevIdsRef.current) return;
     prevIdsRef.current = idsKey;
-    validateStock(ids, true);
+    const timer = setTimeout(() => validateStock(ids, true), 400);
+    return () => clearTimeout(timer);
   }, [cart]);
 
   // Periodic re-check every 30 s while the page is open (catches race conditions)
@@ -105,9 +107,18 @@ export default function YPSepetPage() {
   });
 
   const hasOutItems = cart.some(item => getStockStatus(item) === "out");
+  const hasInsufficientItems = cart.some(item => getStockStatus(item) === "insufficient");
 
   const removeOutOfStock = () =>
     setCart(prev => prev.filter(item => getStockStatus(item) !== "out"));
+
+  // #30: Cap all over-qty items to their available stock in one tap
+  const fixAllQuantities = () =>
+    setCart(prev => prev.map(item => {
+      const info = stockMap[item.id];
+      if (!info || item.qty <= info.stock) return item;
+      return { ...item, qty: Math.max(1, info.stock) };
+    }));
 
   return (
     <YPLayout activeLink="/yourpoodle/magaza">
@@ -233,6 +244,29 @@ export default function YPSepetPage() {
                   <AlertTriangle size={15} style={{ flexShrink: 0 }} />
                   Sepetinizdeki bazı ürünlerin stoğu yetersiz. Siparişi tamamlamak için miktarları güncelleyin veya ürünleri çıkarın.
                 </div>
+                {hasInsufficientItems && (
+                  <button
+                    onClick={fixAllQuantities}
+                    style={{
+                      marginTop: 8,
+                      width: "100%",
+                      padding: "10px 16px",
+                      borderRadius: 10,
+                      border: "1.5px solid #FDE68A",
+                      background: "#fff",
+                      color: "#D97706",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 6,
+                      fontFamily: "inherit",
+                    }}>
+                    ✂️ Miktarları stoka göre düzelt
+                  </button>
+                )}
                 {hasOutItems && (
                   <button
                     onClick={removeOutOfStock}

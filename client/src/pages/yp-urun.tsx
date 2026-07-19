@@ -340,6 +340,36 @@ export default function YPUrunPage() {
             );
           })()}
 
+          {/* Protein kaynağı & alerjenler (#31) */}
+          {(() => {
+            const meta = product.mamaMetadata;
+            if (!meta) return null;
+            const hasProtein = !!meta.proteinType;
+            const hasAllergens = meta.allergens && meta.allergens.length > 0;
+            if (!hasProtein && !hasAllergens) return null;
+            const PROTEIN_TR: Record<string, string> = {
+              chicken: "Tavuk", salmon: "Somon", lamb: "Kuzu", rabbit: "Tavşan",
+              beef: "Sığır", duck: "Ördek", turkey: "Hindi", fish: "Balık", mixed: "Karma",
+            };
+            return (
+              <div style={{ marginBottom: 24, background: "#F0FDF4", borderRadius: 14, padding: "14px 18px", border: "1px solid #BBF7D0" }}>
+                <h2 style={{ fontSize: 13, fontWeight: 800, color: "#16A34A", marginBottom: 10 }}>🥩 Protein & Alerjen Bilgisi</h2>
+                {hasProtein && (
+                  <div style={{ fontSize: 13, color: "#333", marginBottom: hasAllergens ? 8 : 0 }}>
+                    <span style={{ fontWeight: 700 }}>Protein Kaynağı: </span>
+                    {PROTEIN_TR[meta.proteinType!] || meta.proteinType}
+                  </div>
+                )}
+                {hasAllergens && (
+                  <div style={{ fontSize: 13, color: "#333" }}>
+                    <span style={{ fontWeight: 700 }}>⚠️ Alerjen İçerir: </span>
+                    {meta.allergens!.join(", ")}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
           {/* Nutritional analysis */}
           {(() => {
             const na = product.mamaMetadata?.nutritionalAnalysis;

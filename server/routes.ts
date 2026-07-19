@@ -2142,7 +2142,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   // Returns: { [id]: { price, stock, isActive, name } }
   app.post("/api/yp-cart/validate", async (req, res) => {
     try {
-      const ids: number[] = Array.isArray(req.body?.ids) ? req.body.ids.map(Number).filter(n => !isNaN(n) && n > 0) : [];
+      const ids: number[] = Array.isArray(req.body?.ids) ? req.body.ids.map(Number).filter((n: number) => !isNaN(n) && n > 0) : [];
       if (ids.length === 0) return res.json({});
       if (ids.length > 100) return res.status(400).json({ error: "Too many items" });
       const result = await sharedPool.query(
@@ -3210,49 +3210,67 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
 
     let hasPreorderItems = false;
     const saleMovements: Array<{ productId: number; name: string; barcode: string | null; qty: number; newStock: number }> = [];
-    for (const item of orderData.items) {
-      const productId = parseInt(String(item.productId));
-      if (!isNaN(productId)) {
-        const prod = allProds.find(p => p.id === productId);
-        if (prod && prod.skt) {
-          const sktDate = parseSkt(prod.skt);
-          if (sktDate && sktDate < new Date()) {
-            return res.status(400).json({ message: `${item.name} ürününün son kullanma tarihi geçmiş. Sipariş verilemez.` });
+
+    // #39: Wrap the entire stock deduction loop in a DB transaction so a
+    // mid-loop failure automatically rolls back any already-decremented rows.
+    const txClient = await sharedPool.connect();
+    try {
+      await txClient.query("BEGIN");
+      for (const item of orderData.items) {
+        const productId = parseInt(String(item.productId));
+        if (!isNaN(productId)) {
+          const prod = allProds.find(p => p.id === productId);
+          if (prod && prod.skt) {
+            const sktDate = parseSkt(prod.skt);
+            if (sktDate && sktDate < new Date()) {
+              await txClient.query("ROLLBACK");
+              txClient.release();
+              return res.status(400).json({ message: `${item.name} ürününün son kullanma tarihi geçmiş. Sipariş verilemez.` });
+            }
           }
-        }
-        if (prod && prod.preorderEnabled && reqStore(req).commerce.preorderEnabled) {
-          // Atomically deduct only the available stock (partial), allow backorder for the rest.
-          const upd = await sharedPool.query(
-            "WITH old AS (SELECT stock AS s FROM products WHERE id = $1 FOR UPDATE) UPDATE products p SET stock = GREATEST(0, p.stock - $2) FROM old WHERE p.id = $1 RETURNING p.stock AS new_stock, old.s AS old_stock, p.name, p.barcode",
-            [productId, item.quantity]
-          );
-          if (upd.rows.length > 0) {
+          if (prod && prod.preorderEnabled && reqStore(req).commerce.preorderEnabled) {
+            // Atomically deduct only the available stock (partial), allow backorder for the rest.
+            const upd = await txClient.query(
+              "WITH old AS (SELECT stock AS s FROM products WHERE id = $1 FOR UPDATE) UPDATE products p SET stock = GREATEST(0, p.stock - $2) FROM old WHERE p.id = $1 RETURNING p.stock AS new_stock, old.s AS old_stock, p.name, p.barcode",
+              [productId, item.quantity]
+            );
+            if (upd.rows.length > 0) {
+              const row = upd.rows[0];
+              const deducted = (row.old_stock ?? 0) - (row.new_stock ?? 0);
+              (item as any).deductedQty = deducted;
+              if (deducted > 0) {
+                saleMovements.push({ productId, name: row.name, barcode: row.barcode ?? null, qty: deducted, newStock: row.new_stock });
+              }
+              if ((row.old_stock ?? 0) < item.quantity) {
+                hasPreorderItems = true;
+                (item as any).isPreorder = true;
+              }
+            }
+          } else {
+            // Atomic conditional decrement; the returned stock is the true post-decrement value.
+            const upd = await txClient.query(
+              "UPDATE products SET stock = stock - $1 WHERE id = $2 AND stock >= $1 RETURNING stock, name, barcode",
+              [item.quantity, productId]
+            );
+            if (upd.rows.length === 0) {
+              await txClient.query("ROLLBACK");
+              txClient.release();
+              return res.status(400).json({ message: `Stok yetersiz: ${item.name}` });
+            }
             const row = upd.rows[0];
-            const deducted = (row.old_stock ?? 0) - (row.new_stock ?? 0);
-            (item as any).deductedQty = deducted;
-            if (deducted > 0) {
-              saleMovements.push({ productId, name: row.name, barcode: row.barcode ?? null, qty: deducted, newStock: row.new_stock });
-            }
-            if ((row.old_stock ?? 0) < item.quantity) {
-              hasPreorderItems = true;
-              (item as any).isPreorder = true;
-            }
+            (item as any).deductedQty = item.quantity;
+            saleMovements.push({ productId, name: row.name, barcode: row.barcode ?? null, qty: item.quantity, newStock: row.stock });
           }
-        } else {
-          // Atomic conditional decrement; the returned stock is the true post-decrement value.
-          const upd = await sharedPool.query(
-            "UPDATE products SET stock = stock - $1 WHERE id = $2 AND stock >= $1 RETURNING stock, name, barcode",
-            [item.quantity, productId]
-          );
-          if (upd.rows.length === 0) {
-            return res.status(400).json({ message: `Stok yetersiz: ${item.name}` });
-          }
-          const row = upd.rows[0];
-          (item as any).deductedQty = item.quantity;
-          saleMovements.push({ productId, name: row.name, barcode: row.barcode ?? null, qty: item.quantity, newStock: row.stock });
         }
       }
+      await txClient.query("COMMIT");
+    } catch (txErr: any) {
+      await txClient.query("ROLLBACK").catch(() => {});
+      txClient.release();
+      throw txErr;
     }
+    txClient.release();
+
     if (hasPreorderItems) {
       (orderData as any).hasPreorder = true;
     }
@@ -4719,11 +4737,13 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     const prevRow = await sharedPool.query("SELECT status, cancel_reason FROM orders WHERE id = $1", [id]);
     const prevStatus = prevRow.rows[0]?.status;
 
-    // Alıcı tarafından iptal edilmiş siparişlerde durum değişikliğini engelle
-    if (prevStatus === "iptal" && prevRow.rows[0]?.cancel_reason === "customer") {
+    // Alıcı tarafından iptal edilmiş siparişlerde admin geçersiz kılma isteği varsa izin ver
+    const forceOverride = req.body?.forceOverride === true;
+    if (prevStatus === "iptal" && prevRow.rows[0]?.cancel_reason === "customer" && !forceOverride) {
       return res.status(409).json({
-        message: "Bu sipariş alıcı tarafından iptal edildi; durumu değiştirilemez.",
+        message: "Bu sipariş alıcı tarafından iptal edildi. Yeniden açmak için 'Geçersiz Kıl' seçeneğini kullanın.",
         cancelReason: "customer",
+        requiresOverride: true,
       });
     }
 
@@ -4809,7 +4829,20 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         [deliverySlot || null, id]
       );
       if (result.rowCount === 0) return res.status(404).json({ message: "Sipariş bulunamadı" });
-      res.json(result.rows[0]);
+      const row = result.rows[0];
+      // #37: Teslimat saati güncellendiğinde müşteriye SMS gönder
+      if (deliverySlot && row.customer_phone) {
+        const orderPhone = String(row.customer_phone).replace(/\D/g, "");
+        if (orderPhone.length >= 10) {
+          const stCfg = storeById((row as any).source_site);
+          const stHeader = await resolveSmsHeader(stCfg.id);
+          const smsMsg = `${stCfg.shortName} - ${id} numarali siparissinizin teslimat saati guncellendi: ${deliverySlot}. Bilgi icin: ${canonicalHost(stCfg).replace(/^www\./, "")}`;
+          sendSmsViaNetgsm(orderPhone, smsMsg, stHeader).catch(err =>
+            console.error("[delivery-slot-sms]", err)
+          );
+        }
+      }
+      res.json(row);
     } catch (e: any) {
       res.status(500).json({ message: e.message });
     }
@@ -6627,8 +6660,20 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         .slice(0, 10);
 
       const statusCounts: Record<string, number> = {};
+      // #36: İptal nedeni dağılımı (cancel_reason_text bazında gruplama)
+      const cancelReasons: Record<string, { count: number; examples: string[] }> = {};
       for (const order of allOrders) {
         statusCounts[order.status] = (statusCounts[order.status] || 0) + 1;
+        if (order.status === "iptal") {
+          const rawReason = (order as any).cancelReasonText || (order as any).cancel_reason_text || (order as any).cancelReason || "Belirtilmemiş";
+          const reasonKey = String(rawReason).trim() || "Belirtilmemiş";
+          if (!cancelReasons[reasonKey]) cancelReasons[reasonKey] = { count: 0, examples: [] };
+          cancelReasons[reasonKey].count++;
+          const note = (order as any).cancelReasonNote || (order as any).cancel_reason_note || "";
+          if (note && cancelReasons[reasonKey].examples.length < 3) {
+            cancelReasons[reasonKey].examples.push(String(note).slice(0, 80));
+          }
+        }
       }
 
       const monthlyData: Record<string, { revenue: number; orders: number }> = {};
@@ -6690,6 +6735,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
           .map(([name, data]) => ({ name, count: data.count, total: Math.round(data.total * 100) / 100 }))
           .sort((a, b) => b.total - a.total),
         heatmapData,
+        cancelReasons,
       });
     } catch (err: any) {
       console.error("[/api/admin/reports] error:", err?.message, err?.stack);
@@ -6765,7 +6811,7 @@ Kurallar:
 
       try {
         const completion = await petAI.chat.completions.create({
-          model: "gpt-4o-mini",
+          model: "gpt-4.1-mini",
           messages: [
             { role: "system", content: typeof systemPrompt === "string" ? systemPrompt.slice(0, 2000) : defaultSystem },
             ...(messages.slice(-10).map((m: any) => ({
@@ -6900,6 +6946,20 @@ Kurallar:
         [customerId, limit, offset]
       );
       res.json({ items: result.rows, total, page, limit, pages: Math.ceil(total / limit) });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  // Delete ALL recommendations for the logged-in user (#33)
+  app.delete("/api/yp/recommendations", async (req, res) => {
+    const customerId = (req.session as any)?.customerId;
+    if (!customerId) return res.status(401).json({ error: "Giriş gerekli" });
+    try {
+      await sharedPool.query(ENSURE_YP_RECOMMENDATIONS);
+      const result = await sharedPool.query(
+        `DELETE FROM yp_recommendations WHERE customer_id = $1`,
+        [customerId]
+      );
+      res.json({ deleted: true, count: result.rowCount });
     } catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
@@ -7062,7 +7122,7 @@ Kurallar:
       }
 
       const completion = await petAI.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4.1-mini",
         messages: [
           {
             role: "system",
@@ -8297,7 +8357,7 @@ Kurallar:
 
   // Admin: update event
   app.put("/api/admin/yp-events/:id", requireAdmin, async (req, res) => {
-    const id = parseInt(req.params.id);
+    const id = parseInt(String(req.params.id));
     const { title, description, location, event_date, day, month, year, type, free, color, sort_order, is_active } = req.body;
     try {
       const result = await sharedPool.query(
@@ -8312,7 +8372,7 @@ Kurallar:
 
   // Admin: delete event
   app.delete("/api/admin/yp-events/:id", requireAdmin, async (req, res) => {
-    const id = parseInt(req.params.id);
+    const id = parseInt(String(req.params.id));
     try {
       await sharedPool.query(`DELETE FROM yp_events WHERE id=$1`, [id]);
       res.json({ ok: true });
@@ -8363,7 +8423,7 @@ Kurallar:
 
   // Admin: update article
   app.put("/api/admin/yp-articles/:id", requireAdmin, async (req, res) => {
-    const id = parseInt(req.params.id);
+    const id = parseInt(String(req.params.id));
     const { title, body, tag, emoji, min_read, featured, sort_order, is_active } = req.body;
     try {
       const result = await sharedPool.query(
@@ -8378,7 +8438,7 @@ Kurallar:
 
   // Admin: delete article
   app.delete("/api/admin/yp-articles/:id", requireAdmin, async (req, res) => {
-    const id = parseInt(req.params.id);
+    const id = parseInt(String(req.params.id));
     try {
       await sharedPool.query(`DELETE FROM yp_articles WHERE id=$1`, [id]);
       res.json({ ok: true });

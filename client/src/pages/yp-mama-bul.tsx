@@ -429,6 +429,8 @@ export default function YPMamaBulPage() {
   const [answers, setAnswers] = useState<Answers>({});
   const [done, setDone] = useState(false);
   const [slideKey, setSlideKey] = useState(0);
+  const [historyLoaded, setHistoryLoaded] = useState(false); // #34: notice
+  const [clearingHistory, setClearingHistory] = useState(false); // #33: loading state
   const savedRef = useRef(false);
   const prefillApplied = useRef(false);
   const historyApplied = useRef(false);
@@ -483,6 +485,7 @@ export default function YPMamaBulPage() {
       }
       return merged;
     });
+    setHistoryLoaded(true); // #34: show "geçmişten yüklendi" notice
   }, [authLoading, isLoggedIn, latestRec]);
 
   // Poodle profile overrides age + weight (canonical source, always wins)
@@ -549,7 +552,18 @@ export default function YPMamaBulPage() {
   };
 
   const restart = () => {
-    setStep(0); setAnswers(buildPrefill()); setDone(false); setSlideKey(0); savedRef.current = false;
+    setStep(0); setAnswers(buildPrefill()); setDone(false); setSlideKey(0);
+    savedRef.current = false; setHistoryLoaded(false);
+  };
+
+  // #33: Clear all history
+  const clearAllHistory = async () => {
+    if (!isLoggedIn) return;
+    setClearingHistory(true);
+    try {
+      await fetch("/api/yp/recommendations", { method: "DELETE", credentials: "include" });
+    } catch {}
+    setClearingHistory(false);
   };
 
   const recommendations = useMemo(() => pickRecommendations(products, answers), [products, answers]);
@@ -629,6 +643,19 @@ export default function YPMamaBulPage() {
                 </div>
               )}
 
+              {/* #33: Clear history button */}
+              {isLoggedIn && (
+                <div style={{ textAlign: "right", marginBottom: 8 }}>
+                  <button
+                    onClick={clearAllHistory}
+                    disabled={clearingHistory}
+                    style={{ background: "none", border: "none", fontSize: 12, color: "#DC2626", cursor: clearingHistory ? "not-allowed" : "pointer", opacity: clearingHistory ? 0.5 : 1, fontFamily: "inherit", textDecoration: "underline" }}
+                  >
+                    {clearingHistory ? "Temizleniyor…" : "🗑 Geçmişi Temizle"}
+                  </button>
+                </div>
+              )}
+
               {recommendations.length > 0 ? recommendations.map((prod, idx) => {
                 const m = RESULT_META[idx];
                 return (
@@ -686,8 +713,11 @@ export default function YPMamaBulPage() {
               }) : (
                 <div style={{ textAlign: "center", padding: "48px 20px" }}>
                   <div style={{ fontSize: 52, marginBottom: 14 }}>🐾</div>
-                  <div style={{ fontSize: 17, fontWeight: 800, color: "#18114a", marginBottom: 8 }}>Öneri hazırlanıyor</div>
-                  <div style={{ fontSize: 13, color: "#999" }}>Ürünler yükleniyor, lütfen bekleyin.</div>
+                  <div style={{ fontSize: 17, fontWeight: 800, color: "#18114a", marginBottom: 8 }}>Eşleşen mama bulunamadı</div>
+                  <div style={{ fontSize: 13, color: "#999", lineHeight: 1.6 }}>
+                    Seçtiğiniz kriterlere uygun, etiketlenmiş bir mama şu an mağazamızda yok.<br />
+                    Ürünlere metadata eklendiğinde öneriler otomatik güncellenir.
+                  </div>
                 </div>
               )}
 
@@ -772,6 +802,15 @@ export default function YPMamaBulPage() {
             <div className="yp-mobile-progress" style={{ margin: "12px 16px 0", height: 4, background: "#EDE9FE", borderRadius: 99 }}>
               <div style={{ height: 4, width: `${((step + 1) / STEPS.length) * 100}%`, background: "linear-gradient(90deg, #7B3FE4, #A855F7)", borderRadius: 99, transition: "width 0.4s" }} />
             </div>
+
+            {/* #34: "Geçmişten yüklendi" notice */}
+            {historyLoaded && (
+              <div style={{ margin: "10px 24px 0", padding: "8px 14px", borderRadius: 10, background: "#EDE9FE", border: "1px solid #C4B5FD", fontSize: 12, color: "#5B21B6", display: "flex", alignItems: "center", gap: 6 }}>
+                <Info size={13} style={{ flexShrink: 0 }} />
+                Geçmiş aramanızdan yüklendi — istediğiniz yanıtları değiştirebilirsiniz.
+                <button onClick={() => setHistoryLoaded(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#7B3FE4", fontSize: 16, lineHeight: 1, padding: 0 }}>×</button>
+              </div>
+            )}
 
             {/* Step content */}
             <div className={`yp-wizard-slide yp-card-pad`} key={`step-${slideKey}`} style={{ padding: "28px 36px" }}>

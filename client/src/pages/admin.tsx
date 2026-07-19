@@ -1514,8 +1514,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   }, [allOrders]);
 
   const updateOrderStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      await apiRequest("PATCH", `/api/admin/orders/${id}/status`, { status });
+    mutationFn: async ({ id, status, forceOverride }: { id: number; status: string; forceOverride?: boolean }) => {
+      await apiRequest("PATCH", `/api/admin/orders/${id}/status`, { status, ...(forceOverride ? { forceOverride: true } : {}) });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/orders"] });
@@ -3086,8 +3086,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                           )}
                           <Select
                             value={order.status}
-                            disabled={(order as any).cancelReason === "customer"}
-                            onValueChange={(value) => updateOrderStatusMutation.mutate({ id: order.id, status: value })}
+                            onValueChange={(value) => updateOrderStatusMutation.mutate({ id: order.id, status: value, forceOverride: (order as any).cancelReason === "customer" })}
                           >
                             <SelectTrigger className="w-[120px] sm:w-[150px] h-7 sm:h-8 text-xs sm:text-sm" data-testid={`select-order-status-${order.id}`}>
                               <SelectValue />
@@ -3447,7 +3446,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   {(order as any).cancelReason === "customer" && (
                     <div className="flex items-center gap-2 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-lg p-3 text-sm text-orange-700 dark:text-orange-400">
                       <span className="text-base">⚠️</span>
-                      <span>Bu sipariş <strong>alıcı tarafından</strong> iptal edildi. Durum değiştirilemez.</span>
+                      <span>Bu sipariş <strong>alıcı tarafından</strong> iptal edildi. Yeniden açmak için durumu değiştirin (geçersiz kılma uygulanır).</span>
                     </div>
                   )}
 
@@ -3455,9 +3454,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     <span className="text-sm text-muted-foreground">Durum Değiştir:</span>
                     <Select
                       value={order.status}
-                      disabled={(order as any).cancelReason === "customer"}
                       onValueChange={(value) => {
-                        updateOrderStatusMutation.mutate({ id: order.id, status: value });
+                        updateOrderStatusMutation.mutate({ id: order.id, status: value, forceOverride: (order as any).cancelReason === "customer" });
                         setOrderDetailDialog({ ...order, status: value });
                       }}
                     >
@@ -12186,6 +12184,29 @@ function ReportsSection() {
             </div>
           </CardContent>
         </Card>
+        {/* #36: İptal nedeni dağılımı */}
+        {reports.cancelReasons && Object.keys(reports.cancelReasons).length > 0 && (
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm">İptal Nedenleri Dağılımı</CardTitle></CardHeader>
+            <CardContent className="p-3">
+              <div className="space-y-2">
+                {Object.entries(reports.cancelReasons as Record<string, { count: number; examples: string[] }>)
+                  .sort((a, b) => b[1].count - a[1].count)
+                  .map(([reason, data]) => (
+                    <div key={reason} className="flex items-start justify-between gap-2 text-sm">
+                      <div className="flex-1 min-w-0">
+                        <span className="font-semibold">{reason || "Belirtilmemiş"}</span>
+                        {data.examples.length > 0 && (
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">{data.examples[0]}</p>
+                        )}
+                      </div>
+                      <span className="font-bold text-red-600 flex-shrink-0">{data.count}</span>
+                    </div>
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm">En İyi 15 Müşteri</CardTitle></CardHeader>
           <CardContent className="p-3">
