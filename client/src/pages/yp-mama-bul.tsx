@@ -9,7 +9,7 @@ import { useCustomer } from "@/contexts/CustomerContext";
 interface StepOption { value: string; label: string; desc?: string; icon?: string; }
 type StepType = "radio" | "checkbox";
 interface Step {
-  key: string; type: StepType; question: string; questionBold?: string;
+  key: string; type: StepType; question: string; questionBold?: string; question2?: string;
   hint: string; emoji: string; options: StepOption[];
   infoBanner?: string; hasHero?: boolean;
 }

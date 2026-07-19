@@ -361,7 +361,7 @@ export default function YourPoodleHomePage() {
               { label: "AI Asistan", href: "/yourpoodle/ai-asistan", Icon: Bot         },
               { label: "Rehber",     href: "/yourpoodle/rehber",     Icon: BookOpen    },
             ] as const).map(({ label, href, Icon }, i) => {
-              const active = href === "/yourpoodle" ? location === "/yourpoodle" : location.startsWith(href);
+              const active = (href as string) === "/yourpoodle" ? location === "/yourpoodle" : location.startsWith(href);
               return (
                 <span key={href} style={{ display: "flex", alignItems: "center" }}>
                   {i > 0 && <span style={{ color: "#D1D5DB", margin: "0 14px", fontSize: 16, userSelect: "none" }}>•</span>}

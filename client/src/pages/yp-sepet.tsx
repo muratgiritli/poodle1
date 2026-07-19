@@ -37,7 +37,7 @@ export default function YPSepetPage() {
       body: JSON.stringify({ ids }),
     })
       .then(r => r.ok ? r.json() : {})
-      .then(data => {
+      .then((data: Record<string, StockInfo>) => {
         const normalized: Record<number, StockInfo> = {};
         for (const k of Object.keys(data)) normalized[Number(k)] = data[k];
         setStockMap(normalized);

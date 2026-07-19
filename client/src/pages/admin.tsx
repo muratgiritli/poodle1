@@ -9752,7 +9752,7 @@ function LocalFeedSection() {
 function SettingsSection() {
   const { toast } = useToast();
   const { store: adminStore } = useAdminStore();
-  const { data: settings, isLoading } = useQuery<Record<string, string>>({
+  const { data: settings, isLoading, isError, refetch } = useQuery<Record<string, string>>({
     queryKey: ["/api/admin/settings", adminStore],
     queryFn: async () => {
       const res = await fetch(`/api/admin/settings?store=${adminStore}`, { credentials: "include" });
@@ -9877,6 +9877,19 @@ function SettingsSection() {
   };
 
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>;
+
+  if (isError) return (
+    <div className="space-y-3">
+      <div className="p-4 rounded-lg border border-red-200 bg-red-50 text-sm text-red-800 flex items-center justify-between gap-3">
+        <span>Ayarlar yüklenemedi. Lütfen tekrar deneyin.</span>
+        <Button size="sm" variant="outline" onClick={() => refetch()} className="shrink-0">Yeniden Dene</Button>
+      </div>
+      <YPEmailSubscribersCard />
+      <YourPoodleSettingsCard />
+      <YPArticlesCard />
+      <YPEventsCard />
+    </div>
+  );
 
   const fields = [
     { key: "pet_base_points", label: "Besleme Temel Puan", desc: "Her besleme için verilecek minimum puan", icon: "🐾" },

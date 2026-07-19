@@ -2455,10 +2455,17 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   });
 
   app.get("/api/admin/me", async (req, res) => {
-    const userId = (req.session as any)?.userId;
+    const sess = req.session as any;
+    const userId = sess?.userId;
     if (!userId) return res.status(401).json({ message: "Not authenticated" });
     const user = await storage.getUser(userId);
     if (!user) return res.status(401).json({ message: "Not authenticated" });
+    // Upgrade legacy sessions that pre-date the isAdmin flag so that
+    // all subsequent requests in the same session pass requireAdmin.
+    if (sess.isAdmin !== true) {
+      sess.isAdmin = true;
+      await new Promise<void>((resolve) => req.session.save(() => resolve()));
+    }
     res.json({ username: user.username });
   });
 
