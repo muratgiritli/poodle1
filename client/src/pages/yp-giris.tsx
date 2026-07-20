@@ -448,17 +448,20 @@ export default function YPGirisPage() {
   const [tab, setTab]     = useState<"login" | "register">("login");
   const [toast, setToast] = useState("");
 
-  useEffect(() => {
-    if (isLoggedIn) navigate("/yourpoodle/profil");
-  }, [isLoggedIn]);
-
-  // Check URL for ?tab=register
+  // Read returnTo + tab from URL once on mount
+  const [returnTo, setReturnTo] = useState("/yourpoodle/profil");
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
+    const rt = p.get("returnTo");
+    if (rt) setReturnTo(rt);
     if (p.get("tab") === "register" || p.get("tab") === "kayit") setTab("register");
   }, []);
 
-  const onDone = () => navigate("/yourpoodle/profil");
+  useEffect(() => {
+    if (isLoggedIn) navigate(returnTo);
+  }, [isLoggedIn, returnTo]);
+
+  const onDone = () => navigate(returnTo);
 
   return (
     <div className="auth-root">

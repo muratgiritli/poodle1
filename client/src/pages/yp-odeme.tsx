@@ -291,7 +291,7 @@ export default function YPOdemePage() {
             </p>
 
             <button
-              onClick={() => navigate("/yourpoodle/giris")}
+              onClick={() => navigate("/yourpoodle/giris?returnTo=/yourpoodle/odeme")}
               style={{
                 width: "100%", height: 52, borderRadius: 14, border: "none",
                 background: `linear-gradient(135deg,${purple},#A855F7)`,
@@ -303,7 +303,7 @@ export default function YPOdemePage() {
             </button>
 
             <button
-              onClick={() => navigate("/yourpoodle/giris?tab=register")}
+              onClick={() => navigate("/yourpoodle/giris?tab=register&returnTo=/yourpoodle/odeme")}
               style={{
                 width: "100%", height: 52, borderRadius: 14,
                 border: `2px solid ${purple}`,
