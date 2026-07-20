@@ -114,13 +114,6 @@ export default function YourPoodleHomePage() {
     setMeta("property", "og:type", "website");
   }, []);
 
-  /* Onboarding drawer: auto-open once on first visit */
-  useEffect(() => {
-    if (!localStorage.getItem("onboarding_seen")) {
-      setDrawerOpen(true);
-      localStorage.setItem("onboarding_seen", "true");
-    }
-  }, []);
 
   /* Cart badge — same key as yp-magaza/yp-sepet */
   useEffect(() => {

@@ -328,7 +328,6 @@ function AppShell() {
       )}
       {!isAdmin && !isDemo && <FloatingCartBar />}
       {!isAdmin && !isDemo && <BottomTabBar />}
-      {isYP && <Suspense fallback={null}><YPCookieBanner /></Suspense>}
     </>
   );
 }
