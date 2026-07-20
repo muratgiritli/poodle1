@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { Loader2, Phone, MapPin, User, Home } from "lucide-react";
 import { useCustomer } from "@/contexts/CustomerContext";
 import { apiRequest } from "@/lib/queryClient";
+import { CITY_LIST, getDistricts } from "@/lib/turkey-cities";
 
 /* ─── Design tokens ─────────────────────────────────────── */
 const C = {
@@ -383,13 +384,22 @@ function RegisterTab({ setToast, onDone }: { setToast: (m: string) => void; onDo
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
         <div>
           <label className="field-label"><MapPin size={13} /> Şehir</label>
-          <input className="auth-inp" placeholder="İstanbul" value={city}
-            onChange={e => { setCity(e.target.value); setError(""); }} autoComplete="address-level1" />
+          <select className="auth-inp" value={city}
+            onChange={e => { setCity(e.target.value); setDistrict(""); setError(""); }}
+            style={{ cursor: "pointer" }}>
+            <option value="">Şehir seç…</option>
+            {CITY_LIST.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
         </div>
         <div>
           <label className="field-label"><MapPin size={13} /> İlçe</label>
-          <input className="auth-inp" placeholder="Kadıköy" value={district}
-            onChange={e => { setDistrict(e.target.value); setError(""); }} autoComplete="address-level2" />
+          <select className="auth-inp" value={district}
+            onChange={e => { setDistrict(e.target.value); setError(""); }}
+            disabled={!city}
+            style={{ cursor: city ? "pointer" : "not-allowed", opacity: city ? 1 : 0.5 }}>
+            <option value="">İlçe seç…</option>
+            {getDistricts(city).map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
         </div>
       </div>
 

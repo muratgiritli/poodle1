@@ -4,6 +4,7 @@ import { Edit3, Plus, LogIn, ChevronRight, Check, X, Loader2 } from "lucide-reac
 import { useCustomer } from "@/contexts/CustomerContext";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import YPBreadcrumb from "@/components/YPBreadcrumb";
+import { CITY_LIST, getDistricts } from "@/lib/turkey-cities";
 
 const BREED_LABELS: Record<string, string> = {
   toy: "Toy Poodle",
@@ -239,11 +240,21 @@ export default function YPProfilPage() {
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
                       <div>
                         <label style={lbl}>Şehir</label>
-                        <input style={inp} value={editCity} onChange={e => setEditCity(e.target.value)} placeholder="İstanbul" />
+                        <select style={{ ...inp, cursor: "pointer" }} value={editCity}
+                          onChange={e => { setEditCity(e.target.value); setEditDistrict(""); }}>
+                          <option value="">Şehir seç…</option>
+                          {CITY_LIST.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
                       </div>
                       <div>
                         <label style={lbl}>İlçe</label>
-                        <input style={inp} value={editDistrict} onChange={e => setEditDistrict(e.target.value)} placeholder="Kadıköy" />
+                        <select style={{ ...inp, cursor: editCity ? "pointer" : "not-allowed", opacity: editCity ? 1 : 0.5 }}
+                          value={editDistrict}
+                          onChange={e => setEditDistrict(e.target.value)}
+                          disabled={!editCity}>
+                          <option value="">İlçe seç…</option>
+                          {getDistricts(editCity).map(d => <option key={d} value={d}>{d}</option>)}
+                        </select>
                       </div>
                     </div>
                     <div style={{ marginBottom: 16 }}>
