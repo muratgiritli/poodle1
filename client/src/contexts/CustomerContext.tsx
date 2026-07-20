@@ -6,6 +6,8 @@ interface CustomerData {
   phone: string;
   name: string;
   address: string | null;
+  city: string | null;
+  district: string | null;
   notifyStock: boolean;
   notifyCampaign: boolean;
 }
@@ -16,9 +18,9 @@ interface CustomerContextType {
   isLoggedIn: boolean;
   login: (phone: string, password: string) => Promise<void>;
   register: (phone: string, password: string, name: string, address?: string) => Promise<void>;
-  loginWithOtp: (phone: string, code: string, name?: string, address?: string) => Promise<{ requiresRegistration?: boolean; isNewUser?: boolean; id?: number } & Record<string, any>>;
+  loginWithOtp: (phone: string, code: string, name?: string, address?: string, city?: string, district?: string) => Promise<{ requiresRegistration?: boolean; isNewUser?: boolean; id?: number } & Record<string, any>>;
   logout: () => Promise<void>;
-  updateProfile: (data: { name?: string; address?: string; email?: string | null; tcNo?: string | null }) => Promise<void>;
+  updateProfile: (data: { name?: string; address?: string; city?: string | null; district?: string | null; email?: string | null; tcNo?: string | null }) => Promise<void>;
   refetch: () => Promise<void>;
 }
 
@@ -76,8 +78,8 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
     setTimeout(syncLocalFavorites, 500);
   }, [syncLocalFavorites]);
 
-  const loginWithOtp = useCallback(async (phone: string, code: string, name?: string, address?: string) => {
-    const res = await apiRequest("POST", "/api/otp/verify", { phone, code, name, address });
+  const loginWithOtp = useCallback(async (phone: string, code: string, name?: string, address?: string, city?: string, district?: string) => {
+    const res = await apiRequest("POST", "/api/otp/verify", { phone, code, name, address, city, district });
     const data = await res.json();
     if (data.requiresRegistration) {
       return data;
@@ -110,7 +112,7 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
     YP_KEYS.forEach(k => { try { localStorage.removeItem(k); } catch {} });
   }, []);
 
-  const updateProfile = useCallback(async (data: { name?: string; address?: string; email?: string | null; tcNo?: string | null }) => {
+  const updateProfile = useCallback(async (data: { name?: string; address?: string; city?: string | null; district?: string | null; email?: string | null; tcNo?: string | null }) => {
     const res = await apiRequest("PATCH", "/api/customer/profile", data);
     const updated = await res.json();
     setCustomer(updated);

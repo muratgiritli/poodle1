@@ -4960,7 +4960,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   });
 
   app.post("/api/otp/verify", async (req, res) => {
-    const { phone, code, name, address } = req.body;
+    const { phone, code, name, address, city, district } = req.body;
     if (!phone || !code) return res.status(400).json({ message: "Telefon ve doğrulama kodu gerekli" });
     const normalized = phone.replace(/\D/g, "");
 
@@ -4993,7 +4993,9 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         password: dummyPass,
         name: (name || "").trim() || "Müşteri",
         address: (address || "").trim() || null,
-      });
+        city: (city || "").trim() || null,
+        district: (district || "").trim() || null,
+      } as any);
     }
 
     (req.session as any).customerId = customer.id;
@@ -5118,7 +5120,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     if (rateLimit(`profile:${ip}`, 15, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
     }
-    const { name, address, email, tcNo } = req.body;
+    const { name, address, email, tcNo, city, district } = req.body;
     const updateData: Record<string, any> = {};
     if (name) {
       if (typeof name !== "string" || name.trim().length < 2 || name.trim().length > 100) {
@@ -5131,6 +5133,12 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         return res.status(400).json({ message: "Adres çok uzun (max 500 karakter)" });
       }
       updateData.address = typeof address === "string" ? address.trim() : null;
+    }
+    if (city !== undefined) {
+      updateData.city = typeof city === "string" ? city.trim() || null : null;
+    }
+    if (district !== undefined) {
+      updateData.district = typeof district === "string" ? district.trim() || null : null;
     }
     if (email !== undefined) {
       if (email && (typeof email !== "string" || email.length > 200 || (email.trim() && !email.includes("@")))) {

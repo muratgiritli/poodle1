@@ -74,9 +74,11 @@ export default function YPProfilPage() {
 
   /* Edit mode */
   const [editMode, setEditMode] = useState(false);
-  const [editName, setEditName]       = useState("");
-  const [editEmail, setEditEmail]     = useState("");
-  const [editAddress, setEditAddress] = useState("");
+  const [editName, setEditName]         = useState("");
+  const [editEmail, setEditEmail]       = useState("");
+  const [editAddress, setEditAddress]   = useState("");
+  const [editCity, setEditCity]         = useState("");
+  const [editDistrict, setEditDistrict] = useState("");
   const [saving, setSaving]           = useState(false);
   const [saveError, setSaveError]     = useState("");
   const [saveOk, setSaveOk]           = useState(false);
@@ -113,6 +115,8 @@ export default function YPProfilPage() {
     setEditName(customer?.name || "");
     setEditEmail((customer as any)?.email || "");
     setEditAddress(customer?.address || "");
+    setEditCity((customer as any)?.city || "");
+    setEditDistrict((customer as any)?.district || "");
     setSaveError("");
     setSaveOk(false);
     setEditMode(true);
@@ -130,7 +134,13 @@ export default function YPProfilPage() {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editName.trim(), email: editEmail.trim() || undefined, address: editAddress.trim() || undefined }),
+        body: JSON.stringify({
+          name: editName.trim(),
+          email: editEmail.trim() || undefined,
+          address: editAddress.trim() || undefined,
+          city: editCity.trim() || undefined,
+          district: editDistrict.trim() || undefined,
+        }),
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
@@ -226,16 +236,22 @@ export default function YPProfilPage() {
                       <label style={lbl}>Ad Soyad *</label>
                       <input style={inp} value={editName} onChange={e => setEditName(e.target.value)} placeholder="Ad Soyad" />
                     </div>
-                    <div style={{ marginBottom: 12 }}>
-                      <label style={lbl}>E-posta</label>
-                      <input style={inp} type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)} placeholder="e-posta@örnek.com" />
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+                      <div>
+                        <label style={lbl}>Şehir</label>
+                        <input style={inp} value={editCity} onChange={e => setEditCity(e.target.value)} placeholder="İstanbul" />
+                      </div>
+                      <div>
+                        <label style={lbl}>İlçe</label>
+                        <input style={inp} value={editDistrict} onChange={e => setEditDistrict(e.target.value)} placeholder="Kadıköy" />
+                      </div>
                     </div>
                     <div style={{ marginBottom: 16 }}>
-                      <label style={lbl}>Teslimat Adresi</label>
+                      <label style={lbl}>Adres</label>
                       <textarea
                         value={editAddress}
                         onChange={e => setEditAddress(e.target.value)}
-                        placeholder="Cadde, sokak, bina no, daire…"
+                        placeholder="Mahalle, sokak, bina no, daire…"
                         style={{ ...inp, height: "auto", minHeight: 72, padding: "10px 14px", resize: "vertical" } as React.CSSProperties}
                       />
                     </div>
