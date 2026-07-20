@@ -314,13 +314,13 @@ export default function YPLayout({
             justifyContent: "space-between",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <Link href="/yourpoodle">
-                <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 17, color: "#6B21A8", cursor: "pointer" }}>YourPoodle 🐾</span>
-              </Link>
               <button onClick={() => setDrawerOpen(true)}
                 style={{ background: "#EDE9FE", border: "none", cursor: "pointer", padding: "5px 8px", fontSize: 18, color: "#7C3AED", borderRadius: 10, lineHeight: 1 }}>
                 ☰
               </button>
+              <Link href="/yourpoodle">
+                <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 17, color: "#6B21A8", cursor: "pointer" }}>YourPoodle 🐾</span>
+              </Link>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {/* Sepet ikonu */}
