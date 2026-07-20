@@ -264,6 +264,65 @@ export default function YPOdemePage() {
   if (cart.length === 0) return null;
 
   const purple = "#7C3AFF";
+
+  /* ─── Login gate: kullanıcı giriş yapmamışsa önce giriş/kayıt ekranı ─── */
+  if (!isLoggedIn) {
+    return (
+      <YPLayout activeLink="/yourpoodle/magaza">
+        <div style={{ background: "#fff", minHeight: "100vh" }}>
+          {/* Header */}
+          <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #f0f0f0", position: "sticky", top: 0, zIndex: 100, display: "flex", alignItems: "center", gap: 12 }}>
+            <button onClick={() => navigate("/yourpoodle/sepet")}
+              style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", color: purple, fontSize: 13, fontWeight: 700, padding: 0 }}>
+              <ChevronLeft size={16} /> Sepet
+            </button>
+            <h1 style={{ flex: 1, textAlign: "center", fontSize: 16, fontWeight: 800, color: "#1a1a1a", margin: 0 }}>Ödeme</h1>
+            <div style={{ width: 60 }} />
+          </div>
+
+          {/* Gate content */}
+          <div style={{ maxWidth: 400, margin: "0 auto", padding: "48px 24px 40px", textAlign: "center" }}>
+            <div style={{ fontSize: 52, marginBottom: 16 }}>🔒</div>
+            <h2 style={{ fontSize: 20, fontWeight: 900, color: "#1a1a1a", margin: "0 0 10px" }}>
+              Siparişi tamamlamak için giriş yapın
+            </h2>
+            <p style={{ fontSize: 14, color: "#6B7280", margin: "0 0 32px", lineHeight: 1.6 }}>
+              Teslimat bilgilerinizi girebilmek ve siparişinizi takip edebilmek için hesabınıza giriş yapın ya da üye olun.
+            </p>
+
+            <button
+              onClick={() => navigate("/yourpoodle/giris")}
+              style={{
+                width: "100%", height: 52, borderRadius: 14, border: "none",
+                background: `linear-gradient(135deg,${purple},#A855F7)`,
+                color: "#fff", fontSize: 16, fontWeight: 800,
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                gap: 8, fontFamily: "inherit", marginBottom: 12,
+              }}>
+              Giriş Yap
+            </button>
+
+            <button
+              onClick={() => navigate("/yourpoodle/giris?tab=register")}
+              style={{
+                width: "100%", height: 52, borderRadius: 14,
+                border: `2px solid ${purple}`,
+                background: "#fff", color: purple,
+                fontSize: 16, fontWeight: 800,
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                gap: 8, fontFamily: "inherit",
+              }}>
+              Üye Ol
+            </button>
+
+            <p style={{ fontSize: 12, color: "#aaa", marginTop: 24 }}>
+              Sepetiniz kaybolmaz, giriş yaptıktan sonra siparişinize devam edebilirsiniz.
+            </p>
+          </div>
+        </div>
+      </YPLayout>
+    );
+  }
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "10px 12px", borderRadius: 10,
     border: "1.5px solid #e5e7eb", fontSize: 14, fontFamily: "inherit",

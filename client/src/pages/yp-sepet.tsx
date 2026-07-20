@@ -293,8 +293,8 @@ export default function YPSepetPage() {
               </div>
             )}
 
-            {/* Özet — bottom margin clears fixed CTA bar (72px) + bottom nav (72px) + buffer */}
-            <div style={{ margin: "12px 16px 170px", background: "#F9FAFB", borderRadius: 16, padding: "16px 18px" }}>
+            {/* Özet — bottom margin clears fixed CTA bar (~72px) + nav(72px) + circle-protrusion(22px) + buffer */}
+            <div style={{ margin: "12px 16px 200px", background: "#F9FAFB", borderRadius: 16, padding: "16px 18px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#555", marginBottom: 8 }}>
                 <span>Ürünler ({cartCount} adet)</span>
                 <span>₺{subtotal.toLocaleString("tr-TR", { minimumFractionDigits: 0 })}</span>
@@ -313,9 +313,9 @@ export default function YPSepetPage() {
           </div>
         )}
 
-        {/* Checkout CTA */}
+        {/* Checkout CTA — bottom offset = nav(72) + circle-protrusion(22) + gap(6) */}
         {cart.length > 0 && (
-          <div style={{ position: "fixed", bottom: "calc(72px + env(safe-area-inset-bottom, 0px))", left: 0, right: 0, background: "#fff", borderTop: "1px solid #f0f0f0", padding: "12px 16px", zIndex: 300, boxShadow: "0 -4px 16px rgba(0,0,0,0.10)" }}>
+          <div style={{ position: "fixed", bottom: "calc(100px + env(safe-area-inset-bottom, 0px))", left: 0, right: 0, background: "#fff", borderTop: "1px solid #f0f0f0", padding: "12px 16px", zIndex: 300, boxShadow: "0 -4px 16px rgba(0,0,0,0.10)" }}>
             <div style={{ maxWidth: 640, margin: "0 auto", display: "flex", gap: 10 }}>
               <button onClick={() => navigate("/yourpoodle/magaza")}
                 style={{ width: 48, height: 48, borderRadius: 12, border: "1.5px solid #7C3AFF", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
