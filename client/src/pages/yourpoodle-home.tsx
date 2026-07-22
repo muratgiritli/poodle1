@@ -452,119 +452,94 @@ export default function YourPoodleHomePage() {
         {/* ══════════════════════════════════════════════ */}
         {/* HERO SECTION                                  */}
         {/* ══════════════════════════════════════════════ */}
-        <section style={{ background: "linear-gradient(160deg, #FAF7FF 0%, #EDE9FE 55%, #F5F0FF 100%)", position: "relative", overflow: "hidden" }}>
-          <div className="yph-inner yph-hero-pad" style={{ position: "relative", zIndex: 1 }}>
-            <div className="yph-hero-grid">
+        <section style={{ background: "#fff", padding: "16px 16px 0" }}>
+          {/* Hero card */}
+          <div style={{
+            background: "linear-gradient(135deg, #F0EAFF 0%, #EAE0FF 40%, #E8DFFF 100%)",
+            borderRadius: 20,
+            overflow: "hidden",
+            position: "relative",
+            display: "flex",
+            minHeight: 320,
+          }}>
+            {/* Left: text content */}
+            <div style={{ flex: "0 0 54%", padding: "24px 0 24px 22px", display: "flex", flexDirection: "column", justifyContent: "center", gap: 0, position: "relative", zIndex: 2 }}>
 
-              {/* Left: text content */}
-              <div style={{ paddingTop: 4 }}>
-                {/* Badge */}
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.8)", border: `1px solid ${C.border}`, borderRadius: 20, padding: "5px 14px", marginBottom: 16, backdropFilter: "blur(8px)" }}>
-                  <span style={{ fontSize: 12 }}>✨</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: C.purple }}>Dünyanın En Büyük Poodle Platformu</span>
-                </div>
+              {/* Sub-title */}
+              <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1040", margin: "0 0 4px", lineHeight: 1.3 }}>
+                Toy Poodle'ınız için
+              </p>
 
-                {/* Title */}
-                <h1 style={{ fontSize: "clamp(28px,7vw,48px)", fontWeight: 900, lineHeight: 1.1, letterSpacing: "-1px", marginBottom: 14, color: C.text, margin: "0 0 14px" }}>
-                  Toy Poodle'ınız için
-                  <br />
-                  <span style={{ background: `linear-gradient(135deg, ${C.purple}, ${C.pink})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-                    Her Şey Tek Yerde
-                  </span>
-                </h1>
-
-                {/* Description */}
-                <p style={{ fontSize: 13.5, lineHeight: 1.7, color: C.secondary, marginBottom: 20, maxWidth: 420 }}>
-                  Beslenme, bakım, sağlık ve eğitim rehberleri. Uzman desteği ve kaliteli ürünlerle Poodle'ınıza en iyisini sunun.
-                </p>
-
-                {/* CTA buttons */}
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 20 }}>
-                  <button onClick={() => go("/yourpoodle/mama-bul")}
-                    style={{ height: 48, padding: "0 24px", borderRadius: 14, border: "none", background: `linear-gradient(135deg,${C.purple},#A855F7)`, color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 8px 20px rgba(124,58,237,0.32)`, display: "flex", alignItems: "center", gap: 7 }}>
-                    🐾 MAMA BUL
-                  </button>
-                  <button onClick={() => go("/yourpoodle/rehber")}
-                    style={{ height: 48, padding: "0 22px", borderRadius: 14, border: `1.5px solid ${C.border}`, background: "rgba(255,255,255,0.9)", color: C.purple, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 7 }}>
-                    📖 REHBERLERİ GÖR
-                  </button>
-                </div>
-
-                {/* Trust row */}
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  {/* Avatars */}
-                  <div style={{ display: "flex" }}>
-                    {["#7C3AED", "#EC4899", "#F59E0B"].map((bg, i) => (
-                      <div key={i} style={{ width: 28, height: 28, borderRadius: "50%", background: bg, border: "2px solid #fff", marginLeft: i > 0 ? -8 : 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#fff", fontWeight: 800 }}>
-                        {["Z", "A", "M"][i]}
-                      </div>
-                    ))}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 11.5, fontWeight: 700, color: C.text, lineHeight: 1.3 }}>
-                      50.000+ Poodle sever
-                      <br />
-                      <span style={{ fontWeight: 500, color: C.secondary }}>Tarafından güveniliyor</span>
-                    </div>
-                    <div style={{ display: "flex", gap: 1, marginTop: 3 }}>
-                      {[1,2,3,4,5].map(s => <span key={s} style={{ color: "#FBBF24", fontSize: 11 }}>★</span>)}
-                    </div>
-                  </div>
+              {/* Main title */}
+              <div style={{ margin: "0 0 10px" }}>
+                <div style={{ fontSize: 34, fontWeight: 900, color: "#6B21A8", lineHeight: 1.1, letterSpacing: "-0.5px" }}>Her Şey</div>
+                <div style={{ fontSize: 34, fontWeight: 900, color: "#6B21A8", lineHeight: 1.1, letterSpacing: "-0.5px", display: "flex", alignItems: "center", gap: 6 }}>
+                  Tek Yerde
+                  <span style={{ fontSize: 20, color: "#F9A8D4", fontWeight: 400, lineHeight: 1 }}>♡</span>
                 </div>
               </div>
 
-              {/* Right: hero image — visible on mobile too as a compact strip */}
-              <div style={{ position: "relative" }}>
-                {/* Mobile: compact image strip above buttons */}
-                <div className="yph-mobile" style={{ justifyContent: "center", marginTop: 20, marginBottom: 0, position: "relative" }}>
-                  <div style={{ width: "100%", maxWidth: 340, borderRadius: 24, overflow: "hidden", boxShadow: `0 12px 40px rgba(124,58,237,0.2)`, background: "#EDE9FE", position: "relative" }}>
-                    <img
-                      src="/images/poodle-hero_2.jpg"
-                      alt="Toy Poodle"
-                      style={{ width: "100%", aspectRatio: "3/2.2", objectFit: "cover", objectPosition: "center top", display: "block" }}
-                      onError={e => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-                    />
-                    {/* Speech bubble */}
-                    <div style={{ position: "absolute", bottom: 12, right: 10, background: "#fff", borderRadius: 16, padding: "8px 12px", boxShadow: "0 4px 16px rgba(0,0,0,0.12)", maxWidth: 180, border: `1px solid ${C.lightPurple}` }}>
-                      <p style={{ fontSize: 10.5, color: C.text, lineHeight: 1.5, margin: 0, fontWeight: 500 }}>
-                        Merhaba! Ben YourPoodle asistanınız. Size nasıl yardımcı olabilirim? 🐾
-                      </p>
-                    </div>
-                  </div>
-                </div>
+              {/* Description */}
+              <p style={{ fontSize: 11.5, lineHeight: 1.6, color: "#555", margin: "0 0 14px", paddingRight: 8 }}>
+                Beslenme, bakım, sağlık ve eğitim rehberleri. Uzman desteği ve kaliteli ürünlerle Poodle'ınıza en iyisini sunun.
+              </p>
 
-                {/* Desktop: larger image with floating badges */}
-                <div className="yph-desktop" style={{ position: "relative", flexDirection: "column" }}>
-                  <div style={{ borderRadius: 28, overflow: "hidden", boxShadow: `0 16px 48px rgba(109,40,217,0.18)`, position: "relative", aspectRatio: "4/4.5", background: "#EDE9FE" }}>
-                    <img
-                      src="/images/poodle-hero_2.jpg"
-                      alt="Toy Poodle"
-                      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
-                    />
-                  </div>
-                  {/* Speech bubble */}
-                  <div style={{ position: "absolute", bottom: 80, right: -20, background: "#fff", borderRadius: 16, padding: "10px 14px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", maxWidth: 200, border: `1px solid ${C.lightPurple}` }}>
-                    <p style={{ fontSize: 12, color: C.text, lineHeight: 1.5, margin: 0 }}>
-                      Merhaba! Ben YourPoodle asistanınız. Size nasıl yardımcı olabilirim? 🐾
-                    </p>
-                  </div>
-                  {/* AI badge */}
-                  <div style={{ position: "absolute", top: 24, right: -20, background: "#fff", borderRadius: 14, padding: "10px 14px", boxShadow: "0 8px 24px rgba(0,0,0,0.1)", display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{ width: 34, height: 34, borderRadius: 10, background: C.lightPurple, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>🤖</div>
-                    <div>
-                      <div style={{ fontSize: 11.5, fontWeight: 800, color: C.text }}>AI Asistan</div>
-                      <div style={{ fontSize: 10, color: C.secondary }}>7/24 size özel destek</div>
+              {/* Buttons */}
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+                <button onClick={() => go("/yourpoodle/mama-bul")}
+                  style={{ height: 42, padding: "0 18px", borderRadius: 999, border: "none", background: C.purple, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 4px 14px rgba(124,58,237,0.35)" }}>
+                  🐾 Mama Bul
+                </button>
+                <button onClick={() => go("/yourpoodle/rehber")}
+                  style={{ height: 42, padding: "0 14px", borderRadius: 999, border: "1.5px solid #C4B5FD", background: "#fff", color: C.purple, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6 }}>
+                  📖 Rehberleri Gör
+                </button>
+              </div>
+
+              {/* Trust */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ display: "flex" }}>
+                  {["/images/poodle-avatar-1.jpg", "/images/poodle-avatar-2.jpg", "/images/poodle-avatar-3.jpg"].map((src, i) => (
+                    <div key={i} style={{ width: 26, height: 26, borderRadius: "50%", border: "2px solid #fff", marginLeft: i > 0 ? -8 : 0, overflow: "hidden", background: ["#7C3AED","#EC4899","#F59E0B"][i], flexShrink: 0 }}>
+                      <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        onError={e => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
                     </div>
+                  ))}
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "#1a1040", lineHeight: 1.2 }}>50.000+ Poodle sever</div>
+                  <div style={{ fontSize: 10.5, color: "#777", lineHeight: 1.2 }}>tarafından güveniliyor</div>
+                  <div style={{ display: "flex", gap: 1, marginTop: 2 }}>
+                    {[1,2,3,4,5].map(s => <span key={s} style={{ color: "#FBBF24", fontSize: 12 }}>★</span>)}
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Curved bottom divider */}
-          <svg viewBox="0 0 1440 40" style={{ display: "block", marginTop: -2 }} preserveAspectRatio="none" height="40" width="100%">
-            <path d="M0,40 Q720,0 1440,40 L1440,40 L0,40 Z" fill="#fff" />
-          </svg>
+            {/* Right: poodle image flush to edges */}
+            <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: "48%", overflow: "hidden" }}>
+              <img
+                src="/images/poodle-hero_2.jpg"
+                alt="Toy Poodle"
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
+              />
+              {/* Speech bubble */}
+              <div style={{
+                position: "absolute", bottom: 14, right: 10,
+                background: "#fff", borderRadius: 14,
+                padding: "8px 10px",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.14)",
+                maxWidth: 140,
+                border: "1px solid #ede9fe",
+              }}>
+                <p style={{ fontSize: 10, color: "#222", lineHeight: 1.5, margin: 0, fontWeight: 500 }}>
+                  Merhaba! Ben YourPoodle asistanınız. Size nasıl yardımcı olabilirim? 🐾
+                </p>
+                {/* Bubble tail */}
+                <div style={{ position: "absolute", bottom: -6, left: 14, width: 12, height: 12, background: "#fff", transform: "rotate(45deg)", borderRight: "1px solid #ede9fe", borderBottom: "1px solid #ede9fe" }} />
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* ══════════════════════════════════════════════ */}
@@ -752,21 +727,40 @@ export default function YourPoodleHomePage() {
         {/* ══════════════════════════════════════════════ */}
         {/* MEMBERSHIP PROMO                              */}
         {/* ══════════════════════════════════════════════ */}
-        <section style={{ padding: "0 20px 20px" }}>
-          <div className="yph-inner">
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, background: `linear-gradient(135deg,${C.lightPurple},#EDE9FE)`, borderRadius: 18, padding: "16px 18px", border: `1.5px solid #DDD6FE` }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
-                <span style={{ fontSize: 24, flexShrink: 0 }}>🎁</span>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 900, color: C.text, lineHeight: 1.3 }}>Yeni Üyeye Özel Hoş Geldin!</div>
-                  <div style={{ fontSize: 12, color: C.secondary, lineHeight: 1.4, marginTop: 2 }}>Üye ol, 100 TL hediye kuponunu hemen kazan!</div>
-                </div>
+        <section style={{ padding: "12px 16px 0" }}>
+          <div style={{
+            background: C.purple,
+            borderRadius: 18,
+            padding: "18px 16px",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            position: "relative",
+            overflow: "hidden",
+          }}>
+            {/* Subtle sparkle decorations */}
+            <span style={{ position: "absolute", top: 8, right: 60, fontSize: 12, opacity: 0.4, color: "#fff" }}>✦</span>
+            <span style={{ position: "absolute", bottom: 8, right: 90, fontSize: 8, opacity: 0.35, color: "#fff" }}>✦</span>
+            <span style={{ position: "absolute", top: 14, right: 130, fontSize: 9, opacity: 0.3, color: "#fff" }}>✦</span>
+
+            {/* Gift box */}
+            <div style={{ fontSize: 40, flexShrink: 0, lineHeight: 1 }}>🎁</div>
+
+            {/* Text */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", lineHeight: 1.3 }}>
+                🎉 Yeni Üye Ol, 100 TL Bonus Kazan!
               </div>
-              <button onClick={() => go("/yourpoodle/giris")}
-                style={{ flexShrink: 0, height: 40, padding: "0 18px", borderRadius: 12, background: C.purple, border: "none", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
-                ÜYE OL →
-              </button>
+              <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.82)", lineHeight: 1.4, marginTop: 3 }}>
+                Üye olarak tüm avantajlardan hemen yararlanmaya başla.
+              </div>
             </div>
+
+            {/* Button */}
+            <button onClick={() => go("/yourpoodle/giris")}
+              style={{ flexShrink: 0, height: 42, padding: "0 16px", borderRadius: 999, background: "#fff", border: "none", color: C.purple, fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}>
+              Üye Ol →
+            </button>
           </div>
         </section>
 
