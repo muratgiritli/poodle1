@@ -1,0 +1,299 @@
+Redesign the mobile homepage of YourPoodle.com based on the attached reference image.
+
+IMPORTANT:
+- Do not change the existing backend, database, authentication, product data, routes, or business logic.
+- Only redesign the homepage UI and responsive layout.
+- Keep all visible website text in Turkish.
+- Build the design as a real, production-ready responsive webpage, not as a static image.
+- Prioritize mobile screens first, especially widths between 360px and 430px.
+- The final page should closely match the visual hierarchy, spacing, rounded cards, premium purple brand style, and section order shown in the reference image.
+
+BRAND STYLE
+
+Website name:
+YourPoodle
+
+Target audience:
+Toy Poodle owners, primarily mobile users.
+
+Visual direction:
+- Premium
+- Friendly
+- Modern
+- Trustworthy
+- Pet-focused
+- Soft and feminine without looking childish
+- Clean 2026 mobile e-commerce and content platform style
+
+Color palette:
+- Primary purple: #7C3AED
+- Dark purple: #2E1760
+- Light purple: #F3EEFF
+- Pink accent: #EC4899
+- Background: #FFFFFF
+- Soft section background: #FAF9FC
+- Main text: #171717
+- Secondary text: #777681
+- Borders: #ECE9F2
+- Success green: #22C55E
+- Orange accent: #F59E0B
+
+Use:
+- Large rounded corners
+- Soft shadows
+- Plenty of white space
+- Subtle gradients
+- Modern icons
+- Real Toy Poodle photography
+- Consistent card heights and spacing
+- Clear touch targets of at least 44px
+
+MOBILE HEADER
+
+Create a sticky mobile header.
+
+Top promotional bar:
+- Purple gradient background
+- Text:
+  “✨ 500₺ üzeri ücretsiz kargo • Uzman destek 7/24 yanınızda”
+- Compact height
+- White centered text
+
+Main header row:
+- White background
+- Left: rounded hamburger menu button
+- Next: YourPoodle logo
+- Center or expandable search field:
+  “Mama, rehber veya ürün ara...”
+- Right:
+  notification icon
+  shopping cart icon
+  small cart badge showing “1”
+
+On smaller screens, keep the header compact and prevent horizontal overflow.
+
+HERO SECTION
+
+Create a large premium hero section with a soft cream and lilac background.
+
+Left content:
+Small rounded badge:
+“✨ Dünyanın En Büyük Poodle Platformu”
+
+Main title:
+“Toy Poodle’ınız için”
+“Her Şey Tek Yerde”
+
+Highlight “Her Şey Tek Yerde” with a purple gradient.
+
+Description:
+“Beslenme, bakım, sağlık ve eğitim rehberleri. Uzman desteği ve kaliteli ürünlerle Poodle’ınıza en iyisini sunun.”
+
+Primary button:
+“🐾 MAMA BUL”
+
+Secondary button:
+“📖 REHBERLERİ GÖR”
+
+Trust area:
+- Three small overlapping user avatars
+- Text:
+  “50.000+ Poodle sever tarafından güveniliyor”
+- Five yellow stars
+
+Right side:
+- High-quality realistic apricot Toy Poodle image
+- Dog sitting on a soft cream bed
+- Small pink bow
+- Friendly expression
+- Soft home background with blur
+- Add a small assistant speech bubble:
+  “Merhaba! Ben YourPoodle asistanınız. Size nasıl yardımcı olabilirim? 🐾”
+
+On mobile:
+- Keep the text readable
+- Place the dog image below or beside the text without covering buttons
+- Avoid excessive hero height
+- Use a smooth curved purple divider at the bottom
+
+MAIN FEATURE SHORTCUTS
+
+Below the hero, create a horizontally balanced card section with five shortcuts:
+
+1. Mama Bul
+   “Poodle’ınıza en uygun mamayı bulun”
+
+2. Rehberler
+   “Uzman içerikler ve ipuçları”
+
+3. AI Asistan
+   “7/24 akıllı destek alın”
+
+4. Bakım Araçları
+   “Tüy bakım ve hijyen ürünleri”
+
+5. Topluluk
+   “Poodle severlerle buluşun”
+
+Use:
+- White card container
+- Purple-tinted icons
+- Rounded icon backgrounds
+- Equal spacing
+- Mobile horizontal scrolling if necessary
+- No clipped cards
+
+MOST READ SECTION
+
+Section title:
+“🐾 Bu Hafta En Çok Okunanlar”
+
+Right link:
+“Tümünü Gör →”
+
+Create four article cards:
+
+1. Category: BESLENME
+   Title: “Toy Poodle İçin En İyi Mama Markaları 2026”
+   Reading time: “5 dk okuma”
+   Image: premium dog food bowl
+
+2. Category: BAKIM
+   Title: “Evde Poodle Tıraşı: Adım Adım Rehber”
+   Reading time: “8 dk okuma”
+   Image: groomed Toy Poodle indoors
+
+3. Category: EĞİTİM
+   Title: “2 Haftada Tuvalet Eğitimini Tamamlayın”
+   Reading time: “6 dk okuma”
+   Image: Toy Poodle running outside
+
+4. Category: SAĞLIK
+   Title: “Göz Altı Kızarıklığı: Neden Olur?”
+   Reading time: “4 dk okuma”
+   Image: close-up eye image
+
+Desktop:
+- Four columns
+
+Mobile:
+- Horizontal swipe cards
+- Card width around 75–82% of viewport
+- Scroll snapping
+- No tiny compressed cards
+
+AI ASSISTANT SECTION
+
+Create a large dark purple gradient card.
+
+Title:
+“Poodle AI Asistan”
+
+Badge:
+“🏠 7/24 YANINIZDA”
+
+Description:
+“Sorunuzu yazın, Poodle’ınıza özel anında yanıt alın.”
+
+Add a friendly purple robot illustration on the left.
+
+Quick question chips:
+- “Kaç gram mama vermeliyim?”
+- “Göz altı neden kızarıyor?”
+- “Yalnız kalınca neden havlıyor?”
+
+Large CTA:
+“AI ASİSTANA SOR →”
+
+Use soft glow, subtle stars, rounded corners, and strong contrast.
+
+QUICK TOOLS SECTION
+
+Section title:
+“⚡ Hızlı Araçlar”
+
+Right link:
+“Tümünü Gör →”
+
+Create eight small tool cards:
+
+1. Mama Hesaplama
+   “Günlük gram miktarı”
+
+2. İdeal Kilo
+   “Kilo kontrolü”
+
+3. Yaş Hesaplama
+   “İnsan yaşı eşdeğeri”
+
+4. Su İhtiyacı
+   “Günlük ml miktarı”
+
+5. Bakım Takvimi
+   “Tıraş zamanı”
+
+6. Yasak Yiyecekler
+   “Tehlikeli besinler”
+
+7. Belirti Rehberi
+   “Semptom kontrolü”
+
+8. Aşı Takvimi
+   “Hatırlatma sistemi”
+
+Use pastel backgrounds, large clear icons, short descriptions, and equal card heights.
+
+MEMBERSHIP PROMO
+
+Create a soft purple promotional banner.
+
+Text:
+“🎁 Yeni Üyeye Özel Hoş Geldin!”
+“Üye ol, 100 TL hediye kuponunu hemen kazan!”
+
+Button:
+“ÜYE OL →”
+
+Make it compact and highly visible without overpowering the rest of the page.
+
+BOTTOM MOBILE NAVIGATION
+
+Create a fixed mobile bottom navigation with six items:
+
+- Ana Sayfa
+- Mama Bul
+- Sepetim
+- Mağaza
+- Rehber
+- Profil
+
+The center “Sepetim” item must be visually emphasized:
+- Circular purple button
+- White shopping cart icon
+- Small red badge showing “1”
+- Slightly raised above the navigation bar
+
+The bottom bar must:
+- Respect Android and iPhone safe areas
+- Not cover page content
+- Include sufficient bottom padding
+- Stay visible while scrolling
+
+RESPONSIVE BEHAVIOR
+
+Mobile:
+- Single-column layout
+- Full-width sections with 20px side padding
+- Large readable headings
+- Buttons stack when necessary
+- Article cards horizontally scroll
+- Tools use two columns
+- No text overlap
+- No horizontal page overflow
+- Sticky header and fixed bottom navigation
+
+Tablet:
+- Two-column content where appropriate
+
+Desktop:
+- Centered max
