@@ -1,0 +1,631 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the mobile homepage for YourPoodle.com.
+This is a Turkish e-commerce + community site for Toy Poodle owners.
+Recreate the design mockup PIXEL-PERFECT.
+Mobile-first. Single column. Fully functional. Zero improvisation.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES — READ BEFORE WRITING ANY CODE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy it character-for-character.
+2. DO NOT change section order. Follow the exact scroll order below.
+3. DO NOT substitute colors. Use the exact hex values provided.
+4. DO NOT skip any section, button, icon, badge, or link.
+5. DO NOT use a different font, icon library, or framework.
+6. DO NOT add extra sections, popups, or features not listed here.
+7. DO NOT use placeholder "Lorem ipsum" anywhere.
+8. EVERY button and interactive element MUST work (click, hover, state).
+9. Build with: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react.
+10. After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — PROJECT SETUP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create a new React + Vite + TypeScript project.
+
+Install:
+  npm install -D tailwindcss postcss autoprefixer
+  npx tailwindcss init -p
+  npm install lucide-react
+
+Configure Tailwind (tailwind.config.js):
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"]
+  theme.extend.colors:
+    purple: {
+      primary: "#6200EE",
+      dark: "#3D0099",
+      footer: "#1A0052",
+      light: "#F3EEFF",
+      badge: "#EDE7FF",
+    }
+
+Add to index.html <head>:
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+index.css:
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+  body { font-family: 'Inter', sans-serif; background: #FFFFFF; }
+
+Configure vite.config.ts — server port 5000, host true (for Replit).
+
+Create this exact file structure:
+
+src/
+  components/
+    layout/
+      Header.tsx
+      TabNavigation.tsx
+      MobileDrawer.tsx
+      Footer.tsx
+    sections/
+      HeroSection.tsx
+      InstallmentBanner.tsx
+      ProductGrid.tsx
+      GuideSection.tsx
+      AIAssistantCard.tsx
+    ui/
+      ProductCard.tsx
+      GuideListItem.tsx
+      Accordion.tsx
+      Toast.tsx
+  data/
+    products.ts
+    guideArticles.ts
+  hooks/
+    useCart.ts
+    useFavorites.ts
+    useToast.ts
+  App.tsx
+  main.tsx
+  index.css
+
+Verify `npm run dev` runs with zero errors before continuing.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — GLOBAL LAYOUT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Viewport: mobile-first, max-width 480px, centered on screen (mx-auto).
+On screens wider than 480px: keep max-w-[480px] mx-auto, add shadow-xl on sides.
+
+Spacing:
+  - Page horizontal padding: 16px (px-4) everywhere except full-bleed footer
+  - Section gap between major sections: 24px
+  - Card border-radius: 12px (rounded-xl)
+  - Pill buttons: rounded-full
+  - Product "Sepete Ekle" buttons: rounded-lg (8px)
+
+Typography:
+  - Font: Inter only
+  - Body: 14px (text-sm)
+  - Section titles: 18px font-bold (text-lg font-bold)
+  - Product titles: 14px font-semibold
+  - Small labels: 12px (text-xs)
+
+Colors (use ONLY these):
+  Primary purple:     #6200EE
+  Dark purple:        #3D0099
+  Footer background:  #1A0052
+  Light purple bg:    #F3EEFF
+  Badge purple bg:    #EDE7FF
+  White:              #FFFFFF
+  Gray text:          #6B7280
+  Gray border:        #E5E7EB
+  Gray light bg:      #F9FAFB
+  Link blue:          #2563EB
+  Bestseller badge bg:#DBEAFE
+  Bestseller text:    #1D4ED8
+  Heart active:       #EF4444
+
+No horizontal scroll at 375px width.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — DATA FILES (EXACT CONTENT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/products.ts:
+
+export interface Product {
+  id: string;
+  title: string;
+  weight?: string;
+  price: string;
+  image: string;
+  category: "food" | "accessories";
+  installment?: boolean;
+  bestseller?: boolean;
+}
+
+export const foodProducts: Product[] = [
+  { id:"f1", title:"Puppy Tavuklu", weight:"2 kg", price:"799 TL", category:"food", installment:true,
+    image:"https://images.unsplash.com/photo-1589924691995-400dc9eccs?w=400&h=400&fit=crop" },
+  { id:"f2", title:"Adult Somonlu", weight:"2 kg", price:"849 TL", category:"food", installment:true,
+    image:"https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=400&fit=crop" },
+  { id:"f3", title:"Mini Tavuklu", weight:"1.5 kg", price:"699 TL", category:"food", installment:true,
+    image:"https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=400&fit=crop" },
+  { id:"f4", title:"Light Hindi", weight:"2 kg", price:"749 TL", category:"food", installment:true,
+    image:"https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=400&fit=crop" },
+  { id:"f5", title:"Grain Free Kuzulu", weight:"2 kg", price:"899 TL", category:"food", installment:true,
+    image:"https://images.unsplash.com/photo-1589924691995-400dc9eccs?w=400&h=400&fit=crop" },
+  { id:"f6", title:"Senior Tavuklu", weight:"2 kg", price:"829 TL", category:"food", installment:true,
+    image:"https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=400&fit=crop" },
+];
+
+export const accessoryProducts: Product[] = [
+  { id:"a1", title:"Poodle Elbisesi", price:"349 TL", category:"accessories",
+    image:"https://images.unsplash.com/photo-1591946614720-90a587da4a36?w=400&h=400&fit=crop" },
+  { id:"a2", title:"Poodle Harness", price:"299 TL", category:"accessories", bestseller:true,
+    image:"https://images.unsplash.com/photo-1608093273490-9a4a4c4d8661?w=400&h=400&fit=crop" },
+  { id:"a3", title:"Eğitim Pedleri", price:"189 TL", category:"accessories",
+    image:"https://images.unsplash.com/photo-1544568100-847a948583b9?w=400&h=400&fit=crop" },
+  { id:"a4", title:"Poodle Parfümü", price:"159 TL", category:"accessories",
+    image:"https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=400&h=400&fit=crop" },
+  { id:"a5", title:"Masaj Fırçası", price:"129 TL", category:"accessories",
+    image:"https://images.unsplash.com/photo-1516734212184-a967f81ad0d2?w=400&h=400&fit=crop" },
+  { id:"a6", title:"Göz Bakım Losyonu", price:"99 TL", category:"accessories",
+    image:"https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=400&fit=crop" },
+];
+
+Create src/data/guideArticles.ts:
+
+export interface GuideArticle {
+  id: string;
+  title: string;
+  description: string;
+  readTime: string;
+  image: string;
+}
+
+export const guideArticles: GuideArticle[] = [
+  { id:"g1", title:"Toy Poodle Tuvalet Eğitimi", description:"Adım adım tuvalet eğitimi rehberi", readTime:"5 dk",
+    image:"https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=120&h=120&fit=crop" },
+  { id:"g2", title:"Toy Poodle Beslenme Rehberi", description:"Yaşa göre doğru mama seçimi", readTime:"7 dk",
+    image:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=120&h=120&fit=crop" },
+  { id:"g3", title:"Toy Poodle Tüy Bakımı", description:"Tüy kesimi ve bakım ipuçları", readTime:"6 dk",
+    image:"https://images.unsplash.com/photo-1616147674810-ab7c4d4d4b4b?w=120&h=120&fit=crop" },
+  { id:"g4", title:"Toy Poodle Sağlık Kontrol Listesi", description:"Düzenli sağlık takibi rehberi", readTime:"8 dk",
+    image:"https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=120&h=120&fit=crop" },
+  { id:"g5", title:"Toy Poodle Egzersiz İhtiyaçları", description:"Günlük aktivite önerileri", readTime:"4 dk",
+    image:"https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=120&h=120&fit=crop" },
+];
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — HOOKS (ALL MUST WORK)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+useCart.ts:
+  - State: cartItems: Product[]
+  - addToCart(product): if already in cart, increment quantity; else add with qty 1
+  - getCartCount(): total item count
+  - Export via React Context or prop drilling from App.tsx
+
+useFavorites.ts:
+  - State: favorites: Set<string> (product IDs)
+  - toggleFavorite(id): add/remove from Set
+  - isFavorite(id): boolean
+
+useToast.ts:
+  - State: { message: string, visible: boolean }
+  - showToast(message): set visible true, auto-hide after 3000ms
+  - hideToast(): set visible false
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — UI COMPONENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+─── Toast.tsx ───
+  Fixed bottom-center, z-50.
+  bg #1A0052 text white, px-6 py-3 rounded-full shadow-lg text-sm font-medium.
+  Fade in/out transition 300ms.
+  Renders only when visible=true.
+
+─── ProductCard.tsx ───
+  Props: product, isFavorite, onToggleFavorite, onAddToCart
+
+  Structure:
+  ┌─────────────────────────┐
+  │ [image area h-32]       │  ← relative
+  │   ♥ top-right           │  ← Heart icon, absolute top-2 right-2
+  │   [Çok Satan badge]     │  ← only if product.bestseller, top-left
+  ├─────────────────────────┤
+  │ Title (font-semibold)   │
+  │ Weight (text-xs gray)   │  ← only if product.weight exists
+  │ [3 Taksit badge]        │  ← only if product.installment
+  │ Price (bold #6200EE)    │
+  │ [Sepete Ekle button]    │  ← full width, bg #6200EE, white text
+  └─────────────────────────┘
+
+  Card: bg white, rounded-xl, border border-gray-100, shadow-sm, p-3.
+  Image: w-full h-32 object-contain bg #F9FAFB rounded-lg p-2.
+  Heart: filled red (#EF4444) if favorite, else gray outline. Click toggles favorite.
+  "3 Taksit" badge: bg #EDE7FF text #6200EE text-xs px-2 py-0.5 rounded-full.
+  "Çok Satan" badge: bg #DBEAFE text #1D4ED8 text-xs px-2 py-0.5 rounded-full absolute top-2 left-2.
+  Price: text-base font-bold text #6200EE.
+  "Sepete Ekle" button:
+    w-full bg #6200EE text-white text-xs font-semibold py-2 rounded-lg mt-2
+    hover:bg #5200CC active:scale-95 transition
+    onClick → onAddToCart(product) + showToast("Sepete eklendi ✓")
+
+─── GuideListItem.tsx ───
+  Props: article, onClick
+
+  Row: flex items-center gap-3 py-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 px-4
+
+  Left: img 56x56 rounded-lg object-cover flex-shrink-0
+  Middle (flex-1 min-w-0):
+    - Title: text-sm font-semibold text-gray-900 truncate
+    - Description: text-xs text-gray-500 truncate mt-0.5
+    - Read time: flex items-center gap-1 mt-1
+      Clock icon size 12 color #9CA3AF
+      Text: "{readTime}" text-xs text-gray-400
+  Right: ChevronRight icon size 18 color #9CA3AF
+
+  onClick → alert("Rehber: " + article.title)
+
+─── Accordion.tsx ───
+  Props: items: { title: string, links: string[] }[]
+
+  Each item:
+    Header row: flex justify-between items-center py-3 border-t border-white/10 cursor-pointer
+      Title: text-sm font-medium text-white
+      Icon: Plus when closed, Minus when open (lucide Plus / Minus, size 18)
+    Content (when open): pb-3 pl-2 space-y-2
+      Each link: text-sm text-white/60 hover:text-white hover:underline cursor-pointer block
+
+  Accordion data (hardcode inside Footer.tsx):
+    "YourPoodle" → Hakkımızda, Misyonumuz, Kariyer, Basın
+    "Alışveriş" → Tüm Ürünler, Mamalar, Aksesuarlar, Kampanyalar
+    "Yardım" → SSS, Kargo & Teslimat, İade & Değişim, İletişim
+    "Yasal" → Gizlilik Politikası, Kullanım Koşulları, KVKK, Çerez Politikası
+
+  Only one section open at a time. Smooth open/close transition.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — HEADER (EXACT LAYOUT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: Header.tsx
+
+Container:
+  sticky top-0 z-40 bg-white border-b border-gray-200
+  flex items-center justify-between h-14 px-4
+
+LEFT:
+  Button (aria-label="Menü"):
+    Menu icon, lucide-react, size 22, color #374151
+    onClick → open MobileDrawer
+
+CENTER:
+  flex items-center gap-2
+  Logo image: 40x40 rounded-full object-cover
+    src: https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=80&h=80&fit=crop
+    alt: "YourPoodle Logo"
+  Text: "YourPoodle" — font-bold text-lg color #6200EE
+
+RIGHT:
+  flex items-center gap-3
+  "Giriş Yap" — text-sm text-gray-700 hover:underline cursor-pointer
+    onClick → alert("Giriş sayfası yakında!")
+  "Üye Ol" button — bg #6200EE text-white text-sm font-medium px-4 py-1.5 rounded-full
+    hover:bg #5200CC active:scale-95
+    onClick → alert("Üyelik sayfası yakında!")
+  Cart badge (optional small circle): show cart count if > 0, bg red, text white, text-xs, absolute
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — MOBILE DRAWER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: MobileDrawer.tsx
+
+Props: isOpen, onClose
+
+When isOpen=true:
+  - Backdrop: fixed inset-0 bg-black/50 z-50, onClick → onClose
+  - Panel: fixed left-0 top-0 h-full w-72 bg-white z-50 shadow-xl
+    Slide-in animation from left (transform translateX)
+
+Panel content:
+  - Top: YourPoodle logo + "YourPoodle" text + X close button (top-right)
+  - Nav links (text-base font-medium text-gray-800 py-3 border-b border-gray-100):
+      Mağaza
+      Club
+      AI Asistan
+      Rehber
+  - Bottom section (mt-auto px-4 pb-6):
+      "Giriş Yap" text link
+      "Üye Ol" purple button full-width
+
+Each link onClick → onClose + console.log link name
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — TAB NAVIGATION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: TabNavigation.tsx
+
+Container: bg-white border-b border-gray-200
+Inner: flex (4 equal columns)
+
+Tabs (use useState for activeTab, default "magaza"):
+
+| key       | label       | icon (lucide)      |
+|-----------|-------------|---------------------|
+| magaza    | Mağaza      | ShoppingBag         |
+| club      | Club        | PawPrint            |
+| ai        | AI Asistan  | MessageCirclePlus   |
+| rehber    | Rehber      | BookOpen            |
+
+Each tab button:
+  flex flex-col items-center gap-1 py-2.5 w-full
+  Icon size 20
+  Label text-xs
+
+Active tab (magaza on load):
+  text color #6200EE, font-semibold
+  border-b-2 border #6200EE
+
+Inactive tab:
+  text color #9CA3AF, font-medium, no border
+
+onClick → setActiveTab(key)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — HERO SECTION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: HeroSection.tsx
+
+Outer: mx-4 mt-4 rounded-2xl overflow-hidden relative
+Background: style={{ background: "linear-gradient(135deg, #6200EE 0%, #3D0099 100%)" }}
+Min-height: 200px
+Padding: 24px
+
+Content (relative z-10, max-width 60%):
+
+1. Badge:
+   inline-block bg-white/20 text-white text-xs font-medium px-3 py-1 rounded-full mb-3
+   Text: "Türkiye'nin en büyük Poodle topluluğu"
+
+2. H1:
+   text-white text-2xl font-bold leading-tight mb-2
+   Text: "Toy Poodle'ınız için her şey burada."
+
+3. Subtext:
+   text-white/80 text-sm mb-4 leading-relaxed
+   Text: "Bilgi, alışveriş ve gerçek bir topluluk — tek bir yerde."
+
+4. CTA Button:
+   bg-white text #6200EE font-semibold text-sm px-6 py-2.5 rounded-full
+   hover:bg-gray-100 active:scale-95 transition
+   Text: "Topluluğa Katıl"
+   onClick → alert("Topluluğa katılım yakında!")
+
+Image (absolute positioning):
+  absolute right-0 bottom-0 w-36 h-40 object-cover object-bottom
+  src: https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=300&h=350&fit=crop
+  alt: "Toy Poodle"
+  loading="lazy"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — INSTALLMENT BANNER + FOOD PRODUCTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: InstallmentBanner.tsx
+
+Container: px-4 mt-6 mb-3
+
+Row 1: flex items-center gap-2
+  CreditCard icon (lucide, size 18, color #6200EE)
+  Text: "Peşin fiyatına 3 taksit" — text-sm font-semibold text-gray-900
+
+Row 2: text-xs text-gray-500 mt-0.5 pl-7
+  Text: "Toy Poodle'ınıza özel seçilmiş mamalar"
+
+File: ProductGrid.tsx
+
+Props: products: Product[]
+
+Layout: grid grid-cols-2 gap-3 px-4
+
+Map products → <ProductCard /> for each.
+
+In App.tsx render food section:
+  <InstallmentBanner />
+  <ProductGrid products={foodProducts} />
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — POODLE REHBERİ SECTION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: GuideSection.tsx
+
+Container: mt-6
+
+Header (px-4 flex justify-between items-center mb-2):
+  Left: "Poodle Rehberi" — text-lg font-bold text-gray-900
+  Right: "Tümünü Gör" — text-sm text-blue-600 hover:underline cursor-pointer
+    onClick → alert("Tüm rehberler yakında!")
+
+List:
+  Map guideArticles → <GuideListItem /> for each
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — AI ASSISTANT CARD (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AIAssistantCard.tsx
+
+Container:
+  mx-4 my-6 rounded-2xl p-5
+  bg #F3EEFF
+  border: 1px dashed #C4B5FD
+
+Content:
+  MessageCirclePlus icon — size 32, color #6200EE, mb-3
+
+  Heading: "Cevabını hemen bul"
+    text-base font-bold text-gray-900 mb-1
+
+  Subtext: "Poodle'ınızla ilgili merak ettiğiniz her şeyi sorun."
+    text-sm text-gray-600 mb-4
+
+  Button (full width):
+    flex items-center justify-center gap-2
+    bg #6200EE text-white font-semibold py-3 rounded-xl text-sm
+    hover:bg #5200CC active:scale-95 transition
+    Sparkles icon size 18
+    Text: "AI Asistan'a Sor"
+    onClick → alert("AI Asistan yakında aktif olacak!")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — ÖZEL ÜRÜNLER SECTION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In App.tsx (NOT a separate file, inline section header + ProductGrid):
+
+Container: mt-2 mb-6
+
+Header (px-4 flex justify-between items-center mb-3):
+  Left: "Poodle'ınıza Özel Ürünler" — text-lg font-bold text-gray-900
+  Right: "Tümünü Gör" — text-sm text-blue-600 hover:underline cursor-pointer
+    onClick → alert("Tüm ürünler yakında!")
+
+<ProductGrid products={accessoryProducts} />
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — FOOTER (EXACT — EVERY ELEMENT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: Footer.tsx
+
+Outer: bg #1A0052 text-white px-4 pt-8 pb-6
+
+── BLOCK 1: Newsletter ──
+  Heading: "Poodle dünyasından haberdar olun"
+    text-base font-semibold mb-3
+
+  Form row: flex
+    Input:
+      flex-1 bg-white text-gray-900 rounded-l-full px-4 py-2.5 text-sm
+      placeholder="E-posta adresiniz"
+      type="email"
+      value controlled by useState
+    Button:
+      bg #6200EE text-white font-semibold text-sm px-5 py-2.5 rounded-r-full
+      Text: "Üye Ol"
+      onClick:
+        if email matches /^[^\s@]+@[^\s@]+\.[^\s@]+$/ → showToast("Bültene kaydoldunuz ✓") + clear input
+        else → showToast("Geçerli bir e-posta girin")
+
+── BLOCK 2: Branding ──
+  mt-6 flex items-center gap-2
+    Logo img 32x32 rounded-full (same poodle image)
+    "YourPoodle" text font-bold text-white
+  Description mt-2 mb-4:
+    "Toy Poodle sahipleri için bilgi, alışveriş ve topluluk platformu."
+    text-sm text-white/70
+
+── BLOCK 3: Accordion ──
+  <Accordion /> with 4 sections (defined in STEP 5)
+
+── BLOCK 4: Contact ──
+  mt-4 space-y-2
+  Row 1: Mail icon (size 16) + "destek@yourpoodle.com" text-sm text-white/70
+  Row 2: Clock icon (size 16) + "Hafta içi 09:00 – 18:00" text-sm text-white/70
+
+── BLOCK 5: Social ──
+  mt-5
+  "Bizi Takip Edin" — text-sm font-semibold mb-3
+  Icon row flex gap-4:
+    Instagram (lucide Instagram, size 22, hover:text-white/100)
+    Youtube (lucide Youtube, size 22)
+    Music2 (TikTok stand-in, size 22)
+    Facebook (lucide Facebook, size 22)
+  Each: cursor-pointer, links to "#", aria-label set
+
+── BLOCK 6: Trust badges ──
+  mt-5
+  Text: "🔒 SSL Güvenli Alışveriş" — text-xs text-white/50 mb-2
+  Payment row flex gap-2:
+    Badge "VISA" — bg white text-gray-800 text-xs font-bold px-2 py-1 rounded
+    Badge "Mastercard" — same style
+    Badge "TROY" — same style
+
+── BLOCK 7: Copyright ──
+  mt-5 pt-4 border-t border-white/10
+  "© 2025 YourPoodle. Tüm hakları saklıdır." — text-xs text-white/50
+  Links row flex gap-3 mt-2:
+    "Gizlilik" — text-xs text-white/50 hover:text-white cursor-pointer
+    "Çerezler" — same
+    "KVKK" — same
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — APP.TSX ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+App.tsx must render in THIS EXACT ORDER:
+
+<div className="max-w-[480px] mx-auto bg-white min-h-screen relative">
+  <Header />
+  <TabNavigation />
+  <main>
+    <HeroSection />
+    <InstallmentBanner />
+    <ProductGrid products={foodProducts} />       ← 6 food items, 2-col grid
+    <GuideSection />                               ← 5 guide articles
+    <AIAssistantCard />
+    {/* Special Products Header */}
+    <section>
+      <div className="px-4 flex justify-between items-center mb-3 mt-2">
+        <h2 className="text-lg font-bold">Poodle'ınıza Özel Ürünler</h2>
+        <button className="text-sm text-blue-600 hover:underline">Tümünü Gör</button>
+      </div>
+      <ProductGrid products={accessoryProducts} />  ← 6 accessory items
+    </section>
+  </main>
+  <Footer />
+  <MobileDrawer />
+  <Toast />
+</div>
+
+Wrap App with CartContext and FavoritesContext providers.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — INTERACTIVITY CHECKLIST (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Before stopping, verify and fix each item:
+
+✅ npm run dev runs with ZERO console errors
+✅ Page scroll order matches mockup exactly (8 sections)
+✅ All Turkish text is exact — no changes
+✅ Color #6200EE used on all purple elements
+✅ Footer bg is #1A0052
+✅ "Sepete Ekle" → adds to cart + shows toast "Sepete eklendi ✓"
+✅ Heart icon toggles favorite (red filled ↔ gray outline)
+✅ Footer accordions open/close with +/− icon
+✅ Newsletter validates email, shows success/error toast
+✅ Hamburger opens mobile drawer, backdrop closes it
+✅ Tab navigation switches active state visually
+✅ All buttons have hover (darker purple) + active:scale-95
+✅ Product cards have hover:shadow-md
+✅ Guide rows have hover:bg-gray-50
+✅ No horizontal scroll at 375px viewport width
+✅ All images have alt text and loading="lazy"
+✅ All interactive elements have aria-label
+
+If ANY item fails → fix it. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build everything above. Do not ask questions. Do not simplify. Do not skip steps.
+Match the YourPoodle.com mobile homepage mockup exactly.
+Every section, every text, every color, every button must be present and working.
+Run the app and confirm zero errors before finishing.

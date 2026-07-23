@@ -773,7 +773,7 @@ export async function registerRoutes(
       "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://googleads.g.doubleclick.net https://www.googleadservices.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://www.yourpoodle.com https://www.enuygunpet.com https://www.google-analytics.com https://www.googletagmanager.com https://googleads.g.doubleclick.net",
+      "img-src 'self' data: blob: https://www.yourpoodle.com https://www.enuygunpet.com https://www.google-analytics.com https://www.googletagmanager.com https://googleads.g.doubleclick.net https://images.unsplash.com",
       "connect-src 'self' https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com",
       "frame-src 'self' https://www.google.com https://maps.google.com https://www.google.com.tr",
       "frame-ancestors 'self'",
