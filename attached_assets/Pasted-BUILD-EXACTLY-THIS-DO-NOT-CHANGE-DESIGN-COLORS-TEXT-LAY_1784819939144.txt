@@ -1,0 +1,743 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the Shopping Cart & Checkout Preparation page ("Sepetim") for YourPoodle.com.
+This page appears after "Sepete Ekle" from the product detail page.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, Header, TabNavigation, MobileDrawer, cart hook,
+  Toast, favorites, and routing. DO NOT rebuild the entire app.
+- Cart data MUST come from the existing cart state (product added from PDP).
+- If cart is empty, show empty state with "Alışverişe Devam Et" → /magaza.
+- DO NOT delete or rewrite existing pages.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Route: /sepet
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT skip any section.
+
+MANDATORY PAGE SECTIONS (ALL REQUIRED):
+  ✅ Product info + quantity (ürün ve adet bilgisi)
+  ✅ Product discount (indirim — strikethrough + savings)
+  ✅ 3 taksit info
+  ✅ Delivery selection (teslimat seçimi — 2 radio options)
+  ✅ Address picker (adres)
+  ✅ Coupon / discount code (kupon)
+  ✅ Order summary (sipariş özeti — line items + total)
+  ✅ "Güvenli Ödemeye Geç" button
+  ✅ Sticky bottom bar (Toplam + Ödemeye Geç)
+
+4. EVERY interactive element MUST work.
+5. Optimize for 390px mobile. Max width 480px centered.
+6. NO site footer — sticky bottom bar instead.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #4A2ED1
+  purple-bright:   #3B59FF
+  purple-light:    #F3EEFF
+  purple-border:   #DDD6FE
+  success-green:   #28A745
+  success-bg:      #F0FDF4
+  success-border:  #BBF7D0
+  savings-green:   #16A34A
+  text-dark:       #111827
+  text-secondary:  #6B7280
+  link-blue:       #3B59FF
+  discount-red:    #DC2626
+  tag-pink:        #FEE2E2 / #991B1B
+  tag-purple:      #EDE9FE / #5B21B6
+  border-light:    #E5E7EB
+
+Typography: Inter
+Layout: max-w-[480px] mx-auto bg-white min-h-screen pb-28
+Sticky bottom bar: fixed bottom-0 z-40
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    cart/
+      CartPageHeader.tsx
+      CartSuccessBanner.tsx
+      CartItemCard.tsx
+      CartInstallmentBanner.tsx
+      CartShippingProgress.tsx
+      CartDeliveryOptions.tsx
+      CartAddressPicker.tsx
+      CartCouponSection.tsx
+      CartOrderSummary.tsx
+      CartPaymentSection.tsx
+      CartRecommendations.tsx
+      CartStickyBar.tsx
+      CartEmptyState.tsx
+  pages/
+    CartPage.tsx
+  data/
+    cartRecommendations.ts
+    deliveryOptions.ts
+    couponCodes.ts
+  hooks/
+    useCartCheckout.ts
+  App.tsx
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — MOCK DATA (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/deliveryOptions.ts:
+
+export interface DeliveryOption {
+  id: string;
+  title: string;
+  price: number;
+  priceLabel: string;   // "Ücretsiz" | "79 TL"
+  subtitle: string;
+}
+
+export const deliveryOptions: DeliveryOption[] = [
+  {
+    id: "standard",
+    title: "Standart Teslimat — Ücretsiz",
+    price: 0,
+    priceLabel: "Ücretsiz",
+    subtitle: "Tahmini teslimat: 25–26 Temmuz",
+  },
+  {
+    id: "express",
+    title: "Hızlı Teslimat — 79 TL",
+    price: 79,
+    priceLabel: "79 TL",
+    subtitle: "Yarın kapınızda",
+  },
+];
+
+Create src/data/couponCodes.ts:
+
+export interface CouponCode {
+  code: string;
+  label: string;
+  discount: number;     // TL amount
+  description: string;
+}
+
+export const availableCoupons: CouponCode[] = [
+  {
+    code: "POODLE100",
+    label: "POODLE100 — Yeni üyeye 100 TL",
+    discount: 100,
+    description: "Yeni üyeye 100 TL",
+  },
+];
+
+Create src/data/cartRecommendations.ts:
+
+export interface CartRecommendation {
+  id: string;
+  name: string;
+  price: number;
+  priceFormatted: string;
+  image: string;
+}
+
+export const cartRecommendations: CartRecommendation[] = [
+  {
+    id: "rec-1",
+    name: "Buharlı Masaj Tarağı",
+    price: 399,
+    priceFormatted: "399 TL",
+    image: "https://images.unsplash.com/photo-1516734212184-a967f81ad0d2?w=120&h=120&fit=crop",
+  },
+  {
+    id: "rec-2",
+    name: "Göz Yaşı Bakım Losyonu",
+    price: 289,
+    priceFormatted: "289 TL",
+    image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=120&h=120&fit=crop",
+  },
+];
+
+Default cart item (if cart empty on first visit, pre-fill for demo OR read from cart):
+
+export interface CartItem {
+  id: string;
+  brand: string;
+  name: string;
+  weight: string;
+  barcode: string;
+  expiryDate: string;
+  originalPrice: number;
+  originalPriceFormatted: string;
+  salePrice: number;
+  salePriceFormatted: string;
+  savings: number;
+  quantity: number;
+  inStock: boolean;
+  tags: { label: string; bg: string; text: string }[];
+  image: string;
+}
+
+export const defaultCartItem: CartItem = {
+  id: "cart-1",
+  brand: "PRO PLAN",
+  name: "Pro Plan Small Adult Sensitive Somonlu Yetişkin Köpek Maması",
+  weight: "3 kg",
+  barcode: "7613035123456",
+  expiryDate: "18.07.2027",
+  originalPrice: 1599,
+  originalPriceFormatted: "1.599 TL",
+  salePrice: 1349,
+  salePriceFormatted: "1.349 TL",
+  savings: 250,
+  quantity: 1,
+  inStock: true,
+  tags: [
+    { label: "Yetişkin +1", bg: "#FEE2E2", text: "#991B1B" },
+    { label: "Sensitive",   bg: "#EDE9FE", text: "#5B21B6" },
+    { label: "Somonlu",     bg: "#EDE9FE", text: "#5B21B6" },
+  ],
+  image: "https://images.unsplash.com/photo-1589924691995-400dc9eccs?w=200&h=280&fit=crop",
+};
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — useCartCheckout HOOK (ALL LOGIC)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: hooks/useCartCheckout.ts
+
+Integrate with existing useCart hook OR manage locally.
+
+State:
+  items: CartItem[]
+  selectedDeliveryId: string        // default "standard"
+  selectedAddress: string | null
+  couponCode: string
+  appliedCoupon: CouponCode | null
+  showSuccessBanner: boolean        // default true on first load after add
+
+Computed:
+  itemCount → sum of quantities
+  subtotal → sum(item.salePrice * item.quantity) using ORIGINAL for "Ürünler" line
+  productDiscount → sum((original - sale) * quantity)
+  shippingCost → IF selectedDelivery express → 79, ELSE IF subtotal >= 500 → 0, ELSE calculate
+    Mock: subtotal 1349 >= 500 → shipping FREE (matches mockup "Ücretsiz kargo kazandınız!")
+  couponDiscount → appliedCoupon?.discount ?? 0
+  total → subtotal + shippingCost - couponDiscount
+  totalFormatted → Turkish locale
+  installmentAmount → total / 3 formatted "449,67 TL"
+  freeShippingProgress → min(subtotal / 500, 1) * 100
+
+Functions:
+  updateQuantity(itemId, delta) — min 1, max 10
+  removeItem(itemId)
+  clearCart()
+  moveToWishlist(itemId) — toggle favorite + remove from cart
+  buyLater(itemId) — remove + toast "Daha sonra al listesine eklendi"
+  selectDelivery(id)
+  selectAddress(address) — modal with mock addresses
+  applyCoupon(code) — validate against couponCodes, show error/success toast
+  useCoupon("POODLE100") — pre-fill and apply
+  addRecommendation(rec) — add to cart + toast
+  proceedToPayment() — navigate /odeme or alert("Ödeme sayfası yakında!")
+  dismissSuccessBanner()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — CART PAGE HEADER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: CartPageHeader.tsx
+
+px-4 py-3 flex items-center justify-between
+
+  LEFT (flex items-center gap-2):
+    ArrowLeft (aria-label="Geri") → navigate(-1)
+    "Sepetim" text-lg font-bold text-gray-900
+    Badge "1 ürün" (dynamic: "{itemCount} ürün"):
+      bg #F3EEFF text #4A2ED1 text-xs font-semibold px-2 py-0.5 rounded-full
+
+  RIGHT:
+    "Sepeti Temizle" text-sm text-gray-500 hover:text-red-500 cursor-pointer
+    onClick → confirm dialog → clearCart()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — SUCCESS BANNER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: CartSuccessBanner.tsx
+
+Show when showSuccessBanner === true (after product added)
+
+mx-4 mb-2
+bg #F0FDF4 border border #BBF7D0 rounded-xl px-4 py-3
+flex items-center gap-2
+
+  CheckCircle icon size 18 color #28A745
+  "Ürün sepetinize eklendi" text-sm font-medium text-green-800
+
+  X button top-right to dismiss
+
+Below banner (px-4 mb-3):
+  "Alışverişe Devam Et" link
+    text-sm font-medium color #3B59FF hover:underline
+    onClick → navigate("/magaza")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — CART ITEM CARD (EXACT — PRODUCT + QUANTITY + DISCOUNT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: CartItemCard.tsx
+
+Props: item, onQuantityChange, onRemove, onFavorite, onBuyLater
+
+Container: mx-4 mb-4 bg white rounded-xl border border-gray-100 shadow-sm p-3
+
+Layout: flex gap-3
+
+LEFT — Image:
+  w-20 h-28 object-contain flex-shrink-0 rounded-lg bg #F9FAFB p-1
+  src: item.image, alt: item.name
+
+  Below image:
+    "Daha Sonra Al" text-xs color #3B59FF hover:underline cursor-pointer
+    onClick → onBuyLater(item.id)
+
+RIGHT — Details (flex-1 min-w-0):
+
+  TOP-RIGHT icons (absolute or flex justify-end):
+    Trash2 icon — aria-label="Sil" onClick → onRemove
+    Heart icon — aria-label="Favorile" onClick → onFavorite
+
+  Brand: "PRO PLAN" text-[10px] font-bold text #4A2ED1 uppercase
+
+  Name: item.name
+    text-xs font-bold text-gray-900 leading-tight line-clamp-2 mb-1
+
+  Specs (text-[10px] text-gray-500 space-y-0.5):
+    "{item.weight}"
+    "Barkod: {item.barcode}"
+    "SKT: {item.expiryDate}"
+
+  Stock: flex items-center gap-1 text-[10px] text-green-600
+    green dot + "Stokta"
+
+  Tags (flex flex-wrap gap-1 my-1.5):
+    3 pills: Yetişkin +1, Sensitive, Somonlu (colored per mockup)
+
+  BOTTOM row (flex justify-between items-end mt-2):
+
+    LEFT — Pricing:
+      Original: line-through text-xs text-gray-400 → "1.599 TL"
+      Sale: text-base font-bold color #3B59FF → "1.349 TL"
+      Savings: text-[10px] font-medium color #16A34A → "250 TL kazanç"
+
+    RIGHT — Quantity selector:
+      flex items-center border border #DDD6FE rounded-lg overflow-hidden
+      Minus button px-2 py-1 hover:bg-purple-50 aria-label="Azalt"
+      Count: px-2 text-sm font-semibold
+      Plus button px-2 py-1 hover:bg-purple-50 aria-label="Artır"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — INSTALLMENT + SHIPPING BANNERS (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: CartInstallmentBanner.tsx
+
+mx-4 mb-3
+bg #F3EEFF rounded-xl px-4 py-3 flex items-center gap-3
+
+  CreditCard icon size 18 color #4A2ED1
+  div:
+    "Peşin fiyatına 3 taksit" text-xs font-semibold text-gray-800
+    "3 x {installmentAmount}" text-sm font-bold text #4A2ED1
+    Example: "3 x 449,67 TL"
+    Recalculates when total changes
+
+File: CartShippingProgress.tsx
+
+mx-4 mb-4 bg white rounded-xl border border-gray-100 p-4
+
+  flex items-center gap-2 mb-2
+    Truck icon size 18 color #3B59FF
+    "Ücretsiz kargo kazandınız!" text-sm font-semibold text-gray-900
+
+  Progress bar:
+    w-full h-2 bg-gray-100 rounded-full overflow-hidden
+    Fill: bg #3B59FF h-full rounded-full
+    width: freeShippingProgress% (100% when >= 500 TL)
+
+  Subtext: "500 TL üzeri siparişlerde kargo ücretsiz"
+    text-xs text-gray-500 mt-1.5
+
+IF subtotal < 500:
+  Show: "Ücretsiz kargoya {remaining} TL kaldı" instead of "kazandınız"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — DELIVERY OPTIONS (EXACT — RADIO)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: CartDeliveryOptions.tsx
+
+mx-4 mb-4
+
+  Title: "Teslimat Seçenekleri"
+    text-sm font-bold text-gray-900 mb-2
+
+  space-y-2
+
+  Option 1 — Standart (SELECTED by default):
+    flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer
+    border #4A2ED1 bg #FAFAFF
+    Radio circle: filled purple dot inside
+    Title: "Standart Teslimat — Ücretsiz" text-sm font-semibold
+    Subtitle: "Tahmini teslimat: 25–26 Temmuz" text-xs text-gray-500
+
+  Option 2 — Hızlı:
+    border #E5E7EB bg white
+    Empty radio circle
+    Title: "Hızlı Teslimat — 79 TL"
+    Subtitle: "Yarın kapınızda"
+
+  onClick → selectDelivery(id)
+  Selecting express adds 79 TL to order summary shipping line
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — ADDRESS PICKER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: CartAddressPicker.tsx
+
+mx-4 mb-4
+flex items-center justify-between
+bg #F9FAFB border border-gray-200 rounded-xl px-4 py-3.5 cursor-pointer
+hover:bg-gray-100
+
+  LEFT: MapPin icon size 18 color #4A2ED1 + text
+    IF no address: "Teslimat adresinizi seçin" text-sm text-gray-700
+    IF selected: show address text e.g. "Kadıköy, İstanbul — Ev"
+
+  RIGHT: ChevronRight icon size 18 color gray
+
+  onClick → open AddressModal (bottom sheet):
+
+    Title: "Teslimat Adresi Seçin"
+    Mock addresses (radio list):
+      1. "Ev — Kadıköy, İstanbul" (Caferağa Mah...)
+      2. "İş — Beşiktaş, İstanbul"
+    Button "Yeni Adres Ekle" → alert("Yeni adres yakında!")
+    Button "Kaydet" → setSelectedAddress + close
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — COUPON SECTION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: CartCouponSection.tsx
+
+mx-4 mb-4
+
+  Title: "İndirim Kodu"
+    text-sm font-bold text-gray-900 mb-2
+
+  Input row (flex gap-2):
+    Input:
+      flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm
+      placeholder="Kupon kodunuzu girin"
+      value controlled
+    Button "Uygula":
+      border-2 border #4A2ED1 text #4A2ED1 font-semibold text-sm
+      px-4 py-2.5 rounded-xl hover:bg #F3EEFF
+      onClick → applyCoupon(inputValue)
+      IF invalid → toast "Geçersiz kupon kodu"
+      IF valid → toast "Kupon uygulandı ✓"
+
+  Recommended coupon row (mt-2):
+    flex items-center justify-between
+    bg #F9FAFB rounded-xl px-3 py-2.5
+
+    LEFT: Tag icon + "POODLE100 — Yeni üyeye 100 TL"
+      text-xs text-gray-700
+
+    RIGHT: "Kullan" link
+      text-xs font-semibold color #4A2ED1 hover:underline
+      onClick → useCoupon("POODLE100")
+
+When POODLE100 applied:
+  Order summary "Kupon İndirimi" → -100 TL (green)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — ORDER SUMMARY (EXACT — SİPARİŞ ÖZETİ)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: CartOrderSummary.tsx
+
+mx-4 mb-4 bg white rounded-xl border border-gray-100 p-4
+
+  Title: "Sipariş Özeti"
+    text-sm font-bold text-gray-900 mb-3
+
+  Line items (space-y-2 text-sm):
+
+    Row 1: "Ürünler ({itemCount})" — right: original subtotal "1.599 TL"
+      (sum of originalPrice × quantity)
+
+    Row 2: "Ürün İndirimi" — right: "-250 TL" in green
+      (negative productDiscount)
+
+    Row 3: "Kargo" — right:
+      IF free → "Ücretsiz" in green
+      IF express → "79 TL"
+      IF paid standard → amount
+
+    Row 4: "Kupon İndirimi" — right:
+      IF applied → "-100 TL" green
+      ELSE → "0 TL" gray
+
+  Divider border-t border-gray-100 my-3
+
+  Total row:
+    "Toplam" text-base font-bold
+    Price: text-2xl font-bold color #3B59FF → "1.349 TL" (dynamic)
+    "KDV dahil" text-xs text-gray-500
+
+  Installment note:
+    "3 taksit seçeneği: 3 x {installmentAmount}"
+    text-xs text-gray-500 mt-1
+
+All values update live when quantity, delivery, or coupon changes.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — PAYMENT SECTION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: CartPaymentSection.tsx
+
+px-4 mb-5 space-y-3
+
+  Primary button "Güvenli Ödemeye Geç":
+    w-full bg #4A2ED1 text-white font-semibold py-4 rounded-xl
+    flex items-center justify-center gap-2
+    Lock icon size 18
+    hover:bg #3B21B8 active:scale-[0.98]
+    onClick:
+      IF !selectedAddress → toast "Lütfen teslimat adresi seçin" + open address modal
+      ELSE → proceedToPayment()
+
+  Security row (flex items-center justify-center gap-2):
+    ShieldCheck icon size 14 color #3B59FF
+    "256-bit SSL ile güvenli ödeme" text-xs text-gray-500
+
+  Payment logos row (flex justify-center gap-2):
+    Badge "VISA" bg white border text-xs font-bold px-2 py-1 rounded
+    Badge "Mastercard" same
+    Badge "TROY" same
+
+  Secondary "Alışverişe Devam Et":
+    w-full border-2 border #4A2ED1 text #4A2ED1 font-semibold py-3 rounded-xl
+    hover:bg #F3EEFF
+    onClick → navigate("/magaza")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — RECOMMENDATIONS (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: CartRecommendations.tsx
+
+px-4 mb-6
+
+  Title: "Bunları da sevebilirsiniz"
+    text-sm font-bold text-gray-900 mb-3
+
+  flex gap-3 overflow-x-auto scrollbar-hide
+
+  Each card (min-w-[140px]):
+    bg white border border-gray-100 rounded-xl p-2 flex-shrink-0
+
+    Image: w-full h-20 object-contain rounded-lg bg #F9FAFB
+    Name: text-xs font-medium text-gray-800 mt-1 line-clamp-2
+    Price: text-sm font-bold color #3B59FF
+    "+ Ekle" button:
+      text-xs font-semibold color #4A2ED1 border border #4A2ED1
+      rounded-lg px-2 py-1 mt-1 w-full hover:bg #F3EEFF
+      onClick → addRecommendation
+
+  Products:
+    1. Buharlı Masaj Tarağı — 399 TL
+    2. Göz Yaşı Bakım Losyonu — 289 TL
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — STICKY BOTTOM BAR (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: CartStickyBar.tsx
+
+fixed bottom-0 left-0 right-0 z-40 flex justify-center
+
+  Inner: max-w-[480px] w-full bg-white border-t border-gray-200
+    flex items-center justify-between px-4 py-3 shadow-lg
+
+  LEFT:
+    "Toplam" text-xs text-gray-500
+    Price: text-lg font-bold color #3B59FF
+      "{totalFormatted}" e.g. "1.349 TL"
+
+  RIGHT:
+    "Ödemeye Geç" button:
+      bg #4A2ED1 text-white font-semibold text-sm
+      px-5 py-2.5 rounded-xl
+      onClick → proceedToPayment() (same validation as main button)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: CartPage.tsx
+
+<div className="max-w-[480px] mx-auto bg-white min-h-screen pb-28 shadow-xl">
+  <Header />
+  <TabNavigation activeTab="magaza" />
+
+  IF cart empty → <CartEmptyState />
+  ELSE:
+    <CartPageHeader />
+    <CartSuccessBanner />
+    <CartItemCard />              ← ürün + adet + indirim
+    <CartInstallmentBanner />     ← 3 taksit
+    <CartShippingProgress />
+    <CartDeliveryOptions />       ← teslimat seçimi
+    <CartAddressPicker />         ← adres
+    <CartCouponSection />         ← kupon
+    <CartOrderSummary />          ← sipariş özeti
+    <CartPaymentSection />        ← Güvenli Ödemeye Geç
+    <CartRecommendations />
+
+  <CartStickyBar />
+  <MobileDrawer />
+  <Toast />
+</div>
+
+Exact scroll order:
+  1. Header + Mağaza tab active
+  2. Sepetim (1 ürün) + Sepeti Temizle
+  3. Green success banner + Alışverişe Devam Et
+  4. Product card (Pro Plan, qty, prices, tags)
+  5. 3 taksit banner
+  6. Free shipping progress
+  7. Teslimat Seçenekleri (2 radio cards)
+  8. Teslimat adresinizi seçin
+  9. İndirim Kodu + POODLE100 coupon
+  10. Sipariş Özeti
+  11. Güvenli Ödemeye Geç + SSL + payment logos
+  12. Alışverişe Devam Et
+  13. Bunları da sevebilirsiniz
+  14. Sticky: Toplam + Ödemeye Geç
+
+NO site footer.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 17 — ROUTING & INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add route:
+  <Route path="/sepet" element={<CartPage />} />
+
+ProductDetailPage "Sepete Ekle" and "Hemen Al" → navigate("/sepet")
+
+Optional payment route stub:
+  <Route path="/odeme" element={<PaymentStubPage />} />
+  proceedToPayment() → navigate("/odeme")
+
+Connect existing useCart:
+  Cart page reads items from cart context
+  If empty, use defaultCartItem for demo OR show empty state
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 18 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Product & quantity:
+✅ Quantity +/- updates item count, prices, summary, sticky bar, taksit
+✅ Remove item → empty state or confirm
+✅ Trash, heart, Daha Sonra Al work
+
+Discount & pricing:
+✅ Strikethrough 1.599 TL + sale 1.349 TL + 250 TL kazanç
+✅ Order summary line items update live
+✅ Product discount shows -250 TL green
+
+Taksit:
+✅ "3 x 449,67 TL" in banner and order summary
+✅ Recalculates on total change
+
+Delivery:
+✅ Standard selected by default (free)
+✅ Express adds 79 TL to summary
+✅ Radio selection visual state works
+
+Address:
+✅ Picker opens modal, select address, displays selected
+
+Coupon:
+✅ Input + Uygula validates code
+✅ POODLE100 Kullan applies -100 TL
+✅ Invalid code shows error toast
+
+Payment:
+✅ "Güvenli Ödemeye Geç" validates address then proceeds
+✅ Requires address before payment
+✅ Sticky "Ödemeye Geç" same behavior
+✅ Sepeti Temizle clears cart
+
+Other:
+✅ Success banner dismissible
+✅ Recommendations + Ekle works
+✅ No horizontal overflow at 375px
+✅ npm run dev → ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 19 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ "Sepetim" + "1 ürün" badge + "Sepeti Temizle"
+✅ "Ürün sepetinize eklendi" green banner
+✅ Pro Plan product card with 3 kg, Barkod, SKT, Stokta, tags
+✅ ~~1.599 TL~~ 1.349 TL + 250 TL kazanç + qty selector
+✅ "Peşin fiyatına 3 taksit" + "3 x 449,67 TL"
+✅ "Ücretsiz kargo kazandınız!" + full progress bar
+✅ Standart Teslimat selected + Hızlı Teslimat option
+✅ "Teslimat adresinizi seçin"
+✅ Kupon input + POODLE100 row
+✅ Sipariş Özeti: Ürünler, Ürün İndirimi, Kargo, Kupon, Toplam 1.349 TL
+✅ "Güvenli Ödemeye Geç" purple button with lock icon
+✅ SSL + VISA/Mastercard/TROY
+✅ Bunları da sevebilirsiniz (2 items)
+✅ Sticky: Toplam 1.349 TL + Ödemeye Geç
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the cart & checkout page at /sepet exactly as specified.
+Use the EXISTING project and cart hook — do not rebuild the whole app.
+
+ALL mandatory sections must work:
+  Product + quantity, discount, 3 taksit, delivery selection, address,
+  coupon, order summary, Güvenli Ödemeye Geç, sticky bottom bar.
+
+Match the mockup pixel-perfect. Turkish text must be exact.
+Run the app and confirm zero errors before finishing.

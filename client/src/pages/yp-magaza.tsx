@@ -318,7 +318,7 @@ export default function YPMagazaPage() {
             <CategoryRow key={cat.id} cat={cat}
               onClick={()=>{
                 if(cat.slug==="kuru-mama") navigate("/yourpoodle/kuru-mama");
-                else alert(`Kategori: ${cat.name}`);
+                else navigate(`/yourpoodle/kategori/${cat.slug}`);
               }} />
           ))}
         </div>
