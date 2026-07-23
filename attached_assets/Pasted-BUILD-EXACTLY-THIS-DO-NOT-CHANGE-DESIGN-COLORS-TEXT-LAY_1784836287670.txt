@@ -1,0 +1,588 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "Poodle Profilini Düzenle" (Create / Edit Poodle Profile) page for YourPoodle.com.
+This page opens when the user clicks "Bilgileri Güncelle" on /hesabim (AccountPage → PetProfileCard).
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, AuthContext, authenticated Header (bell/DM/avatar),
+  TabNavigation, MobileDrawer, Toast, account mock data, and routing.
+- DO NOT rebuild the entire app.
+- Wire "Bilgileri Güncelle" on AccountPage PetProfileCard → navigate("/hesabim/poodle/duzenle").
+- Also support create mode at /hesabim/poodle/olustur (empty form defaults).
+- Protected route — redirect to /giris if not authenticated.
+- Next screen in user panel will be Siparişlerim — do NOT build it now; only add route stub comment.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Routes:
+  /hesabim/poodle/duzenle     ← edit mode (pre-filled with Tarçın mock data)
+  /hesabim/poodle/olustur     ← create mode (empty/minimal defaults)
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT skip any form field, toggle, button, or section.
+4. DO NOT use Lorem ipsum.
+5. ALL form controls MUST work (state updates, validation, save, cancel).
+6. Optimize for 390px mobile. Max width 480px centered.
+7. pb-24 for sticky footer save bar.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #4B2BD6
+  purple-dark:     #3E27B3
+  purple-light:    #F3EEFF
+  purple-border:   #DDD6FE
+  success-green:   #16A34A
+  danger-red:      #EF4444
+  text-dark:       #111827
+  text-secondary:  #6B7280
+  border-light:    #E5E7EB
+  section-bg:      #FFFFFF
+
+Typography: Inter
+Form sections: white rounded-2xl border border-gray-100 p-4 mx-4 mb-4
+Section title: text-sm font-bold text-gray-900 mb-3
+Input: border border-gray-200 rounded-xl px-3 py-2.5 text-sm w-full outline-none focus:border-purple-primary
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    poodle-profile/
+      PoodleProfilePageHeader.tsx
+      PoodlePhotoSection.tsx
+      ProfileCompletionBar.tsx
+      FormSection.tsx              ← reusable section wrapper
+      BasicInfoSection.tsx
+      BreedSizeSection.tsx
+      HealthInfoSection.tsx
+      CareInfoSection.tsx
+      ClubProfileSection.tsx
+      TriStateToggle.tsx           ← Evet/Hayır/Bilmiyorum
+      GenderToggle.tsx
+      SizeCardSelector.tsx
+      VisibilityToggle.tsx
+      PoodleProfileActions.tsx
+      PoodleProfileStickyBar.tsx
+      DeleteProfileModal.tsx
+  pages/
+    PoodleProfileEditPage.tsx
+  data/
+    poodleProfileFormDefaults.ts
+  hooks/
+    usePoodleProfileForm.ts
+  App.tsx
+
+Update AccountPage PetProfileCard:
+  "Bilgileri Güncelle" onClick → navigate("/hesabim/poodle/duzenle")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — DEFAULT FORM DATA (EXACT — EDIT MODE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/poodleProfileFormDefaults.ts:
+
+export interface PoodleProfileFormData {
+  photo: string | null;
+  name: string;
+  username: string;
+  birthDate: string;           // "14.06.2024"
+  gender: "female" | "male";
+  color: string;
+  weight: string;              // "4,2"
+  breed: string;               // "Toy Poodle"
+  size: "toy" | "miniature" | "standard";
+  neutered: "yes" | "no" | "unknown";
+  hasAllergy: "yes" | "no" | "unknown";
+  hasChronic: "yes" | "no" | "unknown";
+  foodPreference: string;
+  activityLevel: string;
+  vetNotes: string;
+  lastVaccine: string;         // "28.06.2026"
+  lastParasite: string;        // "04.07.2026"
+  lastGrooming: string;        // "08.07.2026"
+  careNotifications: boolean;
+  clubVisible: boolean;
+  bio: string;
+  location: string;
+  visibility: "public" | "followers" | "private";
+  profileComplete: number;     // 85
+}
+
+export const editModeDefaults: PoodleProfileFormData = {
+  photo: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=300&h=300&fit=crop",
+  name: "Tarçın",
+  username: "tarcin.poodle",
+  birthDate: "14.06.2024",
+  gender: "female",
+  color: "Apricot",
+  weight: "4,2",
+  breed: "Toy Poodle",
+  size: "toy",
+  neutered: "no",
+  hasAllergy: "no",
+  hasChronic: "no",
+  foodPreference: "Sensitive • Somonlu",
+  activityLevel: "Orta",
+  vetNotes: "",
+  lastVaccine: "28.06.2026",
+  lastParasite: "04.07.2026",
+  lastGrooming: "08.07.2026",
+  careNotifications: true,
+  clubVisible: true,
+  bio: "Merhaba! Ben Tarçın 🐾 Samsun'da yaşıyorum, park gezmeyi ve yeni arkadaşlar edinmeyi çok seviyorum!",
+  location: "Samsun",
+  visibility: "public",
+  profileComplete: 85,
+};
+
+export const createModeDefaults: PoodleProfileFormData = {
+  ...editModeDefaults,
+  photo: null,
+  name: "",
+  username: "",
+  birthDate: "",
+  weight: "",
+  bio: "",
+  location: "",
+  profileComplete: 20,
+  lastVaccine: "",
+  lastParasite: "",
+  lastGrooming: "",
+};
+
+export const colorOptions = ["Apricot", "Siyah", "Beyaz", "Krem", "Gri", "Kahverengi", "Red"];
+export const foodOptions = ["Sensitive • Somonlu", "Yetişkin • Tavuklu", "Grain Free • Kuzulu", "Light • Hindi"];
+export const activityOptions = ["Düşük", "Orta", "Yüksek"];
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — usePoodleProfileForm HOOK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: hooks/usePoodleProfileForm.ts
+
+State: formData (PoodleProfileFormData), isDirty, isSaving, usernameAvailable (true for tarcin.poodle)
+
+Functions:
+  updateField(key, value)
+  changePhoto(file) → validate JPG/PNG max 5MB → preview URL
+  removePhoto() → set photo null
+  calculateAge(birthDate) → "2 yaşında" badge text
+  calculateCompletion() → dynamic % based on filled fields
+  validateForm():
+    name required
+    username required, min 3 chars, alphanumeric + dots
+    birthDate required
+    weight required
+    IF invalid → toast errors
+  saveChanges():
+    validate → setIsSaving → mock API 800ms → toast "Profil kaydedildi ✓"
+    → navigate("/hesabim")
+  cancel() → IF isDirty confirm "Değişiklikler kaydedilmedi. Çıkmak istiyor musunuz?"
+    → navigate("/hesabim")
+  deleteProfile() → open DeleteProfileModal → confirm → toast + navigate("/hesabim")
+  previewClubProfile() → navigate("/club/profil/tarcin.poodle")
+
+Username check: debounced mock — if username !== "taken" show green CheckCircle
+
+lastUpdated: "Bugün" (display in sticky bar)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — PAGE HEADER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PoodleProfilePageHeader.tsx
+
+px-4 pt-3 pb-2
+
+  Breadcrumb row (flex items-center gap-2 text-sm mb-2):
+    ArrowLeft → navigate("/hesabim")
+    "Hesabım / Poodle'ım"
+    gray / font-medium dark on "Poodle'ım"
+
+  H1:
+    Edit mode: "Poodle Profilini Düzenle"
+    Create mode: "Poodle Profili Oluştur"
+    text-xl font-bold text-gray-900
+
+  Subtitle:
+    "Tarçın'ın bilgilerini güncel tutun; kişiselleştirilmiş öneriler ve hatırlatmalar alın."
+    (Create mode: "Poodle'ınızın bilgilerini ekleyin; size özel öneriler ve hatırlatmalar alın.")
+    text-sm text-gray-500 mt-1 leading-relaxed
+
+Use dynamic pet name in subtitle when name field filled.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — PHOTO SECTION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PoodlePhotoSection.tsx
+
+px-4 mb-4 flex flex-col items-center
+
+  Circular photo w-28 h-28 rounded-full object-cover relative
+    IF no photo: gray placeholder with Camera icon
+
+  Camera overlay badge:
+    absolute bottom-1 right-1 w-8 h-8 bg #4B2BD6 rounded-full
+    flex items-center justify-center border-2 border-white
+    Camera icon size 14 white
+    onClick → trigger hidden file input
+
+  Hidden input: accept="image/jpeg,image/png" max 5MB
+
+  Buttons row (flex gap-2 mt-3):
+    "Fotoğraf Değiştir" — bg #4B2BD6 text-white text-sm font-semibold px-4 py-2 rounded-xl
+    "Kaldır" — border border #4B2BD6 text #4B2BD6 text-sm font-semibold px-4 py-2 rounded-xl
+
+  Hint: "JPG veya PNG · En fazla 5 MB"
+    text-xs text-gray-400 mt-2
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — PROFILE COMPLETION BAR (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ProfileCompletionBar.tsx
+
+mx-4 mb-4 bg #F3EEFF rounded-xl p-4
+
+  "Profil Tamamlama: %85"
+    text-sm font-semibold text-gray-900
+    Dynamic: %{profileComplete}
+
+  Progress bar (mt-2):
+    w-full h-2 bg white rounded-full overflow-hidden
+    Fill: width {profileComplete}% bg #4B2BD6
+
+  Hint:
+    "Sağlık bilgilerini ekleyerek profili %100'e tamamlayın."
+    text-xs text-gray-500 mt-2
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — SECTION: TEMEL BİLGİLER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: BasicInfoSection.tsx
+
+FormSection title: "Temel Bilgiler"
+
+Fields:
+
+1. Label "Poodle'ın Adı"
+   Input text, value "Tarçın", onChange updateField("name")
+
+2. Label "Kullanıcı Adı"
+   Input with "@" prefix or placeholder "@tarcin.poodle"
+   value "tarcin.poodle"
+   IF usernameAvailable: CheckCircle green icon right inside input
+   onChange → updateField("username")
+
+3. Label "Doğum Tarihi"
+   Input type="date" OR text with Calendar icon, value "14.06.2024"
+   display format DD.MM.YYYY
+   Badge below: "2 yaşında" — bg #F3EEFF text #4B2BD6 text-xs px-2 py-0.5 rounded-full
+   Calculated from birthDate
+
+4. Label "Cinsiyet"
+   GenderToggle — two options:
+     "Dişi" (Venus or female icon) — selected: purple border bg #F3EEFF
+     "Erkek" (Mars or male icon)
+   flex gap-2, equal width
+
+5. Label "Renk"
+   Select dropdown: options from colorOptions, default "Apricot"
+
+6. Label "Kilo"
+   Input number/text "4,2" with "kg" suffix on right inside input
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — SECTION: IRK VE BOYUT (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: BreedSizeSection.tsx
+
+FormSection title: "Irk ve Boyut"
+
+  Row: "Irk: Toy Poodle" + BadgeCheck icon purple (breed confirmed, read-only)
+
+  Label "Boyut"
+  SizeCardSelector — 3 cards horizontal:
+
+  | Toy        | Miniature  | Standard   |
+  | small img  | placeholder| larger img |
+  | SELECTED   |            |            |
+
+  Selected: border-2 border #4B2BD6 bg #F3EEFF
+  Unselected: border border-gray-200
+
+  onClick → updateField("size", key)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — SECTION: SAĞLIK BİLGİLERİ (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: HealthInfoSection.tsx + TriStateToggle.tsx
+
+FormSection title: "Sağlık Bilgileri"
+
+TriStateToggle component:
+  3 buttons: "Evet" | "Hayır" | "Bilmiyorum"
+  Selected: bg #4B2BD6 text white rounded-lg px-3 py-1.5 text-xs font-medium
+  Unselected: bg gray-100 text gray-600
+
+Rows:
+  1. "Kısırlaştırıldı mı?" → neutered, default "Hayır"
+  2. "Alerjisi var mı?" → hasAllergy, default "Hayır"
+  3. "Kronik rahatsızlığı var mı?" → hasChronic, default "Hayır"
+
+Dropdown "Mama tercihi":
+  default "Sensitive • Somonlu"
+
+Dropdown "Aktivite düzeyi":
+  default "Orta"
+
+Textarea "Veteriner Notları (isteğe bağlı)":
+  placeholder: "Veterinerinizin önerilerini veya önemli notları buraya yazabilirsiniz..."
+  rows 3
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — SECTION: BAKIM BİLGİLERİ (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: CareInfoSection.tsx
+
+FormSection title: "Bakım Bilgileri"
+
+3 editable date rows (flex items-center justify-between py-3 border-b border-gray-50):
+
+  1. Syringe icon purple + "Son Aşı Tarihi" | "28.06.2026" | ChevronRight
+  2. Shield icon + "Son Parazit Uygulaması" | "04.07.2026" | ChevronRight
+  3. Brush icon + "Son Tüy Bakımı" | "08.07.2026" | ChevronRight
+
+  onClick row → open date picker modal or native date input
+
+Toggle row (mt-3 flex items-center justify-between):
+  "Yaklaşan bakım tarihleri için bildirim gönder"
+  Switch toggle — purple when ON (default true)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — SECTION: CLUB PROFİLİ (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ClubProfileSection.tsx
+
+FormSection title: "Club Profili"
+
+Toggle: "Profil Club'da görünsün" — default ON (clubVisible)
+
+Textarea "Biyografi":
+  value: "Merhaba! Ben Tarçın 🐾 Samsun'da yaşıyorum..."
+  rows 4
+
+Input "Konum":
+  MapPin icon left inside input
+  value "Samsun"
+
+Label "Görünürlük"
+VisibilityToggle — 3 options:
+  "Herkese Açık" (selected, purple)
+  "Takipçiler"
+  "Gizli"
+
+Link row:
+  Eye icon + "Club Profilini Önizle"
+  text-sm font-medium color #4B2BD6 hover:underline
+  onClick → previewClubProfile()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — BOTTOM ACTIONS (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PoodleProfileActions.tsx
+
+px-4 mb-4 space-y-3
+
+  Primary "Değişiklikleri Kaydet":
+    w-full bg #4B2BD6 text-white font-semibold py-3.5 rounded-xl
+    hover:bg #3E27B3
+    onClick → saveChanges()
+
+  Secondary "Vazgeç":
+    w-full border-2 border #4B2BD6 text #4B2BD6 font-semibold py-3 rounded-xl
+    hover:bg #F3EEFF
+    onClick → cancel()
+
+  Security note (flex items-center justify-center gap-2):
+    ShieldCheck green icon size 14
+    "Bilgileriniz güvenli şekilde saklanır."
+    text-xs text-gray-500
+
+  Danger "Poodle Profilini Sil":
+    w-full border-2 border #EF4444 text #EF4444 font-semibold py-3 rounded-xl
+    flex items-center justify-center gap-2 mt-2
+    Trash2 icon size 16
+    onClick → open DeleteProfileModal
+
+File: DeleteProfileModal.tsx
+  Title: "Poodle Profilini Sil"
+  Text: "Bu işlem geri alınamaz. Tarçın'ın profili ve Club paylaşımları silinecek."
+  Buttons: "İptal" | "Sil" (red)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — STICKY FOOTER BAR (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PoodleProfileStickyBar.tsx
+
+fixed bottom-0 left-0 right-0 z-40 flex justify-center
+
+  Inner: max-w-[480px] w-full bg-white border-t border-gray-200
+    flex items-center justify-between px-4 py-3 shadow-lg
+
+  LEFT:
+    "Son güncelleme: Bugün"
+    text-xs text-gray-500
+
+  RIGHT:
+    "Kaydet" button
+      bg #4B2BD6 text-white font-semibold text-sm px-5 py-2.5 rounded-xl
+      onClick → saveChanges()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PoodleProfileEditPage.tsx
+
+Detect mode from route: olustur vs duzenle
+
+<div className="max-w-[480px] mx-auto bg-gray-50 min-h-screen pb-24 shadow-xl">
+  <AuthenticatedHeader />     ← bell(3), DM(2), avatar
+  <TabNavigation activeTab={null} />
+
+  <PoodleProfilePageHeader />
+  <PoodlePhotoSection />
+  <ProfileCompletionBar />
+  <BasicInfoSection />
+  <BreedSizeSection />
+  <HealthInfoSection />
+  <CareInfoSection />
+  <ClubProfileSection />
+  <PoodleProfileActions />
+
+  <PoodleProfileStickyBar />
+  <DeleteProfileModal />
+  <MobileDrawer />
+  <Toast />
+</div>
+
+Exact scroll order:
+  1. Auth header + tab nav
+  2. Breadcrumb + title + subtitle
+  3. Photo + Fotoğraf Değiştir / Kaldır
+  4. Profil Tamamlama %85
+  5. Temel Bilgiler
+  6. Irk ve Boyut
+  7. Sağlık Bilgileri
+  8. Bakım Bilgileri
+  9. Club Profili
+  10. Değişiklikleri Kaydet / Vazgeç / security / Sil
+  11. Sticky: Son güncelleme + Kaydet
+
+NO full site footer on this page.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — ROUTING & INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add routes (ProtectedRoute):
+  <Route path="/hesabim/poodle/duzenle" element={<PoodleProfileEditPage mode="edit" />} />
+  <Route path="/hesabim/poodle/olustur" element={<PoodleProfileEditPage mode="create" />} />
+
+Update src/pages/AccountPage.tsx — PetProfileCard:
+  "Bilgileri Güncelle" button:
+    onClick={() => navigate("/hesabim/poodle/duzenle")}
+    REMOVE alert("Poodle bilgileri yakında!") if present
+
+Optional: persist form to localStorage key "poodleProfile" on save.
+
+DO NOT build Siparişlerim page now — only ensure /hesabim/siparisler route can be added later.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 17 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Photo:
+✅ Fotoğraf Değiştir opens file picker, validates 5MB JPG/PNG
+✅ Kaldır removes photo
+✅ Camera overlay clickable
+
+Form:
+✅ All inputs update state
+✅ Username shows green check when valid
+✅ Age badge "2 yaşında" from birth date
+✅ Gender toggle works
+✅ Size cards selection works
+✅ TriState toggles (Evet/Hayır/Bilmiyorum) work for 3 health questions
+✅ Care date rows editable
+✅ Notification switch toggles
+✅ Club visibility switch toggles
+✅ Visibility 3-way toggle works
+✅ Profile completion % updates when fields filled
+
+Actions:
+✅ Değişiklikleri Kaydet validates + saves + navigates /hesabim
+✅ Sticky Kaydet same behavior
+✅ Vazgeç confirms if dirty + navigates back
+✅ Club Profilini Önizle → /club/profil/:username
+✅ Poodle Profilini Sil → modal → confirm deletes
+✅ Bilgileri Güncelle on /hesabim opens this page
+
+Other:
+✅ Protected route redirects if not logged in
+✅ No horizontal overflow at 375px
+✅ npm run dev → ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 18 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ "Hesabım / Poodle'ım" breadcrumb
+✅ "Poodle Profilini Düzenle" title + subtitle
+✅ Circular Tarçın photo + camera badge
+✅ Fotoğraf Değiştir + Kaldır + JPG/PNG hint
+✅ Profil Tamamlama: %85 progress bar
+✅ Temel Bilgiler: Tarçın, @tarcin.poodle ✓, 14.06.2024, Dişi, Apricot, 4,2 kg
+✅ Irk: Toy Poodle + Toy selected size card
+✅ Sağlık: 3× Hayır selected, Sensitive • Somonlu, Orta, vet notes
+✅ Bakım: 3 dates + notification toggle ON
+✅ Club: visible ON, bio, Samsun, Herkese Açık, Önizle link
+✅ Değişiklikleri Kaydet + Vazgeç + security text + red Sil button
+✅ Sticky: Son güncelleme: Bugün + Kaydet
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the Poodle Profile Create/Edit page exactly as specified.
+Opens from "Bilgileri Güncelle" on /hesabim.
+Routes: /hesabim/poodle/duzenle and /hesabim/poodle/olustur.
+Use EXISTING project — do not rebuild the whole app.
+All form sections must work. Match mockup pixel-perfect. Turkish text exact.
+Run the app and confirm zero errors before finishing.
+Do NOT build Siparişlerim page in this task.
