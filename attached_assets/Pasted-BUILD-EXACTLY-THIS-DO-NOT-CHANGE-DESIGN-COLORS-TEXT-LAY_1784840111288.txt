@@ -1,0 +1,889 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "Kaydettiklerim" (My Saved Items) page for YourPoodle.com.
+Users save Club posts, guide articles, and products to view later.
+Saved items can be organized into collections, moved between collections, and removed from saves.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, AuthContext, authenticated Header, TabNavigation,
+  MobileDrawer, Toast, cart hooks, and routing.
+- Protected route — redirect to /giris if not authenticated.
+- Link from /hesabim quick action "Kaydettiklerim" → this page.
+- REUSE Club post card styles, guide list styles, and product card patterns where they exist.
+- DO NOT rebuild the entire app.
+- DO NOT delete or rewrite existing pages.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Route: /hesabim/kaydedilenler
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT skip any tab, section, card, banner, modal, or button.
+4. DO NOT use Lorem ipsum.
+5. Optimize for 390px mobile. Max width 480px centered.
+
+MANDATORY FEATURES:
+  ✅ 4 tabs: Club, Rehber, Ürünler, Koleksiyonlar (separate filtered content)
+  ✅ Default active tab: Club (as in mockup)
+  ✅ "Yeni Koleksiyon" button opens create-collection modal
+  ✅ Search filters within active tab content
+  ✅ "Seç" toggles selection mode for Club posts (and applicable tabs)
+  ✅ Bulk actions: "Koleksiyona Taşı" + "Kayıttan Çıkar"
+  ✅ Individual unsave/remove from each card
+  ✅ Collection cards with 2×2 preview grid + 3-dot menu
+  ✅ Club posts: 2-column grid with bookmark badge + optional collection tag
+  ✅ Guide preview list + full list on Rehber tab
+  ✅ Products: horizontal scroll preview + 2-col grid on Ürünler tab
+  ✅ CTA banner "Koleksiyon Oluştur"
+  ✅ Purple footer
+
+6. EVERY tab switch, selection, modal, and button MUST work.
+7. Bookmark icon (NOT heart) marks saved Club/guide items. Heart on product cards only.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #5D3EBD
+  purple-dark:     #4A22A0
+  purple-light:    #F3EEFF
+  purple-cta-bg:   #F3EEFF
+  page-bg:         #FFFFFF
+  selection-bar-bg:#F9FAFB
+  bookmark-blue:   #3B82F6
+  remove-red:      #DC2626
+  text-dark:       #111827
+  text-secondary:  #6B7280
+  footer-bg:       #5D3EBD
+  collection-tag:  #F3EEFF
+
+Typography: Inter
+Club grid: grid-cols-2 gap-2 px-4
+Product preview: horizontal scroll flex gap-3 px-4
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    saves/
+      SavesPageHeader.tsx
+      SavesCategoryTabs.tsx
+      SavesSearchBar.tsx
+      SavesSortSelectBar.tsx
+      SavesCollectionsRow.tsx
+      SavedCollectionCard.tsx
+      SavedClubGrid.tsx
+      SavedClubCard.tsx
+      SavesSelectionBar.tsx
+      SavedGuidesList.tsx
+      SavedGuideRow.tsx
+      SavedProductsRow.tsx
+      SavedProductCard.tsx
+      SavesCTABanner.tsx
+      CreateCollectionModal.tsx
+      MoveToCollectionModal.tsx
+      CollectionMenuDropdown.tsx
+      SavesFooter.tsx
+      SavesEmptyState.tsx
+  pages/
+    SavesPage.tsx
+  data/
+    savesMockData.ts
+  hooks/
+    useSavesPage.ts
+  App.tsx
+
+Update AccountPage quick action "Kaydettiklerim" → navigate("/hesabim/kaydedilenler")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — MOCK DATA (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/savesMockData.ts:
+
+export type SaveTab = "club" | "guide" | "products" | "collections";
+
+export interface SaveCollection {
+  id: string;
+  name: string;
+  itemCount: number;
+  coverImages: string[];  // exactly 4 for 2×2 grid
+}
+
+export interface SavedClubPost {
+  id: string;
+  username: string;         // e.g. "@puffy.poodle"
+  avatar: string;
+  caption: string;
+  image: string;
+  likes: number;
+  comments: number;
+  collectionId?: string;
+  collectionName?: string;  // badge e.g. "Bakım Fikirleri"
+}
+
+export interface SavedGuide {
+  id: string;
+  title: string;
+  readTime: string;         // e.g. "5 dk"
+  image: string;
+  slug: string;
+}
+
+export interface SavedProduct {
+  id: string;
+  name: string;
+  price: string;            // e.g. "399 TL"
+  image: string;
+  slug: string;
+  inStock: boolean;
+}
+
+export const tabCounts = {
+  club: 18,
+  guide: 8,
+  products: 6,
+  collections: 3,
+  total: 32,
+};
+
+export const saveCollections: SaveCollection[] = [
+  {
+    id: "col-1",
+    name: "Bakım Fikirleri",
+    itemCount: 8,
+    coverImages: [
+      "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=80&h=80&fit=crop",
+      "https://images.unsplash.com/photo-1591946614720-90a587da4a36?w=80&h=80&fit=crop",
+      "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=80&h=80&fit=crop",
+      "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=80&h=80&fit=crop",
+    ],
+  },
+  {
+    id: "col-2",
+    name: "Tarçın İçin",
+    itemCount: 5,
+    coverImages: [
+      "https://images.unsplash.com/photo-1516734212184-a967f81ad0d2?w=80&h=80&fit=crop",
+      "https://images.unsplash.com/photo-1589924691995-400dc9e7c8?w=80&h=80&fit=crop",
+      "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=80&h=80&fit=crop",
+      "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=80&h=80&fit=crop",
+    ],
+  },
+  {
+    id: "col-3",
+    name: "Eğitim",
+    itemCount: 4,
+    coverImages: [
+      "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=80&h=80&fit=crop",
+      "https://images.unsplash.com/photo-1544568100-847a948583b9?w=80&h=80&fit=crop",
+      "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=80&h=80&fit=crop",
+      "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=80&h=80&fit=crop",
+    ],
+  },
+];
+
+export const savedClubPosts: SavedClubPost[] = [
+  {
+    id: "sc-1",
+    username: "@puffy.poodle",
+    avatar: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=40&h=40&fit=crop",
+    caption: "Kahve molası",
+    image: "https://images.unsplash.com/photo-1591946614720-90a587da4a36?w=300&h=300&fit=crop",
+    likes: 892,
+    comments: 34,
+    collectionId: "col-1",
+    collectionName: "Bakım Fikirleri",
+  },
+  {
+    id: "sc-2",
+    username: "@lunatoypoodle",
+    avatar: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=40&h=40&fit=crop",
+    caption: "Topumu vermem!",
+    image: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=300&h=300&fit=crop",
+    likes: 1248,
+    comments: 56,
+  },
+  {
+    id: "sc-3",
+    username: "@tarcin.poodle",
+    avatar: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=40&h=40&fit=crop",
+    caption: "Parkta bahar keyfi 💜",
+    image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=300&h=300&fit=crop",
+    likes: 1057,
+    comments: 42,
+    collectionId: "col-2",
+    collectionName: "Tarçın İçin",
+  },
+  {
+    id: "sc-4",
+    username: "@mia.poodle",
+    avatar: "https://images.unsplash.com/photo-1516734212184-a967f81ad0d2?w=40&h=40&fit=crop",
+    caption: "Yeni tasma 💜",
+    image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&h=300&fit=crop",
+    likes: 756,
+    comments: 28,
+  },
+  {
+    id: "sc-5",
+    username: "@lokininmaceralari",
+    avatar: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=40&h=40&fit=crop",
+    caption: "Oyun zamanı 🎾",
+    image: "https://images.unsplash.com/photo-1516734212184-a967f81ad0d2?w=300&h=300&fit=crop",
+    likes: 634,
+    comments: 19,
+  },
+  {
+    id: "sc-6",
+    username: "@coco.toy",
+    avatar: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=40&h=40&fit=crop",
+    caption: "Sabah yürüyüşü",
+    image: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=300&h=300&fit=crop",
+    likes: 421,
+    comments: 12,
+    collectionId: "col-3",
+    collectionName: "Eğitim",
+  },
+];
+
+export const savedGuides: SavedGuide[] = [
+  {
+    id: "sg-1",
+    title: "Toy Poodle Tuvalet Eğitimi",
+    readTime: "5 dk",
+    image: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=120&h=80&fit=crop",
+    slug: "tuvalet-egitimi",
+  },
+  {
+    id: "sg-2",
+    title: "Toy Poodle Beslenme Rehberi",
+    readTime: "7 dk",
+    image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=120&h=80&fit=crop",
+    slug: "beslenme-rehberi",
+  },
+  {
+    id: "sg-3",
+    title: "Toy Poodle Tüy Bakımı",
+    readTime: "6 dk",
+    image: "https://images.unsplash.com/photo-1616147674810-ab7c4d4d4b4b?w=120&h=80&fit=crop",
+    slug: "tuy-bakimi",
+  },
+];
+
+export const savedProducts: SavedProduct[] = [
+  {
+    id: "sp-1",
+    name: "Buharlı Masaj Tarağı",
+    price: "399 TL",
+    image: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=200&h=200&fit=crop",
+    slug: "buharli-masaj-taragi",
+    inStock: true,
+  },
+  {
+    id: "sp-2",
+    name: "Pro Plan Sensitive Somonlu 3 kg",
+    price: "1.349 TL",
+    image: "https://images.unsplash.com/photo-1589924691995-400dc9e7c8?w=200&h=200&fit=crop",
+    slug: "pro-plan-sensitive",
+    inStock: true,
+  },
+  {
+    id: "sp-3",
+    name: "Yapay Çimli Köpek Tuvaleti",
+    price: "1.249 TL",
+    image: "https://images.unsplash.com/photo-1544568100-847a948583b9?w=200&h=200&fit=crop",
+    slug: "karlie-tuvalet",
+    inStock: true,
+  },
+];
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — useSavesPage HOOK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: hooks/useSavesPage.ts
+
+State:
+  activeTab: SaveTab (default "club")
+  searchQuery: string
+  selectionMode: boolean
+  selectedIds: Set<string>
+  clubPosts: SavedClubPost[]
+  guides: SavedGuide[]
+  products: SavedProduct[]
+  collections: SaveCollection[]
+  createModalOpen: boolean
+  moveModalOpen: boolean
+  sortBy: "newest" | "oldest" | "name"
+
+Functions:
+  setTab(tab)
+  setSearch(q) → filter active tab items by title/caption/name/username
+  toggleSelectionMode() → toggles "Seç" mode; clears selection when off
+  toggleSelectItem(id)
+  selectAllVisible() → all visible items in active tab
+  deselectAll()
+  removeFromSaves(ids[]) → remove items + update tabCounts + toast "Kayıttan çıkarıldı"
+  removeSelected() → removeFromSaves(selectedIds)
+  createCollection(name: string) → add new collection + toast "Koleksiyon oluşturuldu ✓"
+  deleteCollection(id) → remove collection + toast
+  moveToCollection(itemIds[], collectionId) → assign collectionName to club posts + toast
+  openMoveModal() → opens MoveToCollectionModal when selectedIds.size > 0
+  addToCart(product) → cart hook + toast "Sepete eklendi ✓"
+  unsaveGuide(id) / unsaveProduct(id) / unsaveClubPost(id)
+
+Computed:
+  selectedCount → selectedIds.size
+  filteredClubPosts, filteredGuides, filteredProducts, filteredCollections
+
+Persist to localStorage key "yourpoodle-saves" (optional but preferred).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — PAGE HEADER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SavesPageHeader.tsx
+
+px-4 pt-3 pb-2
+
+  Breadcrumb row (flex items-center gap-1):
+    ArrowLeft size 16 color #5D3EBD cursor-pointer → navigate("/hesabim")
+    "Hesabım / Kaydettiklerim"
+      text-xs color #5D3EBD
+
+  Title row (flex justify-between items-start mt-2 gap-2):
+
+    LEFT:
+      "Kaydettiklerim"
+        text-xl font-bold text-gray-900
+      Subtitle below:
+        "Daha sonra görmek istediğiniz içerikler burada."
+        text-sm text-gray-500 mt-0.5
+      Badge below subtitle:
+        "32 kayıt"
+        bg #F3EEFF text #5D3EBD text-xs font-semibold px-2.5 py-0.5 rounded-full mt-1.5 inline-block
+
+    RIGHT:
+      Button "Yeni Koleksiyon":
+        flex items-center gap-1.5
+        border-2 border #5D3EBD text #5D3EBD
+        bg white rounded-xl px-3 py-2 text-xs font-semibold whitespace-nowrap
+        FolderPlus icon size 14
+        onClick → open createCollectionModal
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — CATEGORY TABS (EXACT — 4 TABS, CLUB DEFAULT ACTIVE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SavesCategoryTabs.tsx
+
+px-4 mb-3 mt-2
+
+flex gap-2 overflow-x-auto scrollbar-hide
+
+  4 pill tabs:
+
+  | key         | label              |
+  |-------------|--------------------|
+  | club        | Club 18            |
+  | guide       | Rehber 8           |
+  | products    | Ürünler 6          |
+  | collections | Koleksiyonlar 3    |
+
+  ACTIVE tab (default club):
+    bg #5D3EBD text white font-semibold
+    px-4 py-2 rounded-full text-sm
+
+  INACTIVE tab:
+    bg white text gray-600 border border-gray-200
+    px-4 py-2 rounded-full text-sm
+
+  onClick → setTab(key)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — SEARCH + SORT + SELECT ROW (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SavesSearchBar.tsx
+
+px-4 mb-2
+
+  Full-width input:
+    bg #F9FAFB border border-gray-200 rounded-xl
+    pl-10 pr-4 py-2.5 text-sm
+    placeholder EXACT: "Kaydettiklerimde ara..."
+    Search icon absolute left inside input area color gray-400
+    onChange → setSearch
+
+File: SavesSortSelectBar.tsx
+
+px-4 mb-4 flex items-center justify-end gap-3
+
+  "Sırala" button:
+    flex items-center gap-1
+    border border-gray-200 rounded-xl px-3 py-1.5 text-xs text-gray-700
+    ArrowUpDown icon size 14
+    onClick → sort dropdown/modal (En yeni, En eski, İsme göre)
+
+  "Seç" text button:
+    text-xs font-semibold
+    IF selectionMode active: color #5D3EBD underline
+    ELSE: color gray-700
+    onClick → toggleSelectionMode()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — KOLEKSİYONLARIM ROW (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SavesCollectionsRow.tsx
+
+Show when activeTab is "club" OR "collections" (always on club default view).
+
+px-4 mb-4
+
+  Section header (flex justify-between items-center mb-2):
+    "Koleksiyonlarım" text-sm font-bold text-gray-900
+    "Tümünü Gör" text-xs font-medium color #5D3EBD
+      onClick → setTab("collections")
+
+  Horizontal scroll row (flex gap-3 overflow-x-auto scrollbar-hide pb-1):
+
+File: SavedCollectionCard.tsx
+
+  min-w-[140px] bg white rounded-xl border border-gray-100 shadow-sm overflow-hidden
+
+  ── 2×2 thumbnail grid (aspect-square) ──
+    grid grid-cols-2 gap-0.5
+    4 images each w-full h-[52px] object-cover
+
+  ── Footer (p-2) ──
+    flex items-center justify-between
+    LEFT: Folder icon size 12 color #5D3EBD + name text-xs font-semibold truncate
+    RIGHT: MoreVertical icon size 14 color gray-400 → CollectionMenuDropdown
+      Menu items: "Düzenle", "Sil"
+
+    Below: "{itemCount} kayıt" text-[10px] text-gray-500
+
+  onClick card body → alert or navigate to collection detail stub
+
+When activeTab === "collections":
+  Show ALL collections in 2-column grid instead of horizontal scroll.
+  Hide "Tümünü Gör" link (already on collections tab).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — SAVED CLUB POSTS GRID (EXACT — 2 COLS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SavedClubGrid.tsx
+
+Show when activeTab === "club" (main section on default view).
+
+px-4 mb-3
+
+  Section header (flex justify-between items-center mb-2):
+    "Kaydedilen Club Paylaşımları" text-sm font-bold text-gray-900
+    "18 paylaşım" text-xs text-gray-500
+
+  grid grid-cols-2 gap-2
+
+File: SavedClubCard.tsx
+
+Props: post, isSelected, selectionMode, onSelect, onRemove, onClick
+
+  relative rounded-xl overflow-hidden bg white
+
+  IF selectionMode:
+    checkbox overlay top-left (purple when selected)
+    IF isSelected: ring-2 ring #5D3EBD
+
+  ── Image area (aspect-square) ──
+    Image: w-full h-full object-cover
+
+    Top-right overlay:
+      Bookmark icon filled color #5D3EBD size 18
+      bg white/80 rounded-full p-1
+      onClick stopPropagation → onRemove (unsave)
+
+    Top-left overlay (IF collectionName exists):
+      badge bg #F3EEFF text #5D3EBD text-[9px] font-semibold px-1.5 py-0.5 rounded-md
+      "{collectionName}" e.g. "Bakım Fikirleri"
+
+    Bottom-left overlay on image:
+      flex items-center gap-1
+      avatar w-5 h-5 rounded-full border border-white
+      username text-[9px] text-white font-medium drop-shadow
+
+  ── Below image (p-2) ──
+    caption text-xs font-medium text-gray-900 truncate mb-1
+
+    flex items-center justify-between text-[10px] text-gray-500
+      LEFT: Heart icon size 12 + likes count
+      RIGHT: MessageCircle icon size 12 + comments count
+
+  onClick → navigate("/club") or post detail stub
+
+When activeTab !== "club":
+  Hide this full grid section (Rehber/Ürünler tabs show their own main content).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — SELECTION BAR (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SavesSelectionBar.tsx
+
+Show below Club grid when activeTab === "club" OR when selectionMode active on any tab.
+
+mx-4 mb-4 bg #F9FAFB border border-gray-100 rounded-xl p-3
+
+  flex items-center justify-between flex-wrap gap-2
+
+  "Seçilen: {count}"
+    text-sm text-gray-700 font-medium
+
+  Button "Koleksiyona Taşı":
+    flex items-center gap-1.5
+    border border-gray-300 bg white text-gray-700
+    text-xs font-semibold px-3 py-1.5 rounded-lg
+    FolderInput icon size 14
+    disabled IF selectedCount === 0 → opacity-50 cursor-not-allowed
+    onClick → openMoveModal()
+
+  Button "Kayıttan Çıkar":
+    flex items-center gap-1.5
+    border border #DC2626 text #DC2626 bg white
+    text-xs font-semibold px-3 py-1.5 rounded-lg
+    Trash2 icon size 14
+    disabled IF selectedCount === 0
+    onClick → removeSelected()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — SON KAYDETTİĞİNİZ REHBERLER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SavedGuidesList.tsx + SavedGuideRow.tsx
+
+DEFAULT VIEW (club tab): show as PREVIEW — first 3 guides only.
+
+px-4 mb-4
+
+  Section header:
+    "Son Kaydettiğiniz Rehberler" text-sm font-bold text-gray-900
+    "Rehbere Git" text-xs font-medium color #5D3EBD → setTab("guide") or navigate("/rehber")
+
+File: SavedGuideRow.tsx
+
+  flex items-center gap-3 bg white rounded-xl border border-gray-100 p-2.5 mb-2
+
+  Thumbnail: w-16 h-12 rounded-lg object-cover flex-shrink-0
+
+  CENTER flex-1 min-w-0:
+    title text-sm font-semibold text-gray-900 truncate
+    flex items-center gap-1 mt-0.5:
+      Clock icon size 12 color gray-400
+      readTime text-xs text-gray-500 e.g. "5 dk"
+
+  RIGHT flex items-center gap-2:
+    Bookmark icon filled size 16 color #5D3EBD
+      onClick → unsaveGuide
+    ChevronRight icon size 16 color gray-400
+
+  onClick row → navigate(`/rehber/${slug}`)
+
+WHEN activeTab === "guide":
+  Replace preview with FULL filtered guide list (all 8 items).
+  Hide "Rehbere Git" link.
+  Section title: "Kaydettiğiniz Rehberler"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — KAYDETTİĞİNİZ ÜRÜNLER ROW (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SavedProductsRow.tsx + SavedProductCard.tsx
+
+DEFAULT VIEW (club tab): horizontal scroll preview.
+
+px-4 mb-4
+
+  Section header:
+    "Kaydettiğiniz Ürünler" text-sm font-bold text-gray-900
+    "Tüm Ürünler" text-xs font-medium color #5D3EBD → setTab("products")
+
+  flex gap-3 overflow-x-auto scrollbar-hide pb-1
+
+File: SavedProductCard.tsx
+
+  min-w-[140px] bg white rounded-xl border border-gray-100 shadow-sm p-2 flex flex-col
+
+  relative image area:
+    square image w-full aspect-square object-contain rounded-lg bg #F9FAFB
+    Heart filled top-right size 16 color #5D3EBD
+
+  name text-xs font-semibold text-gray-900 line-clamp-2 mt-1.5 min-h-[32px]
+  price text-sm font-bold color #5D3EBD mt-0.5
+
+  Button "Sepete Ekle":
+    mt-2 w-full flex items-center justify-center gap-1
+    bg #5D3EBD text white text-[10px] font-semibold py-2 rounded-lg
+    ShoppingBag icon size 12
+    onClick → addToCart
+
+WHEN activeTab === "products":
+  Replace horizontal scroll with 2-column grid (grid-cols-2 gap-3).
+  Show ALL 6 saved products.
+  Hide "Tüm Ürünler" link.
+  Each card also has small "Kayıttan Çıkar" link below Sepete Ekle.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — CTA BANNER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SavesCTABanner.tsx
+
+mx-4 mb-6 bg #F3EEFF rounded-2xl p-4
+
+  flex items-start gap-3
+
+  Icon: FolderHeart OR Folder + Heart combo, size 24 color #5D3EBD flex-shrink-0
+
+  div flex-1:
+    "Kendi koleksiyonunuzu oluşturun. Sevdiğiniz paylaşımları konularına göre düzenleyin."
+      text-sm text-gray-800 leading-snug
+
+    Button "Koleksiyon Oluştur":
+      mt-3 bg #5D3EBD text white text-sm font-semibold
+      px-4 py-2.5 rounded-xl
+      onClick → open createCollectionModal
+
+Show on club tab and collections tab. Hide on guide/products tabs if space tight (optional).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — MODALS (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: CreateCollectionModal.tsx
+
+  Overlay + centered card max-w-sm mx-4
+
+  Title: "Yeni Koleksiyon Oluştur"
+  Input placeholder: "Koleksiyon adı..."
+  Buttons: "İptal" (ghost) + "Oluştur" (purple)
+  onSubmit → createCollection(name) + close + toast
+
+File: MoveToCollectionModal.tsx
+
+  Title: "Koleksiyona Taşı"
+  Subtitle: "{selectedCount} öğe seçildi"
+  List existing collections as selectable rows (radio)
+  Button "Taşı" purple → moveToCollection + close
+  Button "İptal"
+
+File: CollectionMenuDropdown.tsx
+
+  "Düzenle" → prompt new name
+  "Sil" → confirm "Bu koleksiyonu silmek istediğinize emin misiniz?" → deleteCollection
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — FOOTER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SavesFooter.tsx
+
+bg #5D3EBD text-white px-4 pt-6 pb-8 mt-2
+
+  YourPoodle logo row (poodle icon + text) mb-4
+
+  flex gap-4 text-xs mb-4:
+    "Yardım" | "İletişim" | "KVKK"
+    onClick → alert stubs
+
+  "© 2026 YourPoodle"
+    text-[10px] text-white/70
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — PAGE ASSEMBLY (EXACT SCROLL ORDER — CLUB TAB DEFAULT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SavesPage.tsx
+
+<div className="max-w-[480px] mx-auto bg-white min-h-screen pb-8 shadow-xl">
+  <AuthenticatedHeader />           ← bell badge 3, message badge 2
+  <TabNavigation activeTab="club" /> ← Club tab underlined/active in main nav
+
+  <SavesPageHeader />
+  <SavesCategoryTabs />             ← Club 18 active (purple pill)
+  <SavesSearchBar />
+  <SavesSortSelectBar />
+
+  {/* TAB: club (DEFAULT — matches mockup exactly) */}
+  {activeTab === "club" && (
+    <>
+      <SavesCollectionsRow />       ← horizontal 3 collection cards
+      <SavedClubGrid />             ← 2-col grid, 6 posts visible
+      <SavesSelectionBar />         ← Seçilen: 0
+      <SavedGuidesList preview />    ← 3 guide rows
+      <SavedProductsRow preview />   ← horizontal product scroll
+      <SavesCTABanner />
+    </>
+  )}
+
+  {/* TAB: guide */}
+  {activeTab === "guide" && (
+    <>
+      <SavesCollectionsRow />
+      <SavedGuidesList full />      ← all 8 guides
+      <SavesSelectionBar />         ← if selectionMode
+      <SavesCTABanner />
+    </>
+  )}
+
+  {/* TAB: products */}
+  {activeTab === "products" && (
+    <>
+      <SavedProductsRow grid />     ← 2-col grid all 6 products
+      <SavesSelectionBar />
+    </>
+  )}
+
+  {/* TAB: collections */}
+  {activeTab === "collections" && (
+    <>
+      <SavesCollectionsRow grid />  ← 2-col all collections
+      <SavesCTABanner />
+    </>
+  )}
+
+  <SavesFooter />
+  <CreateCollectionModal />
+  <MoveToCollectionModal />
+  <MobileDrawer />
+  <Toast />
+</div>
+
+CLUB TAB scroll order (mockup):
+  1. Header + breadcrumb + Yeni Koleksiyon
+  2. Tabs: Club 18 active | Rehber 8 | Ürünler 6 | Koleksiyonlar 3
+  3. Search + Sırala + Seç
+  4. Koleksiyonlarım (horizontal scroll)
+  5. Kaydedilen Club Paylaşımları (2-col grid)
+  6. Selection bar
+  7. Son Kaydettiğiniz Rehberler
+  8. Kaydettiğiniz Ürünler (horizontal)
+  9. CTA banner
+  10. Purple footer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 17 — ROUTING & INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add route (ProtectedRoute):
+  <Route path="/hesabim/kaydedilenler" element={<SavesPage />} />
+
+Update AccountPage (/hesabim):
+  Quick action card "Kaydettiklerim" → navigate("/hesabim/kaydedilenler")
+
+If Club page has save/bookmark button, sync saved state with this page data.
+
+Empty states:
+  SavesEmptyState per tab with Turkish messages:
+    Club: "Henüz kaydedilmiş Club paylaşımı yok."
+    Guide: "Henüz kaydedilmiş rehber yok."
+    Products: "Henüz kaydedilmiş ürün yok."
+    Collections: "Henüz koleksiyon oluşturmadınız."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 18 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tabs:
+✅ Club 18 — default active, purple pill
+✅ Rehber 8 — full guide list
+✅ Ürünler 6 — 2-col product grid
+✅ Koleksiyonlar 3 — collection grid
+✅ Tab switch updates content instantly
+✅ Tab counts update after remove
+
+Header & search:
+✅ "Kaydettiklerim" + "32 kayıt" badge
+✅ Subtitle exact Turkish text
+✅ "Yeni Koleksiyon" opens modal
+✅ Search filters live per tab
+
+Club posts:
+✅ 2-column grid layout
+✅ Bookmark icon unsaves item
+✅ Collection badge on tagged posts ("Bakım Fikirleri")
+✅ Avatar + @username overlay
+✅ Likes + comments counts
+✅ "Seç" enables checkboxes
+✅ Selection bar counts update
+
+Bulk actions:
+✅ "Koleksiyona Taşı" opens modal, moves items
+✅ "Kayıttan Çıkar" removes selected items
+✅ Buttons disabled when Seçilen: 0
+
+Collections:
+✅ 2×2 thumbnail preview on cards
+✅ Create new collection works
+✅ Delete collection from 3-dot menu
+✅ "Tümünü Gör" → collections tab
+
+Guides & products:
+✅ Guide rows with read time + bookmark unsave
+✅ "Rehbere Git" switches tab
+✅ Product horizontal scroll on club tab
+✅ "Tüm Ürünler" → products tab
+✅ Sepete Ekle works
+
+CTA & footer:
+✅ CTA banner + "Koleksiyon Oluştur"
+✅ Footer links Yardım | İletişim | KVKK
+
+Other:
+✅ Protected route redirects if not logged in
+✅ No horizontal page overflow at 375px
+✅ npm run dev → ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 19 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Breadcrumb "Hesabım / Kaydettiklerim"
+✅ Title "Kaydettiklerim" + "32 kayıt" + subtitle
+✅ "Yeni Koleksiyon" outlined purple button top-right
+✅ Pill tabs: Club 18 (active purple) | Rehber 8 | Ürünler 6 | Koleksiyonlar 3
+✅ Search "Kaydettiklerimde ara..." + Sırala + Seç
+✅ Koleksiyonlarım: Bakım Fikirleri, Tarçın İçin, Eğitim cards
+✅ Club grid: @puffy.poodle "Kahve molası", collection tags, bookmark icons
+✅ "Kaydedilen Club Paylaşımları" + "18 paylaşım"
+✅ Selection bar: Seçilen: 0 | Koleksiyona Taşı | Kayıttan Çıkar (red outline)
+✅ "Son Kaydettiğiniz Rehberler" + Toy Poodle Tuvalet Eğitimi 5 dk
+✅ "Kaydettiğiniz Ürünler" + Buharlı Masaj Tarağı 399 TL + Sepete Ekle
+✅ CTA: "Kendi koleksiyonunuzu oluşturun..."
+✅ Purple footer © 2026 YourPoodle
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the Kaydettiklerim page at /hesabim/kaydedilenler exactly as specified.
+Use the EXISTING project — do not rebuild the whole app.
+MUST work: Club, Rehber, Ürünler, Koleksiyonlar tabs, search, sort, selection mode,
+create collection, move to collection, remove from saves, add to cart.
+Default view MUST match mockup with Club tab active showing all dashboard sections.
+Match the mockup pixel-perfect. Turkish text must be exact.
+Run the app and confirm zero errors before finishing.
