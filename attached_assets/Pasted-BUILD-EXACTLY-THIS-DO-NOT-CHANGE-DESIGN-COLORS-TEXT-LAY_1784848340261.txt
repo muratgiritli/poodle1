@@ -1,0 +1,796 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "PoodlePuan Ödül Merkezi" (Poodle Points Reward Center) page for YourPoodle.com.
+Users browse, search, filter, select, and redeem rewards using PoodlePuan balance.
+Includes popular rewards grid, point-purchase products, Club privileges, redemption bar,
+earned rewards history, and FAQ.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, AuthContext, authenticated Header, TabNavigation,
+  MobileDrawer, Toast, and routing.
+- Link FROM /hesabim/poodle-puanlari "Tüm Ödüller" OR "Puan Kullan" → this page.
+- Share same points balance data as PoodlePuanlarım page (1275 points).
+- DO NOT rebuild the entire app.
+- DO NOT delete or rewrite existing pages.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Route: /hesabim/poodle-puanlari/odul-merkezi
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT skip any card, badge, category chip, product, privilege, or banner.
+4. DO NOT use Lorem ipsum.
+5. Optimize for 390px mobile. Max width 480px centered. pb-20 for sticky expiry bar.
+
+MANDATORY FEATURES:
+  ✅ Purple balance hero card with gold coin
+  ✅ Search + Filtrele + 6 category chips
+  ✅ Haftanın Poodle Ödülü featured banner with countdown
+  ✅ En Popüler Ödüller 2×2 grid with heart + badges + Seç
+  ✅ Puanla Ürün Al horizontal scroll products
+  ✅ Club Ayrıcalıkları 3 privilege cards (1 disabled with "225 puan eksik")
+  ✅ Selected reward redemption bar with Ödülü Al
+  ✅ Kazandığım Ödüller history list
+  ✅ FAQ accordion (3 items)
+  ✅ Sticky expiry warning bar + footer
+
+6. EVERY category filter, Seç, Puanla Al, Ödülü Al, heart favorite, and FAQ MUST work.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #5D3EBD
+  purple-dark:     #4A22A0
+  purple-gradient: linear-gradient(135deg, #5D3EBD, #4A22A0)
+  purple-light:    #F3EEFF
+  gold-coin:       #FBBF24
+  page-bg:         #F9F9FB
+  card-bg:         #FFFFFF
+  badge-popular:   #F3EEFF / text #5D3EBD
+  badge-limited:   #FEF2F2 / text #DC2626
+  badge-stock:     #FDF2F8 / text #EC4899
+  available-green: #16A34A
+  used-gray:       #9CA3AF
+  warning-orange-bg:#FFF7ED
+  warning-orange-border:#FED7AA
+  disabled-bg:     #F3F4F6
+  text-dark:       #111827
+  footer-bg:       #5D3EBD
+
+Typography: Inter
+Popular grid: grid-cols-2 gap-3 px-4
+Product scroll: flex gap-3 overflow-x-auto px-4
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    reward-center/
+      RewardCenterPageHeader.tsx
+      RewardCenterBalanceCard.tsx
+      RewardCenterSearchBar.tsx
+      RewardCenterCategoryChips.tsx
+      RewardCenterFeaturedBanner.tsx
+      RewardCenterPopularGrid.tsx
+      RewardCenterPopularCard.tsx
+      RewardCenterProductsRow.tsx
+      RewardCenterProductCard.tsx
+      RewardCenterClubPrivileges.tsx
+      RewardCenterClubPrivilegeCard.tsx
+      RewardCenterRedemptionBar.tsx
+      RewardCenterEarnedList.tsx
+      RewardCenterEarnedRow.tsx
+      RewardCenterFAQSection.tsx
+      RewardCenterExpiryBar.tsx
+      RewardCenterFooter.tsx
+      RewardCenterFilterModal.tsx
+      RewardRedeemSuccessModal.tsx
+  pages/
+    PoodleRewardCenterPage.tsx
+  data/
+    rewardCenterMockData.ts
+  hooks/
+    useRewardCenter.ts
+  App.tsx
+
+Update PoodlePointsPage:
+  "Tüm Ödüller" link + "Puan Kullan" → navigate("/hesabim/poodle-puanlari/odul-merkezi")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — MOCK DATA (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/rewardCenterMockData.ts:
+
+export type RewardCategory = "all" | "discount" | "shipping" | "products" | "club" | "special";
+export type RewardBadge = "very_popular" | "popular" | "limited" | null;
+
+export interface PointsBalance {
+  total: number;              // 1275
+  tlValue: string;            // "127,50 TL"
+  expiringPoints: number;     // 120
+  expiringDate: string;       // "31 Ağustos"
+}
+
+export interface PopularReward {
+  id: string;
+  title: string;
+  pointsCost: number;
+  description: string;
+  category: RewardCategory;
+  badge: RewardBadge;
+  badgeLabel?: string;        // "Çok Popüler" | "Popüler" | "Sınırlı Süre"
+  iconType: "coupon" | "shipping" | "care" | "food";
+  image?: string;
+}
+
+export interface PointProduct {
+  id: string;
+  name: string;
+  pointsCost: number;
+  originalPrice: string;      // "399 TL" strikethrough
+  image: string;
+  freeShipping: boolean;
+  stockLeft?: number;           // e.g. 8 → "Son 8"
+}
+
+export interface ClubPrivilege {
+  id: string;
+  title: string;
+  pointsCost: number;
+  icon: "rocket" | "badge" | "crown";
+  disabled?: boolean;
+  pointsMissing?: number;       // 225 for premium
+}
+
+export interface EarnedReward {
+  id: string;
+  title: string;
+  status: "available" | "used";
+  statusLabel: string;          // "Kullanılabilir" | "Kullanıldı"
+  date: string;
+}
+
+export const balance: PointsBalance = {
+  total: 1275,
+  tlValue: "127,50 TL",
+  expiringPoints: 120,
+  expiringDate: "31 Ağustos",
+};
+
+export const categoryChips = [
+  { key: "all", label: "Tümü" },
+  { key: "discount", label: "İndirim" },
+  { key: "shipping", label: "Ücretsiz Kargo" },
+  { key: "products", label: "Ürünler" },
+  { key: "club", label: "Club" },
+  { key: "special", label: "Özel Fırsatlar" },
+];
+
+export const featuredReward = {
+  title: "Haftanın Poodle Ödülü",
+  description: "750 puanla %20 bakım indirimi",
+  countdown: "2 gün 14 saat kaldı",
+  pointsCost: 750,
+};
+
+export const popularRewards: PopularReward[] = [
+  {
+    id: "pr-1",
+    title: "50 TL İndirim",
+    pointsCost: 500,
+    description: "Min. sepet 500 TL",
+    category: "discount",
+    badge: "very_popular",
+    badgeLabel: "Çok Popüler",
+    iconType: "coupon",
+  },
+  {
+    id: "pr-2",
+    title: "Ücretsiz Kargo",
+    pointsCost: 300,
+    description: "Min. sepet 250 TL",
+    category: "shipping",
+    badge: "popular",
+    badgeLabel: "Popüler",
+    iconType: "shipping",
+  },
+  {
+    id: "pr-3",
+    title: "%15 Bakım İndirimi",
+    pointsCost: 750,
+    description: "Tüm bakım ürünlerinde",
+    category: "discount",
+    badge: "limited",
+    badgeLabel: "Sınırlı Süre",
+    iconType: "care",
+    image: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=200&h=120&fit=crop",
+  },
+  {
+    id: "pr-4",
+    title: "100 TL Mama İndirimi",
+    pointsCost: 1000,
+    description: "750 TL üzeri mama alışverişinde",
+    category: "discount",
+    badge: "popular",
+    badgeLabel: "Popüler",
+    iconType: "food",
+    image: "https://images.unsplash.com/photo-1589924691995-400dc9e7c8?w=200&h=120&fit=crop",
+  },
+];
+
+export const pointProducts: PointProduct[] = [
+  {
+    id: "pp-1",
+    name: "Buharlı Masaj Tarağı",
+    pointsCost: 1200,
+    originalPrice: "399 TL",
+    image: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=200&h=200&fit=crop",
+    freeShipping: true,
+    stockLeft: 8,
+  },
+  {
+    id: "pp-2",
+    name: "Göz Temizleme Losyonu",
+    pointsCost: 850,
+    originalPrice: "289 TL",
+    image: "https://images.unsplash.com/photo-1591946614720-90a587da4a36?w=200&h=200&fit=crop",
+    freeShipping: true,
+  },
+  {
+    id: "pp-3",
+    name: "Premium Deri Tasma",
+    pointsCost: 1500,
+    originalPrice: "549 TL",
+    image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=200&h=200&fit=crop",
+    freeShipping: true,
+  },
+  {
+    id: "pp-4",
+    name: "Bakım Seti Hediye Kutusu",
+    pointsCost: 2000,
+    originalPrice: "799 TL",
+    image: "https://images.unsplash.com/photo-1516734212184-a967f81ad0d2?w=200&h=200&fit=crop",
+    freeShipping: true,
+    stockLeft: 3,
+  },
+];
+
+export const clubPrivileges: ClubPrivilege[] = [
+  {
+    id: "cp-1",
+    title: "Gönderini 24 Saat Öne Çıkar",
+    pointsCost: 200,
+    icon: "rocket",
+  },
+  {
+    id: "cp-2",
+    title: "Özel Profil Rozeti",
+    pointsCost: 400,
+    icon: "badge",
+  },
+  {
+    id: "cp-3",
+    title: "Club Premium 1 Ay",
+    pointsCost: 1500,
+    icon: "crown",
+    disabled: true,
+    pointsMissing: 225,
+  },
+];
+
+export const earnedRewards: EarnedReward[] = [
+  {
+    id: "er-1",
+    title: "Ücretsiz Kargo",
+    status: "available",
+    statusLabel: "Kullanılabilir",
+    date: "12 Ağustos'a kadar geçerli",
+  },
+  {
+    id: "er-2",
+    title: "25 TL İndirim",
+    status: "used",
+    statusLabel: "Kullanıldı",
+    date: "15 Temmuz 2026",
+  },
+];
+
+export const faqItems = [
+  {
+    id: "faq-1",
+    question: "Ödüller nasıl kullanılır?",
+    answer: "Ödülü seçip 'Ödülü Al' butonuna basın. İndirim kuponları sepetinizde otomatik uygulanır.",
+  },
+  {
+    id: "faq-2",
+    question: "Puan ve ödül koşulları",
+    answer: "Her ödülün minimum sepet tutarı ve geçerlilik süresi vardır. Detaylar ödül kartında belirtilir.",
+  },
+  {
+    id: "faq-3",
+    question: "İptal ve iade",
+    answer: "Kullanılmamış kuponlar 30 gün içinde iade edilebilir. Kullanılan puanlar geri yüklenmez.",
+  },
+];
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — useRewardCenter HOOK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: hooks/useRewardCenter.ts
+
+State:
+  balance: PointsBalance (1275)
+  activeCategory: RewardCategory (default "all")
+  searchQuery: string
+  selectedReward: PopularReward | null (default pr-1 "50 TL İndirim")
+  favoriteIds: Set<string>
+  expandedFaqId: string | null
+  filterModalOpen: boolean
+
+Functions:
+  setCategory(cat)
+  setSearch(q) → filter rewards/products by title
+  selectReward(reward) → set selectedReward, show redemption bar
+  toggleFavorite(id)
+  redeemSelected() → if balance >= cost: deduct + toast "Ödül hesabınıza tanımlandı ✓" + add to earnedRewards
+  buyWithPoints(productId) → validate balance → toast + navigate /magaza stub
+  redeemPrivilege(id) → if !disabled && balance sufficient → redeem
+  viewFeatured() → select featured reward or scroll
+  openFilter() / applyFilter()
+  viewPointsHistory() → navigate("/hesabim/poodle-puanlari")
+  seeSuggestions() → scroll to popular grid
+  toggleFaq(id)
+
+Computed:
+  remainingPoints → balance.total - (selectedReward?.pointsCost || 0)
+  filteredPopularRewards → by category + search
+  canRedeemSelected → balance.total >= selectedReward.pointsCost
+
+Sync balance with localStorage "yourpoodle-points" if exists.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — PAGE HEADER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardCenterPageHeader.tsx
+
+px-4 pt-3 pb-2
+
+  Breadcrumb:
+    ArrowLeft → navigate("/hesabim/poodle-puanlari")
+    "Hesabım / PoodlePuanlarım / Ödül Merkezi"
+      text-xs color #5D3EBD
+
+  Title:
+    "PoodlePuan Ödül Merkezi"
+      text-xl font-bold text-gray-900 mt-2
+
+  Subtitle:
+    "Puanlarını sana özel indirimlere, ürünlere ve ayrıcalıklara dönüştür."
+      text-sm text-gray-500 mt-0.5
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — BALANCE HERO CARD (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardCenterBalanceCard.tsx
+
+mx-4 mb-4 rounded-2xl bg gradient purple p-4 flex gap-3
+
+  LEFT: Gold coin w-14 h-14 rounded-full bg gold gradient + PawPrint white
+
+  CENTER flex-1:
+    "Kullanılabilir Puan" text-[10px] text-white/80
+    "1.275 PoodlePuan" text-xl font-bold text-white
+    "127,50 TL" text-xs text-white/90
+    Clock + "120 puan 31 Ağustos'ta sona erecek" text-[10px] text-white/70 mt-1
+
+  RIGHT:
+    Button "Puan Geçmişi":
+      border border white/50 text white text-[10px] font-semibold px-2.5 py-2 rounded-lg
+      onClick → viewPointsHistory()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — SEARCH + FILTER + CATEGORY CHIPS (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardCenterSearchBar.tsx
+
+px-4 mb-2 flex gap-2
+
+  Input flex-1:
+    placeholder EXACT: "Ödül veya ürün ara..."
+    Search icon left, rounded-xl border
+
+  Button "Filtrele":
+    border rounded-xl px-3 py-2 text-xs flex items-center gap-1
+    SlidersHorizontal icon
+    onClick → openFilter()
+
+File: RewardCenterCategoryChips.tsx
+
+px-4 mb-4 flex gap-2 overflow-x-auto scrollbar-hide pb-1
+
+  6 chips: Tümü, İndirim, Ücretsiz Kargo, Ürünler, Club, Özel Fırsatlar
+
+  ACTIVE: bg #5D3EBD text white px-3.5 py-1.5 rounded-full text-xs font-semibold
+  INACTIVE: bg white border border-gray-200 text gray-600 px-3.5 py-1.5 rounded-full text-xs
+
+  onClick → setCategory(key)
+  Filter popular rewards + products by category
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — HAFTANIN POODLE ÖDÜLÜ BANNER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardCenterFeaturedBanner.tsx
+
+mx-4 mb-4 bg #F3EEFF rounded-2xl p-4
+
+  flex items-center gap-3
+
+  LEFT: Poodle + gift box image w-20 h-16 object-contain rounded-lg
+
+  CENTER flex-1:
+    "Haftanın Poodle Ödülü" text-sm font-bold text-gray-900
+    "750 puanla %20 bakım indirimi" text-xs text-gray-600 mt-0.5
+    flex items-center gap-1 mt-1:
+      Clock icon size 12 color #5D3EBD
+      "2 gün 14 saat kaldı" text-[10px] color #5D3EBD font-semibold
+
+  Button "Ödülü İncele":
+    bg #5D3EBD text white text-[10px] font-semibold px-3 py-2 rounded-xl
+    onClick → viewFeatured()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — EN POPÜLER ÖDÜLLER 2×2 GRID (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardCenterPopularGrid.tsx + RewardCenterPopularCard.tsx
+
+px-4 mb-4
+
+  "En Popüler Ödüller" text-sm font-bold text-gray-900 mb-3
+
+  grid grid-cols-2 gap-3
+
+File: RewardCenterPopularCard.tsx
+
+  bg white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col
+
+  TOP relative:
+    Image/icon area h-20 bg #F9FAFB flex items-center justify-center
+    Heart icon top-right absolute:
+      IF favorited: filled red/purple ELSE outline gray
+      onClick stopPropagation → toggleFavorite
+
+    IF badge:
+      top-left badge text-[9px] font-semibold px-1.5 py-0.5 rounded
+      "Çok Popüler" → purple-light
+      "Popüler" → purple-light
+      "Sınırlı Süre" → red-light
+
+  Content p-2.5 flex-1 flex flex-col:
+    title text-xs font-bold text-gray-900
+    "{pointsCost} Puan" text-xs font-semibold color #5D3EBD
+    description text-[10px] text-gray-500
+
+    Button "Seç":
+      mt-auto w-full border-2 border #5D3EBD text #5D3EBD text-[10px] font-semibold py-1.5 rounded-lg
+      IF selected: bg #F3EEFF
+      onClick → selectReward(reward)
+
+  4 cards EXACT from mock data
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — PUANLA ÜRÜN AL HORIZONTAL SCROLL (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardCenterProductsRow.tsx + RewardCenterProductCard.tsx
+
+px-4 mb-4
+
+  "Puanla Ürün Al" text-sm font-bold text-gray-900 mb-3
+
+  flex gap-3 overflow-x-auto scrollbar-hide pb-1
+
+  Card min-w-[140px] bg white rounded-2xl border p-2 flex flex-col
+
+  Image square aspect-square rounded-lg object-cover relative
+    IF stockLeft: badge top-right "Son {n}" pink bg
+
+  name text-xs font-semibold line-clamp-2 mt-1.5
+  "{pointsCost} Puan" text-sm font-bold color #5D3EBD
+  originalPrice line-through text-[10px] text-gray-400
+  IF freeShipping: "Kargo ücretsiz" text-[9px] color #16A34A
+
+  Button "Puanla Al":
+    mt-2 w-full bg #5D3EBD text white text-[10px] font-semibold py-2 rounded-lg
+    disabled IF balance < cost
+    onClick → buyWithPoints(id)
+
+  4 products from mock
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — CLUB AYRICALIKLARI (EXACT — 3 CARDS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardCenterClubPrivileges.tsx + RewardCenterClubPrivilegeCard.tsx
+
+px-4 mb-4
+
+  "Club Ayrıcalıkları" text-sm font-bold text-gray-900 mb-3
+
+  grid grid-cols-3 gap-2
+
+  Square card p-3 text-center rounded-xl border
+
+  Icon w-10 h-10 rounded-xl bg #F3EEFF mx-auto mb-2 flex items-center justify-center
+    Rocket / Award / Crown size 20 color #5D3EBD
+
+  title text-[10px] font-semibold text-gray-900 leading-tight
+  "{pointsCost} Puan" text-[10px] color #5D3EBD font-bold mt-1
+
+  IF disabled (Club Premium):
+    opacity-60 cursor-not-allowed
+    progress/text bottom: "225 puan eksik" text-[9px] color #DC2626 mt-1
+    mini progress bar showing (1275/1500)
+
+  onClick → redeemPrivilege if enabled
+
+  Cards:
+  1. Gönderini 24 Saat Öne Çıkar — 200 Puan
+  2. Özel Profil Rozeti — 400 Puan
+  3. Club Premium 1 Ay — 1.500 Puan — DISABLED — 225 puan eksik
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — REDEMPTION BAR (EXACT — SELECTED REWARD)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardCenterRedemptionBar.tsx
+
+Show when selectedReward !== null
+
+mx-4 mb-4 bg white rounded-2xl border-2 border #5D3EBD p-4 shadow-md
+
+  flex items-center gap-3
+
+  LEFT: coupon icon/image w-12 h-12 rounded-xl bg #F3EEFF flex items-center justify-center
+
+  CENTER flex-1:
+    selected title e.g. "50 TL İndirim" text-sm font-bold
+    "500 PoodlePuan kullanılacak" text-xs text-gray-600
+    "Kalan puan: 775" text-xs font-semibold color #5D3EBD
+
+  Button "Ödülü Al":
+    bg #5D3EBD text white font-semibold text-sm px-4 py-2.5 rounded-xl
+    disabled IF !canRedeemSelected
+    onClick → redeemSelected()
+
+  Disclaimer below:
+    "Sepette kullanabileceğiniz kupon olarak tanımlanır."
+      text-[10px] text-gray-400 text-center mt-2
+
+DEFAULT selected: pr-1 "50 TL İndirim" 500 points, remaining 775
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — KAZANDIĞIM ÖDÜLLER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardCenterEarnedList.tsx + RewardCenterEarnedRow.tsx
+
+px-4 mb-4
+
+  "Kazandığım Ödüller" text-sm font-bold text-gray-900 mb-3
+
+  Row flex items-center gap-3 py-3 border-b border-gray-50
+
+  Status icon circle w-8 h-8:
+    available: bg #F0FDF4 Check color #16A34A
+    used: bg gray-100 Check color gray-400
+
+  CENTER flex-1:
+    title text-sm font-semibold
+    statusLabel text-xs
+      available: color #16A34A "Kullanılabilir"
+      used: color gray-500 "Kullanıldı"
+    date text-[10px] text-gray-400
+
+  Rows:
+  - Ücretsiz Kargo — Kullanılabilir — 12 Ağustos'a kadar geçerli
+  - 25 TL İndirim — Kullanıldı — 15 Temmuz 2026
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — FAQ ACCORDION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardCenterFAQSection.tsx
+
+px-4 mb-4
+
+  3 items:
+  - Ödüller nasıl kullanılır?
+  - Puan ve ödül koşulları
+  - İptal ve iade
+
+  Same accordion pattern as other pages
+  onClick → toggleFaq
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — STICKY EXPIRY BAR + FOOTER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardCenterExpiryBar.tsx
+
+fixed bottom-0 z-40 flex justify-center (above footer or replace footer on scroll)
+
+  Inner max-w-[480px] w-full mx-4 mb-0
+  bg #FFF7ED border border #FED7AA rounded-t-2xl p-3 flex items-center gap-2
+
+  Clock icon color #EA580C
+
+  "120 puanın sona ermek üzere. 31 Ağustos'tan önce kullanmayı unutma."
+    text-xs text-gray-800 flex-1
+
+  Button "Önerileri Gör":
+    border border #EA580C text #EA580C text-[10px] font-semibold px-2.5 py-1.5 rounded-lg
+    onClick → seeSuggestions()
+
+File: RewardCenterFooter.tsx
+
+bg #5D3EBD text-white px-4 pt-6 pb-8 mt-4
+  Logo + Yardım | İletişim | KVKK
+  © 2026 YourPoodle
+
+Page pb-24 for sticky expiry bar clearance.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PoodleRewardCenterPage.tsx
+
+<div className="max-w-[480px] mx-auto bg-[#F9F9FB] min-h-screen pb-24 shadow-xl">
+  <AuthenticatedHeader />
+  <TabNavigation activeTab="club" />
+
+  <RewardCenterPageHeader />
+  <RewardCenterBalanceCard />
+  <RewardCenterSearchBar />
+  <RewardCenterCategoryChips />
+  <RewardCenterFeaturedBanner />
+  <RewardCenterPopularGrid />
+  <RewardCenterProductsRow />
+  <RewardCenterClubPrivileges />
+  <RewardCenterRedemptionBar />
+  <RewardCenterEarnedList />
+  <RewardCenterFAQSection />
+  <RewardCenterFooter />
+  <RewardCenterExpiryBar />       ← fixed bottom
+
+  <RewardCenterFilterModal />
+  <RewardRedeemSuccessModal />
+  <MobileDrawer />
+  <Toast />
+</div>
+
+Scroll order:
+  1. Breadcrumb + title + subtitle
+  2. Purple balance card + Puan Geçmişi
+  3. Search + Filtrele
+  4. Category chips (Tümü active)
+  5. Haftanın Poodle Ödülü banner
+  6. En Popüler Ödüller 2×2 grid
+  7. Puanla Ürün Al horizontal scroll
+  8. Club Ayrıcalıkları 3 cards
+  9. Selected reward redemption bar
+  10. Kazandığım Ödüller
+  11. FAQ accordion
+  12. Footer
+  13. Sticky expiry bar (fixed)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 17 — ROUTING & INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add route:
+  <Route path="/hesabim/poodle-puanlari/odul-merkezi" element={<PoodleRewardCenterPage />} />
+
+Update PoodlePointsPage:
+  "Tüm Ödüller" → navigate("/hesabim/poodle-puanlari/odul-merkezi")
+  "Puan Kullan" hero button → same
+  Reward "Kullan" buttons → same with preselected reward
+
+Share balance state via localStorage or context with PoodlePointsPage.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 18 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Balance:
+✅ 1.275 PoodlePuan + 127,50 TL + expiry note
+✅ Puan Geçmişi → /hesabim/poodle-puanlari
+
+Search & filter:
+✅ Search filters rewards/products live
+✅ 6 category chips filter content
+✅ Filtrele opens modal stub
+
+Featured:
+✅ Countdown + Ödülü İncele
+
+Popular grid:
+✅ 2×2 grid with badges Çok Popüler/Popüler/Sınırlı Süre
+✅ Heart favorite toggle
+✅ Seç highlights + updates redemption bar
+
+Products:
+✅ 4 horizontal cards with Puanla Al
+✅ Son 8 stock badge on first product
+✅ Strikethrough TL price + Kargo ücretsiz
+
+Club:
+✅ 3 privilege cards
+✅ Club Premium disabled + "225 puan eksik"
+
+Redemption:
+✅ Default 50 TL selected, 775 remaining
+✅ Ödülü Al deducts points + toast
+✅ Disclaimer text shown
+
+History & FAQ:
+✅ 2 earned rewards with status colors
+✅ FAQ 3 items expand/collapse
+
+Sticky:
+✅ Expiry bar + Önerileri Gör scrolls to rewards
+
+Other:
+✅ No overflow at 375px
+✅ npm run dev ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 19 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Breadcrumb Ödül Merkezi
+✅ Title + subtitle exact Turkish
+✅ Balance hero complete
+✅ Search + 6 category chips
+✅ Haftanın Poodle Ödülü banner
+✅ 4 popular reward cards
+✅ Puanla Ürün Al products
+✅ Club Ayrıcalıkları with disabled premium
+✅ Redemption bar 50 TL / 775 kalan
+✅ Kazandığım Ödüller list
+✅ FAQ 3 questions
+✅ Sticky expiry warning
+✅ © 2026 YourPoodle footer
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the PoodlePuan Ödül Merkezi page at /hesabim/poodle-puanlari/odul-merkezi exactly as specified.
+Use the EXISTING project — do not rebuild the whole app.
+MUST work: search, category filter, Seç, Puanla Al, Ödülü Al redeem,
+Club privileges, favorites, FAQ, sticky expiry bar.
+Match the mockup pixel-perfect. Turkish text must be exact.
+Run the app and confirm zero errors before finishing.

@@ -268,7 +268,7 @@ export default function YPPoodlePuanlariPage() {
             </div>
             {/* Buttons */}
             <div style={{ display:"flex", flexDirection:"column", gap:7, flexShrink:0 }}>
-              <button onClick={() => setUseModal(true)}
+              <button onClick={() => navigate("/hesabim/poodle-puanlari/odul-merkezi")}
                 style={{ background:"#fff", color:P, border:"none", borderRadius:10,
                          padding:"9px 12px", fontSize:10, fontWeight:800,
                          cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap" }}>
@@ -419,7 +419,7 @@ export default function YPPoodlePuanlariPage() {
           <div style={{ padding:"0 16px 14px" }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
               <span style={{ fontSize:13, fontWeight:700, color:DRK }}>Puanlarınla Alabileceğin Ödüller</span>
-              <button onClick={() => setActiveTab("rewards")}
+              <button onClick={() => navigate("/hesabim/poodle-puanlari/odul-merkezi")}
                 style={{ background:"none", border:"none", color:P, fontSize:11, fontWeight:600,
                          cursor:"pointer", fontFamily:"inherit" }}>
                 Tüm Ödüller

@@ -1,0 +1,607 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "Ödülü Onayla" (Confirm Reward) page for YourPoodle.com.
+This page opens when a user selects a reward from Ödül Merkezi and confirms redemption.
+Users review reward details, see point balance deduction, accept terms, and confirm.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, AuthContext, authenticated Header, TabNavigation,
+  MobileDrawer, Toast, and routing.
+- Opens FROM /hesabim/poodle-puanlari/odul-merkezi when user clicks "Ödülü Al" or "Seç".
+- After confirm → deduct points + navigate back with success toast OR success modal.
+- Share balance 1275 points with PoodlePuanlarım / Ödül Merkezi pages.
+- DO NOT rebuild the entire app.
+- DO NOT delete or rewrite existing pages.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Route: /hesabim/poodle-puanlari/odul-onayla/:rewardId
+Example: /hesabim/poodle-puanlari/odul-onayla/pr-1
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT skip any detail row, balance flow, step, button, suggestion card, or FAQ.
+4. DO NOT use Lorem ipsum.
+5. Optimize for 390px mobile. Max width 480px centered.
+
+MANDATORY FEATURES:
+  ✅ Hero reward card with 50 TL coupon visual + Çok Popüler badge
+  ✅ Ödül Detayları list (6 rows)
+  ✅ Balance flow: 1.275 → -500 → 775
+  ✅ 3-step "Kupon nasıl kullanılacak?" + İndirim Örneği box
+  ✅ Yellow expiry info alert
+  ✅ Terms checkbox (required to submit)
+  ✅ Primary "500 Puan Kullan ve Ödülü Al" + secondary cancel
+  ✅ Shield trust badge
+  ✅ 3 suggestion cards + FAQ accordion
+  ✅ Bottom CTA banner + footer
+
+6. EVERY checkbox, confirm, cancel, İncele, and FAQ toggle MUST work.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #5D3EBD
+  purple-dark:     #4A22A0
+  purple-light:    #F3EEFF
+  gold-coin:       #FBBF24
+  page-bg:         #F9F9FB
+  card-bg:         #FFFFFF
+  badge-orange:    #FFF7ED / text #EA580C "Çok Popüler"
+  points-blue:     #3B82F6
+  discount-green:  #16A34A
+  example-bg:      #EFF6FF
+  warning-yellow-bg:#FEF9C3
+  warning-yellow-border:#FDE68A
+  info-tan-bg:     #FEF3C7
+  text-dark:       #111827
+  footer-bg:       #5D3EBD
+
+Typography: Inter
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    reward-confirm/
+      RewardConfirmBreadcrumb.tsx
+      RewardConfirmPageHeader.tsx
+      RewardConfirmHeroCard.tsx
+      RewardConfirmDetailsList.tsx
+      RewardConfirmBalanceFlow.tsx
+      RewardConfirmHowToUse.tsx
+      RewardConfirmDiscountExample.tsx
+      RewardConfirmInfoAlert.tsx
+      RewardConfirmTermsCheckbox.tsx
+      RewardConfirmActions.tsx
+      RewardConfirmTrustBadge.tsx
+      RewardConfirmSuggestions.tsx
+      RewardConfirmSuggestionCard.tsx
+      RewardConfirmFAQSection.tsx
+      RewardConfirmBottomBanner.tsx
+      RewardConfirmFooter.tsx
+      RewardConfirmSuccessModal.tsx
+      TermsModal.tsx
+  pages/
+    RewardConfirmPage.tsx
+  data/
+    rewardConfirmMockData.ts
+  hooks/
+    useRewardConfirm.ts
+  App.tsx
+
+Update PoodleRewardCenterPage:
+  "Ödülü Al" button → navigate(`/hesabim/poodle-puanlari/odul-onayla/${selectedReward.id}`)
+  "Seç" on popular card → same with reward id
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — MOCK DATA (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/rewardConfirmMockData.ts:
+
+export interface RewardConfirmData {
+  id: string;
+  title: string;                // "50 TL Alışveriş İndirimi"
+  couponLabel: string;          // "50 TL İNDİRİM" on ticket visual
+  badge: string;                // "Çok Popüler"
+  description: string;          // "Mağaza alışverişlerinde geçerlidir."
+  pointsRequired: number;       // 500
+  minCart: string;              // "500 TL"
+  validCategory: string;        // "Tüm ürünler"
+  expiryDate: string;           // "31 Ağustos 2026"
+  usage: string;                // "Tek kullanımlık"
+  combining: string;            // "Başka kuponlarla kullanılamaz"
+  currentBalance: number;       // 1275
+  remainingBalance: number;     // 775
+}
+
+export interface HowToStep {
+  step: number;
+  text: string;
+  icon: "ticket" | "cart" | "percent";
+}
+
+export interface SuggestionReward {
+  id: string;
+  title: string;
+  pointsCost: number;
+  iconType: "shipping" | "care" | "food";
+}
+
+export const rewardConfirm: RewardConfirmData = {
+  id: "pr-1",
+  title: "50 TL Alışveriş İndirimi",
+  couponLabel: "50 TL İNDİRİM",
+  badge: "Çok Popüler",
+  description: "Mağaza alışverişlerinde geçerlidir.",
+  pointsRequired: 500,
+  minCart: "500 TL",
+  validCategory: "Tüm ürünler",
+  expiryDate: "31 Ağustos 2026",
+  usage: "Tek kullanımlık",
+  combining: "Başka kuponlarla kullanılamaz",
+  currentBalance: 1275,
+  remainingBalance: 775,
+};
+
+export const howToSteps: HowToStep[] = [
+  { step: 1, text: "Ödülü hesabına tanımla", icon: "ticket" },
+  { step: 2, text: "Sepetine ürün ekle", icon: "cart" },
+  { step: 3, text: "Ödeme adımında kuponu seç", icon: "percent" },
+];
+
+export const discountExample = {
+  cartTotal: "649 TL",
+  couponDiscount: "-50 TL",
+  totalToPay: "599 TL",
+};
+
+export const suggestionRewards: SuggestionReward[] = [
+  { id: "pr-2", title: "Ücretsiz Kargo", pointsCost: 300, iconType: "shipping" },
+  { id: "pr-3", title: "%15 Bakım İndirimi", pointsCost: 750, iconType: "care" },
+  { id: "pr-4", title: "100 TL Mama İndirimi", pointsCost: 1000, iconType: "food" },
+];
+
+export const faqItems = [
+  {
+    id: "faq-1",
+    question: "Puan iadesi yapılır mı?",
+    answer: "Ödül kullanıldıktan sonra puan iadesi yapılmaz. Kullanılmamış kuponlar 30 gün içinde iade talep edilebilir.",
+  },
+  {
+    id: "faq-2",
+    question: "Kupon kullanım koşulları",
+    answer: "Minimum sepet tutarına ulaşıldığında ödeme adımında kupon otomatik görünür. Tek kullanımlıktır.",
+  },
+  {
+    id: "faq-3",
+    question: "Yardım ve destek",
+    answer: "Sorularınız için Yardım Merkezi'nden bize ulaşabilirsiniz.",
+  },
+];
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — useRewardConfirm HOOK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: hooks/useRewardConfirm.ts
+
+State:
+  reward: RewardConfirmData
+  termsAccepted: boolean (default false)
+  expandedFaqId: string | null
+  termsModalOpen: boolean
+  isSubmitting: boolean
+
+Functions:
+  toggleTerms()
+  openTerms() / closeTerms()
+  confirmRedeem() → IF !termsAccepted toast error "Lütfen koşulları kabul edin"
+    ELSE deduct points from localStorage balance
+    → toast "Kupon hesabınıza tanımlandı ✓"
+    → navigate("/hesabim/poodle-puanlari/odul-merkezi") or show success modal
+  cancelAndReturn() → navigate("/hesabim/poodle-puanlari/odul-merkezi")
+  viewSuggestion(id) → navigate(`/hesabim/poodle-puanlari/odul-onayla/${id}`)
+  toggleFaq(id)
+
+Use useParams rewardId — map to reward data (default pr-1).
+
+canConfirm → termsAccepted && currentBalance >= pointsRequired
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — BREADCRUMB + PAGE HEADER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardConfirmBreadcrumb.tsx
+
+px-4 pt-3 pb-1
+
+  ArrowLeft color #5D3EBD → navigate("/hesabim/poodle-puanlari/odul-merkezi")
+  "Hesabım / PoodlePuanlarım / Ödülü Onayla"
+    text-xs color #5D3EBD
+
+File: RewardConfirmPageHeader.tsx
+
+px-4 pb-3
+
+  "Ödülü Onayla"
+    text-xl font-bold text-gray-900 mt-2
+
+  "Puanlarını kullanmadan önce ödül detaylarını kontrol et."
+    text-sm text-gray-500 mt-0.5
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — HERO REWARD CARD (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardConfirmHeroCard.tsx
+
+mx-4 mb-4 bg #F3EEFF rounded-2xl p-4
+
+  flex items-center gap-4
+
+  LEFT — 3D coupon visual:
+    relative w-24 h-20 flex-shrink-0
+    Purple ticket/coupon shape rounded-lg bg #5D3EBD shadow-lg
+      rotated slightly (-6deg)
+      Text on ticket: "50 TL İNDİRİM" white bold text-xs text-center
+    Gold coins beside/below ticket (2-3 small circles with paw or Coins icon)
+
+  RIGHT flex-1:
+    "50 TL Alışveriş İndirimi"
+      text-base font-bold text-gray-900
+    Badge "Çok Popüler":
+      inline-block bg #FFF7ED text #EA580C text-[10px] font-semibold px-2 py-0.5 rounded-full mt-1
+    "Mağaza alışverişlerinde geçerlidir."
+      text-xs text-gray-600 mt-1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — ÖDÜL DETAYLARI LIST (EXACT — 6 ROWS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardConfirmDetailsList.tsx
+
+mx-4 mb-4 bg white rounded-2xl border border-gray-100 shadow-sm p-4
+
+  "Ödül Detayları"
+    text-sm font-bold text-gray-900 mb-3
+
+  6 rows — flex justify-between items-center py-2.5 border-b border-gray-50 last:border-0
+
+  Row format:
+    LEFT: icon w-7 h-7 rounded-lg bg #F3EEFF + label text-xs text-gray-500
+    RIGHT: value text-sm font-semibold text-gray-900
+    Special: Gerekli Puan value color #3B82F6
+
+  Rows EXACT:
+  1. Coins icon — "Gerekli Puan" — "500 PoodlePuan" (blue)
+  2. ShoppingCart — "Minimum Sepet" — "500 TL"
+  3. Tag — "Geçerli Kategori" — "Tüm ürünler"
+  4. Calendar — "Son Kullanım" — "31 Ağustos 2026"
+  5. Hash/1 — "Kullanım" — "Tek kullanımlık"
+  6. XCircle — "Birleştirme" — "Başka kuponlarla kullanılamaz"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — BALANCE FLOW (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardConfirmBalanceFlow.tsx
+
+mx-4 mb-4 bg white rounded-2xl border border-gray-100 shadow-sm p-4
+
+  flex items-center justify-between gap-2
+
+  LEFT block text-center flex-1:
+    "Mevcut Bakiyen" text-[10px] text-gray-500 mb-1
+    flex items-center justify-center gap-1:
+      gold coin icon size 16 color #FBBF24
+      "1.275" text-lg font-bold text-gray-900
+    "PoodlePuan" text-[10px] text-gray-400
+
+  CENTER:
+    flex flex-col items-center
+    ArrowRight icon size 20 color gray-400
+    circle w-10 h-10 rounded-full bg #5D3EBD text white flex items-center justify-center
+      "-500" text-xs font-bold
+
+  RIGHT block text-center flex-1:
+    "Kalan Bakiyen" text-[10px] text-gray-500 mb-1
+    flex items-center justify-center gap-1:
+      gold coin icon
+      "775" text-lg font-bold color #5D3EBD
+    "PoodlePuan" text-[10px] text-gray-400
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — HOW TO USE + DISCOUNT EXAMPLE (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardConfirmHowToUse.tsx
+
+mx-4 mb-4
+
+  "Kupon nasıl kullanılacak?"
+    text-sm font-bold text-gray-900 mb-3
+
+  grid grid-cols-2 gap-3   (stack on very narrow if needed)
+
+  LEFT column — 3 steps vertical:
+    Each step flex items-start gap-2 mb-2
+      step number circle w-6 h-6 rounded-full bg #5D3EBD text white text-xs font-bold flex items-center justify-center
+      icon + text text-xs text-gray-700
+
+    Step 1: Ticket icon — "Ödülü hesabına tanımla"
+    Step 2: ShoppingCart — "Sepetine ürün ekle"
+    Step 3: Percent — "Ödeme adımında kuponu seç"
+
+File: RewardConfirmDiscountExample.tsx
+
+  RIGHT column bg #EFF6FF rounded-xl p-3
+
+  "İndirim Örneği" text-xs font-bold text-gray-900 mb-2
+
+  Row "Sepet Tutarı:" — "649 TL" text-right
+  Row "Kupon İndirimi:" — "-50 TL" text-right color #16A34A font-semibold
+  Divider
+  Row "Ödenecek:" — "599 TL" text-right font-bold color #3B82F6
+
+  text-xs throughout
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — INFO ALERT + TERMS + ACTIONS (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardConfirmInfoAlert.tsx
+
+mx-4 mb-3 bg #FEF3C7 border border #FDE68A rounded-xl p-3 flex gap-2
+
+  Clock icon size 18 color #CA8A04 flex-shrink-0
+
+  "Bu kupon 31 Ağustos 2026 tarihine kadar geçerlidir. Kullanılan puanlar iade edilmez."
+    text-xs text-gray-800 leading-snug
+
+File: RewardConfirmTermsCheckbox.tsx
+
+mx-4 mb-4 flex items-start gap-2
+
+  Checkbox purple accent, checked={termsAccepted} onChange toggleTerms
+
+  div text-xs text-gray-700:
+    "PoodlePuan ödül kullanım koşullarını okudum ve kabul ediyorum."
+    Link "Koşulları Gör >" color #5D3EBD font-semibold ml-0.5
+      onClick → openTerms()
+
+File: RewardConfirmActions.tsx
+
+px-4 mb-3 space-y-2
+
+  Button "500 Puan Kullan ve Ödülü Al":
+    w-full bg #5D3EBD text white font-semibold text-sm py-3.5 rounded-xl
+    disabled IF !canConfirm
+    onClick → confirmRedeem()
+    Label dynamic: "{pointsRequired} Puan Kullan ve Ödülü Al"
+
+  Button "Vazgeç ve Ödüllere Dön":
+    w-full border-2 border #5D3EBD text #5D3EBD bg white font-semibold text-sm py-3 rounded-xl
+    onClick → cancelAndReturn()
+
+File: RewardConfirmTrustBadge.tsx
+
+px-4 mb-4 flex items-center justify-center gap-2
+
+  ShieldCheck icon size 16 color #16A34A
+  "İşlemin güvende. Onay sonrası kuponun hemen hesabına tanımlanır."
+    text-[11px] text-gray-500 text-center
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — SUGGESTIONS + FAQ (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardConfirmSuggestions.tsx + RewardConfirmSuggestionCard.tsx
+
+px-4 mb-4
+
+  "Bunları da beğenebilirsin"
+    text-sm font-bold text-gray-900 mb-3
+
+  grid grid-cols-3 gap-2
+
+  Mini card p-2 bg white rounded-xl border text-center
+
+  icon/image area h-12 flex items-center justify-center mb-1
+  title text-[10px] font-semibold text-gray-900 line-clamp-2
+  "{n} Puan" text-[10px] color #5D3EBD font-bold
+
+  Button "İncele":
+    mt-1 w-full border border #5D3EBD text #5D3EBD text-[9px] font-semibold py-1 rounded
+    onClick → viewSuggestion(id)
+
+  3 cards:
+  1. Ücretsiz Kargo — 300 Puan
+  2. %15 Bakım İndirimi — 750 Puan
+  3. 100 TL Mama İndirimi — 1.000 Puan
+
+File: RewardConfirmFAQSection.tsx
+
+px-4 mb-4 — 3 accordion items from faqItems
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — BOTTOM BANNER + FOOTER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardConfirmBottomBanner.tsx
+
+mx-4 mb-4 bg #F3EEFF rounded-2xl p-4 flex items-center gap-3
+
+  LEFT: Poodle photo w-14 h-14 rounded-full + small coupon icon overlay
+
+  "Bir adım kaldı!"
+    text-sm font-bold text-gray-900
+  "Onayla, kuponun hemen hesabına tanımlansın."
+    text-xs text-gray-600 mt-0.5
+
+File: RewardConfirmFooter.tsx
+
+bg #5D3EBD text-white px-4 pt-6 pb-8
+  Logo + Yardım • İletişim • KVKK
+  © 2026 YourPoodle
+
+File: TermsModal.tsx
+
+  Title: "PoodlePuan Ödül Kullanım Koşulları"
+  Scrollable terms text (3-4 paragraphs stub)
+  Button "Kabul Ediyorum" → toggleTerms true + close
+
+File: RewardConfirmSuccessModal.tsx
+
+  Check icon + "Ödülünüz tanımlandı!"
+  "50 TL indirim kuponu hesabınıza eklendi."
+  Button "Ödül Merkezine Dön" / "Alışverişe Başla"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardConfirmPage.tsx
+
+<div className="max-w-[480px] mx-auto bg-[#F9F9FB] min-h-screen pb-8 shadow-xl">
+  <AuthenticatedHeader />
+  <TabNavigation activeTab="club" />
+
+  <RewardConfirmBreadcrumb />
+  <RewardConfirmPageHeader />
+  <RewardConfirmHeroCard />
+  <RewardConfirmDetailsList />
+  <RewardConfirmBalanceFlow />
+  <div className="px-4 mb-4">
+    <RewardConfirmHowToUse />
+    {/* How-to and example — use grid wrapper in components */}
+  </div>
+  <RewardConfirmInfoAlert />
+  <RewardConfirmTermsCheckbox />
+  <RewardConfirmActions />
+  <RewardConfirmTrustBadge />
+  <RewardConfirmSuggestions />
+  <RewardConfirmFAQSection />
+  <RewardConfirmBottomBanner />
+  <RewardConfirmFooter />
+
+  <TermsModal />
+  <RewardConfirmSuccessModal />
+  <MobileDrawer />
+  <Toast />
+</div>
+
+Note: Place HowToUse and DiscountExample in 2-col grid within one section.
+
+Scroll order:
+  1. Breadcrumb Ödülü Onayla
+  2. Title + subtitle
+  3. Hero coupon card 50 TL
+  4. Ödül Detayları 6 rows
+  5. Balance flow 1275 → -500 → 775
+  6. Kupon nasıl + İndirim Örneği
+  7. Yellow info alert
+  8. Terms checkbox
+  9. Confirm + Cancel buttons
+  10. Shield trust badge
+  11. Bunları da beğenebilirsin (3)
+  12. FAQ accordion
+  13. Bir adım kaldı banner
+  14. Footer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — ROUTING & INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add route:
+  <Route path="/hesabim/poodle-puanlari/odul-onayla/:rewardId"
+         element={<RewardConfirmPage />} />
+
+Update PoodleRewardCenterPage:
+  RewardCenterRedemptionBar "Ödülü Al"
+    → navigate(`/hesabim/poodle-puanlari/odul-onayla/${selectedReward.id}`)
+
+  Popular card "Seç" can go directly to confirm OR via redemption bar — prefer:
+    Seç → sets selection; Ödülü Al → confirm page
+
+After confirmRedeem():
+  Update localStorage balance 1275 → 775
+  Add to earnedRewards in reward center data
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Hero & details:
+✅ 50 TL coupon visual + Çok Popüler badge
+✅ All 6 detail rows exact Turkish values
+✅ 500 PoodlePuan in blue
+
+Balance:
+✅ Mevcut 1.275 → -500 → Kalan 775 with coin icons
+
+How-to:
+✅ 3 steps with icons
+✅ İndirim Örneği 649 - 50 = 599
+
+Terms & confirm:
+✅ Yellow alert expiry + no refund text
+✅ Checkbox required — submit disabled until checked
+✅ Koşulları Gör opens modal
+✅ "500 Puan Kullan ve Ödülü Al" redeems + toast
+✅ Vazgeç returns to ödül merkezi
+✅ Shield trust text
+
+Suggestions:
+✅ 3 İncele buttons navigate to other reward confirm pages
+
+FAQ:
+✅ 3 accordion items work
+
+Other:
+✅ No overflow 375px
+✅ npm run dev ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Breadcrumb Hesabım / PoodlePuanlarım / Ödülü Onayla
+✅ Ödülü Onayla title + subtitle
+✅ Hero 50 TL Alışveriş İndirimi
+✅ Ödül Detayları complete
+✅ Balance flow visualization
+✅ Kupon nasıl + İndirim Örneği
+✅ Info alert + terms checkbox
+✅ Both action buttons + trust badge
+✅ Bunları da beğenebilirsin 3 cards
+✅ FAQ 3 items
+✅ Bir adım kaldı banner
+✅ © 2026 YourPoodle footer
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the Ödülü Onayla page at /hesabim/poodle-puanlari/odul-onayla/:rewardId exactly as specified.
+Use the EXISTING project — do not rebuild the whole app.
+MUST work: detail review, balance preview, terms acceptance, confirm redeem,
+cancel return, suggestion navigation, FAQ accordion.
+Default reward: 50 TL İndirim for 500 points from balance 1275.
+Match mockup pixel-perfect. Turkish text must be exact.
+Run the app and confirm zero errors before finishing.
