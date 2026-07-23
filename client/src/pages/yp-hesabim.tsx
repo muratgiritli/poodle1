@@ -278,7 +278,7 @@ function PetProfileCard() {
 
         {/* Right: buttons */}
         <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
-          <button onClick={() => alert("Poodle bilgileri yakında!")}
+          <button onClick={() => navigate("/yourpoodle/poodle-profili-duzenle")}
             style={{ background: P, color: "#fff", border: "none", borderRadius: 10,
                      padding: "7px 10px", fontSize: 10, fontWeight: 600,
                      cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}

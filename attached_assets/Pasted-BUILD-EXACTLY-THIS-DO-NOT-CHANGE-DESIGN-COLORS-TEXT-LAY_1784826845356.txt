@@ -1,0 +1,622 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "Hesabım" (My Account) user dashboard page for YourPoodle.com.
+This is the authenticated member panel for a Toy Poodle owner.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, AuthContext, ClubHeader (authenticated), TabNavigation,
+  MobileDrawer, Toast, and routing. DO NOT rebuild the entire app.
+- Page requires authentication — IF not logged in, redirect to /giris.
+- Reuse cart/favorites/order mock data where it exists.
+- DO NOT delete or rewrite existing pages.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Route: /hesabim
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT skip any section, stat, button, or menu item.
+4. DO NOT use Lorem ipsum.
+5. EVERY link, button, and navigation item MUST work (navigate or alert stub).
+6. Optimize for 390px mobile. Max width 480px centered.
+7. Mock data until backend connected.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #4B2BD6
+  purple-dark:     #3E27B3
+  purple-gradient-from: #4B2BD6
+  purple-gradient-to:   #6366F1
+  purple-light:    #F3EEFF
+  footer-bg:       #1D1E9B
+  text-dark:       #111827
+  text-secondary:  #6B7280
+  success-green:   #16A34A
+  logout-red:      #EF4444
+  verified-blue:   #3B82F6
+
+Quick action icon backgrounds:
+  orders:    #EFF6FF / #3B82F6
+  favorites: #FDF2F8 / #EC4899
+  addresses: #F0FDF4 / #22C55E
+  coupons:   #FFF7ED / #F97316
+  club:      #F3EEFF / #7C3AED
+  saved:     #FEFCE8 / #EAB308
+  notif:     #FEE2E2 / #EF4444
+  settings:  #F3F4F6 / #6B7280
+
+Typography: Inter
+Layout: max-w-[480px] mx-auto bg-gray-50 min-h-screen
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    account/
+      AccountPageHeader.tsx       ← back + Hesabım + greeting
+      UserProfileCard.tsx         ← purple gradient user card
+      PetProfileCard.tsx          ← Poodle'ım section
+      QuickActionsGrid.tsx
+      QuickActionCard.tsx
+      ActiveOrderCard.tsx
+      OrderProgressStepper.tsx
+      RemindersSection.tsx
+      ClubActivitySection.tsx
+      LoyaltyPointsCard.tsx
+      AccountSettingsList.tsx
+      AccountFooter.tsx           ← compact footer for account page
+  pages/
+    AccountPage.tsx
+  data/
+    accountMockData.ts
+  hooks/
+    useAccount.ts
+  App.tsx
+
+Reuse ClubHeader OR authenticated Header variant with bell(3), DM(2), profile avatar.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — MOCK DATA (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/accountMockData.ts:
+
+export const userProfile = {
+  firstName: "Ayşe",
+  fullName: "Ayşe Yılmaz",
+  phone: "+90 532 *** ** 48",
+  avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop",
+  isClubMember: true,
+  stats: {
+    orders: 12,
+    favorites: 28,
+    points: 340,
+  },
+};
+
+export const petProfile = {
+  name: "Tarçın",
+  breed: "Toy Poodle",
+  age: "2 yaş",
+  weight: "4,2 kg",
+  city: "Samsun",
+  avatar: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=150&h=150&fit=crop",
+  verified: true,
+  profileComplete: 85,
+  clubUsername: "tarcin.poodle",
+};
+
+export const quickActions = [
+  { id:"orders",    label:"Siparişlerim",     sublabel:"2 aktif",   icon:"Package",       bg:"#EFF6FF", iconColor:"#3B82F6", route:"/hesabim/siparisler" },
+  { id:"favorites", label:"Favorilerim",      sublabel:"28",        icon:"Heart",         bg:"#FDF2F8", iconColor:"#EC4899", route:"/hesabim/favoriler" },
+  { id:"addresses", label:"Adreslerim",       sublabel:null,        icon:"MapPin",        bg:"#F0FDF4", iconColor:"#22C55E", route:"/hesabim/adresler" },
+  { id:"coupons",   label:"Kuponlarım",       sublabel:"3",         icon:"Ticket",        bg:"#FFF7ED", iconColor:"#F97316", route:"/hesabim/kuponlar" },
+  { id:"clubposts", label:"Club Paylaşımlarım", sublabel:"14",      icon:"Camera",        bg:"#F3EEFF", iconColor:"#7C3AED", route:"/club/profil/tarcin.poodle" },
+  { id:"saved",     label:"Kaydettiklerim",   sublabel:null,        icon:"Bookmark",      bg:"#FEFCE8", iconColor:"#EAB308", route:"/hesabim/kaydedilenler" },
+  { id:"notif",     label:"Bildirimler",      sublabel:"3 yeni",    icon:"Bell",          bg:"#FEE2E2", iconColor:"#EF4444", route:"/hesabim/bildirimler" },
+  { id:"settings",  label:"Hesap Ayarları",   sublabel:null,        icon:"Settings",      bg:"#F3F4F6", iconColor:"#6B7280", route:"/hesabim/ayarlar" },
+];
+
+export const activeOrder = {
+  id: "YP-2026072318",
+  date: "23 Temmuz 2026",
+  productName: "Pro Plan Small Adult Sensitive Somonlu",
+  weight: "3 kg",
+  price: "1.349 TL",
+  status: "Kargoya Hazırlanıyor",
+  statusKey: "preparing",  // received | preparing | shipping | delivered
+  image: "https://images.unsplash.com/photo-1589924691995-400dc9eccs?w=120&h=120&fit=crop",
+};
+
+export const orderSteps = [
+  { key:"received",   label:"Alındı" },
+  { key:"preparing",  label:"Hazırlanıyor" },
+  { key:"shipping",   label:"Kargoda" },
+  { key:"delivered",  label:"Teslim" },
+];
+
+export const reminders = [
+  { id:"r1", title:"Karma Aşı",          date:"28 Temmuz 2026", daysLeft:5,  icon:"Syringe",    color:"#3B82F6" },
+  { id:"r2", title:"İç Parazit Uygulaması", date:"2 Ağustos 2026", daysLeft:10, icon:"Shield", color:"#22C55E" },
+  { id:"r3", title:"Tüy Bakımı",         date:"5 Ağustos 2026", daysLeft:13, icon:"Brush",    color:"#EC4899" },
+];
+
+export const clubActivity = {
+  posts: 14,
+  followers: 1248,
+  following: 186,
+  thumbnails: [
+    "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=80&h=80&fit=crop",
+    "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=80&h=80&fit=crop",
+    "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=80&h=80&fit=crop",
+  ],
+};
+
+export const loyaltyPoints = {
+  current: 340,
+  target: 500,
+  reward: "100 TL indirim kuponu",
+};
+
+export const settingsMenu = [
+  { id:"personal",  label:"Kişisel Bilgilerim",      icon:"User",        route:"/hesabim/kisisel" },
+  { id:"phone",     label:"Telefon Numaram",         icon:"Smartphone",  route:"/hesabim/telefon" },
+  { id:"comms",     label:"İletişim Tercihlerim",    icon:"Mail",        route:"/hesabim/iletisim" },
+  { id:"privacy",   label:"Gizlilik ve Güvenlik",    icon:"Lock",        route:"/hesabim/gizlilik" },
+  { id:"help",      label:"Yardım ve Destek",        icon:"HelpCircle",  route:"/hesabim/yardim" },
+];
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — AUTHENTICATED HEADER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Reuse ClubHeader or create AccountHeader — authenticated state ONLY.
+
+Sticky top-0 z-40 bg-white border-b border-gray-200 h-14 px-4
+flex items-center justify-between
+
+LEFT:
+  Menu icon → MobileDrawer
+
+CENTER:
+  Logo 32px + "YourPoodle" font-bold text-base color #4B2BD6
+
+RIGHT (flex gap-2):
+  Bell icon + red badge "3" → navigate /hesabim/bildirimler
+  MessageCircle icon + purple badge "2" → alert("Mesajlar yakında!")
+  User avatar 32px rounded-full border-2 border-purple → navigate /hesabim
+
+NO "Giriş Yap" / "Üye Ol" on this page — user is logged in.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — TAB NAVIGATION (REUSE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Reuse TabNavigation — all tabs inactive (gray) OR no active tab.
+Each tab navigates to its route.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — PAGE HEADER + GREETING (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AccountPageHeader.tsx
+
+px-4 pt-3 pb-2
+
+  Row 1 (flex items-center gap-2 mb-3):
+    ArrowLeft (aria-label="Geri") → navigate(-1)
+    "Hesabım" text-base font-semibold text-gray-900
+
+  Row 2:
+    "Merhaba, Ayşe 👋"
+      text-xl font-bold text-gray-900
+
+  Row 3:
+    "Poodle dünyanızla ilgili her şey burada"
+      text-sm text-gray-500 mt-0.5
+
+Use userProfile.firstName dynamically from auth context.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — USER PROFILE CARD (EXACT — PURPLE GRADIENT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: UserProfileCard.tsx
+
+mx-4 mb-4 rounded-2xl overflow-hidden
+background: linear-gradient(135deg, #4B2BD6 0%, #6366F1 100%)
+p-4 relative
+
+  TOP-RIGHT:
+    Button "Profili Düzenle"
+      text-xs font-medium text-white/90 bg-white/20 px-3 py-1 rounded-full
+      hover:bg-white/30
+      onClick → navigate("/hesabim/kisisel")
+
+  Content (flex gap-3 items-center mt-1):
+
+    LEFT: Avatar w-16 h-16 rounded-full object-cover border-2 border-white/50
+
+    RIGHT:
+      "Ayşe Yılmaz" text-lg font-bold text-white
+      "+90 532 *** ** 48" text-sm text-white/80 mt-0.5
+      Badge "Club Üyesi":
+        inline-flex mt-1.5 bg-white/20 text-white text-xs font-medium
+        px-2 py-0.5 rounded-full
+        PawPrint icon size 12
+
+  Stats row (flex justify-between mt-4 pt-3 border-t border-white/20):
+
+    3 stat items (text-center flex-1):
+      1. Package icon + "12" bold + "Sipariş" text-xs text-white/80
+      2. Heart icon + "28" bold + "Favori" text-xs text-white/80
+      3. Star icon + "340" bold + "Puan" text-xs text-white/80
+
+  Each stat onClick → navigate to relevant quick action route
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — PET PROFILE CARD — "Poodle'ım" (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PetProfileCard.tsx
+
+mx-4 mb-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-4
+
+  Header (flex justify-between items-center mb-3):
+    "Poodle'ım" text-base font-bold text-gray-900
+    "Profili Gör" text-xs font-medium color #4B2BD6 hover:underline
+      onClick → navigate("/club/profil/tarcin.poodle")
+
+  Content (flex gap-3):
+
+    LEFT: Pet avatar relative
+      w-14 h-14 rounded-full object-cover
+      IF verified: BadgeCheck icon absolute bottom-0 right-0
+        w-5 h-5 bg #3B82F6 text-white rounded-full p-0.5
+
+    MIDDLE (flex-1):
+      "Tarçın" text-base font-bold text-gray-900
+      "Toy Poodle • 2 yaş • 4,2 kg" text-xs text-gray-500 mt-0.5
+      MapPin icon + "Samsun" text-xs text-gray-500 flex items-center gap-1 mt-0.5
+
+      Progress (mt-2):
+        flex justify-between text-[10px] text-gray-500 mb-1
+          "Profil %85 tamamlandı"
+        Progress bar: bg gray-100 h-1.5 rounded-full
+          Fill 85% bg #4B2BD6 rounded-full
+
+    RIGHT (flex flex-col gap-2 flex-shrink-0):
+      "Bilgileri Güncelle" button:
+        bg #4B2BD6 text-white text-[10px] font-semibold px-3 py-2 rounded-lg
+        hover:bg #3E27B3
+        onClick → alert("Poodle bilgileri yakında!")
+
+      "Club Profiline Git" button:
+        border border #4B2BD6 text #4B2BD6 text-[10px] font-semibold
+        px-3 py-2 rounded-lg hover:bg #F3EEFF
+        onClick → navigate("/club/profil/tarcin.poodle")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — QUICK ACTIONS GRID (EXACT — 2×4)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: QuickActionCard.tsx + QuickActionsGrid.tsx
+
+px-4 mb-4
+
+  Title: "Hızlı İşlemler"
+    text-base font-bold text-gray-900 mb-3
+
+  Grid: grid grid-cols-2 gap-2.5
+
+  Each card:
+    flex items-center gap-2.5 p-3 rounded-xl border border-gray-100
+    bg white cursor-pointer hover:shadow-sm active:scale-[0.98]
+
+    Icon box: w-9 h-9 rounded-lg flex items-center justify-center
+      background from quickActions.bg
+      lucide icon size 18 color from quickActions.iconColor
+
+    Text block:
+      Label: text-xs font-semibold text-gray-900
+      Sublabel IF exists: text-[10px] text-gray-500 (e.g. "2 aktif", "28", "3 yeni")
+
+    onClick → navigate(action.route) OR alert stub
+
+  Render ALL 8 in EXACT order from quickActions array.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — ACTIVE ORDER CARD (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ActiveOrderCard.tsx + OrderProgressStepper.tsx
+
+mx-4 mb-4
+
+  Header (flex justify-between mb-3):
+    "Aktif Siparişim" text-base font-bold
+    "Tüm Siparişler" text-xs color #4B2BD6 hover:underline
+      onClick → navigate("/hesabim/siparisler")
+
+  Card: bg white rounded-2xl border border-gray-100 p-4
+
+  Top row (flex gap-3):
+    Product image w-16 h-16 object-contain rounded-lg bg #F9FAFB p-1
+
+    Info:
+      "#YP-2026072318" text-[10px] text-gray-400
+      "23 Temmuz 2026" text-[10px] text-gray-500
+      "Pro Plan Small Adult Sensitive Somonlu" text-xs font-semibold text-gray-900 line-clamp-2
+      "3 kg" text-[10px] text-gray-500
+      "1.349 TL" text-sm font-bold color #4B2BD6
+
+  Status badge:
+    inline-block mt-2 bg #F3EEFF text #4B2BD6
+    text-xs font-medium px-2.5 py-1 rounded-full
+    Text: "Kargoya Hazırlanıyor"
+
+  OrderProgressStepper:
+    flex justify-between items-center mt-4 relative
+
+    4 steps: Alındı | Hazırlanıyor | Kargoda | Teslim
+    Connecting line behind dots
+
+    Each step:
+      circle w-3 h-3 rounded-full
+      IF completed or current: bg #4B2BD6
+      IF future: bg #E5E7EB
+      label text-[9px] text-gray-500 mt-1 text-center
+
+    Current step "Hazırlanıyor" (preparing) — highlighted with ring
+
+  Button "Siparişi Takip Et":
+    w-full mt-4 border-2 border #4B2BD6 text #4B2BD6
+    font-semibold text-sm py-2.5 rounded-xl hover:bg #F3EEFF
+    onClick → navigate("/hesabim/siparisler/YP-2026072318") OR alert
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — REMINDERS + CLUB ACTIVITY (TWO-COLUMN)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RemindersSection.tsx
+
+px-4 mb-4 (left column in 2-col layout on mobile — stack vertically)
+
+On mobile: stack Reminders then Club Activity (full width each).
+Mockup may show side-by-side on wider mobile — use grid grid-cols-1 gap-4
+OR grid-cols-2 if space allows at 390px (prefer stack for readability).
+
+── REMINDERS ──
+
+  Title: "Yaklaşan Hatırlatmalar" text-sm font-bold mb-2
+
+  Card bg white rounded-xl border p-3
+
+  3 reminder rows:
+    flex items-center gap-2 py-2 border-b border-gray-50 last:border-0
+
+    Icon circle w-8 h-8 rounded-full flex items-center justify-center
+      bg {color}15, icon color {color}
+
+    Middle:
+      Title text-xs font-semibold
+      Date text-[10px] text-gray-500
+
+    Right:
+      "{daysLeft} gün kaldı" text-[10px] font-medium color #4B2BD6
+
+  Button "+ Yeni Hatırlatma Ekle":
+    w-full mt-2 text-xs font-medium color #4B2BD6 border border-dashed
+    border #4B2BD6 rounded-lg py-2 hover:bg #F3EEFF
+    onClick → alert("Hatırlatma ekleme yakında!")
+
+File: ClubActivitySection.tsx
+
+  Title: "Club Aktivitem" text-sm font-bold mb-2
+
+  Card bg white rounded-xl border p-3
+
+  Stats row (flex justify-around mb-3):
+    "14" / "Gönderi"
+    "1.248" / "Takipçi"
+    "186" / "Takip"
+
+  Thumbnail row (flex gap-1.5 mb-3):
+    3 square images w-14 h-14 rounded-lg object-cover
+
+  Button "Club Profilimi Aç":
+    w-full text-xs font-semibold border border #4B2BD6 text #4B2BD6
+    py-2 rounded-lg mb-3 hover:bg #F3EEFF
+    onClick → navigate("/club/profil/tarcin.poodle")
+
+File: LoyaltyPointsCard.tsx (inside ClubActivitySection or below)
+
+  bg gradient purple rounded-xl p-3 mt-2
+
+  "340 Puan" text-lg font-bold text-white
+  "500 puana ulaşınca 100 TL indirim kuponu kazanın."
+    text-xs text-white/80 mt-1
+
+  Progress bar: bg white/20 h-2 rounded-full mt-2
+    Fill: 340/500 = 68% bg white rounded-full
+
+  "340 / 500" text-[10px] text-white/70 mt-1
+
+  "Puanlar Nasıl Kazanılır?" link
+    text-xs text-white/90 underline mt-2 cursor-pointer
+    onClick → alert("Puan sistemi yakında!")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — SETTINGS LIST + LOGOUT (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AccountSettingsList.tsx
+
+mx-4 mb-4 bg white rounded-2xl border border-gray-100 overflow-hidden
+
+  Map settingsMenu → row:
+    flex items-center justify-between px-4 py-3.5
+    border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50
+
+    LEFT: flex items-center gap-3
+      Icon size 18 color #6B7280
+      Label text-sm font-medium text-gray-800
+
+    RIGHT: ChevronRight size 16 color #9CA3AF
+
+    onClick → navigate(item.route) OR alert
+
+  After list (outside card, mt-3):
+    "Çıkış Yap" button
+      w-full text-center text-sm font-semibold color #EF4444
+      py-3 hover:bg-red-50 rounded-xl
+      onClick → logout() + navigate("/") + toast "Çıkış yapıldı"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — COMPACT FOOTER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AccountFooter.tsx
+
+bg #1D1E9B text-white px-4 pt-6 pb-6 mt-4
+
+  Logo + "YourPoodle" font-bold text-lg
+  Tagline: "Toy Poodle sahipleri için alışveriş, bilgi ve topluluk platformu."
+    text-sm text-white/70 mt-2 mb-4
+
+  Links row (flex flex-wrap gap-3):
+    Hakkımızda | Yardım | İletişim | KVKK
+    text-xs text-white/60 hover:text-white cursor-pointer
+
+  Shield row (mt-4):
+    "256-bit SSL ile güvenli alışveriş"
+    text-xs text-white/50
+
+  Copyright (mt-4 pt-4 border-t border-white/10):
+    "© 2026 YourPoodle. Tüm hakları saklıdır."
+    text-xs text-white/50 text-center
+
+NO full accordion footer on account page — compact version only.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AccountPage.tsx
+
+Protected route — redirect to /giris if !isAuthenticated
+
+<div className="max-w-[480px] mx-auto bg-gray-50 min-h-screen shadow-xl">
+  <AccountHeader />           ← authenticated: bell, DM, avatar
+  <TabNavigation activeTab={null} />
+
+  <AccountPageHeader />
+  <UserProfileCard />
+  <PetProfileCard />
+  <QuickActionsGrid />
+  <ActiveOrderCard />
+  <RemindersSection />
+  <ClubActivitySection />     ← includes LoyaltyPointsCard
+  <AccountSettingsList />
+  <AccountFooter />
+
+  <MobileDrawer />
+  <Toast />
+</div>
+
+Exact scroll order:
+  1. Authenticated header (bell 3, DM 2, avatar)
+  2. Tab nav
+  3. ← Hesabım + Merhaba, Ayşe 👋 + subtitle
+  4. Purple user profile card (Ayşe Yılmaz, stats)
+  5. Poodle'ım card (Tarçın)
+  6. Hızlı İşlemler 2×4 grid
+  7. Aktif Siparişim + stepper
+  8. Yaklaşan Hatırlatmalar
+  9. Club Aktivitem + loyalty points
+  10. Settings list (5 items)
+  11. Çıkış Yap
+  12. Compact footer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — ROUTING & AUTH GUARD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add route:
+  <Route path="/hesabim" element={
+    <ProtectedRoute><AccountPage /></ProtectedRoute>
+  } />
+
+ProtectedRoute:
+  IF !isAuthenticated → Navigate to /giris replace
+  ELSE render children
+
+After login on /uye-ol → redirect can go to /hesabim
+
+Header profile avatar (all authenticated pages) → navigate("/hesabim")
+
+Stub routes for quick actions (optional minimal pages):
+  /hesabim/siparisler, /hesabim/favoriler, /hesabim/adresler, etc.
+  OR alert("Yakında!") for now
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Unauthenticated user redirected to /giris
+✅ Authenticated header: bell(3), DM(2), avatar visible
+✅ Profili Düzenle, Profili Gör, Club buttons navigate
+✅ All 8 quick action cards clickable
+✅ Order stepper shows "Hazırlanıyor" as current
+✅ Siparişi Takip Et works
+✅ Reminders show countdown days
+✅ + Yeni Hatırlatma Ekle works
+✅ Club stats + thumbnails + Club Profilimi Aç
+✅ Loyalty progress bar 340/500
+✅ All 5 settings rows clickable
+✅ Çıkış Yap logs out + redirects
+✅ No horizontal overflow at 375px
+✅ npm run dev → ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 17 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ "Merhaba, Ayşe 👋" + subtitle
+✅ Gradient card: Ayşe Yılmaz, phone, Club Üyesi, 12/28/340 stats
+✅ Tarçın pet card with 85% progress, Samsun
+✅ 8 quick actions with correct sublabels
+✅ Order #YP-2026072318, Pro Plan, 1.349 TL, Kargoya Hazırlanıyor
+✅ Stepper: Alındı → Hazırlanıyor (active) → Kargoda → Teslim
+✅ 3 reminders with "X gün kaldı"
+✅ Club: 14 gönderi, 1.248 takipçi, 186 takip
+✅ 340 Puan loyalty card
+✅ Settings: Kişisel, Telefon, İletişim, Gizlilik, Yardım
+✅ Red Çıkış Yap
+✅ Compact purple footer
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the user account dashboard at /hesabim exactly as specified.
+Use the EXISTING project and AuthContext — do not rebuild the whole app.
+Requires authentication. All sections, stats, and navigation must work.
+Match the mockup pixel-perfect. Turkish text must be exact.
+Run the app and confirm zero errors before finishing.
