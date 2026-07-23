@@ -1,355 +1,822 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
-import { ShoppingCart, Plus, Minus, Trash2, ChevronLeft, ArrowRight, AlertTriangle } from "lucide-react";
-import YPLayout from "@/components/yourpoodle/YPLayout";
+import {
+  Menu, ShoppingBag, PawPrint, BookOpen, Sparkles,
+  ChevronLeft, CheckCircle, X, Trash2, Heart,
+  CreditCard, Truck, MapPin, ChevronRight, Tag,
+  Lock, ShieldCheck, Plus, Minus, ShoppingCart,
+} from "lucide-react";
 
-interface CartItem { id: number; name: string; price: number; img?: string; qty: number; }
-interface StockInfo { name: string; price: number; stock: number; isActive: boolean; }
+/* ─── Palette ──────────────────────────── */
+const P   = "#4A2ED1";
+const PB  = "#3B59FF";
+const PL  = "#F3EEFF";
+const PBD = "#DDD6FE";
+const GB  = "#E5E7EB";
 
-const LS_CART = "yp_cart_items";
-const LOW_STOCK_THRESHOLD = 5;
-
-function loadCart(): CartItem[] {
-  try { return JSON.parse(localStorage.getItem(LS_CART) || "[]"); } catch { return []; }
+/* ─── Types ────────────────────────────── */
+interface CartItemData {
+  id: string;
+  brand: string;
+  name: string;
+  weight: string;
+  barcode: string;
+  expiryDate: string;
+  originalPrice: number;
+  salePrice: number;
+  quantity: number;
+  inStock: boolean;
+  tags: { label: string; bg: string; text: string }[];
 }
-function saveCart(items: CartItem[]) {
-  try { localStorage.setItem(LS_CART, JSON.stringify(items)); } catch {}
+
+interface DeliveryOption {
+  id: string;
+  title: string;
+  price: number;
+  subtitle: string;
 }
 
+const DELIVERY_OPTIONS: DeliveryOption[] = [
+  { id: "standard", title: "Standart Teslimat — Ücretsiz", price: 0,  subtitle: "Tahmini teslimat: 25–26 Temmuz" },
+  { id: "express",  title: "Hızlı Teslimat — 79 TL",       price: 79, subtitle: "Yarın kapınızda" },
+];
+
+const VALID_COUPON = { code: "POODLE100", discount: 100, label: "POODLE100 — Yeni üyeye 100 TL" };
+
+const RECS = [
+  { id: "rec-1", name: "Buharlı Masaj Tarağı",    price: 399, emoji: "🪮" },
+  { id: "rec-2", name: "Göz Yaşı Bakım Losyonu",  price: 289, emoji: "💧" },
+];
+
+const DEFAULT_ITEM: CartItemData = {
+  id: "cart-1",
+  brand: "PRO PLAN",
+  name: "Pro Plan Small Adult Sensitive Somonlu Yetişkin Köpek Maması",
+  weight: "3 kg",
+  barcode: "7613035123456",
+  expiryDate: "18.07.2027",
+  originalPrice: 1599,
+  salePrice: 1349,
+  quantity: 1,
+  inStock: true,
+  tags: [
+    { label: "Yetişkin +1", bg: "#FEE2E2", text: "#991B1B" },
+    { label: "Sensitive",   bg: "#EDE9FE", text: "#5B21B6" },
+    { label: "Somonlu",     bg: "#EDE9FE", text: "#5B21B6" },
+  ],
+};
+
+function fmt(n: number) { return n.toLocaleString("tr-TR"); }
+
+/* ─── Address modal ──────────────────────── */
+const MOCK_ADDRESSES = [
+  { id: "a1", label: "Ev", detail: "Kadıköy, İstanbul" },
+  { id: "a2", label: "İş", detail: "Beşiktaş, İstanbul" },
+];
+
+function AddressModal({ onSelect, onClose }: { onSelect: (s: string) => void; onClose: () => void }) {
+  const [sel, setSel] = useState("a1");
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:200, display:"flex",
+                  alignItems:"flex-end", justifyContent:"center",
+                  background:"rgba(0,0,0,0.5)" }}
+      onClick={onClose}>
+      <div style={{ maxWidth:480, width:"100%", background:"#fff",
+                    borderRadius:"20px 20px 0 0", padding:"24px 20px 36px" }}
+        onClick={e => e.stopPropagation()}>
+        <div style={{ display:"flex", justifyContent:"space-between",
+                      alignItems:"center", marginBottom:20 }}>
+          <span style={{ fontSize:16, fontWeight:700 }}>Teslimat Adresi Seçin</span>
+          <button onClick={onClose} style={{ background:"none", border:"none",
+                                             cursor:"pointer", display:"flex" }}>
+            <X size={20} color="#6B7280" />
+          </button>
+        </div>
+        {MOCK_ADDRESSES.map(a => (
+          <div key={a.id} onClick={() => setSel(a.id)}
+            style={{ display:"flex", alignItems:"center", gap:12,
+                     padding:"12px 16px", marginBottom:8, borderRadius:12,
+                     border:`2px solid ${sel === a.id ? P : GB}`,
+                     background: sel === a.id ? PL : "#fff", cursor:"pointer" }}>
+            <div style={{ width:18, height:18, borderRadius:"50%",
+                          border:`2px solid ${sel === a.id ? P : "#9CA3AF"}`,
+                          display:"flex", alignItems:"center", justifyContent:"center",
+                          flexShrink:0 }}>
+              {sel === a.id && <div style={{ width:9, height:9, borderRadius:"50%",
+                                             background:P }} />}
+            </div>
+            <div>
+              <p style={{ fontSize:14, fontWeight:600, color:"#111827" }}>{a.label}</p>
+              <p style={{ fontSize:12, color:"#6B7280" }}>{a.detail}</p>
+            </div>
+          </div>
+        ))}
+        <button onClick={() => alert("Yeni adres yakında!")}
+          style={{ width:"100%", background:"none", border:`1.5px dashed ${GB}`,
+                   borderRadius:10, padding:"10px 0", fontSize:13,
+                   color:"#6B7280", cursor:"pointer", marginBottom:16,
+                   fontFamily:"inherit" }}>
+          + Yeni Adres Ekle
+        </button>
+        <button onClick={() => {
+          const a = MOCK_ADDRESSES.find(x => x.id === sel)!;
+          onSelect(`${a.label} — ${a.detail}`);
+          onClose();
+        }}
+          style={{ width:"100%", background:P, color:"#fff", border:"none",
+                   borderRadius:12, padding:"13px 0", fontSize:14,
+                   fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
+          Kaydet
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Toast ─────────────────────────────── */
+function Toast({ msg, onHide }: { msg: string; onHide: () => void }) {
+  return (
+    <div style={{ position:"fixed", bottom:100, left:"50%", transform:"translateX(-50%)",
+                  zIndex:300, background:"#111827", color:"#fff",
+                  padding:"10px 20px", borderRadius:12, fontSize:13,
+                  fontWeight:500, whiteSpace:"nowrap", boxShadow:"0 4px 12px rgba(0,0,0,0.2)" }}
+      onClick={onHide}>
+      {msg}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════ */
 export default function YPSepetPage() {
   const [, navigate] = useLocation();
-  const [cart, setCart] = useState<CartItem[]>(loadCart);
-  const [stockMap, setStockMap] = useState<Record<number, StockInfo>>({});
-  const [stockLoading, setStockLoading] = useState(false);
-  const prevIdsRef = useRef<string>("");
 
-  useEffect(() => {
-    document.title = "Sepetim | YourPoodle";
-    saveCart(cart);
-  }, [cart]);
+  /* cart state */
+  const [items, setItems] = useState<CartItemData[]>([DEFAULT_ITEM]);
+  const [showBanner, setShowBanner] = useState(true);
+  const [deliveryId, setDeliveryId] = useState("standard");
+  const [address, setAddress] = useState<string | null>(null);
+  const [showAddrModal, setShowAddrModal] = useState(false);
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{ discount: number; label: string } | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [recAdded, setRecAdded] = useState<Set<string>>(new Set());
 
-  // Shared validate helper — keeps both the on-change and interval effects DRY
-  const validateStock = (ids: number[], showSpinner = false) => {
-    if (showSpinner) setStockLoading(true);
-    fetch("/api/yp-cart/validate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids }),
-    })
-      .then(r => r.ok ? r.json() : {})
-      .then((data: Record<string, StockInfo>) => {
-        const normalized: Record<number, StockInfo> = {};
-        for (const k of Object.keys(data)) normalized[Number(k)] = data[k];
-        setStockMap(normalized);
-      })
-      .catch(() => {})
-      .finally(() => { if (showSpinner) setStockLoading(false); });
+  /* Tab nav */
+  const TABS = [
+    { key:"magaza", label:"Mağaza",    Icon:ShoppingBag, href:"/yourpoodle/magaza"     },
+    { key:"club",   label:"Club",      Icon:PawPrint,    href:"/yourpoodle/club"       },
+    { key:"ai",     label:"AI Asistan",Icon:Sparkles,    href:"/yourpoodle/ai-asistan" },
+    { key:"rehber", label:"Rehber",    Icon:BookOpen,    href:"/yourpoodle/rehber"     },
+  ];
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 2500);
   };
 
-  // Validate stock whenever cart item ids change — debounced 400ms to prevent
-  // flickering when multiple qty updates land in quick succession (#38)
-  useEffect(() => {
-    if (cart.length === 0) {
-      setStockMap({});
+  /* computed */
+  const delivery = DELIVERY_OPTIONS.find(d => d.id === deliveryId)!;
+  const originalSubtotal = items.reduce((s, i) => s + i.originalPrice * i.quantity, 0);
+  const saleSubtotal     = items.reduce((s, i) => s + i.salePrice     * i.quantity, 0);
+  const productDiscount  = originalSubtotal - saleSubtotal;
+  const shippingCost     = delivery.price === 0 ? 0 : (saleSubtotal >= 500 ? 0 : delivery.price);
+  const couponDiscount   = appliedCoupon?.discount ?? 0;
+  const total            = saleSubtotal + shippingCost - couponDiscount;
+  const installAmt       = (total / 3).toFixed(2).replace(".", ",");
+  const freeShipPct      = Math.min((saleSubtotal / 500) * 100, 100);
+  const itemCount        = items.reduce((s, i) => s + i.quantity, 0);
+
+  const updateQty = (id: string, delta: number) =>
+    setItems(prev => prev.map(i => i.id === id
+      ? { ...i, quantity: Math.max(1, Math.min(10, i.quantity + delta)) }
+      : i));
+
+  const removeItem = (id: string) => setItems(prev => prev.filter(i => i.id !== id));
+
+  const clearCart = () => {
+    if (window.confirm("Sepeti temizlemek istediğinizden emin misiniz?")) {
+      setItems([]);
+    }
+  };
+
+  const applyCoupon = (code: string) => {
+    const upper = code.trim().toUpperCase();
+    if (upper === VALID_COUPON.code) {
+      setAppliedCoupon({ discount: VALID_COUPON.discount, label: VALID_COUPON.label });
+      showToast("Kupon uygulandı ✓");
+    } else {
+      showToast("Geçersiz kupon kodu");
+    }
+  };
+
+  const proceedToPayment = () => {
+    if (!address) {
+      showToast("Lütfen teslimat adresi seçin");
+      setShowAddrModal(true);
       return;
     }
-    const ids = cart.map(i => i.id);
-    const idsKey = ids.slice().sort((a,b)=>a-b).join(",");
-    if (idsKey === prevIdsRef.current) return;
-    prevIdsRef.current = idsKey;
-    const timer = setTimeout(() => validateStock(ids, true), 400);
-    return () => clearTimeout(timer);
-  }, [cart]);
+    alert("Ödeme sayfası yakında!");
+  };
 
-  // Periodic re-check every 30 s while the page is open (catches race conditions)
-  useEffect(() => {
-    if (cart.length === 0) return;
-    const ids = cart.map(i => i.id);
-    const timer = setInterval(() => validateStock(ids), 30_000);
-    return () => clearInterval(timer);
-  }, [cart]);
-
-  // Auto-remove fully out-of-stock items once validation results arrive
-  useEffect(() => {
-    if (Object.keys(stockMap).length === 0) return;
-    setCart(prev => {
-      const filtered = prev.filter(item => {
-        const info = stockMap[item.id];
-        if (!info) return true; // not yet loaded — keep
-        return info.isActive && info.stock > 0;
-      });
-      return filtered.length !== prev.length ? filtered : prev;
-    });
-  }, [stockMap]);
-
-  const remove = (id: number) => setCart(prev => prev.filter(i => i.id !== id));
-  const changeQty = (id: number, delta: number) =>
-    setCart(prev => prev.map(i => i.id === id ? { ...i, qty: Math.max(1, i.qty + delta) } : i));
-
-  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const kargo = subtotal >= 299 ? 0 : 49;
-  const total = subtotal + kargo;
-  const cartCount = cart.reduce((s, i) => s + i.qty, 0);
-
-  // Determine per-item stock status
-  function getStockStatus(item: CartItem): "ok" | "low" | "insufficient" | "out" {
-    const info = stockMap[item.id];
-    if (!info) return "ok"; // not yet loaded — optimistic
-    if (!info.isActive || info.stock === 0) return "out";
-    if (item.qty > info.stock) return "insufficient";
-    if (info.stock <= LOW_STOCK_THRESHOLD) return "low";
-    return "ok";
+  /* ── EMPTY STATE ── */
+  if (items.length === 0) {
+    return (
+      <div style={{ maxWidth:480, margin:"0 auto", background:"#fff",
+                    minHeight:"100dvh", fontFamily:"Inter, system-ui, sans-serif",
+                    boxShadow:"0 0 40px rgba(0,0,0,0.08)" }}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}button{font-family:inherit;}`}</style>
+        {/* Header */}
+        <header style={{ position:"sticky", top:0, zIndex:40, background:"#fff",
+                         borderBottom:`1px solid ${GB}` }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+                        height:56, padding:"0 16px" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <button style={{ width:36, height:36, border:"none", background:"none",
+                               display:"flex", alignItems:"center", justifyContent:"center",
+                               cursor:"pointer" }} aria-label="Menü"><Menu size={22} /></button>
+              <button onClick={() => navigate("/yourpoodle")}
+                style={{ display:"flex", alignItems:"center", gap:8,
+                         background:"none", border:"none", cursor:"pointer" }}>
+                <img src="/images/yp-poodle-hero.png" alt="YourPoodle"
+                  style={{ width:32, height:32, borderRadius:"50%", objectFit:"cover" }} />
+                <span style={{ fontSize:16, fontWeight:700, color:P }}>YourPoodle</span>
+              </button>
+            </div>
+            <div style={{ display:"flex", gap:12 }}>
+              <button style={{ background:"none", border:"none", fontSize:13, cursor:"pointer" }}>Giriş Yap</button>
+              <button style={{ background:P, color:"#fff", border:"none", borderRadius:999,
+                               padding:"7px 16px", fontSize:13, fontWeight:600, cursor:"pointer" }}>Üye Ol</button>
+            </div>
+          </div>
+          <nav style={{ display:"flex", borderBottom:`1px solid ${GB}` }}>
+            {TABS.map(t => {
+              const active = t.key === "magaza";
+              return <button key={t.key} onClick={() => navigate(t.href)}
+                style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center",
+                         gap:4, padding:"10px 0", background:"none", border:"none",
+                         borderBottom: active ? `2px solid ${P}` : "2px solid transparent",
+                         cursor:"pointer", color: active ? P : "#9CA3AF", fontWeight: active ? 600 : 500 }}>
+                <t.Icon size={20} /><span style={{ fontSize:11 }}>{t.label}</span>
+              </button>;
+            })}
+          </nav>
+        </header>
+        <div style={{ padding:"80px 24px", textAlign:"center" }}>
+          <ShoppingCart size={60} color="#D1D5DB" style={{ margin:"0 auto 16px" }} />
+          <p style={{ fontSize:18, fontWeight:700, color:"#111827", marginBottom:8 }}>Sepetiniz boş</p>
+          <p style={{ fontSize:13, color:"#9CA3AF", marginBottom:24 }}>Mağazadan ürün ekleyerek başlayın.</p>
+          <button onClick={() => navigate("/yourpoodle/magaza")}
+            style={{ background:P, color:"#fff", border:"none", borderRadius:12,
+                     padding:"13px 32px", fontSize:14, fontWeight:700, cursor:"pointer" }}>
+            Alışverişe Devam Et
+          </button>
+        </div>
+      </div>
+    );
   }
 
-  const hasBlockingIssue = cart.some(item => {
-    const s = getStockStatus(item);
-    return s === "out" || s === "insufficient";
-  });
-
-  const hasOutItems = cart.some(item => getStockStatus(item) === "out");
-  const hasInsufficientItems = cart.some(item => getStockStatus(item) === "insufficient");
-
-  const removeOutOfStock = () =>
-    setCart(prev => prev.filter(item => getStockStatus(item) !== "out"));
-
-  // #30: Cap all over-qty items to their available stock in one tap
-  const fixAllQuantities = () =>
-    setCart(prev => prev.map(item => {
-      const info = stockMap[item.id];
-      if (!info || item.qty <= info.stock) return item;
-      return { ...item, qty: Math.max(1, info.stock) };
-    }));
-
+  /* ── FULL PAGE ── */
   return (
-    <YPLayout activeLink="/yourpoodle/magaza">
+    <div style={{ maxWidth:480, margin:"0 auto", background:"#F9FAFB",
+                  minHeight:"100dvh", fontFamily:"Inter, system-ui, sans-serif",
+                  boxShadow:"0 0 40px rgba(0,0,0,0.08)", paddingBottom:88 }}>
+
       <style>{`
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-        .sepet-item { transition: background 0.12s; }
-        .sepet-item:hover { background: #FAFAFA; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+        button { font-family:inherit; }
+        .rec-scroll::-webkit-scrollbar { display:none; }
+        .rec-scroll { -ms-overflow-style:none; scrollbar-width:none; }
+        input { font-family:inherit; }
       `}</style>
 
-      <div style={{ background: "#fff", minHeight: "100vh" }}>
-        {/* Header */}
-        <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #f0f0f0", position: "sticky", top: 0, zIndex: 100, display: "flex", alignItems: "center", gap: 12 }}>
-          <button onClick={() => navigate("/yourpoodle/magaza")}
-            style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", color: "#7C3AFF", fontSize: 13, fontWeight: 700, padding: 0, flexShrink: 0 }}>
-            <ChevronLeft size={16} /> Mağaza
-          </button>
-          <h1 style={{ flex: 1, textAlign: "center", fontSize: 16, fontWeight: 800, color: "#1a1a1a", margin: 0 }}>
-            Sepetim {cartCount > 0 ? `(${cartCount})` : ""}
-          </h1>
-          <div style={{ width: 60, flexShrink: 0 }} />
-        </div>
-
-        {cart.length === 0 ? (
-          /* Empty cart */
-          <div style={{ padding: "80px 24px", textAlign: "center" }}>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>🛒</div>
-            <h2 style={{ fontSize: 18, fontWeight: 800, color: "#1a1a1a", marginBottom: 8 }}>Sepetiniz boş</h2>
-            <p style={{ fontSize: 14, color: "#888", marginBottom: 24 }}>Mağazadan Poodle'ınız için ürün ekleyin.</p>
-            <button onClick={() => navigate("/yourpoodle/magaza")}
-              style={{ padding: "12px 28px", borderRadius: 20, background: "linear-gradient(135deg,#7C3AFF,#A855F7)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-              Mağazaya Git
+      {/* ══ HEADER ═════════════════════════════════════════ */}
+      <header style={{ position:"sticky", top:0, zIndex:50, background:"#fff",
+                       borderBottom:`1px solid ${GB}` }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+                      height:56, padding:"0 16px" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <button aria-label="Menü"
+              style={{ width:36, height:36, border:"none", background:"none",
+                       display:"flex", alignItems:"center", justifyContent:"center",
+                       cursor:"pointer", color:"#374151" }}>
+              <Menu size={22} />
+            </button>
+            <button onClick={() => navigate("/yourpoodle")}
+              style={{ display:"flex", alignItems:"center", gap:8,
+                       background:"none", border:"none", cursor:"pointer", padding:0 }}>
+              <img src="/images/yp-poodle-hero.png" alt="YourPoodle"
+                style={{ width:32, height:32, borderRadius:"50%",
+                         objectFit:"cover", objectPosition:"center top" }} />
+              <span style={{ fontSize:16, fontWeight:700, color:P }}>YourPoodle</span>
             </button>
           </div>
-        ) : (
-          <div style={{ maxWidth: 640, margin: "0 auto" }}>
-            {/* Cart items */}
-            <div style={{ padding: "8px 0 0" }}>
-              {cart.map(item => {
-                const status = getStockStatus(item);
-                const isOut = status === "out";
-                const isInsufficient = status === "insufficient";
-                const isLow = status === "low";
-                const info = stockMap[item.id];
-
-                return (
-                  <div key={item.id} className="sepet-item"
-                    style={{ display: "flex", flexDirection: "column", gap: 0, borderBottom: "1px solid #f5f5f5" }}>
-                    <div style={{ display: "flex", gap: 12, padding: "14px 16px", alignItems: "center", opacity: isOut ? 0.6 : 1 }}>
-                      {/* Image */}
-                      <div style={{ width: 72, height: 72, borderRadius: 12, background: "#F5F0FF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        {item.img
-                          ? <img src={item.img} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "contain", padding: 6 }} />
-                          : <span style={{ fontSize: 28 }}>🐾</span>
-                        }
-                      </div>
-
-                      {/* Info */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div onClick={() => navigate(`/yourpoodle/urun/${item.id}`)}
-                          style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.4, marginBottom: 6, cursor: "pointer", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as any }}>
-                          {item.name}
-                        </div>
-                        <div style={{ fontSize: 15, fontWeight: 900, color: isOut ? "#9CA3AF" : "#7C3AFF" }}>
-                          ₺{(item.price * item.qty).toLocaleString("tr-TR", { minimumFractionDigits: 0 })}
-                        </div>
-                      </div>
-
-                      {/* Qty controls */}
-                      <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-                        <button onClick={() => item.qty === 1 ? remove(item.id) : changeQty(item.id, -1)}
-                          style={{ width: 44, height: 44, borderRadius: 10, border: "1.5px solid #e5e7eb", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          {item.qty === 1 ? <Trash2 size={15} color="#EF4444" /> : <Minus size={15} />}
-                        </button>
-                        <span style={{ width: 30, textAlign: "center", fontSize: 15, fontWeight: 800 }}>{item.qty}</span>
-                        <button onClick={() => changeQty(item.id, 1)}
-                          disabled={isOut || (info != null && item.qty >= info.stock)}
-                          style={{ width: 44, height: 44, borderRadius: 10, border: "1.5px solid #e5e7eb", background: "#fff", cursor: (isOut || (info != null && item.qty >= info.stock)) ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", opacity: (isOut || (info != null && item.qty >= info.stock)) ? 0.4 : 1 }}>
-                          <Plus size={15} />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Stock warning badge */}
-                    {(isOut || isInsufficient || isLow) && (
-                      <div style={{
-                        margin: "0 16px 10px",
-                        padding: "7px 10px",
-                        borderRadius: 8,
-                        background: isOut || isInsufficient ? "#FEF2F2" : "#FFFBEB",
-                        border: `1px solid ${isOut || isInsufficient ? "#FECACA" : "#FDE68A"}`,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: isOut || isInsufficient ? "#DC2626" : "#D97706",
-                      }}>
-                        <AlertTriangle size={13} style={{ flexShrink: 0 }} />
-                        {isOut
-                          ? "Bu ürün stokta kalmadı. Sepetten çıkarmak için çöp kutusuna basın."
-                          : isInsufficient
-                          ? `Stokta yalnızca ${info?.stock ?? 0} adet var. Lütfen miktarı azaltın.`
-                          : `Son ${info?.stock ?? LOW_STOCK_THRESHOLD} ürün — acele edin!`
-                        }
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Kargo bilgisi */}
-            {subtotal < 299 && (
-              <div style={{ margin: "12px 16px", background: "#FFF7ED", borderRadius: 12, padding: "10px 14px", fontSize: 12.5, color: "#C2410C", fontWeight: 600 }}>
-                🚚 <strong>₺{(299 - subtotal).toLocaleString("tr-TR", { minimumFractionDigits: 0 })} daha</strong> ekle, kargo ücretsiz!
-              </div>
-            )}
-
-            {/* Out-of-stock summary warning */}
-            {hasBlockingIssue && !stockLoading && (
-              <div style={{ margin: "0 16px 12px" }}>
-                <div style={{ padding: "10px 14px", borderRadius: 12, background: "#FEF2F2", border: "1px solid #FECACA", fontSize: 13, color: "#DC2626", fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
-                  <AlertTriangle size={15} style={{ flexShrink: 0 }} />
-                  Sepetinizdeki bazı ürünlerin stoğu yetersiz. Siparişi tamamlamak için miktarları güncelleyin veya ürünleri çıkarın.
-                </div>
-                {hasInsufficientItems && (
-                  <button
-                    onClick={fixAllQuantities}
-                    style={{
-                      marginTop: 8,
-                      width: "100%",
-                      padding: "10px 16px",
-                      borderRadius: 10,
-                      border: "1.5px solid #FDE68A",
-                      background: "#fff",
-                      color: "#D97706",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
-                      fontFamily: "inherit",
-                    }}>
-                    ✂️ Miktarları stoka göre düzelt
-                  </button>
-                )}
-                {hasOutItems && (
-                  <button
-                    onClick={removeOutOfStock}
-                    style={{
-                      marginTop: 8,
-                      width: "100%",
-                      padding: "10px 16px",
-                      borderRadius: 10,
-                      border: "1.5px solid #FECACA",
-                      background: "#fff",
-                      color: "#DC2626",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
-                      fontFamily: "inherit",
-                    }}>
-                    <Trash2 size={14} /> Stokta olmayan ürünleri kaldır
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Özet — bottom margin clears fixed CTA bar (~72px) + nav(72px) + circle-protrusion(22px) + buffer */}
-            <div style={{ margin: "12px 16px 200px", background: "#F9FAFB", borderRadius: 16, padding: "16px 18px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#555", marginBottom: 8 }}>
-                <span>Ürünler ({cartCount} adet)</span>
-                <span>₺{subtotal.toLocaleString("tr-TR", { minimumFractionDigits: 0 })}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#555", marginBottom: 12 }}>
-                <span>Kargo</span>
-                <span style={{ color: kargo === 0 ? "#16A34A" : undefined, fontWeight: kargo === 0 ? 700 : undefined }}>
-                  {kargo === 0 ? "Ücretsiz" : `₺${kargo}`}
-                </span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 16, fontWeight: 900, color: "#1a1a1a", borderTop: "1px solid #e5e7eb", paddingTop: 12 }}>
-                <span>Toplam</span>
-                <span style={{ color: "#7C3AFF" }}>₺{total.toLocaleString("tr-TR", { minimumFractionDigits: 0 })}</span>
-              </div>
-            </div>
+          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+            <button style={{ background:"none", border:"none", cursor:"pointer",
+                             fontSize:13, color:"#374151", fontWeight:500 }}>
+              Giriş Yap
+            </button>
+            <button style={{ background:P, color:"#fff", border:"none", borderRadius:999,
+                             padding:"7px 16px", fontSize:13, fontWeight:600, cursor:"pointer" }}>
+              Üye Ol
+            </button>
           </div>
-        )}
+        </div>
+        <nav style={{ display:"flex", borderBottom:`1px solid ${GB}` }}>
+          {TABS.map(tab => {
+            const active = tab.key === "magaza";
+            return (
+              <button key={tab.key} onClick={() => navigate(tab.href)}
+                style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center",
+                         gap:4, padding:"10px 0", background:"none", border:"none",
+                         borderBottom: active ? `2px solid ${P}` : "2px solid transparent",
+                         cursor:"pointer", color: active ? P : "#9CA3AF",
+                         fontWeight: active ? 600 : 500 }}>
+                <tab.Icon size={20} />
+                <span style={{ fontSize:11 }}>{tab.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </header>
 
-        {/* Checkout CTA — bottom offset = nav(72) + circle-protrusion(22) + gap(6) */}
-        {cart.length > 0 && (
-          <div style={{ position: "fixed", bottom: "calc(100px + env(safe-area-inset-bottom, 0px))", left: 0, right: 0, background: "#fff", borderTop: "1px solid #f0f0f0", padding: "12px 16px", zIndex: 300, boxShadow: "0 -4px 16px rgba(0,0,0,0.10)" }}>
-            <div style={{ maxWidth: 640, margin: "0 auto", display: "flex", gap: 10 }}>
-              <button onClick={() => navigate("/yourpoodle/magaza")}
-                style={{ width: 48, height: 48, borderRadius: 12, border: "1.5px solid #7C3AFF", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <ShoppingCart size={18} color="#7C3AFF" />
-              </button>
-              <button
-                onClick={() => navigate("/yourpoodle/odeme")}
-                disabled={hasBlockingIssue}
-                title={hasBlockingIssue ? "Stok sorunu olan ürünleri düzeltin" : undefined}
-                style={{
-                  flex: 1, height: 48, borderRadius: 12, border: "none",
-                  background: hasBlockingIssue
-                    ? "linear-gradient(135deg,#9CA3AF,#D1D5DB)"
-                    : "linear-gradient(135deg,#7C3AFF,#A855F7)",
-                  color: "#fff", fontSize: 14, fontWeight: 800,
-                  cursor: hasBlockingIssue ? "not-allowed" : "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  gap: 8, fontFamily: "inherit",
-                  opacity: hasBlockingIssue ? 0.8 : 1,
-                }}>
-                {hasBlockingIssue ? (
-                  <>
-                    <AlertTriangle size={16} /> Stok Sorunu Var
-                  </>
-                ) : (
-                  <>
-                    Siparişi Tamamla <ArrowRight size={16} />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        )}
+      {/* ══ CART HEADER ════════════════════════════════════ */}
+      <div style={{ background:"#fff", padding:"12px 16px",
+                    display:"flex", alignItems:"center", justifyContent:"space-between",
+                    borderBottom:`1px solid ${GB}` }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <button onClick={() => navigate(-1 as any)}
+            aria-label="Geri"
+            style={{ width:32, height:32, border:"none", background:"none",
+                     cursor:"pointer", display:"flex", alignItems:"center",
+                     justifyContent:"center", color:"#374151", padding:0 }}>
+            <ChevronLeft size={20} />
+          </button>
+          <span style={{ fontSize:17, fontWeight:800, color:"#111827" }}>Sepetim</span>
+          <span style={{ background:PL, color:P, fontSize:11, fontWeight:700,
+                         padding:"3px 9px", borderRadius:999 }}>
+            {itemCount} ürün
+          </span>
+        </div>
+        <button onClick={clearCart}
+          style={{ background:"none", border:"none", cursor:"pointer",
+                   fontSize:13, color:"#9CA3AF", fontFamily:"inherit" }}>
+          Sepeti Temizle
+        </button>
       </div>
-    </YPLayout>
+
+      <div style={{ padding:"0 0 12px" }}>
+
+        {/* ══ SUCCESS BANNER ═══════════════════════════════ */}
+        {showBanner && (
+          <div style={{ margin:"12px 16px 4px" }}>
+            <div style={{ background:"#F0FDF4", border:"1px solid #BBF7D0",
+                          borderRadius:12, padding:"12px 14px",
+                          display:"flex", alignItems:"center", gap:10 }}>
+              <CheckCircle size={18} color="#28A745" style={{ flexShrink:0 }} />
+              <span style={{ fontSize:13, fontWeight:500, color:"#15803D", flex:1 }}>
+                Ürün sepetinize eklendi.
+              </span>
+              <button onClick={() => setShowBanner(false)}
+                style={{ background:"none", border:"none", cursor:"pointer",
+                         display:"flex", padding:2 }}>
+                <X size={16} color="#6B7280" />
+              </button>
+            </div>
+          </div>
+        )}
+        <div style={{ padding:"8px 16px 8px" }}>
+          <button onClick={() => navigate("/yourpoodle/magaza")}
+            style={{ background:"none", border:"none", cursor:"pointer",
+                     fontSize:13, fontWeight:600, color:PB, fontFamily:"inherit" }}>
+            Alışverişe Devam Et
+          </button>
+        </div>
+
+        {/* ══ CART ITEM CARD ═══════════════════════════════ */}
+        {items.map(item => (
+          <div key={item.id}
+            style={{ margin:"0 16px 12px", background:"#fff", borderRadius:14,
+                     border:`1px solid ${GB}`, padding:14,
+                     boxShadow:"0 1px 4px rgba(0,0,0,0.05)" }}>
+            <div style={{ display:"flex", gap:12 }}>
+              {/* Product image */}
+              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6, flexShrink:0 }}>
+                <div style={{ width:80, height:108, borderRadius:10,
+                              background:"linear-gradient(135deg,#EEF2FF,#E0E7FF)",
+                              display:"flex", flexDirection:"column",
+                              alignItems:"center", justifyContent:"center",
+                              overflow:"hidden", position:"relative" }}>
+                  <span style={{ fontSize:11, fontWeight:800, color:"#003087",
+                                 letterSpacing:"0.5px" }}>PRO PLAN</span>
+                  <span style={{ fontSize:32, marginTop:4 }}>🦮</span>
+                </div>
+                <button onClick={() => showToast("Daha sonra al listesine eklendi")}
+                  style={{ background:"none", border:"none", cursor:"pointer",
+                           fontSize:11, fontWeight:600, color:PB, fontFamily:"inherit",
+                           textDecoration:"underline", whiteSpace:"nowrap" }}>
+                  Daha Sonra Al
+                </button>
+              </div>
+
+              {/* Details */}
+              <div style={{ flex:1, minWidth:0 }}>
+                {/* Top icons */}
+                <div style={{ display:"flex", justifyContent:"flex-end", gap:10,
+                              marginBottom:6 }}>
+                  <button onClick={() => removeItem(item.id)}
+                    aria-label="Sil"
+                    style={{ background:"none", border:"none", cursor:"pointer",
+                             display:"flex", padding:2 }}>
+                    <Trash2 size={16} color="#9CA3AF" />
+                  </button>
+                  <button aria-label="Favorile"
+                    style={{ background:"none", border:"none", cursor:"pointer",
+                             display:"flex", padding:2 }}>
+                    <Heart size={16} color="#9CA3AF" />
+                  </button>
+                </div>
+
+                <p style={{ fontSize:10, fontWeight:800, color:P,
+                            letterSpacing:"0.6px", textTransform:"uppercase",
+                            marginBottom:3 }}>
+                  {item.brand}
+                </p>
+                <p style={{ fontSize:12, fontWeight:700, color:"#111827",
+                            lineHeight:1.35, marginBottom:5,
+                            display:"-webkit-box", WebkitLineClamp:2,
+                            WebkitBoxOrient:"vertical", overflow:"hidden" }}>
+                  {item.name}
+                </p>
+                <p style={{ fontSize:10, color:"#6B7280", lineHeight:1.7 }}>
+                  {item.weight}<br />
+                  Barkod: {item.barcode}<br />
+                  SKT: {item.expiryDate}
+                </p>
+                <div style={{ display:"flex", alignItems:"center", gap:5,
+                              marginTop:4, marginBottom:6 }}>
+                  <span style={{ width:7, height:7, borderRadius:"50%",
+                                 background:"#22C55E", display:"inline-block" }} />
+                  <span style={{ fontSize:10, color:"#16A34A", fontWeight:500 }}>Stokta</span>
+                </div>
+
+                {/* Tags */}
+                <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginBottom:8 }}>
+                  {item.tags.map(t => (
+                    <span key={t.label}
+                      style={{ background:t.bg, color:t.text,
+                               fontSize:10, fontWeight:600,
+                               padding:"3px 8px", borderRadius:999 }}>
+                      {t.label}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Price + Qty */}
+                <div style={{ display:"flex", justifyContent:"space-between",
+                              alignItems:"flex-end" }}>
+                  <div>
+                    <p style={{ fontSize:11, color:"#9CA3AF",
+                                textDecoration:"line-through", marginBottom:1 }}>
+                      {fmt(item.originalPrice * item.quantity)} TL
+                    </p>
+                    <p style={{ fontSize:17, fontWeight:800, color:PB,
+                                lineHeight:1, marginBottom:2 }}>
+                      {fmt(item.salePrice * item.quantity)} TL
+                    </p>
+                    <p style={{ fontSize:10, fontWeight:600, color:"#16A34A" }}>
+                      {fmt((item.originalPrice - item.salePrice) * item.quantity)} TL kazanç
+                    </p>
+                  </div>
+                  {/* Qty selector */}
+                  <div style={{ display:"flex", alignItems:"center",
+                                border:`1.5px solid ${PBD}`, borderRadius:10,
+                                overflow:"hidden" }}>
+                    <button onClick={() => updateQty(item.id, -1)}
+                      aria-label="Azalt"
+                      disabled={item.quantity === 1}
+                      style={{ padding:"7px 10px", background:"none", border:"none",
+                               cursor: item.quantity === 1 ? "not-allowed" : "pointer",
+                               color: item.quantity === 1 ? "#D1D5DB" : "#374151",
+                               display:"flex", alignItems:"center" }}>
+                      <Minus size={13} />
+                    </button>
+                    <span style={{ padding:"7px 12px", fontSize:13, fontWeight:700,
+                                   color:"#111827", minWidth:30, textAlign:"center" }}>
+                      {item.quantity}
+                    </span>
+                    <button onClick={() => updateQty(item.id, 1)}
+                      aria-label="Artır"
+                      disabled={item.quantity === 10}
+                      style={{ padding:"7px 10px", background:"none", border:"none",
+                               cursor: item.quantity === 10 ? "not-allowed" : "pointer",
+                               color: item.quantity === 10 ? "#D1D5DB" : "#374151",
+                               display:"flex", alignItems:"center" }}>
+                      <Plus size={13} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* ══ INSTALLMENT BANNER ═══════════════════════════ */}
+        <div style={{ margin:"0 16px 12px", background:PL,
+                      borderRadius:14, padding:"12px 16px",
+                      display:"flex", alignItems:"center", gap:12 }}>
+          <CreditCard size={18} color={P} style={{ flexShrink:0 }} />
+          <div>
+            <p style={{ fontSize:11, fontWeight:600, color:"#374151" }}>
+              Peşin fiyatına 3 taksit
+            </p>
+            <p style={{ fontSize:14, fontWeight:800, color:P }}>
+              3 × {installAmt} TL
+            </p>
+          </div>
+        </div>
+
+        {/* ══ SHIPPING PROGRESS ════════════════════════════ */}
+        <div style={{ margin:"0 16px 12px", background:"#fff",
+                      borderRadius:14, border:`1px solid ${GB}`, padding:"14px 16px" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+            <Truck size={18} color={PB} />
+            <span style={{ fontSize:13, fontWeight:700, color:"#111827" }}>
+              {freeShipPct >= 100
+                ? "Ücretsiz kargo kazandınız!"
+                : `Ücretsiz kargoya ${fmt(500 - saleSubtotal)} TL kaldı`}
+            </span>
+          </div>
+          <div style={{ width:"100%", height:8, background:"#F3F4F6",
+                        borderRadius:999, overflow:"hidden" }}>
+            <div style={{ width:`${freeShipPct}%`, height:"100%",
+                          background:PB, borderRadius:999,
+                          transition:"width 0.4s" }} />
+          </div>
+          <p style={{ fontSize:11, color:"#9CA3AF", marginTop:8 }}>
+            500 TL üzeri siparişlerde kargo ücretsiz
+          </p>
+        </div>
+
+        {/* ══ DELIVERY OPTIONS ═════════════════════════════ */}
+        <div style={{ margin:"0 16px 12px" }}>
+          <p style={{ fontSize:13, fontWeight:700, color:"#111827", marginBottom:10 }}>
+            Teslimat Seçenekleri
+          </p>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {DELIVERY_OPTIONS.map(opt => {
+              const sel = deliveryId === opt.id;
+              return (
+                <button key={opt.id} onClick={() => setDeliveryId(opt.id)}
+                  style={{ display:"flex", alignItems:"center", gap:12,
+                           padding:"12px 14px", borderRadius:12,
+                           border:`2px solid ${sel ? P : GB}`,
+                           background: sel ? "#FAFAFF" : "#fff",
+                           cursor:"pointer", textAlign:"left", width:"100%",
+                           fontFamily:"inherit" }}>
+                  {/* Radio */}
+                  <div style={{ width:18, height:18, borderRadius:"50%",
+                                border:`2px solid ${sel ? P : "#D1D5DB"}`,
+                                display:"flex", alignItems:"center", justifyContent:"center",
+                                flexShrink:0 }}>
+                    {sel && <div style={{ width:9, height:9, borderRadius:"50%",
+                                          background:P }} />}
+                  </div>
+                  <div>
+                    <p style={{ fontSize:13, fontWeight:600, color:"#111827" }}>{opt.title}</p>
+                    <p style={{ fontSize:11, color:"#9CA3AF", marginTop:2 }}>{opt.subtitle}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Address picker */}
+          <button onClick={() => setShowAddrModal(true)}
+            style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+                     width:"100%", marginTop:10, background:"#F9FAFB",
+                     border:`1px solid ${GB}`, borderRadius:12, padding:"13px 16px",
+                     cursor:"pointer", fontFamily:"inherit" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <MapPin size={17} color={P} />
+              <span style={{ fontSize:13, color:"#374151" }}>
+                {address ?? "Teslimat adresinizi seçin"}
+              </span>
+            </div>
+            <ChevronRight size={17} color="#9CA3AF" />
+          </button>
+        </div>
+
+        {/* ══ COUPON ═══════════════════════════════════════ */}
+        <div style={{ margin:"0 16px 12px" }}>
+          <p style={{ fontSize:13, fontWeight:700, color:"#111827", marginBottom:10 }}>
+            İndirim Kodu
+          </p>
+          <div style={{ display:"flex", gap:8 }}>
+            <input value={couponInput}
+              onChange={e => setCouponInput(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && applyCoupon(couponInput)}
+              placeholder="Kupon kodunuzu girin"
+              style={{ flex:1, border:`1.5px solid ${GB}`, borderRadius:12,
+                       padding:"11px 14px", fontSize:13, color:"#374151",
+                       background:"#fff", outline:"none" }} />
+            <button onClick={() => applyCoupon(couponInput)}
+              style={{ border:`2px solid ${P}`, borderRadius:12, padding:"11px 16px",
+                       background:"none", color:P, fontSize:13, fontWeight:700,
+                       cursor:"pointer" }}>
+              Uygula
+            </button>
+          </div>
+          {/* Suggestion */}
+          <div style={{ marginTop:8, background:"#F9FAFB", borderRadius:12,
+                        padding:"10px 14px",
+                        display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+              <Tag size={14} color="#6B7280" />
+              <span style={{ fontSize:12, color:"#374151" }}>
+                {VALID_COUPON.label}
+              </span>
+            </div>
+            <button onClick={() => {
+              setCouponInput(VALID_COUPON.code);
+              applyCoupon(VALID_COUPON.code);
+            }}
+              style={{ background:"none", border:"none", cursor:"pointer",
+                       fontSize:12, fontWeight:700, color:P, fontFamily:"inherit" }}>
+              Kullan
+            </button>
+          </div>
+        </div>
+
+        {/* ══ ORDER SUMMARY ════════════════════════════════ */}
+        <div style={{ margin:"0 16px 12px", background:"#fff",
+                      borderRadius:14, border:`1px solid ${GB}`,
+                      padding:"16px 16px" }}>
+          <p style={{ fontSize:13, fontWeight:700, color:"#111827", marginBottom:14 }}>
+            Sipariş Özeti
+          </p>
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            {/* Ürünler */}
+            <div style={{ display:"flex", justifyContent:"space-between" }}>
+              <span style={{ fontSize:13, color:"#374151" }}>Ürünler ({itemCount})</span>
+              <span style={{ fontSize:13, color:"#374151" }}>{fmt(originalSubtotal)} TL</span>
+            </div>
+            {/* Ürün İndirimi */}
+            <div style={{ display:"flex", justifyContent:"space-between" }}>
+              <span style={{ fontSize:13, color:"#374151" }}>Ürün İndirimi</span>
+              <span style={{ fontSize:13, color:"#16A34A", fontWeight:600 }}>
+                -{fmt(productDiscount)} TL
+              </span>
+            </div>
+            {/* Kargo */}
+            <div style={{ display:"flex", justifyContent:"space-between" }}>
+              <span style={{ fontSize:13, color:"#374151" }}>Kargo</span>
+              <span style={{ fontSize:13, color: shippingCost === 0 ? "#16A34A" : "#374151",
+                             fontWeight: shippingCost === 0 ? 600 : 400 }}>
+                {shippingCost === 0 ? "Ücretsiz" : `${fmt(shippingCost)} TL`}
+              </span>
+            </div>
+            {/* Kupon */}
+            <div style={{ display:"flex", justifyContent:"space-between" }}>
+              <span style={{ fontSize:13, color:"#374151" }}>Kupon İndirimi</span>
+              <span style={{ fontSize:13, color: couponDiscount > 0 ? "#16A34A" : "#374151",
+                             fontWeight: couponDiscount > 0 ? 600 : 400 }}>
+                {couponDiscount > 0 ? `-${fmt(couponDiscount)} TL` : "0 TL"}
+              </span>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div style={{ height:1, background:"#F3F4F6", margin:"14px 0" }} />
+
+          {/* Total */}
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
+            <span style={{ fontSize:14, fontWeight:700, color:"#111827" }}>Toplam</span>
+            <span style={{ fontSize:24, fontWeight:800, color:PB }}>{fmt(total)} TL</span>
+          </div>
+          <p style={{ fontSize:11, color:"#9CA3AF", marginTop:3 }}>KDV dahil</p>
+          <p style={{ fontSize:11, color:"#9CA3AF", marginTop:4 }}>
+            3 taksit seçeneği: 3 x {installAmt} TL
+          </p>
+        </div>
+
+        {/* ══ PAYMENT SECTION ══════════════════════════════ */}
+        <div style={{ padding:"0 16px", marginBottom:12,
+                      display:"flex", flexDirection:"column", gap:10 }}>
+          {/* Güvenli Ödemeye Geç */}
+          <button onClick={proceedToPayment}
+            style={{ width:"100%", background:P, color:"#fff", border:"none",
+                     borderRadius:14, padding:"16px 0", fontSize:15, fontWeight:700,
+                     cursor:"pointer", display:"flex", alignItems:"center",
+                     justifyContent:"center", gap:8, fontFamily:"inherit" }}>
+            <Lock size={17} />
+            Güvenli Ödemeye Geç
+          </button>
+
+          {/* SSL */}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+            <ShieldCheck size={14} color={PB} />
+            <span style={{ fontSize:12, color:"#9CA3AF" }}>256-bit SSL ile güvenli ödeme</span>
+          </div>
+
+          {/* Card logos */}
+          <div style={{ display:"flex", justifyContent:"center", gap:8 }}>
+            {["VISA", "Mastercard", "troy"].map(logo => (
+              <div key={logo}
+                style={{ background:"#fff", border:`1px solid ${GB}`,
+                         borderRadius:8, padding:"5px 12px",
+                         fontSize:12, fontWeight:800, color:"#374151" }}>
+                {logo}
+              </div>
+            ))}
+          </div>
+
+          {/* Alışverişe Devam Et */}
+          <button onClick={() => navigate("/yourpoodle/magaza")}
+            style={{ width:"100%", background:"#fff",
+                     border:`2px solid ${P}`, borderRadius:14, padding:"13px 0",
+                     fontSize:14, fontWeight:700, color:P, cursor:"pointer",
+                     fontFamily:"inherit" }}>
+            Alışverişe Devam Et
+          </button>
+        </div>
+
+        {/* ══ RECOMMENDATIONS ══════════════════════════════ */}
+        <div style={{ padding:"0 16px" }}>
+          <p style={{ fontSize:13, fontWeight:700, color:"#111827", marginBottom:12 }}>
+            Bunları da sevebilirsiniz
+          </p>
+          <div className="rec-scroll"
+            style={{ display:"flex", gap:12, overflowX:"auto" }}>
+            {RECS.map(rec => (
+              <div key={rec.id}
+                style={{ minWidth:140, background:"#fff",
+                         border:`1px solid ${GB}`, borderRadius:14,
+                         padding:"10px 10px 12px", flexShrink:0 }}>
+                <div style={{ width:"100%", height:76, borderRadius:10,
+                              background:"#F9FAFB", display:"flex",
+                              alignItems:"center", justifyContent:"center",
+                              fontSize:36, marginBottom:8 }}>
+                  {rec.emoji}
+                </div>
+                <p style={{ fontSize:11, fontWeight:600, color:"#374151",
+                            lineHeight:1.4, marginBottom:5,
+                            display:"-webkit-box", WebkitLineClamp:2,
+                            WebkitBoxOrient:"vertical", overflow:"hidden" }}>
+                  {rec.name}
+                </p>
+                <p style={{ fontSize:14, fontWeight:800, color:PB, marginBottom:8 }}>
+                  {fmt(rec.price)} TL
+                </p>
+                <button onClick={() => {
+                  setRecAdded(prev => new Set(prev).add(rec.id));
+                  showToast(`${rec.name} sepete eklendi`);
+                }}
+                  style={{ width:"100%", background: recAdded.has(rec.id) ? "#16A34A" : "none",
+                           border:`1.5px solid ${recAdded.has(rec.id) ? "#16A34A" : P}`,
+                           borderRadius:8, padding:"7px 0", fontSize:11,
+                           fontWeight:700, color: recAdded.has(rec.id) ? "#fff" : P,
+                           cursor:"pointer", fontFamily:"inherit",
+                           transition:"all 0.2s" }}>
+                  {recAdded.has(rec.id) ? "✓ Eklendi" : "+ Ekle"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+
+      {/* ══ ADDRESS MODAL ═══════════════════════════════════ */}
+      {showAddrModal && (
+        <AddressModal
+          onSelect={setAddress}
+          onClose={() => setShowAddrModal(false)} />
+      )}
+
+      {/* ══ TOAST ════════════════════════════════════════════ */}
+      {toastMsg && <Toast msg={toastMsg} onHide={() => setToastMsg(null)} />}
+
+      {/* ══ STICKY BOTTOM BAR ════════════════════════════════ */}
+      <div style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:50,
+                    display:"flex", justifyContent:"center" }}>
+        <div style={{ maxWidth:480, width:"100%", background:"#fff",
+                      borderTop:`1px solid ${GB}`,
+                      display:"flex", alignItems:"center", justifyContent:"space-between",
+                      padding:"12px 16px",
+                      boxShadow:"0 -4px 16px rgba(0,0,0,0.08)" }}>
+          <div>
+            <p style={{ fontSize:11, color:"#9CA3AF" }}>Toplam</p>
+            <p style={{ fontSize:18, fontWeight:800, color:PB }}>{fmt(total)} TL</p>
+          </div>
+          <button onClick={proceedToPayment}
+            style={{ background:P, color:"#fff", border:"none", borderRadius:12,
+                     padding:"12px 24px", fontSize:14, fontWeight:700,
+                     cursor:"pointer", fontFamily:"inherit" }}>
+            Ödemeye Geç
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

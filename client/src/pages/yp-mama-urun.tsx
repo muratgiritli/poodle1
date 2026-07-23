@@ -90,7 +90,7 @@ export default function YPMamaUrunPage() {
 
   const addToCart = () => {
     setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
+    setTimeout(() => { setAdded(false); navigate("/yourpoodle/sepet"); }, 800);
   };
 
   const share = () => {
