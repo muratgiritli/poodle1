@@ -1,0 +1,689 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "Destek Deneyimini Değerlendir" (Evaluate Support Experience) page
+for YourPoodle.com. This page opens AFTER a support ticket is closed/resolved.
+Users rate overall experience, evaluate the support agent, select satisfaction tags,
+write a short comment, confirm solution adequacy, and submit for PoodlePuan reward.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, AuthContext, authenticated Header, TabNavigation,
+  MobileDrawer, Toast, and routing.
+- Opens FROM /hesabim/destek-talepleri when user rates a solved ticket
+  OR after ticket status changes to "Çözüldü" → redirect here.
+- Link FROM solved ticket #YP-4798 star rating → this page.
+- After submit → navigate back to /hesabim/destek-talepleri with success toast.
+- DO NOT rebuild the entire app.
+- DO NOT delete or rewrite existing pages.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Route: /hesabim/destek-talepleri/degerlendir/:ticketId
+Example: /hesabim/destek-talepleri/degerlendir/YP-4798
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT skip any rating, checkbox, toggle, banner, or button.
+4. DO NOT use Lorem ipsum.
+5. Optimize for 390px mobile. Max width 480px centered.
+
+MANDATORY FEATURES:
+  ✅ Green "Talebiniz Çözüldü" success banner
+  ✅ Overall 5-star rating with label (e.g. "Çok İyi" 4/5)
+  ✅ Support agent card with photo, name, verified badge, agent star rating
+  ✅ 6 satisfaction checkbox pills (multi-select)
+  ✅ Comment textarea with 500 char limit + counter
+  ✅ Toggle "Yorumum destek ekibiyle paylaşılsın"
+  ✅ Solution buttons: "Evet, çözüldü" / "Hayır, devam ediyor"
+  ✅ PoodlePuan reward banner (+25 Puan)
+  ✅ Submit + "Daha Sonra" skip
+  ✅ Talep Özeti summary card
+  ✅ Thank you banner + footer
+
+6. EVERY star click, checkbox, toggle, solution button, and submit MUST work.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #5D3EBD
+  purple-dark:     #4A22A0
+  purple-light:    #F3EEFF
+  success-green-bg:#F0FDF4
+  success-green:   #16A34A
+  success-green-border:#BBF7D0
+  page-bg:         #F9F9FB
+  card-bg:         #FFFFFF
+  star-filled:     #5D3EBD
+  star-empty:      #D1D5DB
+  star-gold:       #FBBF24
+  agent-verified:  #3B82F6
+  pill-selected:   #F3EEFF
+  pill-selected-border:#5D3EBD
+  pill-unselected: #FFFFFF
+  solution-yes:    #F3EEFF
+  solution-no:     #F9FAFB
+  reward-bg:       #F3EEFF
+  poodle-gold:     #F59E0B
+  text-dark:       #111827
+  text-secondary:  #6B7280
+  footer-bg:       #5D3EBD
+  toggle-on:       #5D3EBD
+
+Typography: Inter
+Main card: mx-4 bg white rounded-2xl border border-gray-100 shadow-sm p-4
+
+Rating labels map:
+  1 → "Çok Kötü"
+  2 → "Kötü"
+  3 → "Orta"
+  4 → "Çok İyi"
+  5 → "Mükemmel"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    support-rating/
+      SupportRatingBreadcrumb.tsx
+      SupportResolvedBanner.tsx
+      SupportOverallRating.tsx
+      SupportAgentCard.tsx
+      SupportAgentStarRating.tsx
+      SupportSatisfactionGrid.tsx
+      SupportSatisfactionPill.tsx
+      SupportCommentBox.tsx
+      SupportShareToggle.tsx
+      SupportSolutionButtons.tsx
+      SupportRewardBanner.tsx
+      SupportRatingActions.tsx
+      SupportTicketSummaryCard.tsx
+      SupportThankYouBanner.tsx
+      SupportRatingFooter.tsx
+      SupportRatingSuccessModal.tsx
+  pages/
+    SupportExperienceRatingPage.tsx
+  data/
+    supportRatingMockData.ts
+  hooks/
+    useSupportRating.ts
+  App.tsx
+
+Update SupportTicketsPage / SupportTicketsSolvedRow:
+  Star rating click OR "Değerlendir" → navigate(`/hesabim/destek-talepleri/degerlendir/${ticketId}`)
+
+Update SupportRequestReceivedPage (when ticket closed):
+  Optional redirect → degerlendir page
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — MOCK DATA (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/supportRatingMockData.ts:
+
+export interface SupportAgent {
+  id: string;
+  name: string;
+  title: string;              // "YourPoodle Destek Uzmanı"
+  avatar: string;
+  isVerified: boolean;
+  defaultRating: number;      // 5 small stars display
+}
+
+export interface ResolvedTicket {
+  id: string;
+  ticketNumber: string;       // "YP-4798"
+  title: string;              // "Tasma beden değişimi"
+  closedAt: string;           // "24 Temmuz 2026 • 01:06"
+  solution: string;           // "M beden değişimi onaylandı"
+  status: string;             // "Çözüldü"
+}
+
+export interface SatisfactionOption {
+  id: string;
+  label: string;
+  defaultSelected?: boolean;
+}
+
+export const resolvedTicket: ResolvedTicket = {
+  id: "YP-4798",
+  ticketNumber: "YP-4798",
+  title: "Tasma beden değişimi",
+  closedAt: "24 Temmuz 2026 • 01:06",
+  solution: "M beden değişimi onaylandı",
+  status: "Çözüldü",
+};
+
+export const supportAgent: SupportAgent = {
+  id: "agent-1",
+  name: "Elif",
+  title: "YourPoodle Destek Uzmanı",
+  avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80&h=80&fit=crop",
+  isVerified: true,
+  defaultRating: 5,
+};
+
+export const satisfactionOptions: SatisfactionOption[] = [
+  { id: "fast", label: "Hızlı Yanıt", defaultSelected: true },
+  { id: "clear", label: "Açıklayıcı Bilgi", defaultSelected: true },
+  { id: "kind", label: "Nazik İletişim", defaultSelected: true },
+  { id: "solved", label: "Sorunum Çözüldü", defaultSelected: true },
+  { id: "easy", label: "Kolay İşlem", defaultSelected: false },
+  { id: "tracking", label: "Takip Süreci", defaultSelected: false },
+];
+
+export const defaultComment =
+  "Elif hanım tasma bedeni konusunda çok yardımcı oldu. Değişim süreci hızlı ilerledi, kargo bilgisi de net paylaşıldı.";
+
+export const rewardPoints = 25;
+
+export const ratingLabels: Record<number, string> = {
+  1: "Çok Kötü",
+  2: "Kötü",
+  3: "Orta",
+  4: "Çok İyi",
+  5: "Mükemmel",
+};
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — useSupportRating HOOK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: hooks/useSupportRating.ts
+
+State:
+  overallRating: number (default 4)
+  agentRating: number (default 5)
+  selectedSatisfaction: Set<string> (default from defaultSelected options)
+  comment: string (default defaultComment)
+  shareWithTeam: boolean (default true)
+  solutionAdequate: "yes" | "no" | null (default "yes")
+  isSubmitting: boolean
+  submitted: boolean
+
+Functions:
+  setOverallRating(n: 1-5)
+  setAgentRating(n: 1-5)
+  toggleSatisfaction(id)
+  setComment(text) → max 500 chars
+  toggleShareWithTeam()
+  setSolutionAdequate(value: "yes" | "no")
+  submitRating() → validate overallRating >= 1 → toast "Değerlendirmeniz alındı ✓ +25 PoodlePuan" → navigate("/hesabim/destek-talepleri")
+  skipLater() → navigate("/hesabim/destek-talepleri")
+  viewTicketAgain() → navigate(`/hesabim/yardim/talep/${ticketId}`)
+
+Computed:
+  commentLength → comment.length
+  ratingLabel → ratingLabels[overallRating]
+  canSubmit → overallRating >= 1
+
+Use useParams for ticketId — fallback YP-4798 mock.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — BREADCRUMB (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportRatingBreadcrumb.tsx
+
+px-4 pt-3 pb-1
+
+  flex items-center gap-1 flex-wrap
+
+  ArrowLeft size 16 color #5D3EBD → navigate("/hesabim/destek-talepleri")
+
+  "Hesabım / Destek Taleplerim / Değerlendir"
+    text-xs color #5D3EBD
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — RESOLVED SUCCESS BANNER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportResolvedBanner.tsx
+
+mx-4 mb-4 bg #F0FDF4 border border #BBF7D0 rounded-2xl p-4 text-center
+
+  Green circle w-12 h-12 rounded-full bg #16A34A flex items-center justify-center mx-auto mb-3
+    Check icon size 24 color white strokeWidth 3
+
+  "Talebiniz Çözüldü"
+    text-base font-bold text-gray-900
+
+  "#YP-4798 numaralı 'Tasma beden değişimi' talebiniz başarıyla kapatıldı."
+    text-sm text-gray-600 mt-2 px-2 leading-relaxed
+
+  "24 Temmuz 2026 • 01:06"
+    text-xs text-gray-400 mt-2
+
+Dynamic: use ticketNumber, title, closedAt from mock/props.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — OVERALL STAR RATING (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportOverallRating.tsx
+
+Inside main white card — first section
+
+  "Destek deneyiminiz nasıldı?"
+    text-sm font-bold text-gray-900
+
+  "Görüşünüz hizmetimizi geliştirmemize yardımcı olur."
+    text-xs text-gray-500 mt-0.5 mb-3
+
+  5 large stars centered (flex justify-center gap-2):
+    Star icon size 36
+    filled: color #5D3EBD fill #5D3EBD
+    empty: color #D1D5DB
+    hover scale on click
+    onClick star n → setOverallRating(n)
+
+  Below stars centered:
+    "{ratingLabel}" e.g. "Çok İyi"
+      text-sm font-semibold color #5D3EBD
+    "{overallRating} / 5"
+      text-xs text-gray-500 ml-1
+
+  DEFAULT: 4 stars filled, label "Çok İyi", "4 / 5"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — SUPPORT AGENT CARD (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportAgentCard.tsx + SupportAgentStarRating.tsx
+
+  border-t border-gray-100 pt-4 mt-4
+
+  "Size yardımcı olan kişi"
+    text-xs text-gray-500 mb-2
+
+  flex items-center gap-3
+
+  Avatar: w-11 h-11 rounded-full object-cover
+
+  CENTER flex-1:
+    flex items-center gap-1:
+      "Elif" text-sm font-bold text-gray-900
+      IF verified:
+        BadgeCheck icon size 14 color #3B82F6
+    "YourPoodle Destek Uzmanı"
+      text-xs text-gray-500
+
+  Agent star rating row (5 small stars size 16):
+    Interactive — user rates the agent separately
+    filled #5D3EBD, empty gray
+    onClick → setAgentRating(n)
+    DEFAULT: 5 stars filled
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — SATISFACTION CHECKBOX GRID (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportSatisfactionGrid.tsx + SupportSatisfactionPill.tsx
+
+  border-t border-gray-100 pt-4 mt-4
+
+  "Aşağıdakilerden hangilerinden memnun kaldınız?"
+    text-sm font-bold text-gray-900 mb-3
+
+  grid grid-cols-2 gap-2
+
+File: SupportSatisfactionPill.tsx
+
+  flex items-center gap-2 px-3 py-2.5 rounded-xl border cursor-pointer transition
+
+  IF selected:
+    bg #F3EEFF border #5D3EBD
+    CheckSquare icon size 16 color #5D3EBD
+    label text-xs font-semibold color #5D3EBD
+
+  IF unselected:
+    bg white border-gray-200
+    Square icon size 16 color gray-400
+    label text-xs font-medium text-gray-700
+
+  onClick → toggleSatisfaction(id)
+
+  6 pills EXACT:
+  ✅ Hızlı Yanıt (selected)
+  ✅ Açıklayıcı Bilgi (selected)
+  ✅ Nazik İletişim (selected)
+  ✅ Sorunum Çözüldü (selected)
+  ☐ Kolay İşlem (unselected)
+  ☐ Takip Süreci (unselected)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — COMMENT BOX + SHARE TOGGLE (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportCommentBox.tsx
+
+  border-t border-gray-100 pt-4 mt-4
+
+  "Deneyiminizi biraz anlatır mısınız?"
+    text-sm font-bold text-gray-900 mb-2
+
+  Textarea:
+    w-full bg #F9FAFB border border-gray-200 rounded-xl
+    p-3 text-sm text-gray-800 min-h-[100px] resize-none
+    value={comment}
+    onChange → setComment (max 500)
+    placeholder optional
+
+  Character counter bottom-right:
+    "{length} / 500" text-[10px] text-gray-400 text-right mt-1
+    DEFAULT shows "121 / 500" with defaultComment
+
+File: SupportShareToggle.tsx
+
+  flex items-center justify-between mt-3
+
+  "Yorumum destek ekibiyle paylaşılsın"
+    text-xs text-gray-700 flex-1 pr-2
+
+  Toggle switch:
+    w-11 h-6 rounded-full
+    IF shareWithTeam: bg #5D3EBD, knob right
+    ELSE: bg #D1D5DB, knob left
+    onClick → toggleShareWithTeam()
+    DEFAULT: ON
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — SOLUTION CONFIRMATION BUTTONS (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportSolutionButtons.tsx
+
+  border-t border-gray-100 pt-4 mt-4
+
+  "Çözüm sizin için yeterli oldu mu?"
+    text-sm font-bold text-gray-900 mb-3
+
+  grid grid-cols-2 gap-2
+
+  Button "Evet, çözüldü":
+    flex flex-col items-center gap-1 py-3 rounded-xl border-2 cursor-pointer
+    IF solutionAdequate === "yes":
+      bg #F3EEFF border #5D3EBD
+      ThumbsUp icon + text color #5D3EBD font-semibold text-xs
+    ELSE:
+      bg white border-gray-200 text gray-600
+
+  Button "Hayır, devam ediyor":
+    flex flex-col items-center gap-1 py-3 rounded-xl border-2 cursor-pointer
+    IF solutionAdequate === "no":
+      bg #FEF2F2 border #DC2626 text #DC2626
+    ELSE:
+      bg white border-gray-200 text gray-600
+    ThumbsDown icon + "Hayır, devam ediyor" text-xs
+
+  onClick → setSolutionAdequate
+  DEFAULT: "yes" selected
+
+  IF "no" selected + submit → toast warning + optionally reopen ticket stub
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — REWARD BANNER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportRewardBanner.tsx
+
+mx-4 mb-4 bg #F3EEFF rounded-2xl p-4
+
+  flex items-center gap-3
+
+  LEFT icons:
+    Gift icon size 24 color #5D3EBD
+    OR gift box illustration + gold coin/paw icon color #F59E0B
+
+  CENTER flex-1:
+    "Değerlendirmenize 25 PoodlePuan"
+      text-sm font-semibold text-gray-900
+    "Yorumunuzu gönderdiğinizde hesabınıza eklenecek."
+      text-xs text-gray-600 mt-0.5
+
+  RIGHT badge:
+    "+25 Puan"
+      bg #5D3EBD text white text-xs font-bold px-2.5 py-1 rounded-full
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — ACTION BUTTONS (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportRatingActions.tsx
+
+px-4 mb-4 space-y-2
+
+  Button "Değerlendirmeyi Gönder":
+    w-full bg #5D3EBD text white font-semibold text-sm py-3.5 rounded-xl
+    disabled IF !canSubmit OR isSubmitting
+    onClick → submitRating()
+
+  Button "Daha Sonra":
+    w-full border-2 border #5D3EBD text #5D3EBD bg white
+    font-semibold text-sm py-3 rounded-xl
+    onClick → skipLater()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — TALEP ÖZETİ CARD (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportTicketSummaryCard.tsx
+
+mx-4 mb-4 bg white rounded-2xl border border-gray-100 shadow-sm p-4
+
+  flex items-start gap-3
+
+  LEFT:
+    w-10 h-10 rounded-xl bg #F0FDF4 flex items-center justify-center
+    FileText icon size 18 color #16A34A
+
+  CENTER flex-1 min-w-0:
+    "Talep Özeti" text-[10px] text-gray-500
+    "#YP-4798" text-xs font-semibold color #5D3EBD
+    "Tasma beden değişimi" text-sm font-bold text-gray-900 truncate
+    flex items-center gap-1 mt-0.5:
+      green dot w-1.5 h-1.5 rounded-full bg #22C55E
+      "Çözüldü" text-[10px] color #16A34A font-semibold
+    "Çözüm: M beden değişimi onaylandı"
+      text-xs text-gray-500 mt-1
+
+  RIGHT:
+    Button "Talebi Tekrar Gör":
+      border border #5D3EBD text #5D3EBD text-[10px] font-semibold
+      px-2.5 py-1.5 rounded-lg whitespace-nowrap
+      onClick → viewTicketAgain()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — THANK YOU BANNER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportThankYouBanner.tsx
+
+mx-4 mb-6 bg #F3EEFF rounded-2xl p-4
+
+  flex items-center gap-3
+
+  LEFT:
+    Poodle image w-14 h-14 rounded-full object-cover
+    src: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=80&h=80&fit=crop"
+    Optional decorative hearts/paw prints small around image
+
+  RIGHT flex-1:
+    "Görüşünüz için teşekkür ederiz!"
+      text-sm font-bold text-gray-900
+    "Her yorum YourPoodle deneyimini daha iyi yapıyor."
+      text-xs text-gray-600 mt-0.5 leading-snug
+
+Show this banner always on page (pre-submit). After submit, can show modal instead.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — FOOTER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportRatingFooter.tsx
+
+bg #5D3EBD text-white px-4 pt-6 pb-8
+
+  YourPoodle logo mb-4
+  "Yardım" • "İletişim" • "KVKK"
+  © 2026 YourPoodle
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 17 — PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportExperienceRatingPage.tsx
+
+<div className="max-w-[480px] mx-auto bg-[#F9F9FB] min-h-screen pb-8 shadow-xl">
+  <AuthenticatedHeader />
+  <TabNavigation activeTab="club" />
+
+  <SupportRatingBreadcrumb />
+  <SupportResolvedBanner />
+
+  {/* Main rating card — all sections in ONE white card OR separate cards per mockup */}
+  <div className="mx-4 mb-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+    <SupportOverallRating />
+    <SupportAgentCard />
+    <SupportSatisfactionGrid />
+    <SupportCommentBox />
+    <SupportShareToggle />
+    <SupportSolutionButtons />
+  </div>
+
+  <SupportRewardBanner />
+  <SupportRatingActions />
+  <SupportTicketSummaryCard />
+  <SupportThankYouBanner />
+  <SupportRatingFooter />
+
+  <SupportRatingSuccessModal />  ← optional after submit
+  <MobileDrawer />
+  <Toast />
+</div>
+
+Scroll order:
+  1. Breadcrumb Hesabım / Destek Taleplerim / Değerlendir
+  2. Green Talebiniz Çözüldü banner
+  3. Overall star rating (4/5 Çok İyi)
+  4. Agent Elif card + agent stars
+  5. Satisfaction pills grid (6 items)
+  6. Comment textarea 121/500
+  7. Share toggle ON
+  8. Evet çözüldü / Hayır devam ediyor
+  9. PoodlePuan +25 reward banner
+  10. Değerlendirmeyi Gönder + Daha Sonra
+  11. Talep Özeti card
+  12. Teşekkür banner
+  13. Purple footer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 18 — ROUTING & INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add route:
+  <Route path="/hesabim/destek-talepleri/degerlendir/:ticketId"
+         element={<SupportExperienceRatingPage />} />
+
+Update SupportTicketsPage.tsx:
+  SupportTicketStarRating onRate OR "Değerlendir" link on solved tickets
+    → navigate(`/hesabim/destek-talepleri/degerlendir/${ticketId}`)
+
+Update SupportTicketsSolvedRow:
+  Clicking unrated ticket #YP-4612 stars → degerlendir page
+
+Flow after ticket closed:
+  Support ticket detail → status "Çözüldü" → redirect to degerlendir page
+  OR show prompt "Deneyiminizi değerlendirin" → navigate degerlendir
+
+After submitRating():
+  Mark ticket as evaluated in localStorage
+  navigate("/hesabim/destek-talepleri")
+  toast "Değerlendirmeniz alındı ✓ +25 PoodlePuan hesabınıza eklendi"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 19 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Banner:
+✅ Green check + Talebiniz Çözüldü
+✅ #YP-4798 Tasma beden değişimi text exact
+✅ Date 24 Temmuz 2026 • 01:06
+
+Rating:
+✅ 5 stars clickable, default 4 filled
+✅ Label updates: Çok Kötü / Kötü / Orta / Çok İyi / Mükemmel
+✅ Shows "4 / 5" dynamically
+
+Agent:
+✅ Elif photo + verified badge + title
+✅ 5 agent stars independently clickable
+
+Satisfaction:
+✅ 6 pills, 4 pre-selected
+✅ Toggle select/deselect works
+✅ Visual selected vs unselected states
+
+Comment:
+✅ Pre-filled sample text
+✅ Counter 121/500 default, max 500 enforced
+✅ Share toggle ON by default, toggles off
+
+Solution:
+✅ Evet çözüldü default selected (purple)
+✅ Hayır devam ediyor selectable
+
+Submit:
+✅ Değerlendirmeyi Gönder validates + toast + navigate
+✅ Daha Sonra skips to ticket list
+✅ +25 PoodlePuan banner visible
+
+Summary:
+✅ Talep Özeti all fields
+✅ Talebi Tekrar Gör navigates ticket detail
+
+Other:
+✅ No overflow at 375px
+✅ npm run dev → ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 20 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Breadcrumb with Değerlendir
+✅ Success banner complete
+✅ "Destek deneyiminiz nasıldı?" + 4 purple stars + Çok İyi
+✅ Elif agent card with 5 stars
+✅ 6 satisfaction pills (4 checked)
+✅ Comment box with sample + 121/500
+✅ Yorumum destek ekibiyle paylaşılsın toggle ON
+✅ Evet çözüldü / Hayır devam ediyor buttons
+✅ 25 PoodlePuan reward + +25 Puan badge
+✅ Değerlendirmeyi Gönder + Daha Sonra
+✅ Talep Özeti #YP-4798 + Çözüldü + çözüm text
+✅ Teşekkür banner with poodle
+✅ Footer © 2026 YourPoodle
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the Destek Deneyimini Değerlendir page at
+/hesabim/destek-talepleri/degerlendir/:ticketId exactly as specified.
+Use the EXISTING project — do not rebuild the whole app.
+MUST work: overall rating, agent rating, satisfaction pills, comment with limit,
+share toggle, solution buttons, submit with PoodlePuan reward, skip later.
+Opens after ticket is closed. Match mockup pixel-perfect. Turkish text exact.
+Run the app and confirm zero errors before finishing.

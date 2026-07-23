@@ -220,10 +220,8 @@ export default function YPDestekTalepleriPage() {
   const viewTicket  = (id: string) => navigate(`/hesabim/yardim/talep/${id}`);
   const replyTicket = (id: string) => navigate(`/hesabim/yardim/talep/${id}`);
 
-  const setRating = (id: string, n: number) => {
-    setRatings(prev => ({ ...prev, [id]: n }));
-    setEvaluated(prev => ({ ...prev, [id]: true }));
-    showToast("Değerlendirmeniz için teşekkürler ✓");
+  const setRating = (id: string, _n: number) => {
+    navigate(`/hesabim/destek-talepleri/degerlendir/${id}`);
   };
 
   const handleSubmitTicket = () => {
