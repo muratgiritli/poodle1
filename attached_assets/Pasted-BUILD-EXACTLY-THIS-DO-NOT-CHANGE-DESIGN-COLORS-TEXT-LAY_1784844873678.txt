@@ -1,0 +1,743 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "Destek Taleplerim" (My Support Requests) page for YourPoodle.com.
+Users track open, answered, and solved support tickets with status filters, search,
+progress steppers, and quick actions to view or reply to tickets.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, AuthContext, authenticated Header, TabNavigation,
+  MobileDrawer, Toast, and routing.
+- Link FROM /hesabim/yardim and Support Request Received page → this page.
+- Ticket detail navigates to /hesabim/yardim/talep/:ticketId (existing page).
+- DO NOT rebuild the entire app.
+- DO NOT delete or rewrite existing pages.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Route: /hesabim/destek-talepleri
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT skip any status card, ticket card, stepper, tab, banner, or button.
+4. DO NOT use Lorem ipsum.
+5. Optimize for 390px mobile. Max width 480px centered.
+
+MANDATORY FEATURES:
+  ✅ 4 status summary cards (Toplam, Açık, Yanıtlandı, Çözüldü)
+  ✅ Search + Filtrele + Sırala
+  ✅ 4 filter tabs: Tümü, Açık, Yanıtlandı, Çözüldü
+  ✅ 3 grouped sections: Açık Talepler, Yanıt Bekleyenler, Çözülen Talepler
+  ✅ Open ticket card with horizontal 4-step progress stepper
+  ✅ Answered tickets with "1 yeni mesaj" badge + Yanıtla
+  ✅ Solved tickets with star rating + "Değerlendirildi"
+  ✅ "+ Yeni Talep Oluştur" button
+  ✅ Live support CTA banner
+  ✅ Purple footer
+
+6. EVERY tab, search, filter, ticket click, rating, and CTA MUST work.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #5D3EBD
+  purple-dark:     #4A22A0
+  purple-light:    #F3EEFF
+  page-bg:         #F9F9FB
+  card-bg:         #FFFFFF
+  total-purple:    #5D3EBD
+  open-orange:     #EA580C
+  open-orange-bg:  #FFF7ED
+  replied-blue:    #3B82F6
+  replied-blue-bg: #EFF6FF
+  solved-green:    #16A34A
+  solved-green-bg: #F0FDF4
+  badge-review:    #F3EEFF / text #5D3EBD
+  badge-replied:   #EFF6FF / text #3B82F6
+  badge-solved:    #F0FDF4 / text #16A34A
+  new-msg-badge:   #5D3EBD
+  text-dark:       #111827
+  text-secondary:  #6B7280
+  footer-bg:       #5D3EBD
+
+Typography: Inter
+Status cards row: grid grid-cols-4 gap-2 px-4
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    support-tickets/
+      SupportTicketsPageHeader.tsx
+      SupportTicketsStatsRow.tsx
+      SupportTicketsStatCard.tsx
+      SupportTicketsSearchBar.tsx
+      SupportTicketsFilterSortBar.tsx
+      SupportTicketsCategoryTabs.tsx
+      SupportTicketsOpenSection.tsx
+      SupportTicketsOpenCard.tsx
+      SupportTicketProgressStepper.tsx
+      SupportTicketsAwaitingSection.tsx
+      SupportTicketsAwaitingCard.tsx
+      SupportTicketsSolvedSection.tsx
+      SupportTicketsSolvedRow.tsx
+      SupportTicketStarRating.tsx
+      SupportTicketsLoadMore.tsx
+      SupportTicketsLiveBanner.tsx
+      SupportTicketsFooter.tsx
+      SupportTicketsEmptyState.tsx
+      CreateTicketModal.tsx
+  pages/
+    SupportTicketsPage.tsx
+  data/
+    supportTicketsMockData.ts
+  hooks/
+    useSupportTicketsPage.ts
+  App.tsx
+
+Update HelpCenterPage:
+  Add link "Destek Taleplerim" or navigate from ticket list context
+Update AccountPage if applicable → navigate("/hesabim/destek-talepleri")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — MOCK DATA (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/supportTicketsMockData.ts:
+
+export type TicketStatus = "open" | "replied" | "solved";
+export type TicketTab = "all" | "open" | "replied" | "solved";
+export type ProgressStage = "received" | "reviewing" | "response" | "solved";
+
+export interface SupportTicketListItem {
+  id: string;
+  ticketNumber: string;
+  title: string;
+  category?: string;
+  issue?: string;
+  orderId?: string;
+  date: string;
+  lastUpdate?: string;
+  status: TicketStatus;
+  statusLabel: string;          // "İnceleniyor" | "Yanıtlandı" | "Çözüldü"
+  progressStage?: ProgressStage;
+  attachmentCount?: number;
+  newMessageCount?: number;
+  lastMessageSnippet?: string;
+  icon?: "truck" | "paw" | "phone" | "package";
+  rating?: number | null;     // 0-5, null = not rated
+  isEvaluated?: boolean;
+}
+
+export const statsCounts = {
+  total: 6,
+  open: 1,
+  replied: 2,
+  solved: 3,
+};
+
+export const tabCounts = {
+  all: 6,
+  open: 1,
+  replied: 2,
+  solved: 3,
+};
+
+export const openTickets: SupportTicketListItem[] = [
+  {
+    id: "YP-4822",
+    ticketNumber: "YP-4822",
+    title: "Siparişimde bir ürün eksik geldi",
+    category: "Sipariş ve Teslimat",
+    issue: "Eksik Ürün",
+    orderId: "YP-20260723",
+    date: "24 Temmuz 2026",
+    lastUpdate: "2 dk önce",
+    status: "open",
+    statusLabel: "İnceleniyor",
+    progressStage: "reviewing",
+    attachmentCount: 2,
+  },
+];
+
+export const awaitingReplyTickets: SupportTicketListItem[] = [
+  {
+    id: "YP-4798",
+    ticketNumber: "YP-4798",
+    title: "Tasma beden değişimi",
+    date: "22 Temmuz 2026",
+    status: "replied",
+    statusLabel: "Yanıtlandı",
+    newMessageCount: 1,
+    lastMessageSnippet: "Destek ekibimiz size yanıt verdi.",
+  },
+  {
+    id: "YP-4754",
+    ticketNumber: "YP-4754",
+    title: "Kupon kodu uygulanmıyor",
+    date: "20 Temmuz 2026",
+    status: "replied",
+    statusLabel: "Yanıtlandı",
+    lastMessageSnippet: "Kupon kodunuz kontrol edildi.",
+  },
+];
+
+export const solvedTickets: SupportTicketListItem[] = [
+  {
+    id: "YP-4612",
+    ticketNumber: "YP-4612",
+    title: "Kargo gecikmesi bildirimi",
+    date: "15 Temmuz 2026",
+    status: "solved",
+    statusLabel: "Çözüldü",
+    icon: "truck",
+    rating: null,
+    isEvaluated: false,
+  },
+  {
+    id: "YP-4521",
+    ticketNumber: "YP-4521",
+    title: "Club paylaşım sorunu",
+    date: "10 Temmuz 2026",
+    status: "solved",
+    statusLabel: "Çözüldü",
+    icon: "paw",
+    rating: 5,
+    isEvaluated: true,
+  },
+  {
+    id: "YP-4388",
+    ticketNumber: "YP-4388",
+    title: "Telefon doğrulama",
+    date: "5 Temmuz 2026",
+    status: "solved",
+    statusLabel: "Çözüldü",
+    icon: "phone",
+    rating: 4,
+    isEvaluated: true,
+  },
+];
+
+export const olderSolvedTickets: SupportTicketListItem[] = [
+  {
+    id: "YP-4200",
+    ticketNumber: "YP-4200",
+    title: "İade talebi",
+    date: "28 Haziran 2026",
+    status: "solved",
+    statusLabel: "Çözüldü",
+    icon: "package",
+    rating: 5,
+    isEvaluated: true,
+  },
+];
+
+export const progressStages = [
+  { key: "received", label: "Alındı" },
+  { key: "reviewing", label: "İnceleniyor" },
+  { key: "response", label: "Yanıt" },
+  { key: "solved", label: "Çözüldü" },
+];
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — useSupportTicketsPage HOOK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: hooks/useSupportTicketsPage.ts
+
+State:
+  activeTab: TicketTab (default "all")
+  searchQuery: string
+  openTickets, awaitingTickets, solvedTickets arrays
+  showOlder: boolean
+  createModalOpen: boolean
+  sortBy: "newest" | "oldest" | "updated"
+  ratings: Record<string, number>
+
+Functions:
+  setTab(tab) → filter visible sections/tickets
+  setSearch(q) → filter by ticketNumber or title
+  viewTicket(id) → navigate(`/hesabim/yardim/talep/${id}`)
+  replyToTicket(id) → navigate with reply focus or same page + toast
+  createNewTicket() → open CreateTicketModal or navigate help center
+  loadOlder() → append olderSolvedTickets + set showOlder true
+  setRating(ticketId, stars) → update ratings + toast "Değerlendirmeniz için teşekkürler ✓"
+  openLiveSupport() → toast or modal
+  openFilter() → filter modal stub
+  openSort() → sort modal
+
+Computed:
+  filteredOpen, filteredAwaiting, filteredSolved based on tab + search
+  statsCounts update dynamically if tickets removed (optional static ok)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — PAGE HEADER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportTicketsPageHeader.tsx
+
+px-4 pt-3 pb-2
+
+  Breadcrumb (flex items-center gap-1):
+    ArrowLeft size 16 color #5D3EBD → navigate("/hesabim")
+    "Hesabım / Destek Taleplerim"
+      text-xs color #5D3EBD
+
+  Title row (flex justify-between items-start mt-2 gap-2):
+
+    LEFT flex-1:
+      "Destek Taleplerim"
+        text-xl font-bold color #5D3EBD
+      Subtitle:
+        "Sorularınızı, taleplerinizi ve çözüm durumlarını buradan takip edin."
+        text-sm text-gray-500 mt-0.5 leading-snug
+
+    RIGHT:
+      Button "+ Yeni Talep Oluştur":
+        flex items-center gap-1
+        bg #5D3EBD text white text-xs font-semibold
+        px-3 py-2.5 rounded-xl whitespace-nowrap
+        Plus icon size 14
+        onClick → createNewTicket()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — STATUS STATS ROW (EXACT — 4 CARDS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportTicketsStatsRow.tsx + SupportTicketsStatCard.tsx
+
+px-4 mb-4 mt-2
+
+grid grid-cols-4 gap-2
+
+  Card: bg white rounded-xl border border-gray-100 shadow-sm p-2.5 text-center
+
+  Each card:
+    Icon circle top: w-7 h-7 rounded-full mx-auto mb-1 flex items-center justify-center
+    Count: text-lg font-bold
+    Label: text-[10px] text-gray-500
+
+  Card 1 — Toplam:
+    List icon, bg #F3EEFF, icon #5D3EBD, count "6" color #5D3EBD, label "Toplam"
+
+  Card 2 — Açık:
+    Clock icon, bg #FFF7ED, icon #EA580C, count "1" color #EA580C, label "Açık"
+
+  Card 3 — Yanıtlandı:
+    MessageCircle icon, bg #EFF6FF, icon #3B82F6, count "2" color #3B82F6, label "Yanıtlandı"
+
+  Card 4 — Çözüldü:
+    CheckCircle icon, bg #F0FDF4, icon #16A34A, count "3" color #16A34A, label "Çözüldü"
+
+  onClick card → setTab matching filter (optional)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — SEARCH + FILTER + TABS (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportTicketsSearchBar.tsx
+
+px-4 mb-2
+
+  Input full width:
+    bg white border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm
+    Search icon left inside
+    placeholder EXACT: "Talep numarası veya konu ara..."
+    onChange → setSearch
+
+File: SupportTicketsFilterSortBar.tsx
+
+px-4 mb-2 flex gap-2
+
+  "Filtrele" button:
+    flex items-center gap-1 border border-gray-200 rounded-xl px-3 py-2 text-xs
+    SlidersHorizontal icon size 14
+    onClick → openFilter()
+
+  Sort button:
+    border border-gray-200 rounded-xl px-3 py-2
+    ArrowUpDown icon size 14
+    onClick → openSort()
+
+File: SupportTicketsCategoryTabs.tsx
+
+px-4 mb-4 flex gap-2 overflow-x-auto scrollbar-hide
+
+  4 pill tabs:
+
+  | key     | label        |
+  |---------|--------------|
+  | all     | Tümü 6       |
+  | open    | Açık 1       |
+  | replied | Yanıtlandı 2 |
+  | solved  | Çözüldü 3    |
+
+  ACTIVE (default all): bg #5D3EBD text white font-semibold px-3.5 py-2 rounded-full text-sm
+  INACTIVE: bg white border border-gray-200 text gray-700 px-3.5 py-2 rounded-full text-sm
+
+  onClick → setTab(key)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — AÇIK TALEPLER SECTION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportTicketsOpenSection.tsx
+
+Show when activeTab is "all" OR "open". Hide section title if empty.
+
+px-4 mb-4
+
+  Section title: "Açık Talepler"
+    text-sm font-bold text-gray-900 mb-3
+
+File: SupportTicketsOpenCard.tsx
+
+  bg white rounded-2xl border border-gray-100 shadow-sm p-4
+
+  TOP ROW flex justify-between items-start:
+    LEFT:
+      "#YP-4822" text-xs font-semibold color #5D3EBD
+    RIGHT:
+      Badge "İnceleniyor":
+        bg #F3EEFF text #5D3EBD text-[10px] font-semibold px-2 py-0.5 rounded-full
+
+  Title:
+    "Siparişimde bir ürün eksik geldi"
+      text-sm font-bold text-gray-900 mt-2
+
+  Tags row (flex gap-1.5 flex-wrap mt-2):
+    "Sipariş ve Teslimat" — bg gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded-full
+    "Eksik Ürün" — same style
+
+  Details row (text-[11px] text-gray-500 mt-2 space-y-0.5):
+    "Sipariş: #YP-20260723"
+    "24 Temmuz 2026"
+
+  FOOTER ROW (flex justify-between items-center mt-3 pt-3 border-t border-gray-50):
+    LEFT:
+      "Son güncelleme: 2 dk önce" text-[10px] text-gray-400
+      flex items-center gap-1:
+        Paperclip icon size 12 + "2 dosya" text-[10px] text-gray-500
+
+  ── PROGRESS STEPPER ──
+File: SupportTicketProgressStepper.tsx
+
+  mt-3 mb-3
+
+  Horizontal 4-step stepper:
+    flex items-center justify-between relative
+
+  Stages: Alındı | İnceleniyor | Yanıt | Çözüldü
+
+  currentStage: "reviewing" (step 2 active)
+
+  Each stage:
+    circle w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold
+    completed (received): bg #5D3EBD Check white
+    active (reviewing): bg #5D3EBD text white (or pulse ring)
+    pending (response, solved): bg #E5E7EB text gray-400
+
+  Labels below circles text-[9px] text-center
+    active/completed: text #5D3EBD font-semibold
+    pending: text gray-400
+
+  Connector lines between circles:
+    completed segments: bg #5D3EBD
+    pending: bg #E5E7EB
+
+  Button "Talebi Gör":
+    w-full border-2 border #5D3EBD text #5D3EBD font-semibold text-sm py-2.5 rounded-xl
+    onClick → viewTicket("YP-4822")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — YANIT BEKLEYENLER SECTION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportTicketsAwaitingSection.tsx + SupportTicketsAwaitingCard.tsx
+
+Show when activeTab is "all" OR "replied".
+
+px-4 mb-4
+
+  Section title: "Yanıt Bekleyenler"
+    text-sm font-bold text-gray-900 mb-3
+
+  Compact card (bg white rounded-xl border p-3 mb-2):
+
+  Card layout flex gap-3:
+
+  LEFT flex-1:
+    TOP: ticketNumber text-xs color #5D3EBD font-semibold
+    title text-sm font-semibold text-gray-900
+    IF lastMessageSnippet: text-xs text-gray-500 mt-0.5 truncate
+    date text-[10px] text-gray-400 mt-1
+
+  RIGHT flex flex-col items-end gap-2:
+    Badge "Yanıtlandı": bg #EFF6FF text #3B82F6 text-[10px] font-semibold px-2 py-0.5 rounded-full
+
+    IF newMessageCount > 0:
+      Badge "1 yeni mesaj": bg #5D3EBD text white text-[9px] font-bold px-1.5 py-0.5 rounded-full
+
+    Button:
+      IF newMessageCount: "Yanıtla" bg #5D3EBD text white text-[10px] px-3 py-1.5 rounded-lg
+      ELSE: "Talebi Gör" border border #5D3EBD text #5D3EBD text-[10px] px-3 py-1.5 rounded-lg
+
+  Tickets:
+  - #YP-4798 Tasma beden değişimi — Yanıtlandı — 1 yeni mesaj — Yanıtla
+  - #YP-4754 Kupon kodu uygulanmıyor — Yanıtlandı — Talebi Gör
+
+  onClick → viewTicket(id)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — ÇÖZÜLEN TALEPLER SECTION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportTicketsSolvedSection.tsx + SupportTicketsSolvedRow.tsx
+
+Show when activeTab is "all" OR "solved".
+
+px-4 mb-4
+
+  Section title: "Çözülen Talepler"
+    text-sm font-bold text-gray-900 mb-3
+
+File: SupportTicketsSolvedRow.tsx
+
+  flex items-center gap-3 bg white rounded-xl border border-gray-100 p-3 mb-2 cursor-pointer
+
+  LEFT icon circle:
+    w-9 h-9 rounded-xl bg #F0FDF4 flex items-center justify-center
+    Truck / PawPrint / Phone icon color #16A34A size 16
+
+  CENTER flex-1 min-w-0:
+    flex items-center gap-2:
+      Badge "Çözüldü": bg #F0FDF4 text #16A34A text-[9px] font-semibold px-1.5 py-0.5 rounded
+      ticketNumber text-xs text-gray-500
+    title text-sm font-semibold text-gray-900 truncate
+    date text-[10px] text-gray-400
+
+    IF !isEvaluated:
+      "Deneyiminiz değerlendirin" text-[10px] text-gray-500 mt-1
+      <SupportTicketStarRating ticketId stars={rating} onRate />
+    IF isEvaluated:
+      "Değerlendirildi" text-[10px] color #16A34A mt-1
+      show filled stars if rating set
+
+  RIGHT: ChevronRight size 16 color gray-300
+
+  onClick row → viewTicket(id)
+
+File: SupportTicketStarRating.tsx
+
+  flex gap-0.5
+  5 Star icons size 14
+  empty: gray-300, filled: #FBBF24
+  onClick star → setRating(ticketId, n)
+
+  Rows:
+  - #YP-4612 Kargo gecikmesi — NOT evaluated — show empty stars
+  - #YP-4521 Club paylaşım sorunu — Değerlendirildi
+  - #YP-4388 Telefon doğrulama — Değerlendirildi
+
+File: SupportTicketsLoadMore.tsx
+
+  px-4 mb-4
+  IF !showOlder:
+    Button "Daha Eski Talepleri Göster":
+      w-full border-2 border #5D3EBD text #5D3EBD font-semibold text-sm py-3 rounded-xl
+      onClick → loadOlder()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — LIVE SUPPORT BANNER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportTicketsLiveBanner.tsx
+
+mx-4 mb-6 bg #F3EEFF rounded-2xl p-4
+
+  flex items-center gap-3
+
+  LEFT:
+    Headphones icon in circle bg white p-2 rounded-full color #5D3EBD flex-shrink-0
+
+  CENTER flex-1 min-w-0:
+    "Hızlı yardıma mı ihtiyacınız var?"
+      text-sm font-semibold text-gray-900
+    flex items-center gap-1 mt-0.5:
+      green dot w-1.5 h-1.5 rounded-full bg #22C55E
+      "Destek ekibimiz şu anda çevrimiçi"
+        text-xs text-gray-600
+
+  Poodle image (optional between center and button):
+    w-10 h-10 rounded-full object-cover hidden sm:block
+    src poodle photo
+
+  Button "Canlı Desteği Başlat":
+    bg #5D3EBD text white text-[10px] font-semibold px-3 py-2 rounded-xl flex-shrink-0
+    onClick → openLiveSupport()
+
+On narrow mobile: stack vertically — text block then button full width.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — CREATE TICKET MODAL (STUB)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: CreateTicketModal.tsx
+
+  Title: "Yeni Talep Oluştur"
+  Select Konu: Sipariş ve Teslimat, Ürünler, Club, Üyelik, Ödeme
+  Textarea: "Sorununuzu açıklayın..."
+  Buttons: İptal + Gönder
+  onSubmit → navigate("/hesabim/yardim/talep/YP-4822") + toast
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — FOOTER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportTicketsFooter.tsx
+
+bg #5D3EBD text-white px-4 pt-6 pb-8
+
+  YourPoodle logo mb-4
+  Yardım | İletişim | KVKK
+  © 2026 YourPoodle
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportTicketsPage.tsx
+
+<div className="max-w-[480px] mx-auto bg-[#F9F9FB] min-h-screen pb-8 shadow-xl">
+  <AuthenticatedHeader />
+  <TabNavigation activeTab="club" />
+
+  <SupportTicketsPageHeader />
+  <SupportTicketsStatsRow />
+  <SupportTicketsSearchBar />
+  <SupportTicketsFilterSortBar />
+  <SupportTicketsCategoryTabs />
+
+  {/* Filtered content */}
+  {(activeTab === "all" || activeTab === "open") && filteredOpen.length > 0 && (
+    <SupportTicketsOpenSection tickets={filteredOpen} />
+  )}
+  {(activeTab === "all" || activeTab === "replied") && filteredAwaiting.length > 0 && (
+    <SupportTicketsAwaitingSection tickets={filteredAwaiting} />
+  )}
+  {(activeTab === "all" || activeTab === "solved") && filteredSolved.length > 0 && (
+    <>
+      <SupportTicketsSolvedSection tickets={filteredSolved} />
+      <SupportTicketsLoadMore />
+    </>
+  )}
+
+  IF all filtered empty → SupportTicketsEmptyState
+
+  <SupportTicketsLiveBanner />
+  <SupportTicketsFooter />
+
+  <CreateTicketModal />
+  <MobileDrawer />
+  <Toast />
+</div>
+
+Scroll order:
+  1. Breadcrumb + title + Yeni Talep Oluştur
+  2. 4 status stat cards
+  3. Search + Filtrele + Sort
+  4. Tabs Tümü 6 | Açık 1 | Yanıtlandı 2 | Çözüldü 3
+  5. Açık Talepler — #YP-4822 large card with stepper
+  6. Yanıt Bekleyenler — 2 compact cards
+  7. Çözülen Talepler — 3 rows + star rating on first
+  8. Daha Eski Talepleri Göster
+  9. Live support banner
+  10. Footer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — ROUTING & INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add route:
+  <Route path="/hesabim/destek-talepleri" element={<SupportTicketsPage />} />
+
+Update HelpCenterPage:
+  Link "Destek Taleplerim" in header or active ticket area → navigate("/hesabim/destek-talepleri")
+
+Update SupportRequestReceivedPage:
+  Optional link "Tüm Taleplerim" → navigate("/hesabim/destek-talepleri")
+
+Ticket view/reply → navigate(`/hesabim/yardim/talep/${ticketId}`)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Header & stats:
+✅ Breadcrumb + purple title
+✅ + Yeni Talep Oluştur opens modal
+✅ 4 stat cards with correct counts and colors
+
+Search & tabs:
+✅ Search filters by # or title live
+✅ Tümü 6 default active
+✅ Tab switch filters sections correctly
+✅ Filtrele + Sort open stubs
+
+Open ticket:
+✅ #YP-4822 full card with tags
+✅ Progress stepper: Alındı ✓, İnceleniyor active, Yanıt/Çözüldü pending
+✅ İnceleniyor badge + 2 dosya + Talebi Gör
+
+Awaiting:
+✅ #YP-4798 with 1 yeni mesaj + Yanıtla
+✅ #YP-4754 with Talebi Gör
+
+Solved:
+✅ 3 rows with Çözüldü badge
+✅ #YP-4612 star rating works
+✅ Değerlendirildi on rated items
+✅ Daha Eski Talepleri Göster loads more
+
+Other:
+✅ Canlı Desteği Başlat works
+✅ No overflow at 375px
+✅ npm run dev → ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 17 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ "Destek Taleplerim" + subtitle
+✅ Stats: Toplam 6, Açık 1, Yanıtlandı 2, Çözüldü 3
+✅ Search placeholder exact
+✅ Tabs all 4 with counts
+✅ Open card #YP-4822 complete with stepper
+✅ Yanıt Bekleyenler 2 cards
+✅ Çözülen Talepler 3 items + rating
+✅ Live support banner
+✅ Footer © 2026 YourPoodle
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the Destek Taleplerim page at /hesabim/destek-talepleri exactly as specified.
+Use the EXISTING project — do not rebuild the whole app.
+MUST work: status cards, tabs, search, open/awaiting/solved sections,
+progress stepper, star rating, ticket navigation, create ticket, live support.
+Match the mockup pixel-perfect. Turkish text must be exact.
+Run the app and confirm zero errors before finishing.
