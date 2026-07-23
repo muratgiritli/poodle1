@@ -1,0 +1,552 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "Mağaza" (Store) page for YourPoodle.com.
+This is a Turkish e-commerce platform for Toy Poodle owners.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Mobile-first. Single column. Fully functional. Zero improvisation.
+
+If a homepage already exists in this Repl, REUSE the same Header, TabNavigation,
+MobileDrawer, Footer, Toast, and design tokens. Only build the new Store page content
+and wire routing. If no project exists yet, scaffold from scratch using the same stack.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES — READ BEFORE WRITING ANY CODE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT change colors. Use exact hex values provided.
+4. DO NOT skip any category row, icon, badge, button, or footer element.
+5. DO NOT add extra sections, banners, or features not listed here.
+6. DO NOT use Lorem ipsum or English UI text anywhere.
+7. EVERY interactive element MUST work (click, hover, open/close, toast).
+8. Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react.
+9. Route this page at "/magaza" (react-router-dom if routing exists).
+10. After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — PROJECT SETUP (SKIP IF PROJECT ALREADY EXISTS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If no React project exists:
+
+  npm create vite@latest . -- --template react-ts
+  npm install
+  npm install -D tailwindcss postcss autoprefixer
+  npx tailwindcss init -p
+  npm install lucide-react react-router-dom
+
+tailwind.config.js → extend colors:
+  purple: {
+    primary: "#6200EE",
+    dark: "#3D0099",
+    footer: "#1A0052",
+    light: "#F3EEFF",
+    badge: "#EDE7FF",
+  }
+
+index.html <head>:
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+index.css:
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+  body { font-family: 'Inter', sans-serif; background: #FFFFFF; margin: 0; }
+
+vite.config.ts → server: { port: 5000, host: true }
+
+Create / verify this structure:
+
+src/
+  components/
+    layout/
+      Header.tsx
+      TabNavigation.tsx
+      MobileDrawer.tsx
+      Footer.tsx
+    pages/
+      StorePage.tsx          ← NEW — main deliverable
+    ui/
+      CategoryRow.tsx        ← NEW — reusable category item
+      Accordion.tsx
+      Toast.tsx
+  data/
+    storeCategories.ts       ← NEW — all 17 categories
+  hooks/
+    useToast.ts
+  App.tsx
+  main.tsx
+  index.css
+
+Verify `npm run dev` runs with zero errors.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — GLOBAL LAYOUT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Viewport: mobile-first, max-width 480px, centered (max-w-[480px] mx-auto).
+Wider screens: keep 480px column centered, optional shadow-xl on sides.
+Horizontal padding: 16px (px-4) on main content.
+No horizontal scroll at 375px width.
+
+Typography:
+  Font: Inter only
+  Page title: text-xl font-bold text-gray-900
+  Page subtitle: text-sm text-gray-500
+  Category label: text-sm font-medium text-gray-900
+  Footer: text-sm
+
+Border radius:
+  Category rows: rounded-xl (12px)
+  Icon boxes inside rows: rounded-lg (8px)
+  Buttons: rounded-full for header/footer CTAs
+
+Colors (use ONLY these):
+  Primary purple:     #6200EE
+  Dark purple:        #3D0099
+  Footer background:  #1A0052
+  Newsletter box bg:  #2D1065
+  White:              #FFFFFF
+  Gray text:          #6B7280
+  Gray border:        #E5E7EB
+  Link blue:          #2563EB
+  Footer button blue: #4F46E5
+
+Category accent colors (icon bg, border tint, chevron):
+  purple:   { bg: "#F3EEFF", border: "#DDD6FE", icon: "#6200EE", chevron: "#6200EE" }
+  red:      { bg: "#FEF2F2", border: "#FECACA", icon: "#EF4444", chevron: "#EF4444" }
+  teal:     { bg: "#F0FDFA", border: "#99F6E4", icon: "#14B8A6", chevron: "#14B8A6" }
+  orange:   { bg: "#FFF7ED", border: "#FED7AA", icon: "#F97316", chevron: "#F97316" }
+  blue:     { bg: "#EFF6FF", border: "#BFDBFE", icon: "#3B82F6", chevron: "#3B82F6" }
+  pink:     { bg: "#FDF2F8", border: "#FBCFE8", icon: "#EC4899", chevron: "#EC4899" }
+  green:    { bg: "#F0FDF4", border: "#BBF7D0", icon: "#22C55E", chevron: "#22C55E" }
+  yellow:   { bg: "#FEFCE8", border: "#FEF08A", icon: "#EAB308", chevron: "#EAB308" }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — CATEGORY DATA (EXACT — ALL 17 ITEMS, EXACT ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/storeCategories.ts:
+
+export type CategoryColor = "purple" | "red" | "teal" | "orange" | "blue" | "pink" | "green" | "yellow";
+
+export interface StoreCategory {
+  id: string;
+  name: string;
+  color: CategoryColor;
+  icon: string; // lucide icon name
+  slug: string;
+}
+
+export const storeCategories: StoreCategory[] = [
+  { id:"c1",  name:"Kuru Mama",                  color:"purple", icon:"Package",        slug:"kuru-mama" },
+  { id:"c2",  name:"Tuvalet",                    color:"red",    icon:"Droplets",       slug:"tuvalet" },
+  { id:"c3",  name:"Yaş Mama",                   color:"teal",   icon:"Soup",           slug:"yas-mama" },
+  { id:"c4",  name:"Ödül Çeşitleri",             color:"orange", icon:"Candy",          slug:"odul-cesitleri" },
+  { id:"c5",  name:"Taşıma Çantaları",           color:"blue",   icon:"Briefcase",      slug:"tasima-cantalari" },
+  { id:"c6",  name:"Kulübeler",                  color:"pink",   icon:"Home",           slug:"kulubeler" },
+  { id:"c7",  name:"Oyuncaklar",                 color:"green",  icon:"ToyBrick",       slug:"oyuncaklar" },
+  { id:"c8",  name:"Mama ve Su Kapları",         color:"purple", icon:"UtensilsCrossed",slug:"mama-su-kaplari" },
+  { id:"c9",  name:"Bel ve Boyun Tasmaları",     color:"orange", icon:"Link",           slug:"bel-boyun-tasmalari" },
+  { id:"c10", name:"Bakım ve Sağlık",            color:"teal",   icon:"HeartPulse",     slug:"bakim-saglik" },
+  { id:"c11", name:"Makas ve Taraklar",          color:"yellow", icon:"Scissors",       slug:"makas-taraklar" },
+  { id:"c12", name:"Şampuan ve Parfüm",          color:"blue",   icon:"Sparkles",       slug:"sampuan-parfum" },
+  { id:"c13", name:"Ağız ve Diş Bakımı",         color:"blue",   icon:"Smile",          slug:"agiz-dis-bakimi" },
+  { id:"c14", name:"Süt Tozu ve Biberon",        color:"pink",   icon:"Baby",           slug:"sut-tozu-biberon" },
+  { id:"c15", name:"Bit, Pire ve Parazit",       color:"green",  icon:"Bug",            slug:"bit-pire-parazit" },
+  { id:"c16", name:"Göz ve Kulak Bakımı",        color:"purple", icon:"Eye",            slug:"goz-kulak-bakimi" },
+  { id:"c17", name:"Tıraş Ekipmanları",          color:"yellow", icon:"Razor",          slug:"tiras-ekipmanlari" },
+];
+
+Also export colorMap object matching STEP 2 accent colors.
+
+DO NOT reorder. DO NOT rename. DO NOT skip any item.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — HEADER (SAME AS HOMEPAGE — EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: Header.tsx
+
+Container:
+  sticky top-0 z-40 bg-white border-b border-gray-200
+  flex items-center justify-between h-14 px-4
+
+LEFT:
+  Button aria-label="Menü":
+    Menu icon (lucide), size 22, color #374151
+    onClick → open MobileDrawer
+
+CENTER:
+  flex items-center gap-2
+  Logo: 40x40 rounded-full
+    src: https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=80&h=80&fit=crop
+    alt: "YourPoodle Logo"
+  Text: "YourPoodle" — font-bold text-lg, color #6200EE
+
+RIGHT:
+  flex items-center gap-3
+  "Giriş Yap" — text-sm text-gray-700 hover:underline cursor-pointer
+    onClick → alert("Giriş sayfası yakında!")
+  "Üye Ol" button:
+    bg gradient: linear-gradient(135deg, #6200EE 0%, #4F46E5 100%)
+    text-white text-sm font-medium px-4 py-1.5 rounded-full
+    hover:opacity-90 active:scale-95 transition
+    onClick → alert("Üyelik sayfası yakında!")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — TAB NAVIGATION (Mağaza ACTIVE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: TabNavigation.tsx
+
+Container: bg-white border-b border-gray-200
+Inner: flex (4 equal columns)
+
+Tabs:
+
+| key    | label      | icon (lucide)     | default active |
+|--------|------------|-------------------|----------------|
+| magaza | Mağaza     | ShoppingBag       | YES            |
+| club   | Club       | PawPrint          | no             |
+| ai     | AI Asistan | MessageCirclePlus | no             |
+| rehber | Rehber     | BookOpen          | no             |
+
+Each tab:
+  flex flex-col items-center gap-1 py-2.5 w-full cursor-pointer
+  Icon size 20
+  Label text-xs
+
+ACTIVE tab (must be "magaza" on this page):
+  text #6200EE, font-semibold, border-b-2 border #6200EE
+
+INACTIVE tabs:
+  text #9CA3AF, font-medium, no underline
+
+onClick:
+  magaza → stay on /magaza (or scroll top)
+  club → alert("Club yakında!")
+  ai → alert("AI Asistan yakında!")
+  rehber → alert("Rehber yakında!")
+  (If react-router exists, navigate to respective routes when available)
+
+Pass activeTab="magaza" as prop OR hardcode active state for this page.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — MOBILE DRAWER (SAME AS HOMEPAGE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: MobileDrawer.tsx
+
+Props: isOpen: boolean, onClose: () => void
+
+When isOpen=true:
+  Backdrop: fixed inset-0 bg-black/50 z-50 → onClick onClose
+  Panel: fixed left-0 top-0 h-full w-72 bg-white z-50 shadow-xl
+    CSS transition: translateX(0) when open, translateX(-100%) when closed
+
+Panel content:
+  Top bar: Logo 32px + "YourPoodle" bold #6200EE + X button (top-right)
+  Nav links (py-3 border-b border-gray-100 text-base font-medium text-gray-800):
+    Mağaza
+    Club
+    AI Asistan
+    Rehber
+  Bottom (px-4 pb-6 mt-8):
+    "Giriş Yap" text link
+    "Üye Ol" full-width purple rounded-full button
+
+Each link onClick → onClose()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — CATEGORY ROW COMPONENT (EXACT DESIGN)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: CategoryRow.tsx
+
+Props: category: StoreCategory, onClick: () => void
+
+Visual structure of ONE row:
+
+┌──────────────────────────────────────────────────────┐
+│  [icon box]   Category Name                    >     │
+│   40x40       text-sm font-medium              chevron │
+└──────────────────────────────────────────────────────┘
+
+Row container:
+  flex items-center justify-between
+  w-full px-3 py-3 mb-2
+  rounded-xl
+  border: 1px solid {color.border}
+  background: {color.bg}
+  cursor-pointer
+  hover: shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all duration-150
+
+Left group (flex items-center gap-3):
+
+  Icon box:
+    w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0
+    background: white
+    border: 1px solid {color.border}
+    Inside: lucide icon (dynamic from category.icon), size 20, color {color.icon}
+
+  Category name:
+    text-sm font-medium text-gray-900
+
+Right:
+  ChevronRight icon, size 18, color {color.chevron}
+
+onClick → navigate or alert:
+  alert(`Kategori: ${category.name}`)
+
+Accessibility:
+  role="button"
+  aria-label={`${category.name} kategorisine git`}
+  tabIndex={0}
+  onKeyDown Enter/Space → onClick
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — STORE PAGE MAIN CONTENT (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: StorePage.tsx
+
+This is the main page body between TabNavigation and Footer.
+
+Container: px-4 pt-5 pb-6
+
+── SECTION HEADER ──
+
+  H1:
+    "Mağaza Kategorileri"
+    class: text-xl font-bold text-gray-900 mb-1
+
+  Subtitle:
+    "Poodle'ınız için aradığınız her şey"
+    class: text-sm text-gray-500 mb-5
+
+── CATEGORY LIST ──
+
+  Container: flex flex-col (vertical list, NOT grid)
+
+  Map storeCategories array → <CategoryRow /> for EACH of 17 items.
+  Maintain exact order from storeCategories.ts.
+  Gap between rows: 8px (mb-2 on each row).
+
+  NO search bar.
+  NO filters.
+  NO product cards on this page.
+  ONLY the 17 category rows.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — FOOTER (EXACT — MATCH MOCKUP)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: Footer.tsx
+
+Outer: bg #1A0052 text-white
+
+── BLOCK 1: Newsletter box ──
+  Outer box: mx-4 mt-0 rounded-2xl p-5
+    background: #2D1065
+    position relative, sits at top of footer area
+
+  Heading:
+    "Poodle dünyasından haberdar olun"
+    text-base font-semibold text-white mb-1
+
+  Subtext:
+    "Kampanyalar, yeni ürünler ve Poodle ipuçları e-postanıza gelsin."
+    text-sm text-white/70 mb-4
+
+  Form row: flex gap-0
+    Input:
+      flex-1 bg-white text-gray-900 rounded-l-full px-4 py-2.5 text-sm
+      placeholder="E-posta adresiniz"
+      type="email"
+      controlled useState
+    Button:
+      bg #4F46E5 text-white font-semibold text-sm px-5 py-2.5 rounded-r-full
+      Text: "Üye Ol"
+      hover:bg #4338CA
+      onClick:
+        if valid email → showToast("Bültene kaydoldunuz ✓") + clear input
+        else → showToast("Geçerli bir e-posta girin")
+
+  Legal text below form:
+    "Kayıt olarak KVKK Aydınlatma Metni'ni kabul etmiş olursunuz."
+    text-xs text-white/50 mt-2
+
+── BLOCK 2: Branding ──
+  px-4 mt-6
+  flex items-center gap-2
+    Logo img 32x32 rounded-full (same poodle image), alt="YourPoodle"
+    "YourPoodle" text font-bold text-white text-lg
+  Description mt-2 mb-5:
+    "Toy Poodle sahipleri için mutlu ve sağlıklı bir yaşam platformu."
+    text-sm text-white/70 leading-relaxed
+
+── BLOCK 3: Accordion ──
+  px-4
+  Build Accordion with 4 items. Each header has LEFT icon + title + RIGHT plus/minus.
+
+  Items:
+
+  1. Icon: PawPrint (size 18) | Title: "YourPoodle"
+     Links: Hakkımızda, Misyonumuz, Kariyer, Basın
+
+  2. Icon: ShoppingBag (size 18) | Title: "Alışveriş"
+     Links: Tüm Ürünler, Mamalar, Aksesuarlar, Kampanyalar
+
+  3. Icon: CircleHelp (size 18) | Title: "Yardım"
+     Links: SSS, Kargo & Teslimat, İade & Değişim, İletişim
+
+  4. Icon: Shield (size 18) | Title: "Yasal"
+     Links: Gizlilik Politikası, Kullanım Koşulları, KVKK, Çerez Politikası
+
+  Accordion header row:
+    flex items-center justify-between py-3.5 border-t border-white/10 cursor-pointer
+    Left: flex items-center gap-3 → icon + title (text-sm font-medium)
+    Right: Plus when closed / Minus when open (size 18)
+  Content when open:
+    pb-3 pl-8 space-y-2
+    Each link: text-sm text-white/60 hover:text-white hover:underline cursor-pointer block
+  Only one section open at a time. Smooth height transition.
+
+── BLOCK 4: Contact ──
+  px-4 mt-4 grid grid-cols-2 gap-4
+  Column 1:
+    flex items-center gap-2
+    Mail icon size 16 color white/70
+    "destek@yourpoodle.com" text-sm text-white/70
+  Column 2:
+    flex items-center gap-2
+    Clock icon size 16 color white/70
+    "Pzt–Cmt 09.00–18.00" text-sm text-white/70
+
+── BLOCK 5: Social ──
+  px-4 mt-6 text-center
+  "Bizi Takip Edin" — text-sm font-semibold mb-3
+  Icon row flex justify-center gap-4:
+    Each icon inside circle w-9 h-9 rounded-full border border-white/20
+    flex items-center justify-center hover:bg-white/10 cursor-pointer
+    Icons (lucide, size 18, white):
+      Instagram
+      Youtube
+      Music2 (TikTok)
+      Facebook
+    aria-label on each. href="#" for now.
+
+── BLOCK 6: Trust & Payment ──
+  px-4 mt-6 flex items-center justify-between
+  Left:
+    flex items-center gap-2
+    ShieldCheck icon size 16 color white/60
+    "256-bit SSL ile güvenli alışveriş" text-xs text-white/60
+  Right:
+    flex gap-2
+    Badge "VISA" — bg white text-gray-800 text-xs font-bold px-2 py-1 rounded
+    Badge "Mastercard" — same
+    Badge "TROY" — same
+
+── BLOCK 7: Copyright ──
+  px-4 mt-6 pt-4 pb-6 border-t border-white/10
+  "© 2026 YourPoodle. Tüm hakları saklıdır." — text-xs text-white/50 text-center
+  Links row flex justify-center gap-4 mt-2:
+    "Gizlilik" — text-xs text-white/50 hover:text-white cursor-pointer
+    "Çerezler" — same
+    "KVKK" — same
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — TOAST COMPONENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: Toast.tsx + hooks/useToast.ts
+
+Toast:
+  Fixed bottom-6 left-1/2 -translate-x-1/2 z-50
+  bg #1A0052 text-white px-6 py-3 rounded-full shadow-lg
+  text-sm font-medium
+  Transition: opacity + translateY fade in/out 300ms
+  Auto-hide after 3000ms
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — APP.TSX WIRING (EXACT PAGE STRUCTURE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+App.tsx render for /magaza route:
+
+<div className="max-w-[480px] mx-auto bg-white min-h-screen relative shadow-xl">
+  <Header onMenuClick={() => setDrawerOpen(true)} />
+  <TabNavigation activeTab="magaza" />
+  <StorePage />
+  <Footer />
+  <MobileDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
+  <Toast message={toast.message} visible={toast.visible} />
+</div>
+
+If react-router-dom is set up:
+  Route path="/" → HomePage (if exists)
+  Route path="/magaza" → layout above with StorePage
+
+If no router yet:
+  Render StorePage directly as default view for this task.
+
+StorePage.tsx must NOT include Header/Footer — those are in App layout.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — INTERACTIVITY (ALL MUST WORK)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Implement and verify:
+
+✅ Hamburger → opens MobileDrawer, backdrop + X closes it
+✅ All 4 tabs clickable, "Mağaza" shows active purple underline
+✅ All 17 category rows clickable → alert with category name
+✅ Category rows hover: shadow-sm + slight scale
+✅ Footer accordion: 4 sections, +/- toggle, one open at a time
+✅ Newsletter: email validation + success/error toast
+✅ All footer links clickable (console.log or alert for now)
+✅ Social icons hover state
+✅ "Giriş Yap" and "Üye Ol" header buttons work
+✅ All images: alt text + loading="lazy"
+✅ No horizontal scroll at 375px
+✅ npm run dev → ZERO console errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — FINAL QA CHECKLIST (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Visual match:
+✅ Header identical to mockup (hamburger, logo, Giriş Yap, Üye Ol gradient button)
+✅ Tab bar: Mağaza active with purple underline
+✅ Title "Mağaza Kategorileri" + subtitle present
+✅ Exactly 17 category rows in exact order
+✅ Each row has colored icon box + name + colored chevron
+✅ Each row has unique pastel background + matching border color
+✅ Footer dark purple #1A0052
+✅ Newsletter box #2D1065 with KVKK legal text
+✅ Accordion items have left icons (Paw, Bag, Help, Shield)
+✅ Contact: destek@yourpoodle.com + Pzt–Cmt 09.00–18.00
+✅ SSL text: "256-bit SSL ile güvenli alışveriş"
+✅ Payment badges: VISA, Mastercard, TROY
+✅ Copyright: © 2026 YourPoodle. Tüm hakları saklıdır.
+
+Functional:
+✅ Every button/link responds to click
+✅ Toast system works
+✅ Drawer opens/closes smoothly
+✅ No TypeScript errors
+✅ No missing imports
+
+If ANY item fails → fix it immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the complete YourPoodle.com Mağaza (Store) page exactly as specified.
+Do not ask questions. Do not simplify. Do not skip steps. Do not invent design changes.
+Match the mockup pixel-perfect. All 17 categories must appear in exact order with exact colors.
+Run the app and confirm zero errors before finishing.
