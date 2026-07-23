@@ -316,7 +316,10 @@ export default function YPMagazaPage() {
         <div style={{ display:"flex",flexDirection:"column" }}>
           {CATEGORIES.map(cat=>(
             <CategoryRow key={cat.id} cat={cat}
-              onClick={()=>alert(`Kategori: ${cat.name}`)} />
+              onClick={()=>{
+                if(cat.slug==="kuru-mama") navigate("/yourpoodle/kuru-mama");
+                else alert(`Kategori: ${cat.name}`);
+              }} />
           ))}
         </div>
 

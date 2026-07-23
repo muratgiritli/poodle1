@@ -1,0 +1,717 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "AI Asistan" (Poodle AI) chat page for YourPoodle.com.
+This is a Turkish mobile-first AI assistant for Toy Poodle owners.
+Recreate the provided mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, design system, Header, TabNavigation, MobileDrawer,
+  routing, and shared components. DO NOT rebuild or replace the entire app.
+- ONLY create/update AI Asistan-specific pages, components, mock data, and routes.
+- If Header/TabNavigation already exist, REUSE them with activeTab="ai".
+- DO NOT delete or rewrite existing pages (Home, Mağaza, Club, Rehber).
+
+Stack (use whatever the project already has):
+  React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Route: /ai-asistan
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT use colors outside the palette defined below.
+4. DO NOT skip any button, icon, badge, chat bubble, or widget.
+5. DO NOT add a site footer on this page.
+6. DO NOT use Lorem ipsum or English UI text.
+7. EVERY interactive element MUST work (send message, quick actions, calculator, feedback).
+8. Optimize for 390px mobile. Max content width 480px, centered on larger screens.
+9. DO NOT add unnecessary npm dependencies.
+10. Keep mock AI responses local — ready for future OpenAI API integration.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS (USE EXACTLY)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:   #6324D6
+  purple-dark:      #4C1DAA
+  purple-light:     #F3EEFF
+  purple-gradient-from: #6324D6
+  purple-gradient-to:   #8B5CF6
+  white:            #FFFFFF
+  text-dark:        #111827
+  text-secondary:   #6B7280
+  text-muted:       #9CA3AF
+  border-light:     #E5E7EB
+  chat-user-bg:     #6324D6
+  chat-ai-bg:       #FFFFFF
+  chat-ai-border:   #E5E7EB
+  disclaimer-bg:    #FFF7ED
+  disclaimer-border:#FED7AA
+  disclaimer-icon:  #EA580C
+  disclaimer-text:  #92400E
+  date-pill-bg:     #F3F4F6
+  input-bg:         #F9FAFB
+
+Quick action accent colors:
+  purple:  { bg:"#F3EEFF", border:"#DDD6FE", icon:"#6324D6" }
+  pink:    { bg:"#FDF2F8", border:"#FBCFE8", icon:"#EC4899" }
+  blue:    { bg:"#EFF6FF", border:"#BFDBFE", icon:"#3B82F6" }
+  teal:    { bg:"#F0FDFA", border:"#99F6E4", icon:"#14B8A6" }
+  orange:  { bg:"#FFF7ED", border:"#FED7AA", icon:"#F97316" }
+  lavender:{ bg:"#F5F3FF", border:"#DDD6FE", icon:"#7C3AED" }
+
+Typography:
+  Font: Inter (already in project)
+  Hero H1: text-xl font-bold text-white
+  Section title: text-base font-bold text-gray-900
+  Chat text: text-sm leading-relaxed
+  Disclaimer: text-xs
+
+Layout:
+  max-w-[480px] mx-auto bg-white min-h-screen flex flex-col
+  px-4 on content sections
+  Rounded: hero rounded-2xl, quick actions rounded-xl, chat bubbles rounded-2xl
+  Input bar: rounded-full, sticky bottom
+  NO horizontal overflow at 375px
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE (CREATE ONLY THESE NEW FILES)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    ai/
+      AIHeroBanner.tsx           ← purple gradient intro card
+      QuickActionGrid.tsx        ← 2×3 quick action buttons
+      QuickActionButton.tsx      ← single quick action card
+      ChatContainer.tsx          ← scrollable chat message area
+      ChatDateMarker.tsx         ← "Bugün" pill
+      ChatMessageUser.tsx        ← purple right-aligned bubble
+      ChatMessageAI.tsx          ← white left-aligned bubble with avatar
+      FoodCalculatorWidget.tsx   ← inline widget inside AI response
+      AIDisclaimerBanner.tsx     ← orange medical warning box
+      ChatInputBar.tsx           ← sticky bottom input + send
+      AIFeedbackActions.tsx      ← thumbs up/down/copy row
+  pages/
+    AIAssistantPage.tsx          ← main /ai-asistan page
+  data/
+    aiQuickActions.ts            ← 6 quick action items
+    aiMockResponses.ts           ← mock AI reply templates
+    aiFoodData.ts                ← weight + food options for calculator
+  hooks/
+    useAIChat.ts                 ← chat state, send, quick action logic
+  App.tsx                        ← add route only
+
+DO NOT rewrite existing pages.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — MOCK DATA (EXACT CONTENT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/aiQuickActions.ts:
+
+export interface QuickAction {
+  id: string;
+  label: string;
+  icon: string;       // lucide icon name
+  color: "purple" | "pink" | "blue" | "teal" | "orange" | "lavender";
+  promptMessage: string;  // message sent to chat when clicked
+}
+
+export const aiQuickActions: QuickAction[] = [
+  {
+    id: "food",
+    label: "Mama önerisi",
+    icon: "UtensilsCrossed",
+    color: "purple",
+    promptMessage: "Toy Poodle'uma hangi mamayı önerirsiniz?",
+  },
+  {
+    id: "health",
+    label: "Sağlık sorusu",
+    icon: "HeartPulse",
+    color: "pink",
+    promptMessage: "Toy Poodle'umun sağlığı hakkında bir sorum var.",
+  },
+  {
+    id: "potty",
+    label: "Tuvalet eğitimi",
+    icon: "Bath",
+    color: "blue",
+    promptMessage: "Toy Poodle yavruma tuvalet eğitimi nasıl verilir?",
+  },
+  {
+    id: "grooming",
+    label: "Tüy ve göz bakımı",
+    icon: "Brush",
+    color: "teal",
+    promptMessage: "Toy Poodle tüy ve göz bakımı nasıl yapılır?",
+  },
+  {
+    id: "behavior",
+    label: "Davranış ve eğitim",
+    icon: "GraduationCap",
+    color: "orange",
+    promptMessage: "Toy Poodle davranış ve eğitim konusunda yardım istiyorum.",
+  },
+  {
+    id: "vaccine",
+    label: "Aşı ve parazit",
+    icon: "Syringe",
+    color: "lavender",
+    promptMessage: "Toy Poodle aşı ve parazit takvimi hakkında bilgi alabilir miyim?",
+  },
+];
+
+Create src/data/aiFoodData.ts:
+
+export const weightOptions = [
+  { value: "1",  label: "1 kg" },
+  { value: "1.5", label: "1.5 kg" },
+  { value: "2",  label: "2 kg" },
+  { value: "2.5", label: "2.5 kg" },
+  { value: "3",  label: "3 kg" },
+  { value: "3.5", label: "3.5 kg" },
+  { value: "4",  label: "4 kg" },
+];
+
+export const foodOptions = [
+  { value: "puppy-chicken",  label: "Puppy Tavuklu",  kcalPer100g: 350 },
+  { value: "adult-salmon",   label: "Adult Somonlu",  kcalPer100g: 330 },
+  { value: "mini-chicken",   label: "Mini Tavuklu",   kcalPer100g: 340 },
+  { value: "light-turkey",    label: "Light Hindi",    kcalPer100g: 300 },
+  { value: "grain-lamb",     label: "Grain Free Kuzulu", kcalPer100g: 360 },
+  { value: "senior-chicken", label: "Senior Tavuklu", kcalPer100g: 310 },
+];
+
+// Daily calorie formula for puppies: weight(kg) × 90 kcal (mock simplified)
+export function calculateDailyFood(weightKg: number, kcalPer100g: number) {
+  const dailyKcal = weightKg * 90;
+  const gramsPerDay = Math.round((dailyKcal / kcalPer100g) * 100);
+  const mealsPerDay = 3;
+  const gramsPerMeal = Math.round(gramsPerDay / mealsPerDay);
+  return { dailyKcal, gramsPerDay, mealsPerDay, gramsPerMeal };
+}
+
+Create src/data/aiMockResponses.ts:
+
+export const initialUserMessage = "3 aylık Toy Poodle yavrum ne kadar mama yemeli?";
+
+export const initialAIResponse = {
+  text: "3 aylık bir Toy Poodle yavrusu için günlük mama miktarı; kilosuna, mama kalorisine ve aktivite seviyesine göre değişir. Genel olarak günde 3 öğün halinde toplam 60–90 gram arası mama yeterli olabilir. Kesin miktar için aşağıdaki hesaplayıcıyı kullanabilirsiniz.",
+  showCalculator: true,
+};
+
+export function getMockAIResponse(userMessage: string): { text: string; showCalculator: boolean } {
+  const lower = userMessage.toLowerCase();
+  if (lower.includes("mama") || lower.includes("beslen") || lower.includes("yem"))
+    return {
+      text: "Toy Poodle'lar için mama miktarı yaşa, kiloya ve aktivite seviyesine göre değişir. Aşağıdaki hesaplayıcı ile kişiselleştirilmiş öneri alabilirsiniz.",
+      showCalculator: true,
+    };
+  if (lower.includes("sağlık") || lower.includes("hastalık"))
+    return {
+      text: "Toy Poodle sağlığı için düzenli veteriner kontrolü çok önemlidir. Aşı takviminizi aksatmayın ve olağandışı belirtilerde hemen veterinere başvurun.",
+      showCalculator: false,
+    };
+  if (lower.includes("tuvalet"))
+    return {
+      text: "Tuvalet eğitimi sabır ve tutarlılık gerektirir. Yavru köpeğinizi yemekten 15–20 dakika sonra dışarı çıkarın, başarıyı ödüllendirin ve asla cezalandırmayın.",
+      showCalculator: false,
+    };
+  if (lower.includes("tüy") || lower.includes("göz") || lower.includes("bakım"))
+    return {
+      text: "Toy Poodle tüyleri düzenli taranmalıdır (haftada 3–4 kez). Göz çevresi günlük nemli bezle silinmeli, profesyonel tıraş 4–6 haftada bir önerilir.",
+      showCalculator: false,
+    };
+  if (lower.includes("davranış") || lower.includes("eğitim"))
+    return {
+      text: "Toy Poodle'lar zeki ve öğrenmeye açıktır. Kısa ve eğlenceli eğitim seansları (5–10 dk), pozitif pekiştirme ve tutarlı komutlar en iyi sonucu verir.",
+      showCalculator: false,
+    };
+  if (lower.includes("aşı") || lower.includes("parazit"))
+    return {
+      text: "Toy Poodle yavruları 6–8 haftalıkken aşı programına başlamalıdır. İç ve dış parazit uygulamaları veterinerinizin önerdiği takvime göre düzenli yapılmalıdır.",
+      showCalculator: false,
+    };
+  return {
+    text: "Sorunuz için teşekkürler! Toy Poodle'ınızla ilgili daha spesifik bilgi verirseniz size daha iyi yardımcı olabilirim.",
+    showCalculator: false,
+  };
+}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — HEADER (REUSE EXISTING — EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Reuse existing Header component.
+
+Sticky top-0 z-40 bg-white border-b border-gray-200
+flex items-center justify-between h-14 px-4
+
+LEFT:
+  Menu icon (lucide, size 22) → open MobileDrawer
+  Logo 40x40 rounded-full + "YourPoodle" font-bold text-lg color #6324D6
+
+RIGHT:
+  "Giriş Yap" text link text-sm hover:underline
+  "Üye Ol" button bg #6324D6 text-white rounded-full px-4 py-1.5 text-sm font-medium
+    hover:bg #4C1DAA active:scale-95
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — TAB NAVIGATION (AI Asistan ACTIVE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Reuse TabNavigation with activeTab="ai"
+
+| key    | label      | icon (lucide)     | route          |
+|--------|------------|-------------------|----------------|
+| magaza | Mağaza     | ShoppingBag       | /magaza        |
+| club   | Club       | PawPrint          | /club          |
+| ai     | AI Asistan | Sparkles OR MessageCirclePlus | /ai-asistan |
+| rehber | Rehber     | BookOpen          | /rehber        |
+
+ACTIVE (ai):
+  icon + label color #6324D6, font-semibold, border-b-2 border #6324D6
+
+INACTIVE:
+  color #9CA3AF, font-medium
+
+Each tab onClick → react-router navigate
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — AI HERO BANNER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AIHeroBanner.tsx
+
+Container:
+  mx-4 mt-4 rounded-2xl overflow-hidden relative
+  background: linear-gradient(135deg, #6324D6 0%, #8B5CF6 100%)
+  min-height: 180px
+  padding: 20px
+
+Content LEFT (relative z-10, max-w-[58%]):
+
+  1. Icon row:
+     MessageCircle icon size 20 color white/80
+
+  2. Badge pill:
+     inline-block mt-2 bg-white/20 text-white text-xs font-medium
+     px-3 py-1 rounded-full
+     Text: "7/24 Yanınızda"
+
+  3. H1:
+     text-white text-xl font-bold leading-tight mt-3 mb-2
+     Text: "Merhaba! Ben Poodle AI 🐾"
+
+  4. Subtext:
+     text-white/85 text-sm leading-relaxed mb-3
+     Text: "Poodle'ınızla ilgili merak ettiğiniz her şeyi bana sorabilirsiniz."
+
+  5. Trust row:
+     flex items-center gap-1.5
+     ShieldCheck icon size 14 color white/70
+     text-white/70 text-xs
+     Text: "Uzman kaynaklarla desteklenen bilgiler"
+
+Image RIGHT:
+  absolute right-0 bottom-0 w-32 h-36 object-cover object-bottom
+  src: https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=300&h=350&fit=crop
+  alt: "Poodle AI"
+  loading="lazy"
+
+Optional: small circular "AI" badge overlay on poodle image bottom-right
+  w-7 h-7 bg white rounded-full text #6324D6 text-xs font-bold
+  flex items-center justify-center border-2 border-purple-300
+  Text: "AI"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — QUICK ACTION GRID (EXACT — 2×3)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: QuickActionButton.tsx
+  Props: action: QuickAction, onClick
+
+  Button/card:
+    flex items-center gap-2.5 w-full
+    px-3 py-3 rounded-xl border cursor-pointer
+    border-color: action.color.border
+    background: action.color.bg
+    hover:shadow-sm active:scale-[0.98] transition
+
+  Icon: lucide dynamic, size 20, color action.color.icon
+
+  Label: text-sm font-medium text-gray-800
+
+File: QuickActionGrid.tsx
+
+  Section header (px-4 mt-5 mb-3):
+    "Size nasıl yardımcı olabilirim?"
+    text-base font-bold text-gray-900
+
+  Grid (px-4):
+    grid grid-cols-2 gap-2.5
+
+  Render aiQuickActions in EXACT order:
+    1. Mama önerisi (purple, UtensilsCrossed)
+    2. Sağlık sorusu (pink, HeartPulse)
+    3. Tuvalet eğitimi (blue, Bath)
+    4. Tüy ve göz bakımı (teal, Brush)
+    5. Davranış ve eğitim (orange, GraduationCap)
+    6. Aşı ve parazit (lavender, Syringe)
+
+  onClick → send action.promptMessage to chat (via useAIChat.sendMessage)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — CHAT MESSAGES (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ChatDateMarker.tsx
+  Centered pill: bg #F3F4F6 text-gray-500 text-xs px-4 py-1 rounded-full my-4 mx-auto w-fit
+  Text: "Bugün"
+
+File: ChatMessageUser.tsx
+  Props: message: string
+
+  Container: flex justify-end mb-3 px-4
+  Bubble:
+    bg #6324D6 text-white text-sm leading-relaxed
+    px-4 py-3 rounded-2xl rounded-br-sm
+    max-w-[85%]
+    Text: message
+
+File: ChatMessageAI.tsx
+  Props: message, showCalculator, onFeedback
+
+  Container: flex gap-2 mb-3 px-4
+
+  LEFT — AI Avatar:
+    w-9 h-9 rounded-full flex-shrink-0 relative
+    img: poodle face (same as logo), object-cover
+    Small "AI" badge bottom-right: w-4 h-4 bg #6324D6 text-white text-[8px]
+      font-bold rounded-full flex items-center justify-center
+
+  RIGHT — Bubble block (flex-1 min-w-0):
+
+    Bubble:
+      bg white border border-gray-200 text-sm text-gray-800 leading-relaxed
+      px-4 py-3 rounded-2xl rounded-tl-sm
+      Text: message text
+
+    IF showCalculator:
+      <FoodCalculatorWidget /> rendered INSIDE bubble below text (mt-3)
+
+    <AIFeedbackActions /> below bubble (mt-2)
+
+File: AIFeedbackActions.tsx
+  flex items-center gap-3 mt-1
+
+  ThumbsUp button (aria-label="Beğen"):
+    ThumbsUp icon size 16 color #9CA3AF hover:color #6324D6
+    onClick → setFeedback("up"), icon turns #6324D6
+
+  ThumbsDown button (aria-label="Beğenme"):
+    ThumbsDown icon size 16 color #9CA3AF hover:color #EF4444
+    onClick → setFeedback("down")
+
+  Copy button (aria-label="Kopyala"):
+    Copy icon size 16 color #9CA3AF hover:color #6324D6
+    onClick → navigator.clipboard.writeText(messageText) + brief "Kopyalandı" toast
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — FOOD CALCULATOR WIDGET (INSIDE AI BUBBLE — EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: FoodCalculatorWidget.tsx
+
+Container:
+  mt-3 p-3 rounded-xl border border-purple-200 bg #F3EEFF
+
+  Title:
+    text-sm font-semibold text-gray-900 mb-3
+    Text: "Hızlı hesaplama için bilgileri seçin"
+
+  Row 1 — two dropdowns side by side (flex gap-2 mb-3):
+
+    Dropdown 1:
+      label (sr-only or text-xs text-gray-500): "Kilo seçin"
+      select element w-full bg white border border-gray-200 rounded-lg
+        px-3 py-2 text-sm text-gray-700
+      default option: "Kilo seçin"
+      options from weightOptions
+
+    Dropdown 2:
+      default option: "Mama seçin"
+      options from foodOptions
+
+  Button "Hesapla":
+    w-full bg #6324D6 text-white font-semibold text-sm py-2.5 rounded-xl
+    hover:bg #4C1DAA active:scale-95
+
+    onClick:
+      IF both selected → calculate using calculateDailyFood()
+      Show result below button:
+        "Önerilen günlük mama: {gramsPerDay} g ({mealsPerDay} öğün × {gramsPerMeal} g)"
+        text-sm font-medium text #6324D6 mt-2
+      IF not selected → showToast("Lütfen kilo ve mama seçin")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — MEDICAL DISCLAIMER BANNER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AIDisclaimerBanner.tsx
+
+Container (mx-4 my-3):
+  flex items-start gap-3
+  bg #FFF7ED border border #FED7AA
+  rounded-xl px-4 py-3
+
+  Icon:
+    ShieldPlus OR Cross icon (lucide), size 20, color #EA580C, flex-shrink-0 mt-0.5
+
+  Text:
+    text-xs text #92400E leading-relaxed
+    Text: "AI Asistan veteriner muayenesinin yerini tutmaz. Acil durumlarda veterinerinize başvurun."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — CHAT INPUT BAR (STICKY BOTTOM — EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ChatInputBar.tsx
+
+Props: onSend, isLoading
+
+Sticky bottom-0 bg-white border-t border-gray-100 px-4 pt-3 pb-4 z-30
+
+Input row (flex items-center gap-2):
+
+  LEFT — Attachment button (aria-label="Dosya ekle"):
+    w-10 h-10 rounded-full flex items-center justify-center
+    hover:bg-gray-100
+    Plus icon size 20 color #6B7280
+    onClick → alert("Dosya ekleme yakında!")
+
+  CENTER — Text input wrapper:
+    flex-1 flex items-center bg #F9FAFB border border-gray-200 rounded-full px-4 py-2.5
+
+    input:
+      flex-1 bg-transparent outline-none text-sm text-gray-900
+      placeholder="Poodle'ınızla ilgili bir şey sorun..."
+      onKeyDown Enter (without Shift) → onSend(inputValue)
+
+    Mic button inside input wrapper (aria-label="Sesli mesaj"):
+      Mic icon size 18 color #9CA3AF hover:color #6324D6
+      onClick → alert("Sesli mesaj yakında!")
+
+  RIGHT — Send button (aria-label="Gönder"):
+    w-10 h-10 rounded-full bg #6324D6 flex items-center justify-center flex-shrink-0
+    hover:bg #4C1DAA active:scale-95
+    Send icon size 18 color white
+    onClick → onSend(inputValue)
+    Disabled + opacity-50 when input empty or isLoading
+
+Footer disclaimer below input row (mt-2 text-center):
+  text-xs text-gray-400
+  Text: "AI yanıtları hata içerebilir. Önemli bilgileri doğrulayın."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — useAIChat HOOK (ALL CHAT LOGIC)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: hooks/useAIChat.ts
+
+Message type:
+  { id: string, role: "user" | "ai", text: string, showCalculator?: boolean, timestamp: Date }
+
+Initial state (pre-loaded mock conversation):
+  [
+    { role:"user", text:"3 aylık Toy Poodle yavrum ne kadar mama yemeli?" },
+    { role:"ai",  text: initialAIResponse.text, showCalculator: true },
+  ]
+
+Functions:
+
+  sendMessage(text: string):
+    IF text.trim() empty → return
+    Add user message to messages array
+    Set isLoading = true
+    After 800ms timeout (simulate AI thinking):
+      Add AI response from getMockAIResponse(text)
+      Set isLoading = false
+    Clear input
+
+  sendQuickAction(promptMessage: string):
+    Call sendMessage(promptMessage)
+
+  scrollToBottom():
+    Called after new message — scroll chat container to bottom
+
+State:
+  messages: Message[]
+  isLoading: boolean
+  inputValue: string
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — CHAT CONTAINER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ChatContainer.tsx
+
+  flex-1 overflow-y-auto pb-4
+  ref for auto-scroll
+
+  Render in order:
+    1. <ChatDateMarker /> ("Bugün")
+    2. Map messages:
+       IF role==="user" → <ChatMessageUser />
+       IF role==="ai"   → <ChatMessageAI />
+
+    3. IF isLoading:
+       AI typing indicator — three bouncing dots in white bubble
+       flex gap-1 px-4 py-3
+       three divs w-2 h-2 bg-gray-300 rounded-full animate-bounce
+
+  Auto-scroll to bottom on new messages (useEffect + ref)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — AI ASSISTANT PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AIAssistantPage.tsx
+
+<div className="max-w-[480px] mx-auto bg-white min-h-screen flex flex-col shadow-xl">
+  <Header />
+  <TabNavigation activeTab="ai" />
+
+  {/* Scrollable main area */}
+  <div className="flex-1 overflow-y-auto pb-2">
+    <AIHeroBanner />
+    <QuickActionGrid onActionClick={sendQuickAction} />
+    <ChatContainer messages={messages} isLoading={isLoading} />
+    <AIDisclaimerBanner />
+  </div>
+
+  {/* Sticky input */}
+  <ChatInputBar
+    value={inputValue}
+    onChange={setInputValue}
+    onSend={sendMessage}
+    isLoading={isLoading}
+  />
+
+  <MobileDrawer />  ← reuse existing
+</div>
+
+Exact scroll order:
+  1. Header (sticky top)
+  2. Tab nav (AI Asistan active)
+  3. Hero banner (Poodle AI intro)
+  4. "Size nasıl yardımcı olabilirim?" + 6 quick actions (2×3 grid)
+  5. Chat area:
+     - "Bugün" date marker
+     - User message (purple bubble)
+     - AI response (white bubble + calculator widget + feedback icons)
+  6. Medical disclaimer banner (orange)
+  7. Chat input bar (sticky bottom)
+  8. Footer disclaimer text (below input, part of ChatInputBar)
+
+NO site footer on this page.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — APP.TSX ROUTING (ADD ONLY)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add to existing router WITHOUT removing other routes:
+
+  <Route path="/ai-asistan" element={<AIAssistantPage />} />
+
+Keep existing routes:
+  /           → HomePage
+  /magaza     → StorePage
+  /club       → ClubPage
+  /rehber     → GuidePage
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ All 6 quick action buttons send their prompt to chat + get AI reply
+✅ Chat input sends user message on Enter and Send button click
+✅ Send button disabled when input empty
+✅ AI typing indicator shows during 800ms mock delay
+✅ Pre-loaded conversation visible on page load (user + AI messages)
+✅ Food calculator: both dropdowns required, "Hesapla" shows result
+✅ Calculator result format: "Önerilen günlük mama: X g (3 öğün × Y g)"
+✅ Thumbs up/down toggle visual state
+✅ Copy button copies AI message text to clipboard
+✅ Plus attachment button shows alert
+✅ Mic button shows alert
+✅ AI Asistan tab active with purple underline
+✅ Chat auto-scrolls to bottom on new messages
+✅ All images lazy-loaded
+✅ All icon buttons have aria-label
+✅ Touch targets min 44px on send/attach/mic buttons
+✅ No horizontal overflow at 375px
+✅ npm run dev → ZERO console errors
+✅ NO site footer on this page
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 17 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Header:
+✅ Hamburger + YourPoodle logo + Giriş Yap + Üye Ol
+
+Navigation:
+✅ Mağaza, Club, AI Asistan (ACTIVE purple), Rehber
+
+Hero banner:
+✅ Purple gradient background
+✅ "7/24 Yanınızda" badge
+✅ "Merhaba! Ben Poodle AI 🐾"
+✅ Subtext about asking anything
+✅ Shield + "Uzman kaynaklarla desteklenen bilgiler"
+✅ Poodle image on right with AI badge
+
+Quick actions:
+✅ "Size nasıl yardımcı olabilirim?" title
+✅ 2×3 grid with exact 6 labels and colored icons
+
+Chat:
+✅ "Bugün" date pill centered
+✅ User bubble (purple, right): "3 aylık Toy Poodle yavrum ne kadar mama yemeli?"
+✅ AI avatar with AI badge
+✅ AI white bubble with response text
+✅ Calculator widget inside AI bubble:
+   "Hızlı hesaplama için bilgileri seçin"
+   "Kilo seçin" + "Mama seçin" dropdowns + "Hesapla" button
+✅ Thumbs up, thumbs down, copy icons below AI bubble
+
+Disclaimer:
+✅ Orange box: "AI Asistan veteriner muayenesinin yerini tutmaz..."
+
+Input:
+✅ Pill input with + left, mic inside, purple send button right
+✅ Placeholder: "Poodle'ınızla ilgili bir şey sorun..."
+✅ Bottom text: "AI yanıtları hata içerebilir. Önemli bilgileri doğrulayın."
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the YourPoodle AI Asistan page at /ai-asistan exactly as specified.
+Use the EXISTING project — do not rebuild the whole app.
+Hero banner, 6 quick actions, pre-loaded chat, calculator widget, disclaimer,
+and sticky input must all work.
+Match the mockup pixel-perfect. Turkish text must be exact.
+Run the app and confirm zero errors before finishing.
