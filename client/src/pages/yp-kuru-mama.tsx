@@ -360,7 +360,7 @@ export default function YPKuruMamaPage() {
           {/* CTA Button */}
           <button
             className="km-btn-main"
-            onClick={() => navigate("/yourpoodle/mama-bul")}
+            onClick={() => navigate("/yourpoodle/mama-sonuclar")}
             style={{ width:"100%", background:P, color:"#fff",
                      border:"none", borderRadius:14, padding:"15px 0",
                      fontSize:15, fontWeight:700, cursor:"pointer",
