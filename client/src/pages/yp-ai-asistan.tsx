@@ -1,16 +1,15 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useLocation } from "wouter";
+import YPLayout from "@/components/yourpoodle/YPLayout";
 import {
-  Menu, ShoppingBag, PawPrint, BookOpen, Sparkles,
   MessageCircle, ShieldCheck, ShieldAlert,
   UtensilsCrossed, HeartPulse, Bath, Brush, GraduationCap, Syringe,
   ThumbsUp, ThumbsDown, Copy, Plus, Mic, Send,
 } from "lucide-react";
 
 /* ─────────────────────── DESIGN TOKENS ───────────────────────── */
-const P   = "#6324D6";   // purple-primary
-const PD  = "#4C1DAA";   // purple-dark
-const PL  = "#F3EEFF";   // purple-light
+const P   = "#6324D6";
+const PD  = "#4C1DAA";
+const PL  = "#F3EEFF";
 
 /* ─────────────────────── TYPES ───────────────────────────────── */
 interface Msg {
@@ -92,7 +91,6 @@ function Toast({ msg, visible }: { msg: string; visible: boolean }) {
   );
 }
 
-/* Food calculator widget – inside AI bubble */
 function FoodCalc() {
   const [weight, setWeight] = useState("");
   const [food,   setFood]   = useState("");
@@ -145,7 +143,6 @@ function FoodCalc() {
   );
 }
 
-/* Feedback row below AI bubble */
 function FeedbackRow({ text }: { text: string }) {
   const [fb, setFb]   = useState<"up"|"down"|null>(null);
   const [cop, setCop] = useState(false);
@@ -157,15 +154,9 @@ function FeedbackRow({ text }: { text: string }) {
   };
 
   const btnStyle = (active?: boolean, hoverColor?: string): React.CSSProperties => ({
-    background: "none",
-    border: "none",
-    cursor: "pointer",
-    padding: 4,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: active ? hoverColor : "#9CA3AF",
-    transition: "color 0.15s",
+    background: "none", border: "none", cursor: "pointer", padding: 4,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    color: active ? hoverColor : "#9CA3AF", transition: "color 0.15s",
   });
 
   return (
@@ -190,9 +181,6 @@ function FeedbackRow({ text }: { text: string }) {
 
 /* ─────────────────────── MAIN PAGE ───────────────────────────── */
 export default function YPAiAsistanPage() {
-  const [, navigate] = useLocation();
-
-  /* ── Chat state ── */
   const initMsgs: Msg[] = [
     { id:"m0", role:"user", text:"3 aylık Toy Poodle yavrum ne kadar mama yemeli?", ts:new Date() },
     { id:"m1", role:"ai",   text:INITIAL_AI_TEXT, showCalculator:true,              ts:new Date() },
@@ -208,7 +196,6 @@ export default function YPAiAsistanPage() {
   const isFirst     = useRef(true);
 
   useEffect(() => {
-    // don't auto-scroll on initial mount (keep hero banner visible)
     if (isFirst.current) { isFirst.current = false; return; }
     bottomRef.current?.scrollIntoView({ behavior:"smooth" });
   }, [msgs, loading]);
@@ -236,23 +223,9 @@ export default function YPAiAsistanPage() {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); }
   };
 
-  /* ── Tabs ── */
-  const TABS = [
-    { key:"magaza", label:"Mağaza",     Icon:ShoppingBag,  route:"/yourpoodle/magaza"     },
-    { key:"club",   label:"Club",       Icon:PawPrint,      route:"/yourpoodle/club"       },
-    { key:"ai",     label:"AI Asistan", Icon:Sparkles,      route:"/yourpoodle/ai-asistan" },
-    { key:"rehber", label:"Rehber",     Icon:BookOpen,      route:"/yourpoodle/rehber"     },
-  ];
-
   return (
-    <div style={{ maxWidth:480, margin:"0 auto", background:"#fff", minHeight:"100dvh",
-                  display:"flex", flexDirection:"column",
-                  fontFamily:"Inter, system-ui, -apple-system, sans-serif",
-                  boxShadow:"0 0 40px rgba(0,0,0,0.08)", position:"relative" }}>
-
+    <YPLayout activeLink="/yourpoodle/ai-asistan" constrain={false}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         .yp-ai-scroll::-webkit-scrollbar { width: 3px; }
         .yp-ai-scroll::-webkit-scrollbar-thumb { background: #DDD6FE; border-radius: 3px; }
         .yp-qa-btn { transition: box-shadow 0.15s, transform 0.1s; }
@@ -264,71 +237,6 @@ export default function YPAiAsistanPage() {
         .yp-dot:nth-child(3){ animation-delay:.4s; }
       `}</style>
 
-      {/* ══ HEADER ══════════════════════════════════════════════ */}
-      <header style={{ position:"sticky", top:0, zIndex:40, background:"#fff",
-                       borderBottom:"1px solid #E5E7EB", height:56,
-                       display:"flex", alignItems:"center", justifyContent:"space-between",
-                       padding:"0 16px", flexShrink:0 }}>
-
-        {/* Left: hamburger + logo */}
-        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <button aria-label="Menü"
-            style={{ width:36, height:36, borderRadius:8, border:"none", background:"none",
-                     display:"flex", alignItems:"center", justifyContent:"center",
-                     cursor:"pointer", color:"#374151", flexShrink:0 }}>
-            <Menu size={22} />
-          </button>
-          <button onClick={() => navigate("/yourpoodle")}
-            style={{ display:"flex", alignItems:"center", gap:8, background:"none",
-                     border:"none", cursor:"pointer", padding:0 }}>
-            <img src="/images/yp-poodle-hero.png" alt="YourPoodle"
-              style={{ width:32, height:32, borderRadius:"50%", objectFit:"cover",
-                       objectPosition:"center top" }} />
-            <span style={{ fontSize:16, fontWeight:700, color:P, letterSpacing:"-0.3px" }}>
-              YourPoodle
-            </span>
-          </button>
-        </div>
-
-        {/* Right: Giriş Yap + Üye Ol */}
-        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-          <button style={{ background:"none", border:"none", cursor:"pointer",
-                           fontSize:13, color:"#374151", fontWeight:500 }}>
-            Giriş Yap
-          </button>
-          <button style={{ background:P, color:"#fff", border:"none",
-                           borderRadius:999, padding:"7px 16px",
-                           fontSize:13, fontWeight:600, cursor:"pointer",
-                           transition:"background 0.15s" }}
-            onMouseEnter={e=>(e.currentTarget.style.background=PD)}
-            onMouseLeave={e=>(e.currentTarget.style.background=P)}>
-            Üye Ol
-          </button>
-        </div>
-      </header>
-
-      {/* ══ TAB NAV ═════════════════════════════════════════════ */}
-      <nav style={{ display:"flex", borderBottom:"1px solid #F3F4F6",
-                    background:"#fff", flexShrink:0 }}>
-        {TABS.map(tab => {
-          const active = tab.key === "ai";
-          return (
-            <button key={tab.key}
-              onClick={() => navigate(tab.route)}
-              style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center",
-                       gap:4, padding:"10px 0", background:"none", border:"none",
-                       borderBottom: active ? `2px solid ${P}` : "2px solid transparent",
-                       cursor:"pointer", transition:"all 0.15s",
-                       color: active ? P : "#9CA3AF",
-                       fontWeight: active ? 600 : 500,
-                       fontFamily:"inherit" }}>
-              <tab.Icon size={20} />
-              <span style={{ fontSize:11, lineHeight:1 }}>{tab.label}</span>
-            </button>
-          );
-        })}
-      </nav>
-
       {/* ══ SCROLLABLE MAIN ═════════════════════════════════════ */}
       <div className="yp-ai-scroll"
         style={{ flex:1, overflowY:"auto", paddingBottom:8 }}>
@@ -337,32 +245,21 @@ export default function YPAiAsistanPage() {
         <div style={{ margin:"16px 16px 0", borderRadius:18, overflow:"hidden",
                       background:"linear-gradient(135deg, #6324D6 0%, #8B5CF6 100%)",
                       minHeight:180, padding:20, position:"relative" }}>
-
-          {/* LEFT content */}
           <div style={{ position:"relative", zIndex:2, maxWidth:"58%" }}>
-            {/* Icon */}
             <MessageCircle size={20} color="rgba(255,255,255,0.8)" />
-
-            {/* Badge */}
             <div style={{ display:"inline-block", marginTop:8, background:"rgba(255,255,255,0.20)",
                           color:"#fff", fontSize:12, fontWeight:500,
                           padding:"4px 12px", borderRadius:999 }}>
               7/24 Yanınızda
             </div>
-
-            {/* H1 */}
             <h1 style={{ color:"#fff", fontSize:20, fontWeight:700,
                          lineHeight:1.25, marginTop:10, marginBottom:8 }}>
               Merhaba! Ben Poodle AI 🐾
             </h1>
-
-            {/* Subtext */}
             <p style={{ color:"rgba(255,255,255,0.85)", fontSize:13,
                         lineHeight:1.55, marginBottom:12 }}>
               Poodle'ınızla ilgili merak ettiğiniz her şeyi bana sorabilirsiniz.
             </p>
-
-            {/* Trust row */}
             <div style={{ display:"flex", alignItems:"center", gap:6 }}>
               <ShieldCheck size={14} color="rgba(255,255,255,0.7)" />
               <span style={{ color:"rgba(255,255,255,0.7)", fontSize:12 }}>
@@ -370,13 +267,10 @@ export default function YPAiAsistanPage() {
               </span>
             </div>
           </div>
-
-          {/* RIGHT poodle image */}
           <div style={{ position:"absolute", right:0, bottom:0, width:128, height:148 }}>
             <img src="/images/yp-poodle-hero.png" alt="Poodle AI" loading="lazy"
               style={{ width:"100%", height:"100%", objectFit:"cover",
                        objectPosition:"center top" }} />
-            {/* AI badge */}
             <div style={{ position:"absolute", bottom:8, right:8,
                           width:28, height:28, borderRadius:"50%",
                           background:"#fff", border:"2px solid #C4B5FD",
@@ -414,8 +308,6 @@ export default function YPAiAsistanPage() {
 
         {/* ── CHAT AREA ───────────────────────────────────────── */}
         <div style={{ marginTop:20 }}>
-
-          {/* Date pill */}
           <div style={{ display:"flex", justifyContent:"center", marginBottom:16 }}>
             <span style={{ background:"#F3F4F6", color:"#6B7280", fontSize:12,
                            padding:"4px 16px", borderRadius:999 }}>
@@ -423,7 +315,6 @@ export default function YPAiAsistanPage() {
             </span>
           </div>
 
-          {/* Messages */}
           {msgs.map(m => {
             if (m.role === "user") {
               return (
@@ -439,11 +330,9 @@ export default function YPAiAsistanPage() {
                 </div>
               );
             }
-            /* AI message */
             return (
               <div key={m.id}
                 style={{ display:"flex", gap:8, marginBottom:12, padding:"0 16px" }}>
-                {/* Avatar */}
                 <div style={{ width:36, height:36, borderRadius:"50%",
                                flexShrink:0, position:"relative", alignSelf:"flex-start" }}>
                   <img src="/images/yp-poodle-hero.png" alt="AI"
@@ -458,8 +347,6 @@ export default function YPAiAsistanPage() {
                     AI
                   </div>
                 </div>
-
-                {/* Bubble + feedback */}
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ background:"#fff", border:"1px solid #E5E7EB",
                                  color:"#1F2937", fontSize:14, lineHeight:1.6,
@@ -475,7 +362,6 @@ export default function YPAiAsistanPage() {
             );
           })}
 
-          {/* Typing indicator */}
           {loading && (
             <div style={{ display:"flex", gap:8, marginBottom:12, padding:"0 16px" }}>
               <div style={{ width:36, height:36, borderRadius:"50%",
@@ -509,15 +395,14 @@ export default function YPAiAsistanPage() {
           </p>
         </div>
 
-      </div>{/* /scrollable */}
+      </div>
 
       {/* ══ STICKY INPUT BAR ════════════════════════════════════ */}
-      <div style={{ position:"sticky", bottom:0, background:"#fff",
+      <div style={{ position:"sticky", bottom:72, background:"#fff",
                     borderTop:"1px solid #F3F4F6",
                     padding:"12px 16px 16px", flexShrink:0, zIndex:30 }}>
 
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          {/* Attachment */}
           <button aria-label="Dosya ekle"
             onClick={() => alert("Dosya ekleme yakında!")}
             style={{ width:44, height:44, borderRadius:"50%", border:"none",
@@ -529,7 +414,6 @@ export default function YPAiAsistanPage() {
             <Plus size={20} />
           </button>
 
-          {/* Input wrapper */}
           <div style={{ flex:1, display:"flex", alignItems:"center",
                         background:"#F9FAFB", border:"1px solid #E5E7EB",
                         borderRadius:999, padding:"0 14px 0 16px" }}>
@@ -555,7 +439,6 @@ export default function YPAiAsistanPage() {
             </button>
           </div>
 
-          {/* Send */}
           <button aria-label="Gönder"
             onClick={() => sendMessage(input)}
             disabled={!input.trim() || loading}
@@ -571,13 +454,12 @@ export default function YPAiAsistanPage() {
           </button>
         </div>
 
-        {/* Footer disclaimer */}
         <p style={{ marginTop:8, textAlign:"center", fontSize:11, color:"#9CA3AF" }}>
           AI yanıtları hata içerebilir. Önemli bilgileri doğrulayın.
         </p>
       </div>
 
       <Toast msg={toast} visible={toastVis} />
-    </div>
+    </YPLayout>
   );
 }

@@ -1,20 +1,20 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
+import YPLayout from "@/components/yourpoodle/YPLayout";
 import {
-  Menu, ShoppingBag, PawPrint, BookOpen, Sparkles,
   ChevronLeft, Heart, Share2, CreditCard, ShieldCheck,
   Truck, Package, RotateCcw, MapPin, ChevronRight,
   Stethoscope, Fish, Minus, Plus, ShoppingCart,
   FileText, List, BarChart2, Info, BadgeCheck,
-  Star, CircleDot, ChevronDown, ChevronUp,
+  Star, CircleDot, ChevronDown, ChevronUp, Sparkles,
 } from "lucide-react";
 
 /* ─── Palette ────────────────────────────────────────── */
-const P   = "#6B21A8"; // purple-primary
-const PB  = "#7C3AED"; // purple-bright
-const PL  = "#F3EEFF"; // purple-light
-const PBD = "#DDD6FE"; // purple-border
-const GB  = "#E5E7EB"; // border-light
+const P   = "#6B21A8";
+const PB  = "#7C3AED";
+const PL  = "#F3EEFF";
+const PBD = "#DDD6FE";
+const GB  = "#E5E7EB";
 
 /* ─── Mock Data ─────────────────────────────────────── */
 interface ProductPackage {
@@ -50,10 +50,8 @@ const REVIEWS = [
   { id:"r3", initials:"E", name:"Elif S.",   rating:4, color:"#EC4899", text:"Hızlı kargo, ürün taze. Tek eksik biraz pahalı ama kalitesi belli.", verified:true },
 ];
 
-/* ─── Helpers ──────────────────────────────────────── */
-function fmt(n: number) {
-  return n.toLocaleString("tr-TR");
-}
+function fmt(n: number) { return n.toLocaleString("tr-TR"); }
+
 function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
   return (
     <span style={{ display:"flex", gap:1 }}>
@@ -66,11 +64,9 @@ function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
   );
 }
 
-/* ─── Main Page ─────────────────────────────────────── */
 export default function YPMamaUrunPage() {
   const [, navigate] = useLocation();
 
-  /* state */
   const [pkgId, setPkgId]         = useState("pkg-3");
   const [qty, setQty]             = useState(1);
   const [imgIdx, setImgIdx]       = useState(0);
@@ -116,83 +112,17 @@ export default function YPMamaUrunPage() {
     if (chosen && cities.includes(chosen)) setCity(chosen);
   };
 
-  /* Tab nav */
-  const TABS = [
-    { key:"magaza", label:"Mağaza",     Icon:ShoppingBag, href:"/yourpoodle/magaza"     },
-    { key:"club",   label:"Club",       Icon:PawPrint,    href:"/yourpoodle/club"       },
-    { key:"ai",     label:"AI Asistan", Icon:Sparkles,    href:"/yourpoodle/ai-asistan" },
-    { key:"rehber", label:"Rehber",     Icon:BookOpen,    href:"/yourpoodle/rehber"     },
-  ];
-
-  /* Image dots: 2 in mockup */
   const IMG_COUNT = 2;
 
   return (
-    <div style={{ maxWidth:480, margin:"0 auto", background:"#fff",
-                  minHeight:"100dvh", display:"flex", flexDirection:"column",
-                  fontFamily:"Inter, system-ui, sans-serif",
-                  boxShadow:"0 0 40px rgba(0,0,0,0.09)",
-                  paddingBottom:88 }}>
-
+    <YPLayout activeLink="/yourpoodle/magaza" constrain={false}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
         select { -webkit-appearance:none; appearance:none; }
         .acc-body { overflow:hidden; transition:max-height 0.25s ease; }
         .reviews-scroll::-webkit-scrollbar { display:none; }
         .reviews-scroll { -ms-overflow-style:none; scrollbar-width:none; }
         button { font-family:inherit; }
       `}</style>
-
-      {/* ══ HEADER ════════════════════════════════════════ */}
-      <header style={{ position:"sticky", top:0, zIndex:50, background:"#fff",
-                       borderBottom:`1px solid ${GB}` }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
-                      height:56, padding:"0 16px" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <button aria-label="Menü"
-              style={{ width:36, height:36, border:"none", background:"none",
-                       display:"flex", alignItems:"center", justifyContent:"center",
-                       cursor:"pointer", color:"#374151" }}>
-              <Menu size={22} />
-            </button>
-            <button onClick={() => navigate("/yourpoodle")}
-              style={{ display:"flex", alignItems:"center", gap:8,
-                       background:"none", border:"none", cursor:"pointer", padding:0 }}>
-              <img src="/images/yp-poodle-hero.png" alt="YourPoodle"
-                style={{ width:32, height:32, borderRadius:"50%",
-                         objectFit:"cover", objectPosition:"center top" }} />
-              <span style={{ fontSize:16, fontWeight:700, color:P }}>YourPoodle</span>
-            </button>
-          </div>
-          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-            <button style={{ background:"none", border:"none", cursor:"pointer",
-                             fontSize:13, color:"#374151", fontWeight:500 }}>
-              Giriş Yap
-            </button>
-            <button style={{ background:P, color:"#fff", border:"none", borderRadius:999,
-                             padding:"7px 16px", fontSize:13, fontWeight:600, cursor:"pointer" }}>
-              Üye Ol
-            </button>
-          </div>
-        </div>
-        <nav style={{ display:"flex", borderBottom:`1px solid ${GB}` }}>
-          {TABS.map(tab => {
-            const active = tab.key === "magaza";
-            return (
-              <button key={tab.key} onClick={() => navigate(tab.href)}
-                style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center",
-                         gap:4, padding:"10px 0", background:"none", border:"none",
-                         borderBottom: active ? `2px solid ${P}` : "2px solid transparent",
-                         cursor:"pointer", color: active ? P : "#9CA3AF",
-                         fontWeight: active ? 600 : 500, transition:"color 0.15s" }}>
-                <tab.Icon size={20} />
-                <span style={{ fontSize:11 }}>{tab.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-      </header>
 
       {/* ══ BREADCRUMB ════════════════════════════════════ */}
       <div style={{ display:"flex", alignItems:"center", gap:6,
@@ -210,416 +140,291 @@ export default function YPMamaUrunPage() {
         <span style={{ color:"#111827", fontWeight:600 }}>Pro Plan</span>
       </div>
 
-      {/* ══ GALLERY ═══════════════════════════════════════ */}
-      <div style={{ padding:"0 16px", marginBottom:16 }}>
-        {/* Main image */}
-        <div style={{ position:"relative", borderRadius:20, overflow:"hidden",
-                      background:"#F9FAFB", border:`1px solid ${GB}` }}>
-          {/* Product image placeholder — Pro Plan brand bg */}
-          <div style={{ width:"100%", aspectRatio:"1/1", display:"flex",
-                        flexDirection:"column", alignItems:"center", justifyContent:"center",
-                        background: imgIdx === 0
-                          ? "linear-gradient(135deg,#EEF2FF 0%,#E0E7FF 100%)"
-                          : "linear-gradient(135deg,#F0FDF4 0%,#DCFCE7 100%)",
-                        position:"relative" }}>
-            {/* Kibbles/food illustration */}
-            <div style={{ fontSize:72, lineHeight:1, marginBottom:8, userSelect:"none" }}>
-              {imgIdx === 0 ? "🦮" : "🐾"}
-            </div>
-            <div style={{ fontSize:11, fontWeight:700, color:"#003087",
-                          letterSpacing:"0.5px", textAlign:"center" }}>
-              PRO PLAN
-            </div>
-            <div style={{ fontSize:10, color:"#6B7280", textAlign:"center", marginTop:2 }}>
-              Small Adult Sensitive
-            </div>
-          </div>
-
-          {/* TOP LEFT badges */}
-          <div style={{ position:"absolute", top:12, left:12,
-                        display:"flex", flexDirection:"column", gap:5 }}>
-            <span style={{ background:"#FEE2E2", color:"#DC2626",
-                           fontSize:11, fontWeight:700, padding:"4px 10px",
-                           borderRadius:999 }}>%15 İndirim</span>
-            <span style={{ background:"#EDE9FE", color:"#5B21B6",
-                           fontSize:11, fontWeight:700, padding:"4px 10px",
-                           borderRadius:999 }}>Çok Satan</span>
-          </div>
-
-          {/* TOP RIGHT actions */}
-          <div style={{ position:"absolute", top:12, right:12,
-                        display:"flex", flexDirection:"column", gap:8 }}>
-            <button onClick={() => setLiked(l => !l)}
-              aria-label="Favorilere ekle"
-              style={{ width:36, height:36, borderRadius:"50%", background:"#fff",
-                       border:"none", cursor:"pointer", display:"flex",
-                       alignItems:"center", justifyContent:"center",
-                       boxShadow:"0 1px 6px rgba(0,0,0,0.12)" }}>
-              <Heart size={17}
-                color={liked ? "#EF4444" : "#9CA3AF"}
-                fill={liked ? "#EF4444" : "none"} />
-            </button>
-            <button onClick={share}
-              aria-label="Paylaş"
-              style={{ width:36, height:36, borderRadius:"50%", background:"#fff",
-                       border:"none", cursor:"pointer", display:"flex",
-                       alignItems:"center", justifyContent:"center",
-                       boxShadow:"0 1px 6px rgba(0,0,0,0.12)" }}>
-              <Share2 size={16} color="#6B7280" />
-            </button>
-          </div>
-
-          {/* Dots */}
-          <div style={{ display:"flex", justifyContent:"center", gap:6,
-                        paddingBottom:12, paddingTop:8 }}>
-            {Array.from({ length: IMG_COUNT }).map((_, i) => (
-              <button key={i} onClick={() => setImgIdx(i)}
-                aria-label={`Resim ${i+1}`}
-                style={{ width: imgIdx === i ? 20 : 8,
-                         height:8, borderRadius:999, border:"none", cursor:"pointer",
-                         background: imgIdx === i ? P : "#D1D5DB",
-                         transition:"all 0.2s", padding:0 }} />
-            ))}
-          </div>
+      {/* ══ PRODUCT GALLERY ════════════════════════════════ */}
+      <div style={{ position:"relative", background:"#F9FAFB",
+                    height:280, display:"flex", alignItems:"center",
+                    justifyContent:"center", overflow:"hidden" }}>
+        <div style={{ fontSize:80, userSelect:"none", filter:"drop-shadow(0 8px 24px rgba(0,0,0,0.12))" }}>
+          🐕
         </div>
-
-        {/* Thumbnails */}
-        <div style={{ display:"flex", gap:8, marginTop:10 }}>
-          {[0, 1].map(i => (
+        {/* dots */}
+        <div style={{ position:"absolute", bottom:12, left:"50%",
+                      transform:"translateX(-50%)", display:"flex", gap:6 }}>
+          {Array.from({ length: IMG_COUNT }).map((_, i) => (
             <button key={i} onClick={() => setImgIdx(i)}
-              style={{ width:56, height:56, borderRadius:10, overflow:"hidden",
-                       border:`2px solid ${imgIdx === i ? P : "transparent"}`,
-                       background: i === 0
-                         ? "linear-gradient(135deg,#EEF2FF,#E0E7FF)"
-                         : "linear-gradient(135deg,#F0FDF4,#DCFCE7)",
-                       cursor:"pointer", display:"flex", alignItems:"center",
-                       justifyContent:"center", fontSize:24, flexShrink:0 }}>
-              {i === 0 ? "🦮" : "🐾"}
-            </button>
+              style={{ width: i === imgIdx ? 18 : 6, height:6, borderRadius:3,
+                       background: i === imgIdx ? P : "#D1D5DB",
+                       border:"none", cursor:"pointer", transition:"all 0.2s", padding:0 }} />
           ))}
         </div>
+        {/* action buttons */}
+        <button onClick={() => setLiked(l => !l)}
+          style={{ position:"absolute", top:12, right:54, width:38, height:38,
+                   borderRadius:"50%", background:"rgba(255,255,255,0.9)",
+                   border:"none", display:"flex", alignItems:"center",
+                   justifyContent:"center", cursor:"pointer",
+                   boxShadow:"0 2px 8px rgba(0,0,0,0.12)" }}>
+          <Heart size={18} fill={liked?"#EF4444":"none"} color={liked?"#EF4444":"#374151"} />
+        </button>
+        <button onClick={share}
+          style={{ position:"absolute", top:12, right:12, width:38, height:38,
+                   borderRadius:"50%", background:"rgba(255,255,255,0.9)",
+                   border:"none", display:"flex", alignItems:"center",
+                   justifyContent:"center", cursor:"pointer",
+                   boxShadow:"0 2px 8px rgba(0,0,0,0.12)" }}>
+          <Share2 size={18} color="#374151" />
+        </button>
       </div>
 
-      {/* ══ HEADER INFO ═══════════════════════════════════ */}
-      <div style={{ padding:"0 16px", marginBottom:12 }}>
-        <p style={{ fontSize:11, fontWeight:700, color:P,
-                    letterSpacing:"0.8px", textTransform:"uppercase", marginBottom:4 }}>
-          PRO PLAN
-        </p>
-        <h1 style={{ fontSize:16, fontWeight:800, color:"#111827",
+      {/* ══ PRODUCT INFO ═══════════════════════════════════ */}
+      <div style={{ background:"#fff", padding:"16px 16px 12px" }}>
+        {/* Brand + Tags */}
+        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+          <span style={{ fontSize:11, fontWeight:800, color:"#003087",
+                         textTransform:"uppercase", letterSpacing:"0.5px" }}>
+            PRO PLAN
+          </span>
+          {FEATURE_TAGS.map(t => (
+            <span key={t} style={{ fontSize:10, fontWeight:600, color:PB,
+                                   background:PL, borderRadius:999,
+                                   padding:"2px 8px" }}>{t}</span>
+          ))}
+        </div>
+
+        {/* Name */}
+        <h1 style={{ fontSize:17, fontWeight:700, color:"#111827",
                      lineHeight:1.35, marginBottom:10 }}>
           Pro Plan Small Adult Sensitive Somonlu Yetişkin Köpek Maması
         </h1>
+
         {/* Rating row */}
-        <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
-          <Stars rating={4.8} size={14} />
-          <span style={{ fontSize:13, fontWeight:600, color:"#111827" }}>4,8</span>
-          <span style={{ fontSize:12, color:"#9CA3AF" }}>127 değerlendirme</span>
+        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
+          <Stars rating={4.7} />
+          <span style={{ fontSize:13, fontWeight:600, color:"#374151" }}>4.7</span>
           <button onClick={() => reviewsRef.current?.scrollIntoView({ behavior:"smooth" })}
-            style={{ background:"none", border:"none", cursor:"pointer",
-                     fontSize:12, color:P, fontWeight:600, fontFamily:"inherit" }}>
-            Yorumları Gör
+            style={{ fontSize:12, color:PB, background:"none", border:"none",
+                     cursor:"pointer", fontFamily:"inherit", padding:0 }}>
+            (248 yorum)
           </button>
-        </div>
-      </div>
-
-      {/* ══ META BAR ══════════════════════════════════════ */}
-      <div style={{ margin:"0 16px 12px",
-                    border:`1px solid #F3F4F6`, borderRadius:12,
-                    padding:"10px 14px",
-                    display:"flex", flexWrap:"wrap", gap:"4px 16px",
-                    fontSize:12, color:"#6B7280" }}>
-        <span>Kg: {pkg.weight.replace(",",".")}</span>
-        <span>Barkod: {pkg.barcode}</span>
-        <span>SKT: 18.07.2027</span>
-        <span style={{ display:"flex", alignItems:"center", gap:4, color:"#16A34A", fontWeight:500 }}>
-          <span style={{ width:7, height:7, borderRadius:"50%",
-                         background:"#22C55E", display:"inline-block" }} />
-          Stokta
-        </span>
-      </div>
-
-      {/* ══ FEATURE TAGS ══════════════════════════════════ */}
-      <div style={{ padding:"0 16px", marginBottom:16,
-                    display:"flex", flexWrap:"wrap", gap:8 }}>
-        {FEATURE_TAGS.map(t => (
-          <span key={t} style={{ background:PL, color:P,
-                                  fontSize:12, fontWeight:500,
-                                  padding:"5px 12px", borderRadius:999 }}>
-            {t}
+          <span style={{ fontSize:11, background:"#F0FDF4", color:"#16A34A",
+                         border:"1px solid #BBF7D0", borderRadius:999,
+                         padding:"2px 8px", fontWeight:600 }}>
+            Çok Satan
           </span>
-        ))}
-      </div>
-
-      {/* ══ PRICING ════════════════════════════════════════ */}
-      <div style={{ padding:"0 16px", marginBottom:16,
-                    display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-        {/* Left — prices */}
-        <div>
-          <p style={{ fontSize:13, color:"#9CA3AF", textDecoration:"line-through",
-                      marginBottom:2 }}>
-            {fmt(pkg.originalPrice)} TL
-          </p>
-          <p style={{ fontSize:26, fontWeight:800, color:P, lineHeight:1, marginBottom:4 }}>
-            {fmt(pkg.price)} TL
-          </p>
-          <p style={{ fontSize:12, fontWeight:600, color:"#16A34A" }}>
-            {fmt(savings)} TL kazanç
-          </p>
         </div>
-        {/* Right — installment */}
-        <div style={{ border:`1px solid ${PBD}`, borderRadius:14,
-                      padding:"10px 12px", background:"#FAFAFF" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
-            <CreditCard size={15} color={P} />
-            <span style={{ fontSize:11, fontWeight:600, color:"#374151" }}>
-              Peşin fiyatına 3 taksit
-            </span>
-          </div>
-          <p style={{ fontSize:14, fontWeight:700, color:P }}>
-            3 × {installAmt} TL
-          </p>
+
+        {/* Price */}
+        <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom:4 }}>
+          <span style={{ fontSize:26, fontWeight:800, color:P }}>{fmt(pkg.price)} TL</span>
+          <span style={{ fontSize:14, color:"#9CA3AF", textDecoration:"line-through" }}>
+            {fmt(pkg.originalPrice)} TL
+          </span>
+          <span style={{ fontSize:13, fontWeight:700, color:"#16A34A" }}>
+            %{Math.round((savings / pkg.originalPrice) * 100)} İndirim
+          </span>
+        </div>
+        <div style={{ display:"flex", alignItems:"center", gap:6,
+                      background:PL, borderRadius:10, padding:"8px 12px",
+                      marginBottom:12 }}>
+          <CreditCard size={15} color={P} style={{ flexShrink:0 }} />
+          <span style={{ fontSize:13, fontWeight:600, color:P }}>
+            Peşin fiyatına 3 taksit: {installAmt} TL
+          </span>
+        </div>
+
+        {/* Why features */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr",
+                      gap:8, marginBottom:14 }}>
+          {WHY_FEATURES.map(f => (
+            <div key={f.label}
+              style={{ display:"flex", alignItems:"center", gap:8,
+                       background:"#F9FAFB", borderRadius:10, padding:"8px 10px" }}>
+              <f.icon size={16} color={P} style={{ flexShrink:0 }} />
+              <span style={{ fontSize:12, fontWeight:500, color:"#374151", lineHeight:1.3 }}>
+                {f.label}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* ══ PACKAGE SELECTOR ══════════════════════════════ */}
-      <div style={{ padding:"0 16px", marginBottom:16 }}>
-        <p style={{ fontSize:13, fontWeight:700, color:"#111827", marginBottom:10 }}>
-          Paket Seçimi
+      <div style={{ background:"#fff", padding:"16px", marginTop:8 }}>
+        <p style={{ fontSize:14, fontWeight:700, color:"#111827", marginBottom:10 }}>
+          Paket Seçin
         </p>
         <div style={{ display:"flex", gap:8 }}>
           {PACKAGES.map(p => (
             <button key={p.id} onClick={() => setPkgId(p.id)}
-              style={{ flex:1, borderRadius:12, padding:"10px 6px",
+              style={{ flex:1, display:"flex", flexDirection:"column",
+                       alignItems:"center", gap:4,
+                       padding:"10px 6px", borderRadius:12,
                        border:`2px solid ${pkgId === p.id ? P : GB}`,
                        background: pkgId === p.id ? PL : "#fff",
-                       cursor:"pointer", textAlign:"center" }}>
-              <p style={{ fontSize:13, fontWeight:700, color:"#111827",
-                          marginBottom:3 }}>{p.weight}</p>
-              <p style={{ fontSize:11, fontWeight:600, color:P }}>{p.label}</p>
+                       cursor:"pointer", fontFamily:"inherit",
+                       transition:"all 0.15s" }}>
+              <span style={{ fontSize:13, fontWeight:700,
+                             color: pkgId === p.id ? P : "#374151" }}>
+                {p.weight}
+              </span>
+              <span style={{ fontSize:12, fontWeight:600,
+                             color: pkgId === p.id ? P : "#6B7280" }}>
+                {p.label}
+              </span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* ══ QUANTITY ═══════════════════════════════════════ */}
-      <div style={{ padding:"0 16px", marginBottom:16,
-                    display:"flex", alignItems:"center", gap:14 }}>
-        <span style={{ fontSize:13, fontWeight:500, color:"#374151" }}>Adet</span>
-        <div style={{ display:"flex", alignItems:"center",
-                      border:`1.5px solid ${PBD}`, borderRadius:12, overflow:"hidden" }}>
-          <button aria-label="Azalt"
-            onClick={() => setQty(q => Math.max(1, q - 1))}
-            disabled={qty === 1}
-            style={{ padding:"10px 14px", background:"none", border:"none",
-                     cursor: qty === 1 ? "not-allowed" : "pointer",
-                     color: qty === 1 ? "#D1D5DB" : "#374151",
-                     display:"flex", alignItems:"center" }}>
-            <Minus size={14} />
+      {/* ══ QUANTITY + BARCODE ════════════════════════════ */}
+      <div style={{ background:"#fff", padding:"12px 16px 16px",
+                    display:"flex", alignItems:"center", justifyContent:"space-between",
+                    marginTop:1 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:0 }}>
+          <button onClick={() => setQty(q => Math.max(1, q - 1))}
+            style={{ width:36, height:36, borderRadius:"8px 0 0 8px",
+                     border:`1px solid ${GB}`, background:"#F9FAFB",
+                     display:"flex", alignItems:"center", justifyContent:"center",
+                     cursor:"pointer" }}>
+            <Minus size={14} color="#374151" />
           </button>
-          <span style={{ padding:"10px 16px", fontSize:14, fontWeight:600,
-                         color:"#111827", minWidth:40, textAlign:"center" }}>
+          <div style={{ width:48, height:36, border:`1px solid ${GB}`,
+                        borderLeft:"none", borderRight:"none",
+                        display:"flex", alignItems:"center", justifyContent:"center",
+                        fontSize:15, fontWeight:700, color:"#111827" }}>
             {qty}
-          </span>
-          <button aria-label="Artır"
-            onClick={() => setQty(q => Math.min(10, q + 1))}
-            disabled={qty === 10}
-            style={{ padding:"10px 14px", background:"none", border:"none",
-                     cursor: qty === 10 ? "not-allowed" : "pointer",
-                     color: qty === 10 ? "#D1D5DB" : "#374151",
-                     display:"flex", alignItems:"center" }}>
-            <Plus size={14} />
+          </div>
+          <button onClick={() => setQty(q => q + 1)}
+            style={{ width:36, height:36, borderRadius:"0 8px 8px 0",
+                     border:`1px solid ${GB}`, background:"#F9FAFB",
+                     display:"flex", alignItems:"center", justifyContent:"center",
+                     cursor:"pointer" }}>
+            <Plus size={14} color="#374151" />
           </button>
+        </div>
+        <div style={{ fontSize:11, color:"#9CA3AF" }}>
+          Barkod: {pkg.barcode}
         </div>
       </div>
 
-      {/* ══ PURCHASE BUTTONS ══════════════════════════════ */}
-      <div style={{ padding:"0 16px", marginBottom:10, display:"flex",
-                    flexDirection:"column", gap:10 }}>
-        {/* Sepete Ekle */}
-        <button onClick={addToCart}
-          style={{ width:"100%", background: added ? "#16A34A" : P, color:"#fff",
-                   border:"none", borderRadius:14, padding:"15px 20px",
-                   fontSize:15, fontWeight:700, cursor:"pointer",
-                   display:"flex", alignItems:"center", justifyContent:"center",
-                   gap:8, transition:"background 0.2s" }}>
-          <ShoppingCart size={18} />
-          {added ? "Sepete Eklendi ✓" : `Sepete Ekle — ${fmt(totalPrice)} TL`}
-        </button>
-        {/* Hemen Al */}
-        <button onClick={() => alert("Ödeme sayfası yakında!")}
-          style={{ width:"100%", background:"#fff",
-                   border:`2px solid ${P}`, borderRadius:14, padding:"13px 20px",
-                   fontSize:15, fontWeight:700, color:P, cursor:"pointer" }}>
-          Hemen Al
-        </button>
-      </div>
-
-      {/* ══ SSL BADGE ══════════════════════════════════════ */}
-      <div style={{ padding:"0 16px", marginBottom:16,
-                    display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
-        <ShieldCheck size={14} color="#3B82F6" />
-        <span style={{ fontSize:12, color:"#9CA3AF" }}>256-bit SSL ile güvenli ödeme</span>
-      </div>
-
-      {/* ══ SHIPPING BAR ══════════════════════════════════ */}
-      <div style={{ margin:"0 16px", marginBottom:14,
-                    display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
+      {/* ══ DELIVERY INFO ═════════════════════════════════ */}
+      <div style={{ background:"#fff", padding:"16px", marginTop:8 }}>
+        <p style={{ fontSize:14, fontWeight:700, color:"#111827", marginBottom:10 }}>
+          Teslimat Bilgileri
+        </p>
         {[
-          { Icon:Truck,      text:"Bugün sipariş ver, yarın kargoda" },
-          { Icon:Package,    text:"500 TL üzeri ücretsiz kargo" },
-          { Icon:RotateCcw,  text:"14 gün içinde kolay iade" },
-        ].map(({ Icon, text }) => (
-          <div key={text} style={{ display:"flex", flexDirection:"column",
-                                    alignItems:"center", textAlign:"center", gap:5 }}>
-            <Icon size={18} color={P} />
-            <span style={{ fontSize:10, color:"#4B5563", lineHeight:1.35 }}>{text}</span>
+          { icon:Truck,    label:"Standart Kargo — Ücretsiz", sub:"Tahmini: 2–3 gün" },
+          { icon:Package,  label:"Ekspres Teslimat — 49 TL",  sub:"Yarın kapınızda" },
+          { icon:RotateCcw,label:"14 Gün Ücretsiz İade",      sub:"Koşulsuz iade garantisi" },
+        ].map(d => (
+          <div key={d.label} style={{ display:"flex", alignItems:"center", gap:10,
+                                      marginBottom:10 }}>
+            <d.icon size={18} color={P} style={{ flexShrink:0 }} />
+            <div>
+              <p style={{ fontSize:13, fontWeight:600, color:"#111827" }}>{d.label}</p>
+              <p style={{ fontSize:11, color:"#9CA3AF" }}>{d.sub}</p>
+            </div>
           </div>
         ))}
-      </div>
-
-      {/* ══ DELIVERY PICKER ═══════════════════════════════ */}
-      <button onClick={pickCity}
-        style={{ margin:"0 16px 20px",
-                 display:"flex", alignItems:"center", justifyContent:"space-between",
-                 background:"#F9FAFB", border:`1px solid ${GB}`,
-                 borderRadius:14, padding:"13px 16px", cursor:"pointer",
-                 fontFamily:"inherit", width:"calc(100% - 32px)" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <MapPin size={16} color={P} />
-          <span style={{ fontSize:13, color:"#374151" }}>
-            {city ? `Teslimat: ${city}` : "Teslimat bölgenizi seçin"}
-          </span>
-        </div>
-        <ChevronRight size={18} color="#9CA3AF" />
-      </button>
-
-      {/* ══ NEDEN BU MAMA? ════════════════════════════════ */}
-      <div style={{ padding:"0 16px", marginBottom:20 }}>
-        <p style={{ fontSize:15, fontWeight:800, color:"#111827", marginBottom:12 }}>
-          Neden Bu Mama?
-        </p>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-          {WHY_FEATURES.map(({ icon: Icon, label }) => (
-            <div key={label} style={{ background:"#F9FAFB", borderRadius:14,
-                                       padding:"14px 10px",
-                                       display:"flex", flexDirection:"column",
-                                       alignItems:"center", textAlign:"center", gap:8 }}>
-              <Icon size={22} color={P} />
-              <span style={{ fontSize:12, fontWeight:500, color:"#374151",
-                             lineHeight:1.4 }}>{label}</span>
-            </div>
-          ))}
-        </div>
+        <button onClick={pickCity}
+          style={{ display:"flex", alignItems:"center", gap:6,
+                   background:"none", border:"none", cursor:"pointer",
+                   fontSize:13, color:PB, fontFamily:"inherit", padding:0 }}>
+          <MapPin size={14} />
+          {city ? `${city} için teslimat süresi görüntüle` : "Şehrinizi seçin"}
+          <ChevronRight size={14} />
+        </button>
       </div>
 
       {/* ══ FOOD CALCULATOR ═══════════════════════════════ */}
-      <div style={{ margin:"0 16px 20px", background:PL,
-                    border:`1px solid ${PBD}`, borderRadius:18, padding:16 }}>
+      <div style={{ background:"#fff", padding:"16px", marginTop:8 }}>
         <p style={{ fontSize:14, fontWeight:700, color:"#111827", marginBottom:4 }}>
-          Günlük Mama Hesaplayıcı
+          Mama Hesaplayıcı
         </p>
-        <p style={{ fontSize:12, color:"#6B7280", marginBottom:14, lineHeight:1.5 }}>
-          Poodle'ınızın kilosuna göre günlük miktarı hesaplayın.
+        <p style={{ fontSize:12, color:"#9CA3AF", marginBottom:12 }}>
+          Köpeğinizin kilosuna göre günlük mama miktarını hesaplayın.
         </p>
-        <div style={{ display:"flex", gap:8, marginBottom:12 }}>
-          {/* Kilo */}
-          <div style={{ flex:1, position:"relative" }}>
-            <select value={calcKg} onChange={e => setCalcKg(e.target.value)}
-              style={{ width:"100%", background:"#fff", border:`1px solid ${GB}`,
-                       borderRadius:10, padding:"10px 32px 10px 12px",
-                       fontSize:13, color:"#374151", cursor:"pointer",
-                       outline:"none", fontFamily:"inherit" }}>
-              {[1,2,3,4,5,6,7,8].map(k => (
-                <option key={k} value={String(k)}>{k} kg</option>
-              ))}
-            </select>
-            <ChevronDown size={14} color="#9CA3AF"
-              style={{ position:"absolute", right:10, top:"50%",
-                       transform:"translateY(-50%)", pointerEvents:"none" }} />
+        <div style={{ display:"flex", gap:8, marginBottom:10 }}>
+          <div style={{ flex:1 }}>
+            <label style={{ fontSize:11, color:"#6B7280", fontWeight:500,
+                            display:"block", marginBottom:4 }}>Kilo (kg)</label>
+            <input type="number" value={calcKg}
+              onChange={e => setCalcKg(e.target.value)}
+              style={{ width:"100%", border:`1px solid ${GB}`, borderRadius:8,
+                       padding:"8px 10px", fontSize:13, fontFamily:"inherit",
+                       outline:"none", boxSizing:"border-box" }} />
           </div>
-          {/* Aktivite */}
-          <div style={{ flex:1, position:"relative" }}>
+          <div style={{ flex:1 }}>
+            <label style={{ fontSize:11, color:"#6B7280", fontWeight:500,
+                            display:"block", marginBottom:4 }}>Aktivite</label>
             <select value={calcAct} onChange={e => setCalcAct(e.target.value)}
-              style={{ width:"100%", background:"#fff", border:`1px solid ${GB}`,
-                       borderRadius:10, padding:"10px 32px 10px 12px",
-                       fontSize:13, color:"#374151", cursor:"pointer",
-                       outline:"none", fontFamily:"inherit" }}>
+              style={{ width:"100%", border:`1px solid ${GB}`, borderRadius:8,
+                       padding:"8px 10px", fontSize:13, fontFamily:"inherit",
+                       outline:"none", background:"#fff", boxSizing:"border-box" }}>
               <option>Düşük</option>
               <option>Orta</option>
               <option>Yüksek</option>
             </select>
-            <ChevronDown size={14} color="#9CA3AF"
-              style={{ position:"absolute", right:10, top:"50%",
-                       transform:"translateY(-50%)", pointerEvents:"none" }} />
           </div>
         </div>
         <button onClick={calc}
           style={{ width:"100%", background:P, color:"#fff", border:"none",
-                   borderRadius:12, padding:"11px 0", fontSize:13,
-                   fontWeight:700, cursor:"pointer" }}>
+                   borderRadius:10, padding:"10px 0", fontSize:13, fontWeight:600,
+                   cursor:"pointer", fontFamily:"inherit" }}>
           Hesapla
         </button>
-        <p style={{ fontSize:13, fontWeight:600, color:P, marginTop:12, textAlign:"center" }}>
-          Önerilen günlük miktar: {calcResult}
-        </p>
+        <div style={{ marginTop:10, background:PL, borderRadius:10,
+                      padding:"10px 12px", textAlign:"center" }}>
+          <span style={{ fontSize:13, fontWeight:600, color:P }}>
+            Önerilen günlük: {calcResult}
+          </span>
+        </div>
       </div>
 
       {/* ══ ACCORDIONS ════════════════════════════════════ */}
-      <div style={{ padding:"0 16px", marginBottom:20 }}>
-        {ACCORDIONS.map((acc, i) => {
-          const open = openAcc === i;
-          const Icon = acc.icon;
-          return (
-            <div key={acc.title} style={{ borderTop:`1px solid #F3F4F6` }}>
-              <button onClick={() => setOpenAcc(open ? null : i)}
-                style={{ width:"100%", display:"flex", alignItems:"center",
-                         justifyContent:"space-between", padding:"14px 0",
-                         background:"none", border:"none", cursor:"pointer",
-                         fontFamily:"inherit" }}>
-                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                  <Icon size={16} color={P} />
-                  <span style={{ fontSize:13, fontWeight:600, color:"#111827" }}>
-                    {acc.title}
-                  </span>
-                </div>
-                {open
-                  ? <ChevronUp size={16} color="#6B7280" />
-                  : <ChevronDown size={16} color="#6B7280" />}
-              </button>
-              <div className="acc-body"
-                style={{ maxHeight: open ? 400 : 0 }}>
-                <p style={{ fontSize:13, color:"#6B7280", lineHeight:1.65,
-                            paddingBottom:14 }}>
-                  {acc.content}
-                </p>
+      <div style={{ background:"#fff", marginTop:8 }}>
+        {ACCORDIONS.map((acc, i) => (
+          <div key={acc.title}
+            style={{ borderBottom: i < ACCORDIONS.length - 1 ? `1px solid ${GB}` : "none" }}>
+            <button onClick={() => setOpenAcc(openAcc === i ? null : i)}
+              style={{ width:"100%", display:"flex", alignItems:"center",
+                       justifyContent:"space-between", padding:"14px 16px",
+                       background:"none", border:"none", cursor:"pointer",
+                       fontFamily:"inherit" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <acc.icon size={18} color={P} style={{ flexShrink:0 }} />
+                <span style={{ fontSize:14, fontWeight:600, color:"#111827" }}>
+                  {acc.title}
+                </span>
               </div>
-            </div>
-          );
-        })}
+              {openAcc === i
+                ? <ChevronUp size={18} color="#9CA3AF" />
+                : <ChevronDown size={18} color="#9CA3AF" />}
+            </button>
+            {openAcc === i && (
+              <div style={{ padding:"0 16px 16px", fontSize:13,
+                            color:"#6B7280", lineHeight:1.7 }}>
+                {acc.content}
+              </div>
+            )}
+          </div>
+        ))}
       </div>
 
-      {/* ══ REVIEWS ════════════════════════════════════════ */}
-      <div ref={reviewsRef} id="reviews" style={{ padding:"0 16px", marginBottom:20 }}>
-        {/* Header */}
-        <div style={{ display:"flex", alignItems:"flex-start",
-                      justifyContent:"space-between", marginBottom:16 }}>
-          <div>
-            <p style={{ fontSize:22, fontWeight:800, color:"#111827" }}>
-              Müşteri Yorumları
-            </p>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:6 }}>
-              <span style={{ fontSize:20, fontWeight:800 }}>4,8</span>
-              <span style={{ fontSize:14, color:"#6B7280" }}>/ 5</span>
-            </div>
-            <div style={{ display:"flex", gap:3, marginTop:4 }}>
-              <Stars rating={4.8} size={16} />
-            </div>
-            <p style={{ fontSize:12, color:"#9CA3AF", marginTop:3 }}>127 değerlendirme</p>
+      {/* ══ REVIEWS ══════════════════════════════════════ */}
+      <div ref={reviewsRef}
+        style={{ background:"#fff", padding:"16px", marginTop:8, marginBottom:100 }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+                      marginBottom:14 }}>
+          <p style={{ fontSize:14, fontWeight:700, color:"#111827" }}>
+            Müşteri Yorumları
+          </p>
+          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+            <Stars rating={4.7} />
+            <span style={{ fontSize:13, fontWeight:700, color:"#111827" }}>4.7</span>
           </div>
         </div>
 
-        {/* Horizontal scroll cards */}
         <div className="reviews-scroll"
           style={{ display:"flex", gap:12, overflowX:"auto",
                    paddingBottom:4, cursor:"grab" }}>
@@ -627,7 +432,6 @@ export default function YPMamaUrunPage() {
             <div key={r.id}
               style={{ minWidth:240, background:"#F9FAFB", borderRadius:14,
                        padding:16, flexShrink:0 }}>
-              {/* Avatar row */}
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                 <div style={{ width:36, height:36, borderRadius:"50%",
                               background:r.color, display:"flex",
@@ -641,17 +445,13 @@ export default function YPMamaUrunPage() {
                   <Stars rating={r.rating} size={12} />
                 </div>
               </div>
-              <p style={{ fontSize:12, color:"#4B5563", lineHeight:1.6,
-                          marginTop:10 }}>
+              <p style={{ fontSize:12, color:"#4B5563", lineHeight:1.6, marginTop:10 }}>
                 {r.text}
               </p>
               {r.verified && (
-                <div style={{ display:"flex", alignItems:"center", gap:4,
-                              marginTop:10 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:10 }}>
                   <BadgeCheck size={12} color="#16A34A" />
-                  <span style={{ fontSize:10, color:"#16A34A" }}>
-                    Doğrulanmış Alışveriş
-                  </span>
+                  <span style={{ fontSize:10, color:"#16A34A" }}>Doğrulanmış Alışveriş</span>
                 </div>
               )}
             </div>
@@ -668,7 +468,7 @@ export default function YPMamaUrunPage() {
       </div>
 
       {/* ══ STICKY BOTTOM BAR ════════════════════════════ */}
-      <div style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:50,
+      <div style={{ position:"fixed", bottom:72, left:0, right:0, zIndex:50,
                     display:"flex", justifyContent:"center", pointerEvents:"none" }}>
         <div style={{ maxWidth:480, width:"100%", background:"#fff",
                       borderTop:`1px solid ${GB}`, padding:"12px 16px",
@@ -695,6 +495,6 @@ export default function YPMamaUrunPage() {
           </button>
         </div>
       </div>
-    </div>
+    </YPLayout>
   );
 }
