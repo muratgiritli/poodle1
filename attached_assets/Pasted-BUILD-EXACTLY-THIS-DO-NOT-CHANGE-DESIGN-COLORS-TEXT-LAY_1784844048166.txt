@@ -1,0 +1,679 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "Destek Talebiniz Alındı" (Support Request Received) confirmation page
+for YourPoodle.com. This page appears after a user submits a support ticket from the Help Center.
+It shows confirmation, ticket summary, attachments, process timeline, messaging, and next steps.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, AuthContext, authenticated Header, TabNavigation,
+  MobileDrawer, Toast, and routing.
+- Link FROM Help Center after ticket submission → this page.
+- Link FROM Help Center active ticket "Talebi Gör" → this page.
+- DO NOT rebuild the entire app.
+- DO NOT delete or rewrite existing pages.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Route: /hesabim/yardim/talep/:ticketId
+Example: /hesabim/yardim/talep/YP-4822
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT skip any section, timeline step, attachment, banner, or button.
+4. DO NOT use Lorem ipsum.
+5. Optimize for 390px mobile. Max width 480px centered.
+
+MANDATORY FEATURES:
+  ✅ Success hero with checkmark + sparkles
+  ✅ Talep No copy-to-clipboard
+  ✅ Talep Özeti list with "Alındı" badge
+  ✅ Ekli Dosyalar (2 file cards)
+  ✅ 4-step vertical timeline (2 active, 2 pending)
+  ✅ Support message bubble + message input with attach/camera/send
+  ✅ Yellow notification banner + Ayarlar
+  ✅ 3 quick action cards
+  ✅ Reassurance banner with poodle photo
+  ✅ Purple footer
+
+6. EVERY button, copy, send message, and navigation MUST work.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #5D3EBD
+  purple-dark:     #4A22A0
+  purple-light:    #F3EEFF
+  hero-gradient:   linear from #F3EEFF to white
+  page-bg:         #F9F9FB
+  card-bg:         #FFFFFF
+  online-green:    #16A34A
+  status-badge-bg: #F3EEFF
+  status-badge-text:#5D3EBD
+  warning-yellow-bg:#FEF9C3
+  warning-yellow-border:#FDE68A
+  timeline-active: #5D3EBD
+  timeline-pending:#D1D5DB
+  text-dark:       #111827
+  text-secondary:  #6B7280
+  footer-bg:       #5D3EBD
+  chat-bubble-bg:  #F3F4F6
+  send-btn:        #5D3EBD
+
+Typography: Inter
+Section card: mx-4 mb-4 bg white rounded-2xl border border-gray-100 shadow-sm p-4
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    support/
+      SupportConfirmationHero.tsx
+      SupportTicketSummary.tsx
+      SupportAttachments.tsx
+      SupportTimeline.tsx
+      SupportTimelineStep.tsx
+      SupportMessageThread.tsx
+      SupportMessageInput.tsx
+      SupportNotificationBanner.tsx
+      SupportQuickActions.tsx
+      SupportReassuranceBanner.tsx
+      SupportRequestFooter.tsx
+      SupportBreadcrumb.tsx
+  pages/
+    SupportRequestReceivedPage.tsx
+  data/
+    supportTicketMockData.ts
+  hooks/
+    useSupportTicket.ts
+  App.tsx
+
+Update HelpCenterPage:
+  HelpActiveTicket "Talebi Gör" → navigate("/hesabim/yardim/talep/YP-4822")
+  After new ticket submit → navigate("/hesabim/yardim/talep/YP-4822")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — MOCK DATA (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/supportTicketMockData.ts:
+
+export type TimelineStepStatus = "completed" | "active" | "pending";
+
+export interface TimelineStep {
+  id: string;
+  title: string;
+  subtitle: string;
+  timestamp?: string;
+  status: TimelineStepStatus;
+  icon: "check" | "pulse" | "message" | "circle-check";
+}
+
+export interface TicketAttachment {
+  id: string;
+  filename: string;
+  size: string;
+  type: "image" | "pdf";
+  thumbnail?: string;
+}
+
+export interface SupportMessage {
+  id: string;
+  sender: "support" | "user";
+  senderName: string;
+  avatar?: string;
+  text: string;
+  timestamp: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  ticketNumber: string;       // "YP-4822"
+  subject: string;            // "Sipariş ve Teslimat"
+  problem: string;            // "Eksik Ürün"
+  orderId: string;            // "YP-20260723"
+  createdAt: string;          // "24 Temmuz 2026 • 00:52"
+  contactMethod: string;      // "Uygulama Bildirimi + SMS"
+  status: string;             // "Alındı"
+  estimatedResponse: string;  // "3 dakika"
+}
+
+export const supportTicket: SupportTicket = {
+  id: "YP-4822",
+  ticketNumber: "YP-4822",
+  subject: "Sipariş ve Teslimat",
+  problem: "Eksik Ürün",
+  orderId: "YP-20260723",
+  createdAt: "24 Temmuz 2026 • 00:52",
+  contactMethod: "Uygulama Bildirimi + SMS",
+  status: "Alındı",
+  estimatedResponse: "3 dakika",
+};
+
+export const timelineSteps: TimelineStep[] = [
+  {
+    id: "step-1",
+    title: "Talebiniz oluşturuldu",
+    subtitle: "24 Temmuz • 00:52",
+    timestamp: "24 Temmuz • 00:52",
+    status: "completed",
+    icon: "check",
+  },
+  {
+    id: "step-2",
+    title: "Destek ekibi inceliyor",
+    subtitle: "Talebiniz sıraya alındı",
+    status: "active",
+    icon: "pulse",
+  },
+  {
+    id: "step-3",
+    title: "Size yanıt verilecek",
+    subtitle: "Uygulama bildirimi ve SMS ile",
+    status: "pending",
+    icon: "message",
+  },
+  {
+    id: "step-4",
+    title: "Talep çözülecek",
+    subtitle: "Onayınızdan sonra kapatılacak",
+    status: "pending",
+    icon: "circle-check",
+  },
+];
+
+export const attachments: TicketAttachment[] = [
+  {
+    id: "att-1",
+    filename: "paket.jpg",
+    size: "412 KB",
+    type: "image",
+    thumbnail: "https://images.unsplash.com/photo-1544568100-847a948583b9?w=80&h=80&fit=crop",
+  },
+  {
+    id: "att-2",
+    filename: "fatura.pdf",
+    size: "186 KB",
+    type: "pdf",
+  },
+];
+
+export const initialMessages: SupportMessage[] = [
+  {
+    id: "msg-1",
+    sender: "support",
+    senderName: "YourPoodle Destek",
+    avatar: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=40&h=40&fit=crop",
+    text: "Talebiniz bize ulaştı. Gelişmeleri bu sayfadan takip edebilirsiniz.",
+    timestamp: "00:52",
+  },
+];
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — useSupportTicket HOOK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: hooks/useSupportTicket.ts
+
+State:
+  ticket: SupportTicket
+  messages: SupportMessage[]
+  newMessage: string
+  copied: boolean
+
+Functions:
+  copyTicketNumber() → navigator.clipboard.writeText("#YP-4822") + toast "Kopyalandı ✓" + set copied true 2s
+  sendMessage() → if newMessage.trim, append user message + toast + clear input
+  attachFile() → toast "Dosya ekleme yakında!"
+  openCamera() → toast "Kamera yakında!"
+  viewTicket() → scroll to messages section (same page anchor)
+  backToHelpCenter() → navigate("/hesabim/yardim")
+  openSettings() → navigate("/hesabim/ayarlar")
+  createNewTicket() → navigate("/hesabim/yardim")
+  openLiveSupport() → toast or modal
+  openFAQ() → navigate("/hesabim/yardim") scroll FAQ
+
+Use useParams for ticketId — fallback to YP-4822 mock data.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — BREADCRUMB (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportBreadcrumb.tsx
+
+px-4 pt-3 pb-1
+
+  flex items-center gap-1 flex-wrap
+
+  ArrowLeft size 16 color #5D3EBD → navigate("/hesabim/yardim")
+
+  "Hesabım / Yardım Merkezi / Talep #YP-4822"
+    text-xs color #5D3EBD
+    "Yardım Merkezi" part clickable → navigate("/hesabim/yardim")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — CONFIRMATION HERO (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportConfirmationHero.tsx
+
+mx-4 mb-4 bg white rounded-2xl border border-gray-100 shadow-sm overflow-hidden
+
+  ── Top gradient area (bg gradient from #F3EEFF to white) px-4 pt-6 pb-4 text-center ──
+
+  Success icon area relative inline-block mb-3:
+    w-16 h-16 rounded-full bg #5D3EBD flex items-center justify-center mx-auto
+    Check icon size 32 color white strokeWidth 3
+    Sparkles decorative: 2-3 small Sparkles/Star icons around circle color #5D3EBD opacity-60 absolute
+
+  Title:
+    "Destek Talebiniz Alındı"
+      text-lg font-bold color #5D3EBD
+
+  Subtitle:
+    "Talebiniz başarıyla oluşturuldu. Ekibimiz en kısa sürede sizinle iletişime geçecek."
+      text-sm text-gray-600 mt-2 px-2 leading-relaxed
+
+  ── Ticket ID pill ──
+    inline-flex items-center gap-2 mt-4 bg white border border-gray-200
+    rounded-full px-4 py-2 shadow-sm
+
+    "Talep No: #YP-4822"
+      text-sm font-semibold text-gray-900
+
+    Copy icon size 14 color gray-400 cursor-pointer
+      onClick → copyTicketNumber()
+      IF copied → Check icon green briefly
+
+  ── Estimated response ──
+    flex items-center justify-center gap-1.5 mt-3
+    Green dot w-2 h-2 rounded-full bg #22C55E
+    "Tahmini yanıt süresi: 3 dakika"
+      text-xs text-gray-600
+
+  ── Action buttons (px-4 pb-4 pt-2 space-y-2) ──
+
+    Button "Talebi Görüntüle":
+      w-full bg #5D3EBD text white font-semibold text-sm py-3 rounded-xl
+      onClick → viewTicket() scroll to #messages
+
+    Button "Yardım Merkezine Dön":
+      w-full border-2 border #5D3EBD text #5D3EBD bg white
+      font-semibold text-sm py-3 rounded-xl
+      onClick → backToHelpCenter()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — TALEP ÖZETİ (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportTicketSummary.tsx
+
+mx-4 mb-4 bg white rounded-2xl border border-gray-100 shadow-sm p-4
+
+  Title: "Talep Özeti"
+    text-sm font-bold text-gray-900 mb-3
+
+  5 summary rows — each flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0
+
+  Row component:
+    LEFT: icon w-8 h-8 rounded-lg bg #F3EEFF flex items-center justify-center
+    CENTER flex-1:
+      label text-[11px] text-gray-500
+      value text-sm font-semibold text-gray-900
+    RIGHT optional: badge or empty
+
+  Row 1 — Konu:
+    List OR Tag icon
+    label "Konu" / value "Sipariş ve Teslimat"
+    Badge "Alındı": bg #F3EEFF text #5D3EBD text-[10px] font-semibold px-2 py-0.5 rounded-full
+
+  Row 2 — Sorun:
+    AlertCircle OR Box icon
+    label "Sorun" / value "Eksik Ürün"
+
+  Row 3 — Sipariş:
+    Package icon
+    label "Sipariş" / value "#YP-20260723"
+
+  Row 4 — Talep Tarihi:
+    Calendar icon
+    label "Talep Tarihi" / value "24 Temmuz 2026 • 00:52"
+
+  Row 5 — İletişim:
+    Phone OR Bell icon
+    label "İletişim" / value "Uygulama Bildirimi + SMS"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — EKLİ DOSYALAR (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportAttachments.tsx
+
+mx-4 mb-4 bg white rounded-2xl border border-gray-100 shadow-sm p-4
+
+  Title: "Ekli Dosyalar"
+    text-sm font-bold text-gray-900 mb-3
+
+  flex gap-3
+
+  File card (flex-1 min-w-0):
+    bg #F9FAFB rounded-xl border border-gray-100 p-2.5
+    flex items-center gap-2
+
+    IF type image:
+      thumbnail w-10 h-10 rounded-lg object-cover
+    IF type pdf:
+      w-10 h-10 rounded-lg bg red-50 flex items-center justify-center
+      FileText icon size 18 color #DC2626
+
+    div flex-1 min-w-0:
+      filename text-xs font-semibold text-gray-900 truncate
+      size text-[10px] text-gray-500
+
+  Cards:
+    paket.jpg — 412 KB — image thumbnail
+    fatura.pdf — 186 KB — pdf icon
+
+  onClick → toast "Dosya önizleme yakında!"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — TIMELINE "ŞİMDİ NE OLACAK?" (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportTimeline.tsx + SupportTimelineStep.tsx
+
+mx-4 mb-4 bg white rounded-2xl border border-gray-100 shadow-sm p-4
+
+  Title: "Şimdi ne olacak?"
+    text-sm font-bold text-gray-900 mb-4
+
+  Vertical timeline relative pl-1
+
+File: SupportTimelineStep.tsx
+
+Props: step, isLast
+
+  flex gap-3 pb-4 relative
+
+  IF !isLast:
+    vertical line absolute left-[15px] top-8 bottom-0 w-0.5
+    IF step.status completed OR active: bg #5D3EBD
+    ELSE: bg #E5E7EB
+
+  Icon circle w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10
+    completed: bg #5D3EBD Check icon white size 14
+    active: bg #5D3EBD animate-pulse Activity OR Radio icon white size 14
+    pending: bg #E5E7EB MessageCircle OR CircleCheck icon gray-400 size 14
+
+  Content:
+    title text-sm font-semibold
+      completed/active: text-gray-900
+      pending: text-gray-400
+    subtitle text-xs mt-0.5
+      completed/active: text-gray-500
+      pending: text-gray-400
+
+  Steps EXACT:
+  1. Talebiniz oluşturuldu — 24 Temmuz • 00:52 — completed
+  2. Destek ekibi inceliyor — Talebiniz sıraya alındı — active (pulse)
+  3. Size yanıt verilecek — Uygulama bildirimi ve SMS ile — pending
+  4. Talep çözülecek — Onayınızdan sonra kapatılacak — pending
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — MESSAGING SECTION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportMessageThread.tsx
+
+mx-4 mb-3 id="messages"
+
+  Title: "Talebinize mesaj ekleyin"
+    text-sm font-bold text-gray-900 mb-3
+
+  Message bubble (support):
+    flex gap-2 items-start mb-3
+
+    Avatar: w-8 h-8 rounded-full object-cover (poodle)
+    Bubble: bg #F3F4F6 rounded-2xl rounded-tl-sm px-3 py-2.5 max-w-[85%]
+      "YourPoodle Destek" text-[10px] font-semibold color #5D3EBD mb-0.5
+      message text-sm text-gray-800
+      "00:52" text-[10px] text-gray-400 mt-1 text-right
+
+  User messages append below with purple bubble aligned right
+
+File: SupportMessageInput.tsx
+
+mx-4 mb-4
+
+  Input row bg white border border-gray-200 rounded-2xl px-3 py-2 flex items-center gap-2 shadow-sm
+
+  Input flex-1:
+    placeholder EXACT: "Ek bilgi veya mesaj yazın..."
+    text-sm border-0 outline-none bg transparent
+    value={newMessage} onChange
+
+  Paperclip icon size 18 color gray-400 cursor-pointer → attachFile()
+  Camera icon size 18 color gray-400 cursor-pointer → openCamera()
+
+  Send button:
+    w-9 h-9 rounded-full bg #5D3EBD flex items-center justify-center flex-shrink-0
+    Send icon size 16 color white
+    onClick → sendMessage()
+    disabled if empty
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — NOTIFICATION BANNER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportNotificationBanner.tsx
+
+mx-4 mb-4 bg #FEF9C3 border border #FDE68A rounded-2xl p-3.5
+
+  flex items-start gap-3
+
+  Bell icon size 20 color #CA8A04 flex-shrink-0 mt-0.5
+
+  CENTER flex-1:
+    "Bildirimleri açık tutun"
+      text-sm font-semibold text-gray-900
+    "Destek ekibimiz yanıt verdiğinde size anında haber vereceğiz."
+      text-xs text-gray-700 mt-0.5 leading-snug
+
+  Button "Ayarlar":
+    border border gray-300 bg white text-xs font-semibold
+    px-3 py-1.5 rounded-lg flex-shrink-0
+    onClick → openSettings()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — QUICK ACTION CARDS (EXACT — 3 CARDS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportQuickActions.tsx
+
+px-4 mb-4
+
+  grid grid-cols-3 gap-2
+
+  Card 1 — Yeni Talep Oluştur:
+    bg white rounded-xl border border-gray-100 p-3 text-center cursor-pointer
+    PlusCircle icon size 20 color #5D3EBD mx-auto mb-1.5
+    "Yeni Talep Oluştur" text-[10px] font-semibold text-gray-900
+    onClick → createNewTicket()
+
+  Card 2 — Canlı Destek:
+    Headphones icon size 20 color #5D3EBD
+    "Canlı Destek" text-[10px] font-semibold
+    onClick → openLiveSupport()
+
+  Card 3 — Sık Sorulan Sorular:
+    HelpCircle icon size 20 color #5D3EBD
+    "Sık Sorulan Sorular" text-[10px] font-semibold
+    onClick → openFAQ()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — REASSURANCE BANNER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportReassuranceBanner.tsx
+
+mx-4 mb-6 bg #F3EEFF rounded-2xl p-4
+
+  flex items-center gap-3
+
+  LEFT:
+    Poodle photo w-14 h-14 rounded-full object-cover flex-shrink-0
+    src: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=80&h=80&fit=crop"
+
+  RIGHT flex-1:
+    "Merak etmeyin, yanınızdayız!"
+      text-sm font-bold text-gray-900
+    "Sorununuz çözülene kadar talebinizi birlikte takip edeceğiz."
+      text-xs text-gray-600 mt-0.5 leading-snug
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — FOOTER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportRequestFooter.tsx
+
+bg #5D3EBD text-white px-4 pt-6 pb-8
+
+  YourPoodle logo row mb-4
+
+  flex gap-4 text-xs mb-4:
+    "Yardım" | "İletişim" | "KVKK"
+
+  "© 2026 YourPoodle"
+    text-[10px] text-white/70
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportRequestReceivedPage.tsx
+
+<div className="max-w-[480px] mx-auto bg-[#F9F9FB] min-h-screen pb-8 shadow-xl">
+  <AuthenticatedHeader />
+  <TabNavigation activeTab="club" />
+
+  <SupportBreadcrumb />
+  <SupportConfirmationHero />
+  <SupportTicketSummary />
+  <SupportAttachments />
+  <SupportTimeline />
+  <SupportMessageThread />
+  <SupportMessageInput />
+  <SupportNotificationBanner />
+  <SupportQuickActions />
+  <SupportReassuranceBanner />
+  <SupportRequestFooter />
+
+  <MobileDrawer />
+  <Toast />
+</div>
+
+Scroll order:
+  1. Breadcrumb Hesabım / Yardım Merkezi / Talep #YP-4822
+  2. Hero: checkmark + Destek Talebiniz Alındı
+  3. Talep No + Tahmini yanıt 3 dk + 2 buttons
+  4. Talep Özeti (5 rows)
+  5. Ekli Dosyalar (paket.jpg, fatura.pdf)
+  6. Şimdi ne olacak? timeline (4 steps)
+  7. Talebinize mesaj ekleyin + chat bubble
+  8. Message input with attach/camera/send
+  9. Yellow Bildirimleri açık tutun banner
+  10. 3 quick action cards
+  11. Merak etmeyin reassurance banner
+  12. Purple footer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — ROUTING & INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add route:
+  <Route path="/hesabim/yardim/talep/:ticketId" element={<SupportRequestReceivedPage />} />
+
+Update HelpCenterPage.tsx:
+  HelpActiveTicket ticket #YP-4821 "Talebi Gör" → navigate("/hesabim/yardim/talep/YP-4822")
+  (Or use same ID — mock uses YP-4822 on this page)
+
+After submitting support form/modal from Help Center:
+  navigate("/hesabim/yardim/talep/YP-4822")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 17 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Hero:
+✅ Purple checkmark with sparkles
+✅ Title + subtitle exact Turkish
+✅ Talep No #YP-4822 copy works + toast
+✅ Green dot + "Tahmini yanıt süresi: 3 dakika"
+✅ Talebi Görüntüle scrolls to messages
+✅ Yardım Merkezine Dön navigates /hesabim/yardim
+
+Summary:
+✅ All 5 rows with correct values
+✅ "Alındı" badge on Konu row
+
+Attachments:
+✅ paket.jpg 412 KB with thumbnail
+✅ fatura.pdf 186 KB with PDF icon
+
+Timeline:
+✅ Step 1 completed (check)
+✅ Step 2 active (pulse animation)
+✅ Steps 3-4 pending (gray)
+✅ Vertical connector lines correct colors
+
+Messaging:
+✅ YourPoodle Destek bubble with exact text + 00:52
+✅ Send message adds user bubble
+✅ Paperclip + Camera toasts
+✅ Send disabled when empty
+
+Other:
+✅ Yellow notification banner + Ayarlar → /hesabim/ayarlar
+✅ 3 quick action cards work
+✅ Reassurance banner with poodle
+✅ No overflow at 375px
+✅ npm run dev → ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 18 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Breadcrumb with Talep #YP-4822
+✅ Hero confirmation card complete
+✅ Talep Özeti all fields
+✅ Ekli Dosyalar 2 cards
+✅ Timeline 4 steps
+✅ Message thread + input bar
+✅ Bildirimleri açık tutun yellow banner
+✅ Yeni Talep / Canlı Destek / SSS cards
+✅ "Merak etmeyin, yanınızdayız!" banner
+✅ Footer © 2026 YourPoodle
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the Destek Talebiniz Alındı page at /hesabim/yardim/talep/:ticketId exactly as specified.
+Use the EXISTING project — do not rebuild the whole app.
+MUST work: copy ticket number, view ticket scroll, back to help center,
+send message, all quick actions, timeline visual states.
+Match the mockup pixel-perfect. Turkish text must be exact.
+Run the app and confirm zero errors before finishing.

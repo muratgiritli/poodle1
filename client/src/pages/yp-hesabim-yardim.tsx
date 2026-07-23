@@ -269,7 +269,7 @@ export default function YPHesabimYardimPage() {
                           borderTop:`1px solid ${GBR}`, paddingTop:12 }}>
               <span style={{ fontSize:11, color:"#9CA3AF" }}>Son güncelleme: Bugün 14:32</span>
               <button
-                onClick={e => { e.stopPropagation(); showToast("Talep detayı yakında"); }}
+                onClick={e => { e.stopPropagation(); navigate("/hesabim/yardim/talep/YP-4822"); }}
                 style={{ fontSize:10, fontWeight:700, color:P, border:`1px solid ${P}`,
                          background:"#fff", borderRadius:8, padding:"5px 10px",
                          cursor:"pointer", fontFamily:"inherit" }}>
