@@ -1,665 +1,583 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 import {
-  Send, Plus, Paperclip, Mic, MessageSquare, Menu,
-  ChevronDown, Utensils, Scissors, GraduationCap, HeartPulse, PawPrint, Trash2,
+  Menu, ShoppingBag, PawPrint, BookOpen, Sparkles,
+  MessageCircle, ShieldCheck, ShieldAlert,
+  UtensilsCrossed, HeartPulse, Bath, Brush, GraduationCap, Syringe,
+  ThumbsUp, ThumbsDown, Copy, Plus, Mic, Send,
 } from "lucide-react";
 
-/* ─── Types ──────────────────────────────────────────────── */
-interface Msg    { id: string; role: "user" | "assistant"; content: string; ts: number; articleLinks?: {slug:string; title:string}[]; }
-interface Profile { name: string; age: string; weight: string; }
+/* ─────────────────────── DESIGN TOKENS ───────────────────────── */
+const P   = "#6324D6";   // purple-primary
+const PD  = "#4C1DAA";   // purple-dark
+const PL  = "#F3EEFF";   // purple-light
 
-/* ─── Data ───────────────────────────────────────────────── */
-const CATS = [
-  { id:"beslenme",  label:"Beslenme",   Icon:Utensils,      color:"#8B5CF6", bg:"#F3E8FF",
-    starter:"Toy Poodle beslenme hakkında bilgi almak istiyorum." },
-  { id:"bakim",     label:"Tüy Bakımı", Icon:Scissors,      color:"#EC4899", bg:"#FCE7F3",
-    starter:"Toy Poodle tüy bakımı hakkında bilgi almak istiyorum." },
-  { id:"egitim",    label:"Eğitim",     Icon:GraduationCap, color:"#3B82F6", bg:"#DBEAFE",
-    starter:"Toy Poodle eğitimi hakkında bilgi almak istiyorum." },
-  { id:"saglik",    label:"Sağlık",     Icon:HeartPulse,    color:"#10B981", bg:"#D1FAE5",
-    starter:"Toy Poodle sağlığı hakkında bilgi almak istiyorum." },
-  { id:"davranis",  label:"Davranış",   Icon:PawPrint,      color:"#F97316", bg:"#FFEDD5",
-    starter:"Toy Poodle davranışı hakkında bilgi almak istiyorum." },
-] as const;
-
-const LS_HIST = "yp_ai_history";
-interface HistEntry { id: string; title: string; ts: number; msgs: Msg[]; }
-function loadHistory(): HistEntry[] {
-  try { return JSON.parse(localStorage.getItem(LS_HIST) || "[]"); } catch { return []; }
-}
-function saveHistory(entries: HistEntry[]) {
-  try { localStorage.setItem(LS_HIST, JSON.stringify(entries.slice(0, 30))); } catch {}
+/* ─────────────────────── TYPES ───────────────────────────────── */
+interface Msg {
+  id: string;
+  role: "user" | "ai";
+  text: string;
+  showCalculator?: boolean;
+  ts: Date;
 }
 
-const SUGGESTIONS = [
-  { icon:"🍖", text:"4 aylık Toy Poodle için ne kadar mama vermeliyim?" },
-  { icon:"✂️", text:"Tüy bakımı ne sıklıkla yapılmalı?" },
-  { icon:"💉", text:"Tuvalet eğitimi için ipuçları nelerdir?" },
-  { icon:"🔍", text:"Poodle'larda sık görülen sağlık sorunları nelerdir?" },
-  { icon:"🧠", text:"Poodle'm neden havlıyor?" },
-  { icon:"🐣", text:"Yavru Poodle için aşı takvimi" },
+/* ─────────────────────── MOCK DATA ───────────────────────────── */
+const WEIGHT_OPTIONS = [
+  { value: "1",   label: "1 kg"   },
+  { value: "1.5", label: "1.5 kg" },
+  { value: "2",   label: "2 kg"   },
+  { value: "2.5", label: "2.5 kg" },
+  { value: "3",   label: "3 kg"   },
+  { value: "3.5", label: "3.5 kg" },
+  { value: "4",   label: "4 kg"   },
 ];
 
-const ARTICLE_LINKS: Record<string, {slug:string; title:string}[]> = {
-  beslenme: [{slug:"toy-poodle-en-iyi-mama-markalari-2026",title:"En İyi Mama Markaları 2026"},{slug:"yavru-poodle-beslenmesi-ilk-12-ay",title:"Yavru Poodle Beslenmesi"}],
-  bakim:    [{slug:"evde-poodle-tirasi-adim-adim-rehber",title:"Evde Poodle Tıraşı"},{slug:"poodle-tuy-bakimi-haftalik-rutin",title:"Tüy Bakım Rutini"}],
-  egitim:   [{slug:"temel-komut-egitimi",title:"Temel Komut Eğitimi"},{slug:"tuvalet-egitimi",title:"Tuvalet Eğitimi"}],
-  saglik:   [{slug:"poodle-saglik-sorunlari",title:"Yaygın Sağlık Sorunları"},{slug:"poodle-dis-bakim-rehberi",title:"Diş Bakımı Rehberi"}],
-  davranis: [{slug:"poodle-anksiyetesi",title:"Poodle Anksiyetesi"}],
-};
+const FOOD_OPTIONS = [
+  { value: "puppy-chicken",  label: "Puppy Tavuklu",    kcalPer100g: 350 },
+  { value: "adult-salmon",   label: "Adult Somonlu",    kcalPer100g: 330 },
+  { value: "mini-chicken",   label: "Mini Tavuklu",     kcalPer100g: 340 },
+  { value: "light-turkey",   label: "Light Hindi",      kcalPer100g: 300 },
+  { value: "grain-lamb",     label: "Grain Free Kuzulu",kcalPer100g: 360 },
+  { value: "senior-chicken", label: "Senior Tavuklu",   kcalPer100g: 310 },
+];
 
-const LS_MSG = "yp_ai_messages";
-const LS_PRF = "yp_ai_profile";
+function calcFood(weightKg: number, kcalPer100g: number) {
+  const daily = weightKg * 90;
+  const grams = Math.round((daily / kcalPer100g) * 100);
+  const perMeal = Math.round(grams / 3);
+  return { grams, perMeal };
+}
 
-/* ─── Main ───────────────────────────────────────────────── */
+const INITIAL_AI_TEXT =
+  "3 aylık bir Toy Poodle yavrusu için günlük mama miktarı; kilosuna, mamanın kalori değerine ve aktivitesine göre değişir. Kilosunu ve kullandığınız mamanın adını yazarsanız birlikte hesaplayabiliriz.";
+
+function getMock(msg: string): { text: string; showCalculator: boolean } {
+  const l = msg.toLowerCase();
+  if (l.includes("mama") || l.includes("beslen") || l.includes("yem"))
+    return { text: "Toy Poodle'lar için mama miktarı yaşa, kiloya ve aktivite seviyesine göre değişir. Aşağıdaki hesaplayıcı ile kişiselleştirilmiş öneri alabilirsiniz.", showCalculator: true };
+  if (l.includes("sağlık") || l.includes("hastalık"))
+    return { text: "Toy Poodle sağlığı için düzenli veteriner kontrolü çok önemlidir. Aşı takviminizi aksatmayın ve olağandışı belirtilerde hemen veterinere başvurun.", showCalculator: false };
+  if (l.includes("tuvalet"))
+    return { text: "Tuvalet eğitimi sabır ve tutarlılık gerektirir. Yavru köpeğinizi yemekten 15–20 dakika sonra dışarı çıkarın, başarıyı ödüllendirin ve asla cezalandırmayın.", showCalculator: false };
+  if (l.includes("tüy") || l.includes("göz") || l.includes("bakım"))
+    return { text: "Toy Poodle tüyleri düzenli taranmalıdır (haftada 3–4 kez). Göz çevresi günlük nemli bezle silinmeli, profesyonel tıraş 4–6 haftada bir önerilir.", showCalculator: false };
+  if (l.includes("davranış") || l.includes("eğitim"))
+    return { text: "Toy Poodle'lar zeki ve öğrenmeye açıktır. Kısa ve eğlenceli eğitim seansları (5–10 dk), pozitif pekiştirme ve tutarlı komutlar en iyi sonucu verir.", showCalculator: false };
+  if (l.includes("aşı") || l.includes("parazit"))
+    return { text: "Toy Poodle yavruları 6–8 haftalıkken aşı programına başlamalıdır. İç ve dış parazit uygulamaları veterinerinizin önerdiği takvime göre düzenli yapılmalıdır.", showCalculator: false };
+  return { text: "Sorunuz için teşekkürler! Toy Poodle'ınızla ilgili daha spesifik bilgi verirseniz size daha iyi yardımcı olabilirim.", showCalculator: false };
+}
+
+const QUICK_ACTIONS = [
+  { id:"food",     label:"Mama önerisi",      Icon:UtensilsCrossed, color:"purple",  bg:"#F3EEFF", border:"#DDD6FE", icon:P,         prompt:"Toy Poodle'uma hangi mamayı önerirsiniz?" },
+  { id:"health",   label:"Sağlık sorusu",     Icon:HeartPulse,      color:"pink",    bg:"#FDF2F8", border:"#FBCFE8", icon:"#EC4899", prompt:"Toy Poodle'umun sağlığı hakkında bir sorum var." },
+  { id:"potty",    label:"Tuvalet eğitimi",   Icon:Bath,            color:"blue",    bg:"#EFF6FF", border:"#BFDBFE", icon:"#3B82F6", prompt:"Toy Poodle yavruma tuvalet eğitimi nasıl verilir?" },
+  { id:"grooming", label:"Tüy ve göz bakımı", Icon:Brush,           color:"teal",    bg:"#F0FDFA", border:"#99F6E4", icon:"#14B8A6", prompt:"Toy Poodle tüy ve göz bakımı nasıl yapılır?" },
+  { id:"behavior", label:"Davranış ve eğitim",Icon:GraduationCap,   color:"orange",  bg:"#FFF7ED", border:"#FED7AA", icon:"#F97316", prompt:"Toy Poodle davranış ve eğitim konusunda yardım istiyorum." },
+  { id:"vaccine",  label:"Aşı ve parazit",    Icon:Syringe,         color:"lavender",bg:"#F5F3FF", border:"#DDD6FE", icon:"#7C3AED", prompt:"Toy Poodle aşı ve parazit takvimi hakkında bilgi alabilir miyim?" },
+];
+
+/* ─────────────────────── SUBCOMPONENTS ───────────────────────── */
+
+function Toast({ msg, visible }: { msg: string; visible: boolean }) {
+  return (
+    <div style={{ position:"fixed", bottom:100, left:"50%", transform:"translateX(-50%)",
+                  zIndex:9999, pointerEvents:"none", opacity:visible?1:0, transition:"opacity 0.3s" }}>
+      <div style={{ background:"#1F2937", color:"#fff", padding:"10px 20px",
+                    borderRadius:999, fontSize:13, fontWeight:500, whiteSpace:"nowrap",
+                    boxShadow:"0 4px 16px rgba(0,0,0,0.25)" }}>
+        {msg}
+      </div>
+    </div>
+  );
+}
+
+/* Food calculator widget – inside AI bubble */
+function FoodCalc() {
+  const [weight, setWeight] = useState("");
+  const [food,   setFood]   = useState("");
+  const [result, setResult] = useState<{ grams:number; perMeal:number } | null>(null);
+  const [err,    setErr]    = useState(false);
+
+  const run = () => {
+    if (!weight || !food) { setErr(true); return; }
+    setErr(false);
+    const opt = FOOD_OPTIONS.find(f => f.value === food)!;
+    setResult(calcFood(parseFloat(weight), opt.kcalPer100g));
+  };
+
+  return (
+    <div style={{ marginTop:12, padding:12, borderRadius:12, border:"1px solid #DDD6FE",
+                  background:PL }}>
+      <p style={{ fontSize:13, fontWeight:600, color:"#111827", marginBottom:10 }}>
+        Hızlı hesaplama için bilgileri seçin
+      </p>
+      <div style={{ display:"flex", gap:8, marginBottom:10 }}>
+        <select value={weight} onChange={e=>{ setWeight(e.target.value); setErr(false); }}
+          style={{ flex:1, background:"#fff", border:`1px solid ${err&&!weight?"#EF4444":"#E5E7EB"}`,
+                   borderRadius:8, padding:"8px 10px", fontSize:13, color:"#374151",
+                   outline:"none", cursor:"pointer" }}>
+          <option value="">Kilo seçin</option>
+          {WEIGHT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        <select value={food} onChange={e=>{ setFood(e.target.value); setErr(false); }}
+          style={{ flex:1, background:"#fff", border:`1px solid ${err&&!food?"#EF4444":"#E5E7EB"}`,
+                   borderRadius:8, padding:"8px 10px", fontSize:13, color:"#374151",
+                   outline:"none", cursor:"pointer" }}>
+          <option value="">Mama seçin</option>
+          {FOOD_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+      </div>
+      <button onClick={run}
+        style={{ width:"100%", background:P, color:"#fff", border:"none",
+                 borderRadius:10, padding:"10px 0", fontSize:13, fontWeight:600,
+                 cursor:"pointer", transition:"background 0.15s" }}
+        onMouseEnter={e=>(e.currentTarget.style.background=PD)}
+        onMouseLeave={e=>(e.currentTarget.style.background=P)}>
+        Hesapla
+      </button>
+      {result && (
+        <p style={{ marginTop:8, fontSize:13, fontWeight:600, color:P }}>
+          Önerilen günlük mama: {result.grams} g (3 öğün × {result.perMeal} g)
+        </p>
+      )}
+    </div>
+  );
+}
+
+/* Feedback row below AI bubble */
+function FeedbackRow({ text }: { text: string }) {
+  const [fb, setFb]   = useState<"up"|"down"|null>(null);
+  const [cop, setCop] = useState(false);
+
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(text); } catch {}
+    setCop(true);
+    setTimeout(() => setCop(false), 1500);
+  };
+
+  const btnStyle = (active?: boolean, hoverColor?: string): React.CSSProperties => ({
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    padding: 4,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: active ? hoverColor : "#9CA3AF",
+    transition: "color 0.15s",
+  });
+
+  return (
+    <div style={{ display:"flex", alignItems:"center", gap:10, marginTop:6 }}>
+      <button aria-label="Beğen" style={btnStyle(fb==="up", P)}
+        onClick={() => setFb(fb==="up" ? null : "up")}>
+        <ThumbsUp size={15} color={fb==="up" ? P : "#9CA3AF"} />
+      </button>
+      <button aria-label="Beğenme" style={btnStyle(fb==="down", "#EF4444")}
+        onClick={() => setFb(fb==="down" ? null : "down")}>
+        <ThumbsDown size={15} color={fb==="down" ? "#EF4444" : "#9CA3AF"} />
+      </button>
+      <button aria-label="Kopyala" style={btnStyle(cop, P)} onClick={copy}>
+        <Copy size={15} color={cop ? P : "#9CA3AF"} />
+      </button>
+      {cop && (
+        <span style={{ fontSize:11, color:P, fontWeight:500 }}>Kopyalandı</span>
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────── MAIN PAGE ───────────────────────────── */
 export default function YPAiAsistanPage() {
   const [, navigate] = useLocation();
 
-  /* state */
-  const [messages, setMessages] = useState<Msg[]>(() => {
-    try { const r = localStorage.getItem(LS_MSG); return r ? JSON.parse(r) : []; } catch { return []; }
-  });
-  const [input,   setInput]   = useState("");
-  const [loading, setLoading] = useState(false);
+  /* ── Chat state ── */
+  const initMsgs: Msg[] = [
+    { id:"m0", role:"user", text:"3 aylık Toy Poodle yavrum ne kadar mama yemeli?", ts:new Date() },
+    { id:"m1", role:"ai",   text:INITIAL_AI_TEXT, showCalculator:true,              ts:new Date() },
+  ];
+  const [msgs,     setMsgs]     = useState<Msg[]>(initMsgs);
+  const [input,    setInput]    = useState("");
+  const [loading,  setLoading]  = useState(false);
+  const [toast,    setToast]    = useState("");
+  const [toastVis, setToastVis] = useState(false);
 
-  const [profile] = useState<Profile>(() => {
-    try {
-      const r = localStorage.getItem(LS_PRF);
-      const saved = r ? JSON.parse(r) : {};
-      return { name: "Luna", age: "4 ay", weight: "2.1 kg", ...saved };
-    } catch { return { name: "Luna", age: "4 ay", weight: "2.1 kg" }; }
-  });
-
-  const [sidebarOpen,    setSidebarOpen]    = useState(false);
-  const [activeHistId,   setActiveHistId]   = useState("new");
-  const [activeCat,      setActiveCat]      = useState("beslenme");
-  const [history, setHistory] = useState<HistEntry[]>(loadHistory);
-
-  /* refs */
-  const bottomRef    = useRef<HTMLDivElement>(null);
-  const textareaRef  = useRef<HTMLTextAreaElement>(null);
-  const chatBodyRef  = useRef<HTMLDivElement>(null);
+  const bottomRef   = useRef<HTMLDivElement>(null);
+  const inputRef    = useRef<HTMLInputElement>(null);
+  const isFirst     = useRef(true);
 
   useEffect(() => {
-    try { localStorage.setItem(LS_MSG, JSON.stringify(messages.slice(-30))); } catch {}
-  }, [messages]);
+    // don't auto-scroll on initial mount (keep hero banner visible)
+    if (isFirst.current) { isFirst.current = false; return; }
+    bottomRef.current?.scrollIntoView({ behavior:"smooth" });
+  }, [msgs, loading]);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [messages, loading]);
+  const showToast = (msg: string) => {
+    setToast(msg); setToastVis(true);
+    setTimeout(() => setToastVis(false), 1800);
+  };
 
-  useEffect(() => { document.title = "AI Poodle Asistanı | YourPoodle"; }, []);
-
-  /* JSON-LD */
-  useEffect(() => {
-    const schema = {
-      "@context":"https://schema.org","@type":"WebApplication",
-      "name":"AI Poodle Asistanı","applicationCategory":"LifestyleApplication",
-      "operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"TRY"},
-      "url":"https://www.yourpoodle.com/yourpoodle/ai-asistan",
-    };
-    let el = document.getElementById("yp-ai-schema") as HTMLScriptElement | null;
-    if (!el) { el = document.createElement("script"); el.id = "yp-ai-schema"; el.type = "application/ld+json"; document.head.appendChild(el); }
-    el.textContent = JSON.stringify(schema);
-    return () => { document.getElementById("yp-ai-schema")?.remove(); };
-  }, []);
-
-  const buildSystemPrompt = () =>
-    `Sen YourPoodle'ın AI asistanısın. Yalnızca Toy Poodle sahiplerine yardımcı oluyorsun.
-Kullanıcının poodle'ı: ${profile.name}, ${profile.age}, ${profile.weight}.
-Kurallar:
-- Samimi, sıcak ve anlaşılır dil kullan.
-- Sadece toy poodle bakımı, beslenmesi, eğitimi, sağlığı ve davranışı hakkında bilgi ver.
-- Kesin tıbbi teşhis koyma, ilaç dozu verme.
-- Acil belirti varsa "⚠️ Hemen veterinere gidin" uyarısı ver.
-- Kısa ve net cevaplar ver; gerektiğinde madde madde açıkla.
-- Türkçe cevap ver.
-- Her yanıt genel bilgilendirme amaçlıdır.`;
-
-  const send = useCallback(async (text?: string) => {
-    const q = (text ?? input).trim();
-    if (!q || loading) return;
+  const sendMessage = useCallback((text: string) => {
+    const t = text.trim();
+    if (!t || loading) return;
+    const userMsg: Msg = { id:String(Date.now()), role:"user", text:t, ts:new Date() };
+    setMsgs(prev => [...prev, userMsg]);
     setInput("");
-    if (textareaRef.current) { textareaRef.current.style.height = "24px"; }
-    const newMsg: Msg = { id: String(Date.now()), role: "user", content: q, ts: Date.now() };
-    const updated = [...messages, newMsg];
-    setMessages(updated);
     setLoading(true);
-    try {
-      const res = await fetch("/api/yp-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: updated.map(({ role, content }) => ({ role, content })),
-          systemPrompt: buildSystemPrompt(),
-        }),
-      });
-      const data = await res.json();
-      const reply: string = data.reply ?? "Üzgünüm, şu anda yanıt veremiyorum. Lütfen tekrar deneyin.";
-      const arts = ARTICLE_LINKS[activeCat];
-      const articleLinks = arts?.length ? arts.slice(0, 2) : undefined;
-      setMessages(prev => [...prev, { id: String(Date.now()), role: "assistant", content: reply, ts: Date.now(), articleLinks }]);
-    } catch {
-      setMessages(prev => [...prev, { id: String(Date.now()), role: "assistant", content: "Bağlantı hatası oluştu. Lütfen tekrar deneyin.", ts: Date.now() }]);
-    }
-    setLoading(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [input, loading, messages, profile, activeCat]);
+    setTimeout(() => {
+      const { text:aiText, showCalculator } = getMock(t);
+      setMsgs(prev => [...prev, { id:String(Date.now()+1), role:"ai", text:aiText, showCalculator, ts:new Date() }]);
+      setLoading(false);
+    }, 800);
+  }, [loading]);
 
-  const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    /* Desktop: Enter gönderir. Mobil klavyede Shift+Enter yeni satır ekler */
-    if (e.key === "Enter" && !e.shiftKey && !("ontouchstart" in window)) {
-      e.preventDefault(); send();
-    }
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); }
   };
 
-  const resetChat = () => {
-    /* Save current conversation to history before clearing */
-    const firstUser = messages.find(m => m.role === "user");
-    if (firstUser) {
-      const entry: HistEntry = {
-        id: String(firstUser.ts),
-        title: firstUser.content.slice(0, 50),
-        ts: firstUser.ts,
-        msgs: messages,
-      };
-      const updated = [entry, ...history.filter(h => h.id !== entry.id)].slice(0, 30);
-      setHistory(updated);
-      saveHistory(updated);
-    }
-    setMessages([]);
-    setActiveHistId("new");
-    try { localStorage.removeItem(LS_MSG); } catch {}
-  };
-
-  const deleteHistEntry = (id: string) => {
-    const updated = history.filter(h => h.id !== id);
-    setHistory(updated);
-    saveHistory(updated);
-    if (activeHistId === id) { setMessages([]); setActiveHistId("new"); try { localStorage.removeItem(LS_MSG); } catch {} }
-  };
-
-  const clearAllHistory = () => {
-    setHistory([]);
-    saveHistory([]);
-    setMessages([]);
-    setActiveHistId("new");
-    try { localStorage.removeItem(LS_MSG); } catch {}
-  };
-
-  const loadHistEntry = (entry: HistEntry) => {
-    setMessages(entry.msgs);
-    setActiveHistId(entry.id);
-    setSidebarOpen(false);
-    try { localStorage.setItem(LS_MSG, JSON.stringify(entry.msgs)); } catch {}
-  };
-
-  const isEmpty = messages.length === 0;
-
-  const fmtTime = (ts: number) =>
-    new Date(ts).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+  /* ── Tabs ── */
+  const TABS = [
+    { key:"magaza", label:"Mağaza",     Icon:ShoppingBag,  route:"/yourpoodle/magaza"     },
+    { key:"club",   label:"Club",       Icon:PawPrint,      route:"/yourpoodle/club"       },
+    { key:"ai",     label:"AI Asistan", Icon:Sparkles,      route:"/yourpoodle/ai-asistan" },
+    { key:"rehber", label:"Rehber",     Icon:BookOpen,      route:"/yourpoodle/rehber"     },
+  ];
 
   return (
-    <div style={{ display:"flex", flexDirection:"column", height:"100dvh", background:"#fff",
-                  fontFamily:"Inter, system-ui, -apple-system, sans-serif", overflow:"hidden" }}>
+    <div style={{ maxWidth:480, margin:"0 auto", background:"#fff", minHeight:"100dvh",
+                  display:"flex", flexDirection:"column",
+                  fontFamily:"Inter, system-ui, -apple-system, sans-serif",
+                  boxShadow:"0 0 40px rgba(0,0,0,0.08)", position:"relative" }}>
 
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        /* scrollbars */
-        .ai-chat-scroll::-webkit-scrollbar { width: 4px; }
-        .ai-chat-scroll::-webkit-scrollbar-thumb { background: #DDD5FF; border-radius: 4px; }
-        .ai-side-scroll::-webkit-scrollbar { display: none; }
-        .ai-side-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* typing dots */
-        .ai-dot { width: 7px; height: 7px; border-radius: 50%; background: #C4B5FD; animation: ai-bounce 1.2s infinite; }
-        .ai-dot:nth-child(2) { animation-delay: .2s; }
-        .ai-dot:nth-child(3) { animation-delay: .4s; }
-        @keyframes ai-bounce { 0%,60%,100%{transform:translateY(0);} 30%{transform:translateY(-6px);} }
-
-        /* suggestion card hover */
-        .ai-sugg { transition: box-shadow .15s, transform .15s; }
-        .ai-sugg:hover { box-shadow: 0 6px 20px rgba(124,58,237,0.14) !important; transform: translateY(-2px); }
-
-        /* sidebar item hover */
-        .ai-hist-btn { transition: background .12s; }
-        .ai-hist-btn:hover { background: rgba(124,58,237,0.09) !important; }
-        .ai-cat-btn { transition: background .12s; }
-        .ai-cat-btn:hover { background: rgba(124,58,237,0.09) !important; }
-
-        /* message bubbles */
-        .msg-user { background:#7C3AED; color:#fff; border-radius:20px 20px 4px 20px;
-                    padding:12px 16px; font-size:14px; line-height:1.6; word-break:break-word; }
-        .msg-bot  { background:#fff; color:#111827; border-radius:20px 20px 20px 4px;
-                    padding:12px 16px; font-size:14px; line-height:1.65; border:1px solid #E5E7EB;
-                    word-break:break-word; white-space:pre-wrap;
-                    box-shadow:0 2px 8px rgba(0,0,0,0.06); }
-
-        /* pill hover */
-        .ai-pill:hover { background:#F3E8FF !important; border-color:#C4B5FD !important; }
-
-        /* mobile sidebar */
-        @media (max-width: 767px) {
-          .ai-sidebar {
-            position: fixed !important; left: 0 !important; top: 0 !important;
-            bottom: 0 !important; z-index: 300 !important;
-            transform: translateX(-100%); transition: transform .25s ease;
-          }
-          .ai-sidebar.open { transform: translateX(0) !important; }
-          .ai-sidebar-overlay { display: block !important; }
-          .ai-header-center { display: none !important; }
-        }
-        .ai-sidebar-overlay { display: none; position: fixed; inset: 0;
-                              background: rgba(0,0,0,0.4); z-index: 299; }
-
-        /* suggestion grid */
-        .ai-sugg-grid { grid-template-columns: repeat(3,1fr); }
-        @media (max-width: 900px)  { .ai-sugg-grid { grid-template-columns: repeat(2,1fr) !important; } }
-        @media (max-width: 480px)  { .ai-sugg-grid { grid-template-columns: 1fr !important; } }
+        .yp-ai-scroll::-webkit-scrollbar { width: 3px; }
+        .yp-ai-scroll::-webkit-scrollbar-thumb { background: #DDD6FE; border-radius: 3px; }
+        .yp-qa-btn { transition: box-shadow 0.15s, transform 0.1s; }
+        .yp-qa-btn:hover { box-shadow: 0 4px 12px rgba(99,36,214,0.12); }
+        .yp-qa-btn:active { transform: scale(0.98); }
+        @keyframes yp-bounce { 0%,60%,100%{transform:translateY(0);} 30%{transform:translateY(-5px);} }
+        .yp-dot { width:8px; height:8px; border-radius:50%; background:#D1D5DB; animation:yp-bounce 1.2s infinite; }
+        .yp-dot:nth-child(2){ animation-delay:.2s; }
+        .yp-dot:nth-child(3){ animation-delay:.4s; }
       `}</style>
 
-      {/* ══ HEADER ══════════════════════════════════════════ */}
-      <header style={{ height:64, background:"#fff", borderBottom:"1px solid #F3F4F6",
-                       display:"flex", alignItems:"center", padding:"0 16px", gap:12,
-                       flexShrink:0, boxShadow:"0 1px 4px rgba(0,0,0,0.06)", zIndex:200 }}>
+      {/* ══ HEADER ══════════════════════════════════════════════ */}
+      <header style={{ position:"sticky", top:0, zIndex:40, background:"#fff",
+                       borderBottom:"1px solid #E5E7EB", height:56,
+                       display:"flex", alignItems:"center", justifyContent:"space-between",
+                       padding:"0 16px", flexShrink:0 }}>
 
-        {/* Hamburger */}
-        <button onClick={() => setSidebarOpen(s => !s)} aria-label="Menü"
-          style={{ width:36, height:36, borderRadius:10, border:"none", background:"none",
-                   display:"flex", alignItems:"center", justifyContent:"center",
-                   cursor:"pointer", flexShrink:0, color:"#374151" }}>
-          <Menu size={20} />
-        </button>
-
-        {/* Logo */}
-        <a href="/yourpoodle" style={{ display:"flex", alignItems:"center", gap:8,
-                                       textDecoration:"none", flexShrink:0 }}>
-          <div style={{ width:36, height:36, borderRadius:10, background:"#F3E8FF",
-                        display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>
-            🐩
-          </div>
-          <div>
-            <div style={{ fontSize:13, fontWeight:800, color:"#7C3AED", lineHeight:1.1 }}>YourPoodle</div>
-            <div style={{ fontSize:10, color:"#9CA3AF" }}>AI Poodle Assistant</div>
-          </div>
-        </a>
-
-        {/* Center title */}
-        <div className="ai-header-center"
-          style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
-          <span style={{ fontSize:16, fontWeight:700, color:"#111827" }}>AI Poodle Asistanı</span>
-          <span style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, color:"#6B7280" }}>
-            <span style={{ width:7, height:7, borderRadius:"50%", background:"#22C55E",
-                           display:"inline-block", flexShrink:0 }} />
-            Çevrimiçi
-          </span>
+        {/* Left: hamburger + logo */}
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          <button aria-label="Menü"
+            style={{ width:36, height:36, borderRadius:8, border:"none", background:"none",
+                     display:"flex", alignItems:"center", justifyContent:"center",
+                     cursor:"pointer", color:"#374151", flexShrink:0 }}>
+            <Menu size={22} />
+          </button>
+          <button onClick={() => navigate("/yourpoodle")}
+            style={{ display:"flex", alignItems:"center", gap:8, background:"none",
+                     border:"none", cursor:"pointer", padding:0 }}>
+            <img src="/images/yp-poodle-hero.png" alt="YourPoodle"
+              style={{ width:32, height:32, borderRadius:"50%", objectFit:"cover",
+                       objectPosition:"center top" }} />
+            <span style={{ fontSize:16, fontWeight:700, color:P, letterSpacing:"-0.3px" }}>
+              YourPoodle
+            </span>
+          </button>
         </div>
 
-        {/* Profile chip */}
-        <div style={{ display:"flex", alignItems:"center", gap:8, background:"#F9FAFB",
-                      border:"1.5px solid #E5E7EB", borderRadius:24,
-                      padding:"5px 12px 5px 5px", cursor:"pointer",
-                      flexShrink:0, marginLeft:"auto" }}>
-          <div style={{ width:30, height:30, borderRadius:"50%", background:"#F3E8FF",
-                        display:"flex", alignItems:"center", justifyContent:"center", fontSize:16 }}>
-            🐩
-          </div>
-          <div>
-            <div style={{ fontSize:12.5, fontWeight:700, color:"#111827", lineHeight:1.1 }}>
-              {profile.name}
-            </div>
-            <div style={{ fontSize:10.5, color:"#9CA3AF" }}>Toy Poodle · {profile.age}</div>
-          </div>
-          <ChevronDown size={14} color="#9CA3AF" />
+        {/* Right: Giriş Yap + Üye Ol */}
+        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+          <button style={{ background:"none", border:"none", cursor:"pointer",
+                           fontSize:13, color:"#374151", fontWeight:500 }}>
+            Giriş Yap
+          </button>
+          <button style={{ background:P, color:"#fff", border:"none",
+                           borderRadius:999, padding:"7px 16px",
+                           fontSize:13, fontWeight:600, cursor:"pointer",
+                           transition:"background 0.15s" }}
+            onMouseEnter={e=>(e.currentTarget.style.background=PD)}
+            onMouseLeave={e=>(e.currentTarget.style.background=P)}>
+            Üye Ol
+          </button>
         </div>
       </header>
 
-      {/* ══ BODY ════════════════════════════════════════════ */}
-      <div style={{ flex:1, display:"flex", overflow:"hidden" }}>
+      {/* ══ TAB NAV ═════════════════════════════════════════════ */}
+      <nav style={{ display:"flex", borderBottom:"1px solid #F3F4F6",
+                    background:"#fff", flexShrink:0 }}>
+        {TABS.map(tab => {
+          const active = tab.key === "ai";
+          return (
+            <button key={tab.key}
+              onClick={() => navigate(tab.route)}
+              style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center",
+                       gap:4, padding:"10px 0", background:"none", border:"none",
+                       borderBottom: active ? `2px solid ${P}` : "2px solid transparent",
+                       cursor:"pointer", transition:"all 0.15s",
+                       color: active ? P : "#9CA3AF",
+                       fontWeight: active ? 600 : 500,
+                       fontFamily:"inherit" }}>
+              <tab.Icon size={20} />
+              <span style={{ fontSize:11, lineHeight:1 }}>{tab.label}</span>
+            </button>
+          );
+        })}
+      </nav>
 
-        {/* Sidebar overlay (mobile) */}
-        {sidebarOpen && (
-          <div className="ai-sidebar-overlay" onClick={() => setSidebarOpen(false)} />
-        )}
+      {/* ══ SCROLLABLE MAIN ═════════════════════════════════════ */}
+      <div className="yp-ai-scroll"
+        style={{ flex:1, overflowY:"auto", paddingBottom:8 }}>
 
-        {/* ── LEFT SIDEBAR ──────────────────────────────── */}
-        <aside className={`ai-sidebar${sidebarOpen ? " open" : ""}`}
-          style={{ width:240, background:"#F5F3FF", borderRight:"1px solid #EDE9FE",
-                   display:"flex", flexDirection:"column", flexShrink:0, overflow:"hidden" }}>
+        {/* ── AI HERO BANNER ──────────────────────────────────── */}
+        <div style={{ margin:"16px 16px 0", borderRadius:18, overflow:"hidden",
+                      background:"linear-gradient(135deg, #6324D6 0%, #8B5CF6 100%)",
+                      minHeight:180, padding:20, position:"relative" }}>
 
-          {/* New chat */}
-          <div style={{ padding:"16px 12px 8px" }}>
-            <button onClick={() => { resetChat(); setSidebarOpen(false); }}
-              style={{ width:"100%", height:40, borderRadius:10, border:"none", background:"#7C3AED",
-                       color:"#fff", fontSize:13.5, fontWeight:700, cursor:"pointer",
-                       display:"flex", alignItems:"center", justifyContent:"center", gap:7 }}>
-              <Plus size={16} strokeWidth={2.5} />
-              Yeni Sohbet
+          {/* LEFT content */}
+          <div style={{ position:"relative", zIndex:2, maxWidth:"58%" }}>
+            {/* Icon */}
+            <MessageCircle size={20} color="rgba(255,255,255,0.8)" />
+
+            {/* Badge */}
+            <div style={{ display:"inline-block", marginTop:8, background:"rgba(255,255,255,0.20)",
+                          color:"#fff", fontSize:12, fontWeight:500,
+                          padding:"4px 12px", borderRadius:999 }}>
+              7/24 Yanınızda
+            </div>
+
+            {/* H1 */}
+            <h1 style={{ color:"#fff", fontSize:20, fontWeight:700,
+                         lineHeight:1.25, marginTop:10, marginBottom:8 }}>
+              Merhaba! Ben Poodle AI 🐾
+            </h1>
+
+            {/* Subtext */}
+            <p style={{ color:"rgba(255,255,255,0.85)", fontSize:13,
+                        lineHeight:1.55, marginBottom:12 }}>
+              Poodle'ınızla ilgili merak ettiğiniz her şeyi bana sorabilirsiniz.
+            </p>
+
+            {/* Trust row */}
+            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+              <ShieldCheck size={14} color="rgba(255,255,255,0.7)" />
+              <span style={{ color:"rgba(255,255,255,0.7)", fontSize:12 }}>
+                Uzman kaynaklarla desteklenen bilgiler
+              </span>
+            </div>
+          </div>
+
+          {/* RIGHT poodle image */}
+          <div style={{ position:"absolute", right:0, bottom:0, width:128, height:148 }}>
+            <img src="/images/yp-poodle-hero.png" alt="Poodle AI" loading="lazy"
+              style={{ width:"100%", height:"100%", objectFit:"cover",
+                       objectPosition:"center top" }} />
+            {/* AI badge */}
+            <div style={{ position:"absolute", bottom:8, right:8,
+                          width:28, height:28, borderRadius:"50%",
+                          background:"#fff", border:"2px solid #C4B5FD",
+                          display:"flex", alignItems:"center", justifyContent:"center",
+                          fontSize:9, fontWeight:700, color:P }}>
+              AI
+            </div>
+          </div>
+        </div>
+
+        {/* ── QUICK ACTIONS ───────────────────────────────────── */}
+        <div style={{ padding:"20px 16px 0" }}>
+          <p style={{ fontSize:15, fontWeight:700, color:"#111827", marginBottom:12 }}>
+            Size nasıl yardımcı olabilirim?
+          </p>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+            {QUICK_ACTIONS.map(qa => (
+              <button key={qa.id}
+                className="yp-qa-btn"
+                onClick={() => sendMessage(qa.prompt)}
+                style={{ display:"flex", alignItems:"center", gap:10,
+                         padding:"12px 12px", borderRadius:12,
+                         border:`1px solid ${qa.border}`,
+                         background:qa.bg, cursor:"pointer",
+                         fontFamily:"inherit", textAlign:"left" }}>
+                <qa.Icon size={20} color={qa.icon} style={{ flexShrink:0 }} />
+                <span style={{ fontSize:13, fontWeight:500, color:"#1F2937",
+                               lineHeight:1.3 }}>
+                  {qa.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── CHAT AREA ───────────────────────────────────────── */}
+        <div style={{ marginTop:20 }}>
+
+          {/* Date pill */}
+          <div style={{ display:"flex", justifyContent:"center", marginBottom:16 }}>
+            <span style={{ background:"#F3F4F6", color:"#6B7280", fontSize:12,
+                           padding:"4px 16px", borderRadius:999 }}>
+              Bugün
+            </span>
+          </div>
+
+          {/* Messages */}
+          {msgs.map(m => {
+            if (m.role === "user") {
+              return (
+                <div key={m.id}
+                  style={{ display:"flex", justifyContent:"flex-end",
+                           marginBottom:12, padding:"0 16px" }}>
+                  <div style={{ background:P, color:"#fff", fontSize:14,
+                                lineHeight:1.55, padding:"12px 16px",
+                                borderRadius:"18px 18px 4px 18px",
+                                maxWidth:"85%", wordBreak:"break-word" }}>
+                    {m.text}
+                  </div>
+                </div>
+              );
+            }
+            /* AI message */
+            return (
+              <div key={m.id}
+                style={{ display:"flex", gap:8, marginBottom:12, padding:"0 16px" }}>
+                {/* Avatar */}
+                <div style={{ width:36, height:36, borderRadius:"50%",
+                               flexShrink:0, position:"relative", alignSelf:"flex-start" }}>
+                  <img src="/images/yp-poodle-hero.png" alt="AI"
+                    style={{ width:36, height:36, borderRadius:"50%",
+                              objectFit:"cover", objectPosition:"center top",
+                              display:"block" }} />
+                  <div style={{ position:"absolute", bottom:-2, right:-2,
+                                width:16, height:16, borderRadius:"50%",
+                                background:P, color:"#fff",
+                                fontSize:7, fontWeight:700,
+                                display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    AI
+                  </div>
+                </div>
+
+                {/* Bubble + feedback */}
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ background:"#fff", border:"1px solid #E5E7EB",
+                                 color:"#1F2937", fontSize:14, lineHeight:1.6,
+                                 padding:"12px 16px",
+                                 borderRadius:"18px 18px 18px 4px",
+                                 wordBreak:"break-word" }}>
+                    {m.text}
+                    {m.showCalculator && <FoodCalc />}
+                  </div>
+                  <FeedbackRow text={m.text} />
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Typing indicator */}
+          {loading && (
+            <div style={{ display:"flex", gap:8, marginBottom:12, padding:"0 16px" }}>
+              <div style={{ width:36, height:36, borderRadius:"50%",
+                             background:"#F3EEFF", flexShrink:0, display:"flex",
+                             alignItems:"center", justifyContent:"center", fontSize:18 }}>
+                🐩
+              </div>
+              <div style={{ background:"#fff", border:"1px solid #E5E7EB",
+                             borderRadius:"18px 18px 18px 4px",
+                             padding:"14px 18px", display:"flex", gap:6,
+                             alignItems:"center" }}>
+                <div className="yp-dot" />
+                <div className="yp-dot" />
+                <div className="yp-dot" />
+              </div>
+            </div>
+          )}
+
+          <div ref={bottomRef} />
+        </div>
+
+        {/* ── DISCLAIMER BANNER ───────────────────────────────── */}
+        <div style={{ margin:"12px 16px 8px",
+                      display:"flex", alignItems:"flex-start", gap:12,
+                      background:"#FFF7ED", border:"1px solid #FED7AA",
+                      borderRadius:12, padding:"12px 16px" }}>
+          <ShieldAlert size={20} color="#EA580C"
+            style={{ flexShrink:0, marginTop:1 }} />
+          <p style={{ fontSize:12, color:"#92400E", lineHeight:1.55 }}>
+            AI Asistan veteriner muayenesinin yerini tutmaz. Acil durumlarda veterinerinize başvurun.
+          </p>
+        </div>
+
+      </div>{/* /scrollable */}
+
+      {/* ══ STICKY INPUT BAR ════════════════════════════════════ */}
+      <div style={{ position:"sticky", bottom:0, background:"#fff",
+                    borderTop:"1px solid #F3F4F6",
+                    padding:"12px 16px 16px", flexShrink:0, zIndex:30 }}>
+
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          {/* Attachment */}
+          <button aria-label="Dosya ekle"
+            onClick={() => alert("Dosya ekleme yakında!")}
+            style={{ width:44, height:44, borderRadius:"50%", border:"none",
+                     background:"none", display:"flex", alignItems:"center",
+                     justifyContent:"center", cursor:"pointer", flexShrink:0,
+                     color:"#6B7280", transition:"background 0.15s" }}
+            onMouseEnter={e=>(e.currentTarget.style.background="#F3F4F6")}
+            onMouseLeave={e=>(e.currentTarget.style.background="none")}>
+            <Plus size={20} />
+          </button>
+
+          {/* Input wrapper */}
+          <div style={{ flex:1, display:"flex", alignItems:"center",
+                        background:"#F9FAFB", border:"1px solid #E5E7EB",
+                        borderRadius:999, padding:"0 14px 0 16px" }}>
+            <input
+              ref={inputRef}
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Poodle'ınızla ilgili bir şey sorun..."
+              style={{ flex:1, background:"transparent", border:"none", outline:"none",
+                       fontSize:14, color:"#111827", padding:"11px 0",
+                       fontFamily:"inherit", minWidth:0 }}
+            />
+            <button aria-label="Sesli mesaj"
+              onClick={() => alert("Sesli mesaj yakında!")}
+              style={{ background:"none", border:"none", cursor:"pointer",
+                       display:"flex", alignItems:"center", justifyContent:"center",
+                       padding:4, flexShrink:0, color:"#9CA3AF",
+                       transition:"color 0.15s" }}
+              onMouseEnter={e=>(e.currentTarget.style.color=P)}
+              onMouseLeave={e=>(e.currentTarget.style.color="#9CA3AF")}>
+              <Mic size={18} />
             </button>
           </div>
 
-          {/* Scrollable area */}
-          <div className="ai-side-scroll"
-            style={{ flex:1, overflowY:"auto", padding:"0 10px 8px" }}>
+          {/* Send */}
+          <button aria-label="Gönder"
+            onClick={() => sendMessage(input)}
+            disabled={!input.trim() || loading}
+            style={{ width:44, height:44, borderRadius:"50%",
+                     background: (!input.trim() || loading) ? "#D1D5DB" : P,
+                     border:"none", display:"flex", alignItems:"center",
+                     justifyContent:"center", cursor: (!input.trim() || loading) ? "default" : "pointer",
+                     flexShrink:0, transition:"background 0.15s",
+                     opacity: (!input.trim() || loading) ? 0.55 : 1 }}
+            onMouseEnter={e=>{ if(input.trim()&&!loading) e.currentTarget.style.background=PD; }}
+            onMouseLeave={e=>{ if(input.trim()&&!loading) e.currentTarget.style.background=P; }}>
+            <Send size={18} color="#fff" />
+          </button>
+        </div>
 
-            {/* Chat history */}
-            <div style={{ marginBottom:8 }}>
-              <div style={{ fontSize:10.5, fontWeight:700, color:"#9CA3AF", letterSpacing:"0.06em",
-                            padding:"10px 8px 6px", textTransform:"uppercase" }}>
-                Sohbet Geçmişi
-              </div>
-
-              {/* Current session */}
-              <button className="ai-hist-btn"
-                onClick={() => { setActiveHistId("new"); setSidebarOpen(false); }}
-                style={{ width:"100%", display:"flex", alignItems:"center", gap:8,
-                         padding:"8px 10px", background: activeHistId === "new" ? "rgba(124,58,237,0.12)" : "transparent",
-                         border:"none", cursor:"pointer", textAlign:"left", borderRadius:8 }}>
-                <MessageSquare size={13} color={activeHistId === "new" ? "#7C3AED" : "#9CA3AF"} />
-                <span style={{ fontSize:12.5, color: activeHistId === "new" ? "#7C3AED" : "#374151",
-                               fontWeight: activeHistId === "new" ? 700 : 400,
-                               overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                  Aktif sohbet
-                </span>
-              </button>
-
-              {/* Real saved history */}
-              {history.length > 0 && (
-                <>
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"8px 8px 3px" }}>
-                    <span style={{ fontSize:10.5, fontWeight:600, color:"#A78BFA" }}>Önceki</span>
-                    <button onClick={() => { if (confirm("Tüm sohbet geçmişi silinsin mi?")) clearAllHistory(); }}
-                      style={{ background:"none", border:"none", cursor:"pointer", color:"#EF4444", fontSize:10, fontWeight:700, padding:"2px 5px", borderRadius:4 }}>
-                      Tümünü Sil
-                    </button>
-                  </div>
-                  {history.map(h => {
-                    const active = activeHistId === h.id;
-                    return (
-                      <div key={h.id} style={{ display:"flex", alignItems:"center", borderRadius:8, overflow:"hidden" }}>
-                        <button className="ai-hist-btn"
-                          onClick={() => loadHistEntry(h)}
-                          style={{ flex:1, display:"flex", alignItems:"center", gap:8,
-                                   padding:"8px 6px 8px 10px", background: active ? "rgba(124,58,237,0.12)" : "transparent",
-                                   border:"none", cursor:"pointer", textAlign:"left" }}>
-                          <MessageSquare size={13} color={active ? "#7C3AED" : "#9CA3AF"} />
-                          <span style={{ fontSize:12.5, color: active ? "#7C3AED" : "#374151",
-                                         fontWeight: active ? 700 : 400,
-                                         overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                            {h.title}
-                          </span>
-                        </button>
-                        <button onClick={() => deleteHistEntry(h.id)}
-                          title="Sil"
-                          style={{ background:"none", border:"none", cursor:"pointer", padding:"8px 8px", color:"#D1D5DB", flexShrink:0 }}
-                          onMouseEnter={e => (e.currentTarget.style.color = "#EF4444")}
-                          onMouseLeave={e => (e.currentTarget.style.color = "#D1D5DB")}>
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </>
-              )}
-
-              {history.length === 0 && messages.length === 0 && (
-                <div style={{ padding:"8px 10px", fontSize:12, color:"#C4B5FD", fontStyle:"italic" }}>
-                  Henüz sohbet geçmişi yok
-                </div>
-              )}
-            </div>
-
-            {/* Quick categories */}
-            <div>
-              <div style={{ fontSize:10.5, fontWeight:700, color:"#9CA3AF", letterSpacing:"0.06em",
-                            padding:"4px 8px 6px", textTransform:"uppercase" }}>
-                Hızlı Kategoriler
-              </div>
-              {CATS.map(c => {
-                const active = activeCat === c.id;
-                return (
-                  <button key={c.id} className="ai-cat-btn"
-                    onClick={() => { setActiveCat(c.id); setSidebarOpen(false); }}
-                    style={{ width:"100%", display:"flex", alignItems:"center", gap:10,
-                             padding:"9px 10px", background: active ? "rgba(124,58,237,0.1)" : "transparent",
-                             border:"none", cursor:"pointer", textAlign:"left", borderRadius:8 }}>
-                    <div style={{ width:28, height:28, borderRadius:8, background:c.bg,
-                                  display:"flex", alignItems:"center", justifyContent:"center",
-                                  flexShrink:0 }}>
-                      <c.Icon size={14} color={c.color} />
-                    </div>
-                    <span style={{ fontSize:13, fontWeight: active ? 700 : 500,
-                                   color: active ? "#7C3AED" : "#374151" }}>
-                      {c.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Bottom profile mini card */}
-          <div style={{ padding:"10px 12px 14px", borderTop:"1px solid #EDE9FE" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px",
-                          background:"#fff", borderRadius:12, border:"1px solid #EDE9FE" }}>
-              <div style={{ width:36, height:36, borderRadius:"50%", background:"#F3E8FF",
-                            display:"flex", alignItems:"center", justifyContent:"center",
-                            fontSize:20, flexShrink:0 }}>
-                🐩
-              </div>
-              <div>
-                <div style={{ fontSize:13, fontWeight:700, color:"#111827" }}>{profile.name}</div>
-                <div style={{ fontSize:11, color:"#9CA3AF" }}>Toy Poodle · {profile.age}</div>
-              </div>
-            </div>
-          </div>
-        </aside>
-
-        {/* ── MAIN CHAT ────────────────────────────────────── */}
-        <main style={{ flex:1, display:"flex", flexDirection:"column",
-                       background:"#FAFAFA", overflow:"hidden" }}>
-
-          {/* Messages / Welcome */}
-          <div ref={chatBodyRef} className="ai-chat-scroll"
-            style={{ flex:1, overflowY:"auto",
-                     padding: isEmpty ? "0" : "20px 20px 8px" }}>
-
-            {isEmpty ? (
-              /* ── Welcome state ── */
-              <div style={{ display:"flex", flexDirection:"column", alignItems:"center",
-                            justifyContent:"center", minHeight:"100%",
-                            padding:"40px 20px 24px" }}>
-                {/* Poodle illustration */}
-                <div style={{ marginBottom:24, position:"relative" }}>
-                  <div style={{ width:110, height:110, borderRadius:"50%",
-                                background:"linear-gradient(135deg,#F3E8FF,#EDE9FE)",
-                                display:"flex", alignItems:"center", justifyContent:"center",
-                                fontSize:60, boxShadow:"0 8px 32px rgba(124,58,237,0.15)" }}>
-                    🐩
-                  </div>
-                  <div style={{ position:"absolute", top:-6, right:-6, fontSize:20 }}>✨</div>
-                  <div style={{ position:"absolute", bottom:4, left:-10, fontSize:16 }}>⭐</div>
-                </div>
-
-                <h1 style={{ fontSize:22, fontWeight:800, color:"#111827",
-                             textAlign:"center", lineHeight:1.45, marginBottom:10 }}>
-                  Merhaba! 👋<br />
-                  Ben YourPoodle, Poodle dostunuz için buradayım.
-                </h1>
-                <p style={{ fontSize:14, color:"#6B7280", textAlign:"center",
-                            maxWidth:420, lineHeight:1.65, marginBottom:32 }}>
-                  Beslenme, tüy bakımı, eğitim, sağlık ve davranış konularında
-                  sorularınızı yanıtlayabilirim.
-                </p>
-
-                {/* Suggestion cards — 3×2 */}
-                <div className="ai-sugg-grid"
-                  style={{ display:"grid", gap:12, width:"100%", maxWidth:700 }}>
-                  {SUGGESTIONS.map((s, i) => (
-                    <button key={i} onClick={() => send(s.text)} className="ai-sugg"
-                      style={{ display:"flex", alignItems:"flex-start", gap:11,
-                               padding:"14px 14px", background:"#fff", borderRadius:14,
-                               border:"1.5px solid #E9D5FF", cursor:"pointer", textAlign:"left",
-                               boxShadow:"0 2px 8px rgba(0,0,0,0.05)", fontFamily:"inherit" }}>
-                      <span style={{ fontSize:22, flexShrink:0, lineHeight:1 }}>{s.icon}</span>
-                      <span style={{ fontSize:12.5, fontWeight:600, color:"#374151",
-                                     lineHeight:1.5 }}>{s.text}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              /* ── Active chat ── */
-              <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-                {messages.map((m, idx) => (
-                  <div key={m.id}
-                    style={{ display:"flex", gap:10, alignItems:"flex-end",
-                             flexDirection: m.role === "user" ? "row-reverse" : "row" }}>
-                    {/* Avatar */}
-                    <div style={{ width:32, height:32, borderRadius:"50%",
-                                  background: m.role === "user" ? "#7C3AED" : "#F3E8FF",
-                                  display:"flex", alignItems:"center", justifyContent:"center",
-                                  flexShrink:0, fontSize:16 }}>
-                      {m.role === "user" ? "👤" : "🐩"}
-                    </div>
-
-                    {/* Bubble + meta */}
-                    <div style={{ display:"flex", flexDirection:"column", gap:4,
-                                  alignItems: m.role === "user" ? "flex-end" : "flex-start",
-                                  maxWidth:"76%" }}>
-                      <div className={m.role === "user" ? "msg-user" : "msg-bot"}>
-                        {m.content}
-                      </div>
-                      <span style={{ fontSize:10.5, color:"#D1D5DB" }}>{fmtTime(m.ts)}</span>
-
-                      {/* İlgili rehber butonları */}
-                      {m.role === "assistant" && m.articleLinks && m.articleLinks.length > 0 && (
-                        <div style={{ marginTop:8, display:"flex", flexDirection:"column", gap:6 }}>
-                          <span style={{ fontSize:11.5, fontWeight:700, color:"#9CA3AF", letterSpacing:"0.04em" }}>İLGİLİ REHBERLER</span>
-                          {m.articleLinks.map(a => (
-                            <button key={a.slug}
-                              onClick={() => { window.location.href = `/yourpoodle/rehber/${a.slug}`; }}
-                              style={{ display:"flex", alignItems:"center", gap:8,
-                                       padding:"10px 14px", borderRadius:12,
-                                       border:"1.5px solid #C4B5FD", background:"#F5F3FF",
-                                       color:"#7C3AED", fontSize:13, fontWeight:700,
-                                       cursor:"pointer", textAlign:"left", fontFamily:"inherit",
-                                       transition:"background .15s" }}
-                              onMouseEnter={e => (e.currentTarget.style.background = "#EDE9FE")}
-                              onMouseLeave={e => (e.currentTarget.style.background = "#F5F3FF")}>
-                              📖 {a.title}
-                              <span style={{ marginLeft:"auto", fontSize:16 }}>→</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Category pills — last AI message only */}
-                      {m.role === "assistant" && idx === messages.length - 1 && (
-                        <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginTop:4 }}>
-                          {CATS.map(c => (
-                            <button key={c.id} className="ai-pill"
-                              onClick={() => { setActiveCat(c.id); send(c.starter); }}
-                              style={{ display:"flex", alignItems:"center", gap:4,
-                                       padding:"4px 11px", borderRadius:20,
-                                       border:"1.5px solid #E5E7EB", background:"#fff",
-                                       color:"#374151", fontSize:11.5, fontWeight:600,
-                                       cursor:"pointer", transition:"all .15s" }}>
-                              <c.Icon size={11} color={c.color} />
-                              {c.label}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-
-                {/* Typing indicator */}
-                {loading && (
-                  <div style={{ display:"flex", gap:10, alignItems:"flex-end" }}>
-                    <div style={{ width:32, height:32, borderRadius:"50%", background:"#F3E8FF",
-                                  display:"flex", alignItems:"center", justifyContent:"center",
-                                  fontSize:16 }}>🐩</div>
-                    <div style={{ background:"#fff", borderRadius:"20px 20px 20px 4px",
-                                  padding:"14px 18px", border:"1px solid #E5E7EB",
-                                  boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
-                      <div style={{ display:"flex", gap:4 }}>
-                        <div className="ai-dot" /><div className="ai-dot" /><div className="ai-dot" />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div ref={bottomRef} style={{ height:4 }} />
-              </div>
-            )}
-          </div>
-
-          {/* ── INPUT BAR ────────────────────────────────── */}
-          <div style={{ padding:"12px 16px 10px", background:"#fff",
-                        borderTop:"1px solid #F3F4F6", flexShrink:0 }}>
-            <div style={{ display:"flex", alignItems:"flex-end", gap:10,
-                          background:"#F9FAFB", border:"1.5px solid #E5E7EB",
-                          borderRadius:18, padding:"8px 8px 8px 14px",
-                          boxShadow:"0 2px 8px rgba(0,0,0,0.05)",
-                          maxWidth:860, margin:"0 auto" }}>
-              {/* Paperclip */}
-              <button aria-label="Dosya ekle"
-                style={{ width:32, height:32, borderRadius:10, border:"none", background:"none",
-                         display:"flex", alignItems:"center", justifyContent:"center",
-                         cursor:"pointer", flexShrink:0, color:"#9CA3AF" }}>
-                <Paperclip size={18} />
-              </button>
-
-              {/* Textarea */}
-              <textarea ref={textareaRef}
-                value={input}
-                onChange={e => {
-                  setInput(e.target.value);
-                  e.target.style.height = "24px";
-                  e.target.style.height = Math.min(e.target.scrollHeight, 100) + "px";
-                }}
-                onKeyDown={handleKey}
-                placeholder="Sorunuzu yazın..."
-                rows={1}
-                aria-label="Poodle sorunuzu yazın"
-                style={{ flex:1, border:"none", outline:"none", fontSize:14,
-                         fontFamily:"inherit", resize:"none", background:"transparent",
-                         color:"#111827", lineHeight:1.55, minHeight:24, maxHeight:100,
-                         padding:"3px 0" }}
-              />
-
-              {/* Mic */}
-              <button aria-label="Sesli giriş"
-                style={{ width:32, height:32, borderRadius:10, border:"none", background:"none",
-                         display:"flex", alignItems:"center", justifyContent:"center",
-                         cursor:"pointer", flexShrink:0, color:"#9CA3AF" }}>
-                <Mic size={18} />
-              </button>
-
-              {/* Send */}
-              <button onClick={() => send()} disabled={!input.trim() || loading}
-                aria-label="Gönder"
-                style={{ width:40, height:40, borderRadius:12, border:"none",
-                         background: input.trim() && !loading ? "#7C3AED" : "#E5E7EB",
-                         display:"flex", alignItems:"center", justifyContent:"center",
-                         cursor: input.trim() && !loading ? "pointer" : "not-allowed",
-                         flexShrink:0, transition:"background .15s" }}>
-                <Send size={17} color={input.trim() && !loading ? "#fff" : "#9CA3AF"} />
-              </button>
-            </div>
-
-            {/* Disclaimer */}
-            <p style={{ fontSize:11, color:"#9CA3AF", textAlign:"center",
-                        margin:"7px 0 0", lineHeight:1.4 }}>
-              🔒 AI yanıtları yalnızca bilgilendirme amaçlıdır. Tıbbi durumlar için veteriner hekiminize danışın.
-            </p>
-          </div>
-        </main>
+        {/* Footer disclaimer */}
+        <p style={{ marginTop:8, textAlign:"center", fontSize:11, color:"#9CA3AF" }}>
+          AI yanıtları hata içerebilir. Önemli bilgileri doğrulayın.
+        </p>
       </div>
+
+      <Toast msg={toast} visible={toastVis} />
     </div>
   );
 }
