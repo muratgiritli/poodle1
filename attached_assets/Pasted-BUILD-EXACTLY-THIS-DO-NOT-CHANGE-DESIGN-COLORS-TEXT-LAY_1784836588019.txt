@@ -1,0 +1,548 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "Adreslerim" (My Addresses) page for YourPoodle.com.
+Users manage delivery and billing addresses: list, default selection, add, edit, copy, delete, geolocation.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, AuthContext, authenticated Header, TabNavigation,
+  MobileDrawer, Toast, cart checkout address picker, and routing.
+- Protected route — redirect to /giris if not authenticated.
+- Link from /hesabim quick action "Adreslerim" → this page.
+- Saved addresses MUST sync with cart page address picker (shared state/context).
+- DO NOT rebuild the entire app.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Route: /hesabim/adresler
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT skip any address card, form field, or action button.
+
+MANDATORY FEATURES (ALL MUST WORK):
+  ✅ Kayıtlı adresler list (3 address cards)
+  ✅ Varsayılan adres selection (radio/check + "Varsayılan Yap")
+  ✅ Yeni adres ekleme form (full form with all fields)
+  ✅ Konumdan Adres Bul (geolocation mock)
+  ✅ Düzenle (edit — pre-fill form)
+  ✅ Kopyala (copy address to clipboard)
+  ✅ Sil (delete with confirmation)
+  ✅ Adresi Kaydet / Vazgeç
+
+4. Optimize for 390px mobile. Max width 480px centered.
+5. Persist addresses in React Context + localStorage.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #4B0082
+  purple-dark:     #3D0066
+  purple-light:    #F3EEFF
+  purple-badge:    #EDE9FE
+  icon-purple:     #7C3AED
+  icon-blue:       #3B82F6
+  icon-pink:       #EC4899
+  success-bg:      #F0FDF4
+  success-border:  #BBF7D0
+  delete-red:      #EF4444
+  page-bg:         #F9F9FB
+  footer-bg:       #4B0082
+
+Typography: Inter
+Address card: white rounded-2xl border border-gray-100 p-4
+Form inputs: border border-gray-200 rounded-xl px-3 py-2.5 text-sm w-full
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    addresses/
+      AddressesPageHeader.tsx
+      AddressCard.tsx
+      AddressListSection.tsx
+      DefaultAddressBanner.tsx
+      AddAddressForm.tsx
+      AddressFormFields.tsx
+      AddressesSupportBanner.tsx
+      AddressesFooter.tsx
+      DeleteAddressModal.tsx
+  pages/
+    AddressesPage.tsx
+  context/
+    AddressContext.tsx           ← shared with cart checkout
+  data/
+    addressesMockData.ts
+    turkishLocations.ts          ← il/ilce/mahalle dropdowns
+  hooks/
+    useAddressForm.ts
+  App.tsx
+
+Wrap App with AddressContext provider if not exists.
+Update cart AddressPicker to read from AddressContext.
+
+Update AccountPage quick action "Adreslerim" → navigate("/hesabim/adresler")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — DATA MODEL & MOCK ADDRESSES (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/addressesMockData.ts:
+
+export interface Address {
+  id: string;
+  title: string;              // "Evim" | "İş Yerim" | "Ailem"
+  fullName: string;
+  phone: string;              // masked display: "0532 *** ** 48"
+  phoneRaw: string;
+  province: string;           // İl
+  district: string;           // İlçe
+  neighborhood: string;       // Mahalle
+  streetAddress: string;
+  buildingNo: string;
+  floor: string;
+  apartmentNo: string;
+  deliveryNote?: string;
+  isDefault: boolean;
+  iconType: "home" | "work" | "family";
+  iconColor: string;
+  iconBg: string;
+}
+
+export const initialAddresses: Address[] = [
+
+  // ADDRESS 1 — Evim (DEFAULT)
+  {
+    id: "addr-1",
+    title: "Evim",
+    fullName: "Ayşe Yılmaz",
+    phone: "0532 *** ** 48",
+    phoneRaw: "5321234848",
+    province: "Samsun",
+    district: "Atakum",
+    neighborhood: "Mimar Sinan Mahallesi",
+    streetAddress: "Atatürk Bulvarı No: 45",
+    buildingNo: "12",
+    floor: "3",
+    apartmentNo: "8",
+    deliveryNote: "Kapı zili çalışmıyor, arayınız",
+    isDefault: true,
+    iconType: "home",
+    iconColor: "#7C3AED",
+    iconBg: "#F3EEFF",
+  },
+
+  // ADDRESS 2 — İş Yerim
+  {
+    id: "addr-2",
+    title: "İş Yerim",
+    fullName: "Ayşe Yılmaz",
+    phone: "0532 *** ** 48",
+    phoneRaw: "5321234848",
+    province: "Samsun",
+    district: "İlkadım",
+    neighborhood: "Kale Mahallesi",
+    streetAddress: "Cumhuriyet Caddesi No: 78",
+    buildingNo: "5",
+    floor: "2",
+    apartmentNo: "14",
+    isDefault: false,
+    iconType: "work",
+    iconColor: "#3B82F6",
+    iconBg: "#EFF6FF",
+  },
+
+  // ADDRESS 3 — Ailem
+  {
+    id: "addr-3",
+    title: "Ailem",
+    fullName: "Ayşe Yılmaz",
+    phone: "0532 *** ** 48",
+    phoneRaw: "5321234848",
+    province: "Samsun",
+    district: "Canik",
+    neighborhood: "Yavuz Selim Mahallesi",
+    streetAddress: "Barış Sokak No: 23",
+    buildingNo: "8",
+    floor: "1",
+    apartmentNo: "4",
+    isDefault: false,
+    iconType: "family",
+    iconColor: "#EC4899",
+    iconBg: "#FDF2F8",
+  },
+];
+
+Create src/data/turkishLocations.ts:
+
+export const provinces = ["Samsun", "İstanbul", "Ankara", "İzmir"];
+
+export const districts: Record<string, string[]> = {
+  Samsun: ["Atakum", "İlkadım", "Canik", "Tekkeköy"],
+  İstanbul: ["Kadıköy", "Beşiktaş", "Üsküdar"],
+  Ankara: ["Çankaya", "Keçiören"],
+  İzmir: ["Konak", "Karşıyaka"],
+};
+
+export const neighborhoods: Record<string, string[]> = {
+  Atakum: ["Mimar Sinan Mahallesi", "Alanlı Mahallesi", "Kurupelit Mahallesi"],
+  İlkadım: ["Kale Mahallesi", "Tepecik Mahallesi"],
+  Canik: ["Yavuz Selim Mahallesi", "Hasköy"],
+};
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — AddressContext (SHARED STATE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: context/AddressContext.tsx
+
+State:
+  addresses: Address[]
+  defaultAddressId: string
+
+Init from localStorage key "yourpoodle_addresses" OR initialAddresses
+
+Functions:
+  addAddress(data) → push new address, IF isDefault unset others
+  updateAddress(id, data)
+  deleteAddress(id) → IF was default, set first remaining as default
+  setDefaultAddress(id) → only one default
+  copyAddress(id) → format full address string → clipboard + toast
+  getDefaultAddress()
+
+Persist to localStorage on every change.
+
+Export useAddresses() hook.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — PAGE HEADER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AddressesPageHeader.tsx
+
+px-4 pt-3 pb-3
+
+  Breadcrumb:
+    ArrowLeft → navigate("/hesabim")
+    "Hesabım / Adreslerim"
+
+  Title row:
+    "Adreslerim" text-xl font-bold color #4B0082
+    Badge "3 kayıtlı adres" (dynamic count):
+      bg #F3EEFF text #4B0082 text-xs font-semibold px-2.5 py-1 rounded-full
+
+  Subtitle:
+    "Teslimat ve fatura adreslerinizi yönetin."
+    text-sm text-gray-500 mt-1
+
+  Button "+ Yeni Adres Ekle":
+    w-full mt-3 bg #4B0082 text-white font-semibold py-3 rounded-xl
+    flex items-center justify-center gap-2
+    Plus icon size 18
+    onClick → expand AddAddressForm + scroll to form + clear fields (add mode)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — ADDRESS CARD (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AddressCard.tsx
+
+Props: address, onSetDefault, onEdit, onCopy, onDelete, onSelect
+
+Card: mx-4 mb-3 bg white rounded-2xl border p-4
+  IF isDefault: border #4B0082 border-2
+  ELSE: border-gray-100
+
+  TOP row (flex justify-between):
+
+    LEFT (flex gap-3):
+      Icon circle w-10 h-10 rounded-full flex items-center justify-center
+        bg address.iconBg
+        Home | Building2 | MapPin icon color address.iconColor size 20
+
+      div:
+        Title row: address.title font-semibold text-sm
+        IF isDefault: badge "Varsayılan" bg #EDE9FE text #4B0082 text-[10px] px-2 py-0.5 rounded-full ml-2
+
+    RIGHT — selection indicator:
+      IF isDefault: Circle filled purple with Check icon white
+      ELSE: empty circle border-2 border-gray-300 (radio)
+      onClick → onSetDefault(address.id)
+
+  Details (mt-3 text-xs text-gray-600 space-y-0.5):
+    address.fullName
+    address.phone
+    Full formatted: "{neighborhood}, {streetAddress}, {district}/{province}"
+    IF deliveryNote: text #3B82F6 italic "{deliveryNote}"
+
+  Actions row (flex flex-wrap gap-3 mt-3 pt-3 border-t border-gray-50):
+
+    IF !isDefault:
+      "Varsayılan Yap" — Star icon size 12 + text-[10px] color #4B0082
+        onClick → onSetDefault
+
+    "Düzenle" — Pencil icon + text-[10px] color gray-600
+      onClick → onEdit(address)
+
+    IF isDefault:
+      "Kopyala" — Copy icon + text-[10px] color gray-600
+        onClick → onCopy
+
+    "Sil" — Trash2 icon + text-[10px] color #EF4444
+      onClick → onDelete(address.id)
+
+Icon mapping:
+  home → Home, work → Building2, family → MapPin
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — ADDRESS LIST + INFO BANNER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AddressListSection.tsx
+
+  Section title "Kayıtlı Adresler"
+    px-4 text-sm font-bold text-gray-900 mb-2 mt-2
+
+  Map addresses → AddressCard (order: default first)
+
+File: DefaultAddressBanner.tsx
+
+mx-4 mb-4 bg #F0FDF4 border border #BBF7D0 rounded-xl px-4 py-3
+flex items-center gap-2
+
+  Truck icon size 16 color #16A34A
+  "Varsayılan adresiniz ödeme sırasında otomatik seçilir."
+    text-xs text-green-800
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — ADD / EDIT ADDRESS FORM (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AddAddressForm.tsx + AddressFormFields.tsx
+
+Collapsible section — default EXPANDED on page load (as in mockup).
+When editing: form opens with pre-filled data, title changes to "Adresi Düzenle".
+
+Header (flex justify-between items-center px-4 py-3):
+  MapPin icon purple + "Yeni Adres Ekle" (or "Adresi Düzenle" in edit mode)
+  ChevronUp/Down → collapse/expand form
+
+Form container: mx-4 mb-4 bg white rounded-2xl border border-gray-100 p-4 space-y-3
+
+Fields (ALL REQUIRED unless marked optional):
+
+1. Label "Adres Başlığı"
+   Input placeholder="Ev, İş, Ailem..."
+   value controlled
+
+2. Label "Ad Soyad"
+   Input placeholder="Ayşe Yılmaz"
+
+3. Label "Cep Telefonu"
+   flex: +90 flag box + input placeholder="5XX XXX XX XX"
+   Turkish phone validation (10 digits, starts with 5)
+
+4. Label "İl / İlçe / Mahalle"
+   flex gap-2 (3 dropdowns):
+     İl → districts update on change
+     İlçe → neighborhoods update on change
+     Mahalle
+   Defaults in add mode: Samsun / Atakum / Mimar Sinan Mahallesi
+
+5. Label "Adres"
+   Textarea rows 2 placeholder="Sokak, cadde ve detaylı adres"
+
+6. Row "Bina No / Kat / Daire"
+   flex gap-2:
+     Input "Bina No" placeholder="12"
+     Input "Kat" placeholder="3"
+     Input "Daire" placeholder="8"
+
+7. Label "Teslimat Notu (isteğe bağlı)"
+   Textarea rows 2 placeholder="Kapı zili, güvenlik vb."
+
+8. Button "Konumdan Adres Bul":
+   w-full border-2 border #4B0082 text #4B0082 font-semibold py-2.5 rounded-xl
+   flex items-center justify-center gap-2
+   MapPin icon size 16
+   onClick:
+     IF navigator.geolocation:
+       getCurrentPosition → mock reverse geocode:
+       fill province/district/neighborhood/street with mock Samsun data
+       toast "Konumunuz alındı ✓"
+     ELSE alert("Konum erişimi desteklenmiyor")
+
+9. Checkbox "Bu adresi varsayılan yap"
+   default checked in add mode
+
+10. Toggle "Fatura bilgilerim farklı"
+    Switch — when ON show optional billing fields stub (alert for now)
+
+11. Button "Adresi Kaydet":
+    w-full bg #4B0082 text white font-semibold py-3.5 rounded-xl
+    onClick → validate → addAddress or updateAddress → toast → collapse form
+
+12. Button "Vazgeç":
+    w-full border-2 border #4B0082 text #4B0082 font-semibold py-3 rounded-xl
+    onClick → reset form + collapse
+
+13. Security note:
+    ShieldCheck green + "Adres bilgileriniz güvenli şekilde saklanır."
+    text-xs text-gray-500 text-center
+
+useAddressForm.ts:
+  mode: "add" | "edit"
+  editingId: string | null
+  form fields state
+  openEdit(address) → pre-fill all fields
+  resetForm()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — DELETE MODAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: DeleteAddressModal.tsx
+
+  Title: "Adresi Sil"
+  Text: "Bu adresi silmek istediğinize emin misiniz?"
+  IF isDefault: warn "Varsayılan adres silinecek, başka bir adres varsayılan yapılacak."
+  Buttons: "İptal" | "Sil" (red)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — SUPPORT + FOOTER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AddressesSupportBanner.tsx
+
+mx-4 mb-4 bg #F3EEFF rounded-2xl p-4
+  Headset icon + "Adres eklerken sorun mu yaşıyorsunuz?"
+  "Destek Al" button → mailto:destek@yourpoodle.com
+
+File: AddressesFooter.tsx
+
+bg #4B0082 text-white px-4 pt-6 pb-6
+  Logo + Yardım | İletişim | KVKK
+  256-bit SSL + © 2026 YourPoodle
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AddressesPage.tsx
+
+<div className="max-w-[480px] mx-auto bg-[#F9F9FB] min-h-screen shadow-xl">
+  <AuthenticatedHeader />
+  <TabNavigation activeTab={null} />
+
+  <AddressesPageHeader />
+  <AddressListSection />
+  <DefaultAddressBanner />
+  <AddAddressForm />
+
+  <AddressesSupportBanner />
+  <AddressesFooter />
+
+  <DeleteAddressModal />
+  <MobileDrawer />
+  <Toast />
+</div>
+
+Exact scroll order:
+  1. Auth header + tab nav
+  2. ← Hesabım / Adreslerim + title + "3 kayıtlı adres"
+  3. Subtitle + "+ Yeni Adres Ekle" button
+  4. Kayıtlı Adresler — 3 cards (Evim default, İş Yerim, Ailem)
+  5. Green info banner (varsayılan otomatik seçilir)
+  6. Yeni Adres Ekle form (expanded)
+  7. Support banner
+  8. Footer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — ROUTING & CART INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add route (ProtectedRoute):
+  <Route path="/hesabim/adresler" element={<AddressesPage />} />
+
+Update CartPage AddressPicker:
+  Read addresses from AddressContext
+  Show saved addresses in modal
+  Pre-select defaultAddress
+
+Update AccountPage:
+  "Adreslerim" quick action → navigate("/hesabim/adresler")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Address list:
+✅ 3 cards: Evim (default), İş Yerim, Ailem
+✅ Default card has Varsayılan badge + purple border + checkmark
+✅ Varsayılan Yap on non-default → switches default
+✅ Radio/check selection updates UI
+
+CRUD:
+✅ + Yeni Adres Ekle scrolls to form, clears fields
+✅ Adresi Kaydet adds new address + updates count badge
+✅ Düzenle pre-fills form with address data
+✅ Save in edit mode updates address
+✅ Kopyala copies formatted address to clipboard + toast
+✅ Sil shows confirmation modal → removes address
+✅ Vazgeç resets/collapses form
+
+Form:
+✅ All fields work including cascading İl/İlçe/Mahalle dropdowns
+✅ Phone validation
+✅ Konumdan Adres Bul fills address fields (geolocation mock)
+✅ "Bu adresi varsayılan yap" checkbox works
+✅ Fatura toggle works
+
+Integration:
+✅ Addresses persist in localStorage
+✅ Cart checkout sees default address
+✅ Protected route
+✅ No horizontal overflow at 375px
+✅ npm run dev → ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ "Adreslerim" + "3 kayıtlı adres"
+✅ Evim — Varsayılan — Kapı zili notu — Kopyala visible
+✅ İş Yerim — blue building icon — Varsayılan Yap
+✅ Ailem — pink pin icon
+✅ Green truck info banner
+✅ Full form: title, name, phone +90, il/ilce/mahalle, adres, bina/kat/daire, not
+✅ Konumdan Adres Bul button
+✅ Checkbox + fatura toggle
+✅ Adresi Kaydet + Vazgeç + security text
+✅ Support banner + footer
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the Adreslerim page at /hesabim/adresler exactly as specified.
+Use EXISTING project. AddressContext shared with cart checkout.
+
+ALL must work:
+  Kayıtlı adresler, varsayılan seçimi, yeni adres ekleme,
+  konumdan adres bulma, düzenleme, kopyalama, silme.
+
+Match mockup pixel-perfect. Turkish text exact.
+Run the app and confirm zero errors before finishing.
