@@ -1,0 +1,798 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the Product Detail Page (PDP) for YourPoodle.com.
+This is the "Add to Cart" page for a dry dog food product.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, Header, TabNavigation, MobileDrawer, cart/favorites
+  hooks, Toast, Accordion patterns, and routing. DO NOT rebuild the entire app.
+- Product cards on /magaza/kuru-mama/sonuc MUST link to this page.
+- DO NOT delete or rewrite existing pages.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Route: /magaza/urun/:slug
+Example: /magaza/urun/pro-plan-sensitive-somon
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT skip any section listed in this prompt.
+4. DO NOT use Lorem ipsum.
+
+MANDATORY PAGE SECTIONS (ALL REQUIRED):
+  ✅ Product image gallery (main image, badges, favorite, share, dots, thumbnails)
+  ✅ Kg / Barkod / SKT / stock status
+  ✅ Discounted price + old price + savings
+  ✅ Package selection (Paket Seçimi) — kg options
+  ✅ Quantity selector (adet)
+  ✅ 3 taksit info
+  ✅ Delivery / shipping info
+  ✅ Sepete Ekle button (with dynamic price)
+  ✅ Hemen Al button
+  ✅ Günlük Mama Hesaplayıcı (working calculator)
+  ✅ Content accordions (Ürün Açıklaması, İçindekiler, Besin Değerleri, Kullanım ve Saklama)
+  ✅ Customer reviews (Müşteri Yorumları)
+  ✅ Sticky bottom bar (price + Sepete Ekle)
+
+5. EVERY interactive element MUST work.
+6. Optimize for 390px mobile. Max width 480px centered.
+7. NO site footer — sticky bottom bar instead.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #6B21A8
+  purple-bright:   #7C3AED
+  purple-light:    #F3EEFF
+  purple-border:   #DDD6FE
+  discount-red:    #FEE2E2 / #DC2626
+  bestseller-bg:   #EDE9FE / #5B21B6
+  savings-green:   #16A34A
+  stock-green:     #22C55E
+  text-dark:       #111827
+  text-secondary:  #6B7280
+  border-light:    #E5E7EB
+  star-yellow:     #EAB308
+  review-bg:       #F9FAFB
+
+Typography: Inter
+Layout: max-w-[480px] mx-auto bg-white min-h-screen pb-24 (space for sticky bar)
+Sticky bottom bar: fixed bottom-0 z-40
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    product/
+      ProductBreadcrumb.tsx
+      ProductGallery.tsx
+      ProductHeaderInfo.tsx
+      ProductMetaBar.tsx
+      ProductFeatureTags.tsx
+      ProductPricingSection.tsx
+      ProductPackageSelector.tsx
+      ProductQuantitySelector.tsx
+      ProductPurchaseButtons.tsx
+      ProductTrustBanner.tsx
+      ProductShippingBar.tsx
+      ProductDeliveryPicker.tsx
+      ProductWhySection.tsx
+      ProductFoodCalculator.tsx
+      ProductAccordions.tsx
+      ProductReviews.tsx
+      ProductStickyBar.tsx
+  pages/
+    ProductDetailPage.tsx
+  data/
+    productDetail.ts
+    productReviews.ts
+  hooks/
+    useProductDetail.ts
+  App.tsx
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — MOCK PRODUCT DATA (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/productDetail.ts:
+
+export interface ProductPackage {
+  id: string;
+  weight: string;       // "1,5 kg" | "3 kg" | "7 kg"
+  price: number;
+  priceFormatted: string;
+  barcode: string;
+  originalPrice: number;
+  originalPriceFormatted: string;
+}
+
+export interface ProductDetail {
+  slug: string;
+  brand: string;        // "PRO PLAN"
+  name: string;         // full product title
+  rating: number;       // 4.8
+  reviewCount: number;  // 127
+  expiryDate: string;   // SKT
+  inStock: boolean;
+  discountPercent: number;
+  isBestseller: boolean;
+  featureTags: string[];
+  images: string[];
+  thumbnails: string[];
+  packages: ProductPackage[];
+  defaultPackageId: string;
+  installmentCount: number;
+  whyFeatures: { icon: string; label: string }[];
+  accordionContent: {
+    description: string;
+    ingredients: string;
+    nutrition: string;
+    usage: string;
+  };
+}
+
+export const productDetail: ProductDetail = {
+  slug: "pro-plan-sensitive-somon",
+  brand: "PRO PLAN",
+  name: "Pro Plan Small Adult Sensitive Somonlu Yetişkin Köpek Maması",
+  rating: 4.8,
+  reviewCount: 127,
+  expiryDate: "18.07.2027",
+  inStock: true,
+  discountPercent: 15,
+  isBestseller: true,
+  featureTags: ["Yetişkin +1", "Sensitive", "Somonlu", "Küçük Irk"],
+  images: [
+    "https://images.unsplash.com/photo-1589924691995-400dc9eccs?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=600&fit=crop",
+  ],
+  thumbnails: [
+    "https://images.unsplash.com/photo-1589924691995-400dc9eccs?w=120&h=120&fit=crop",
+    "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=120&h=120&fit=crop",
+  ],
+  packages: [
+    {
+      id: "pkg-1.5",
+      weight: "1,5 kg",
+      price: 899,
+      priceFormatted: "899 TL",
+      barcode: "7613035123454",
+      originalPrice: 1049,
+      originalPriceFormatted: "1.049 TL",
+    },
+    {
+      id: "pkg-3",
+      weight: "3 kg",
+      price: 1349,
+      priceFormatted: "1.349 TL",
+      barcode: "7613035123456",
+      originalPrice: 1599,
+      originalPriceFormatted: "1.599 TL",
+    },
+    {
+      id: "pkg-7",
+      weight: "7 kg",
+      price: 2499,
+      priceFormatted: "2.499 TL",
+      barcode: "7613035123458",
+      originalPrice: 2899,
+      originalPriceFormatted: "2.899 TL",
+    },
+  ],
+  defaultPackageId: "pkg-3",
+  installmentCount: 3,
+  whyFeatures: [
+    { icon: "Stethoscope", label: "Hassas sindirim desteği" },
+    { icon: "Fish",        label: "Somonlu yüksek protein" },
+    { icon: "Sparkles",    label: "Deri ve tüy sağlığı" },
+    { icon: "CircleDot",   label: "Küçük ırklara özel tane" },
+  ],
+  accordionContent: {
+    description: "Pro Plan Small Adult Sensitive Somonlu, hassas sindirim sistemine sahip küçük ırk yetişkin köpekler için özel olarak formüle edilmiş premium kuru mamadır. Somon proteini ve prebiyotik lifler içerir.",
+    ingredients: "Somon (%18), pirinç, mısır gluteni, hayvansal yağ, kurutulmuş pancar küspesi, balık yağı, mineraller, vitaminler.",
+    nutrition: "Ham protein: %27 | Ham yağ: %17 | Ham lif: %2,5 | Ham kül: %7 | Nem: %9,5",
+    usage: "Günde 2 öğün olmak üzere paketteki beslenme tablosuna göre veriniz. Serin ve kuru yerde, güneş almayan ortamda saklayınız. Açıldıktan sonra 6 hafta içinde tüketiniz.",
+  },
+};
+
+Create src/data/productReviews.ts:
+
+export interface ProductReview {
+  id: string;
+  initials: string;
+  name: string;
+  rating: number;
+  text: string;
+  verified: boolean;
+  avatarColor: string;
+}
+
+export const productReviews: ProductReview[] = [
+  {
+    id: "r1",
+    initials: "A",
+    name: "Ayşe K.",
+    rating: 5,
+    text: "Toy Poodle'um çok sevdi, sindirim sorunu yaşamadık. Kesinlikle tavsiye ederim!",
+    verified: true,
+    avatarColor: "#7C3AED",
+  },
+  {
+    id: "r2",
+    initials: "M",
+    name: "Mehmet D.",
+    rating: 5,
+    text: "Tüyleri parlaklaştı, enerjisi arttı. 3 kg paket ideal boyut.",
+    verified: true,
+    avatarColor: "#3B82F6",
+  },
+  {
+    id: "r3",
+    initials: "E",
+    name: "Elif S.",
+    rating: 4,
+    text: "Hızlı kargo, ürün taze. Tek eksik biraz pahalı ama kalitesi belli.",
+    verified: true,
+    avatarColor: "#EC4899",
+  },
+];
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — useProductDetail HOOK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: hooks/useProductDetail.ts
+
+State:
+  selectedPackageId: string     // default "pkg-3"
+  quantity: number                // default 1, min 1, max 10
+  activeImageIndex: number        // default 0
+  isFavorite: boolean
+  selectedDeliveryRegion: string | null
+
+Computed:
+  selectedPackage → from packages by selectedPackageId
+  totalPrice → selectedPackage.price * quantity
+  totalPriceFormatted → format Turkish locale
+  installmentAmount → totalPrice / 3, formatted "449,67 TL" style
+  savings → selectedPackage.originalPrice - selectedPackage.price
+  savingsFormatted → "{savings} TL kazanç"
+
+Functions:
+  selectPackage(id)
+  incrementQuantity() / decrementQuantity() — min 1
+  setImageIndex(i)
+  toggleFavorite()
+  addToCart() → cart hook + toast "Sepete eklendi ✓"
+  buyNow() → addToCart + navigate("/sepet") or alert("Ödeme sayfası yakında!")
+  shareProduct() → Web Share API or clipboard
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — BREADCRUMB (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ProductBreadcrumb.tsx
+
+px-4 py-3 flex items-center gap-2 text-sm
+
+  ArrowLeft (aria-label="Geri") → navigate(-1) or /magaza/kuru-mama/sonuc
+
+  Text: "Mağaza / Kuru Mama / Pro Plan"
+    gray / gray / font-medium dark
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — PRODUCT GALLERY (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ProductGallery.tsx
+
+Container: px-4 mb-4
+
+Main image area (relative):
+  rounded-2xl overflow-hidden bg #F9FAFB
+
+  Image: w-full aspect-square object-contain
+    src: product.images[activeImageIndex]
+
+  TOP-LEFT badges (flex gap-1.5):
+    "%15 İndirim" — bg #FEE2E2 text #DC2626 text-xs font-bold px-2.5 py-1 rounded-full
+    "Çok Satan" — bg #EDE9FE text #5B21B6 text-xs font-bold px-2.5 py-1 rounded-full
+
+  TOP-RIGHT actions (flex gap-2):
+    Heart button — w-9 h-9 rounded-full bg-white shadow
+      toggle favorite, filled red if active
+    Share button — w-9 h-9 rounded-full bg-white shadow
+      Share2 icon, onClick shareProduct
+
+  Carousel dots (centered below image, flex gap-1.5 mt-2):
+    3 dots, active dot bg #6B21A8 w-2 h-2 rounded-full
+    inactive dots bg #D1D5DB
+
+  Thumbnails row (flex gap-2 mt-2):
+    2 rounded-lg overflow-hidden w-14 h-14 border-2
+    active thumbnail: border #6B21A8
+    inactive: border transparent
+    onClick → setImageIndex
+
+Clicking main image dots/thumbnails changes activeImageIndex.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — PRODUCT HEADER INFO (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ProductHeaderInfo.tsx
+
+px-4 mb-3
+
+  Brand: "PRO PLAN"
+    text-xs font-bold text #6B21A8 tracking-wider uppercase
+
+  Title: product.name
+    text-base font-bold text-gray-900 leading-snug mt-1
+
+  Rating row (flex items-center gap-2 mt-2 flex-wrap):
+    5 Star icons — filled #EAB308 for 4.8 rating (4 full + 1 partial or 5 with 4.8 label)
+    "4,8" text-sm font-semibold
+    "127 değerlendirme" text-xs text-gray-500
+    "Yorumları Gör" text-xs text #6B21A8 font-medium hover:underline cursor-pointer
+      onClick → scroll to #reviews section
+
+File: ProductMetaBar.tsx
+
+px-4 mb-3
+flex flex-wrap items-center gap-x-3 gap-y-1
+text-xs text-gray-500 border border-gray-100 rounded-xl px-3 py-2
+
+  "Kg: {selectedPackage.weight}"
+  "Barkod: {selectedPackage.barcode}"
+  "SKT: {product.expiryDate}"
+  flex items-center gap-1:
+    green dot w-2 h-2 rounded-full bg #22C55E
+    "Stokta" text-green-600 font-medium
+
+Updates dynamically when package changes.
+
+File: ProductFeatureTags.tsx
+
+px-4 mb-4 flex flex-wrap gap-2
+
+  Tags: "Yetişkin +1", "Sensitive", "Somonlu", "Küçük Irk"
+  Each: bg #F3EEFF text #6B21A8 text-xs font-medium px-3 py-1 rounded-full
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — PRICING SECTION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ProductPricingSection.tsx
+
+px-4 mb-4
+grid grid-cols-2 gap-3
+
+LEFT — Price box:
+  Old price: line-through text-sm text-gray-400
+    Text: selectedPackage.originalPriceFormatted (e.g. "1.599 TL")
+
+  Current price: text-2xl font-bold text #6B21A8
+    Text: selectedPackage.priceFormatted (e.g. "1.349 TL")
+
+  Savings: text-xs font-medium text #16A34A
+    Text: "{savings} TL kazanç" (e.g. "250 TL kazanç")
+
+RIGHT — Installment box:
+  border border #DDD6FE rounded-xl p-3 bg #FAFAFF
+
+  CreditCard icon size 16 color #6B21A8
+
+  "Peşin fiyatına 3 taksit"
+    text-xs font-semibold text-gray-800
+
+  "3 x {installmentAmount}"
+    text-sm font-bold text #6B21A8 mt-0.5
+    Example: "3 x 449,67 TL"
+    Recalculate when package or quantity changes (based on totalPrice / 3)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — PACKAGE + QUANTITY + PURCHASE (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ProductPackageSelector.tsx
+
+px-4 mb-4
+
+  Title: "Paket Seçimi"
+    text-sm font-bold text-gray-900 mb-2
+
+  flex gap-2 (3 cards horizontal scroll if needed):
+
+  Each package card:
+    flex-1 min-w-[90px] rounded-xl border-2 p-3 cursor-pointer text-center
+    IF selected: border #6B21A8 bg #F3EEFF
+    ELSE: border #E5E7EB bg white hover:border-gray-300
+
+    Weight: text-sm font-bold text-gray-900 (1,5 kg / 3 kg / 7 kg)
+    Price: text-xs text #6B21A8 font-semibold mt-1
+
+  onClick → selectPackage(id)
+  Default selected: 3 kg
+
+File: ProductQuantitySelector.tsx
+
+px-4 mb-4
+flex items-center gap-3
+
+  Label: "Adet" text-sm font-medium text-gray-700
+
+  Quantity control:
+    flex items-center border border #DDD6FE rounded-xl overflow-hidden
+
+    Minus button: px-3 py-2 hover:bg-purple-50 aria-label="Azalt"
+      disabled when quantity === 1
+
+    Count: px-4 py-2 text-sm font-semibold min-w-[40px] text-center
+
+    Plus button: px-3 py-2 hover:bg-purple-50 aria-label="Artır"
+      disabled when quantity === 10
+
+File: ProductPurchaseButtons.tsx
+
+px-4 mb-3 space-y-2
+
+  Primary "Sepete Ekle" button:
+    w-full bg #6B21A8 text-white font-semibold py-3.5 rounded-xl
+    flex items-center justify-center gap-2
+    ShoppingCart icon size 18
+    Text: "Sepete Ekle — {totalPriceFormatted}"
+    Example: "Sepete Ekle — 1.349 TL"
+    Updates dynamically with package × quantity
+    onClick → addToCart()
+
+  Secondary "Hemen Al" button:
+    w-full border-2 border #6B21A8 text #6B21A8 font-semibold py-3 rounded-xl
+    hover:bg #F3EEFF
+    onClick → buyNow()
+
+File: ProductTrustBanner.tsx
+
+px-4 mb-4 flex items-center justify-center gap-2
+
+  ShieldCheck icon size 14 color #3B82F6
+  "256-bit SSL ile güvenli ödeme"
+    text-xs text-gray-500
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — SHIPPING & DELIVERY (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ProductShippingBar.tsx
+
+mx-4 mb-4 grid grid-cols-3 gap-2
+
+  3 feature items (text-center):
+    1. Truck icon + "Bugün sipariş ver, yarın kargoda"
+    2. Package icon + "500 TL üzeri ücretsiz kargo"
+    3. RotateCcw icon + "14 gün içinde kolay iade"
+
+  Each: flex flex-col items-center gap-1
+    icon size 18 color #6B21A8
+    text-[10px] text-gray-600 leading-tight
+
+File: ProductDeliveryPicker.tsx
+
+mx-4 mb-5
+flex items-center justify-between
+bg #F9FAFB border border-gray-200 rounded-xl px-4 py-3 cursor-pointer
+hover:bg-gray-100
+
+  LEFT: MapPin icon + "Teslimat bölgenizi seçin"
+    text-sm text-gray-700
+
+  RIGHT: ChevronRight icon size 18 color gray
+
+  onClick → alert or modal with city list (İstanbul, Ankara, İzmir, Samsun)
+  After select → show selected city in bar text
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — NEDEN BU MAMA? (EXACT — 2×2 GRID)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ProductWhySection.tsx
+
+px-4 mb-5
+
+  Title: "Neden Bu Mama?"
+    text-base font-bold text-gray-900 mb-3
+
+  grid grid-cols-2 gap-2.5
+
+  4 feature cards:
+    bg #F9FAFB rounded-xl p-3 flex flex-col items-center text-center gap-2
+
+    1. Stethoscope — "Hassas sindirim desteği"
+    2. Fish — "Somonlu yüksek protein"
+    3. Sparkles — "Deri ve tüy sağlığı"
+    4. CircleDot — "Küçük ırklara özel tane"
+
+    icon size 22 color #6B21A8
+    label text-xs font-medium text-gray-700
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — GÜNLÜK MAMA HESAPLAYICI (MUST WORK)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ProductFoodCalculator.tsx
+
+mx-4 mb-5
+bg #F3EEFF border border #DDD6FE rounded-2xl p-4
+
+  Title: "Günlük Mama Hesaplayıcı"
+    text-sm font-bold text-gray-900 mb-1
+
+  Subtext: "Poodle'ınızın kilosuna göre günlük miktarı hesaplayın."
+    text-xs text-gray-600 mb-3
+
+  Row 1 — two dropdowns (flex gap-2 mb-3):
+
+    Dropdown "Kilo seçin":
+      options: 1 kg, 2 kg, 3 kg, 4 kg, 5 kg (default 5 kg), 6 kg, 7 kg, 8 kg
+
+    Dropdown "Aktivite düzeyi":
+      options: Düşük, Orta (default), Yüksek
+
+  Button "Hesapla":
+    w-full bg #6B21A8 text-white font-semibold py-2.5 rounded-xl text-sm
+    hover:bg #5B21B6
+
+  onClick logic (mock formula):
+    baseGrams = weightKg × 12
+    IF activity === "Düşük" → ×0.9
+    IF activity === "Orta"  → ×1.0
+    IF activity === "Yüksek" → ×1.15
+    min = Math.round(baseGrams * 0.9)
+    max = Math.round(baseGrams * 1.1)
+    Show result: "Önerilen günlük miktar: {min}–{max} g"
+    text-sm font-medium text #6B21A8 mt-3
+
+  Default result visible (matching mockup):
+    "Önerilen günlük miktar: 65–80 g"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — ACCORDIONS (EXACT — 4 SECTIONS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ProductAccordions.tsx
+
+px-4 mb-5
+
+Reuse existing Accordion component OR build inline.
+
+4 items with LEFT icon + title + RIGHT Plus/Minus:
+
+  1. FileText icon | "Ürün Açıklaması"
+     Content: accordionContent.description
+
+  2. List icon | "İçindekiler"
+     Content: accordionContent.ingredients
+
+  3. BarChart icon | "Besin Değerleri"
+     Content: accordionContent.nutrition
+
+  4. Info icon | "Kullanım ve Saklama"
+     Content: accordionContent.usage
+
+Header: flex justify-between py-3.5 border-t border-gray-100 cursor-pointer
+Content: text-sm text-gray-600 leading-relaxed pb-3
+Only one open at a time. Smooth transition.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — CUSTOMER REVIEWS (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ProductReviews.tsx
+
+id="reviews"
+px-4 mb-6
+
+  Header row (flex justify-between items-start mb-4):
+
+    LEFT:
+      "4,8 / 5" text-2xl font-bold
+      5 stars row
+      "127 değerlendirme" text-xs text-gray-500
+
+    RIGHT: (optional average breakdown — skip if not in mockup)
+
+  Review cards — horizontal scroll (flex gap-3 overflow-x-auto scrollbar-hide):
+
+  Each review card:
+    min-w-[260px] bg #F9FAFB rounded-xl p-4 flex-shrink-0
+
+    Top: colored circle avatar with initials (A, M, E)
+      w-9 h-9 rounded-full flex items-center justify-center
+      text-white text-sm font-bold
+
+    Name: text-sm font-semibold mt-2
+    Stars: 5 small stars
+    Comment text: text-xs text-gray-600 leading-relaxed mt-1
+    "Doğrulanmış Alışveriş" badge:
+      flex items-center gap-1 text-[10px] text-green-600 mt-2
+      BadgeCheck icon size 12
+      Text: "Doğrulanmış Alışveriş"
+
+  Button "Tüm Yorumları Gör":
+    w-full mt-4 border-2 border #6B21A8 text #6B21A8
+    font-semibold text-sm py-3 rounded-xl hover:bg #F3EEFF
+    onClick → alert("Tüm yorumlar yakında!")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — STICKY BOTTOM BAR (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ProductStickyBar.tsx
+
+fixed bottom-0 left-0 right-0 z-40
+flex justify-center
+
+  Inner: max-w-[480px] w-full bg-white border-t border-gray-200
+    flex items-center justify-between px-4 py-3 shadow-lg
+
+  LEFT:
+    Price: text-lg font-bold text #6B21A8
+      Text: totalPriceFormatted (e.g. "1.349 TL")
+    Stock: text-xs text-green-600 flex items-center gap-1
+      green dot + "Stokta"
+
+  RIGHT:
+    "Sepete Ekle" button:
+      bg #6B21A8 text-white font-semibold text-sm
+      px-5 py-2.5 rounded-xl flex items-center gap-2
+      ShoppingCart icon size 16
+      onClick → addToCart()
+
+Updates dynamically when package/quantity changes.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ProductDetailPage.tsx
+
+<div className="max-w-[480px] mx-auto bg-white min-h-screen pb-24 shadow-xl">
+  <Header />
+  <TabNavigation activeTab="magaza" />
+
+  <ProductBreadcrumb />
+  <ProductGallery />
+  <ProductHeaderInfo />
+  <ProductMetaBar />          ← Kg, Barkod, SKT, Stokta
+  <ProductFeatureTags />
+  <ProductPricingSection />   ← old price, sale price, savings, 3 taksit
+  <ProductPackageSelector />  ← Paket Seçimi
+  <ProductQuantitySelector /> ← Adet
+  <ProductPurchaseButtons />  ← Sepete Ekle + Hemen Al
+  <ProductTrustBanner />
+  <ProductShippingBar />      ← delivery info
+  <ProductDeliveryPicker />   ← Teslimat bölgesi
+  <ProductWhySection />
+  <ProductFoodCalculator />   ← mama hesaplayıcı
+  <ProductAccordions />       ← içerik bilgileri
+  <ProductReviews />          ← müşteri yorumları
+
+  <ProductStickyBar />
+  <MobileDrawer />
+  <Toast />
+</div>
+
+NO site footer.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 17 — ROUTING & INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add route:
+  <Route path="/magaza/urun/:slug" element={<ProductDetailPage />} />
+
+From FoodResultsPage FoodProductCard:
+  onClick product name or image → navigate(`/magaza/urun/pro-plan-sensitive-somon`)
+  OR map product.id to slug
+
+Connect cart:
+  addToCart sends: { productId, packageId, quantity, price, name, weight, barcode, skt }
+  showToast("Sepete eklendi ✓")
+
+Connect favorites:
+  Heart in gallery toggles isFavorite
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 18 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Gallery:
+✅ Image carousel dots work
+✅ Thumbnails switch main image
+✅ Heart toggles favorite
+✅ Share works (Web Share or clipboard)
+
+Pricing & selection:
+✅ Package selection updates: Kg, Barkod, prices, sticky bar, Sepete Ekle text
+✅ Quantity +/- works (min 1, max 10)
+✅ Total price = package price × quantity
+✅ Installment recalculates: "3 x {amount} TL"
+✅ Savings recalculates
+
+Buttons:
+✅ "Sepete Ekle — X TL" adds to cart + toast
+✅ "Hemen Al" triggers buy flow
+✅ Sticky bar Sepete Ekle works
+
+Calculator:
+✅ Kilo + Aktivite dropdowns work
+✅ "Hesapla" shows "Önerilen günlük miktar: X–Y g"
+
+Accordions:
+✅ All 4 sections expand/collapse
+
+Reviews:
+✅ Horizontal scroll review cards
+✅ "Yorumları Gör" scrolls to reviews
+✅ "Tüm Yorumları Gör" clickable
+
+Delivery:
+✅ "Teslimat bölgenizi seçin" opens picker
+
+Visual:
+✅ All mockup sections present in exact order
+✅ No horizontal overflow at 375px
+✅ npm run dev → ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 19 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Breadcrumb: Mağaza / Kuru Mama / Pro Plan
+✅ Gallery: %15 İndirim + Çok Satan badges, heart, share, dots, thumbnails
+✅ PRO PLAN brand + full product title
+✅ 4,8 stars + 127 değerlendirme + Yorumları Gör
+✅ Kg: 3 kg | Barkod: 7613035123456 | SKT: 18.07.2027 | Stokta
+✅ Tags: Yetişkin +1, Sensitive, Somonlu, Küçük Irk
+✅ ~~1.599 TL~~ → 1.349 TL + 250 TL kazanç
+✅ 3 taksit box: "3 x 449,67 TL"
+✅ Paket Seçimi: 1,5 kg / 3 kg (selected) / 7 kg
+✅ Adet selector - 1 +
+✅ Sepete Ekle — 1.349 TL + Hemen Al
+✅ SSL badge
+✅ Shipping 3 icons + Teslimat bölgesi
+✅ Neden Bu Mama? 2×2 grid
+✅ Günlük Mama Hesaplayıcı with working Hesapla
+✅ 4 accordions with content
+✅ Müşteri Yorumları with scroll cards
+✅ Sticky bottom: 1.349 TL + Stokta + Sepete Ekle
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the product detail page at /magaza/urun/:slug exactly as specified.
+Use the EXISTING project — do not rebuild the whole app.
+
+ALL mandatory sections must be present and working:
+  Product images, Kg/Barkod/SKT, discounted price, package + quantity selection,
+  3 taksit, delivery info, Sepete Ekle, Hemen Al, mama calculator,
+  content accordions, customer reviews, sticky bottom bar.
+
+Match the mockup pixel-perfect. Turkish text must be exact.
+Run the app and confirm zero errors before finishing.

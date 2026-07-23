@@ -56,16 +56,21 @@ const ACTIVE_FILTERS = ["Yetişkin", "Sensitive", "Somonlu", "Indoor", "Weight L
 function ProductCard({ p }: { p: Product }) {
   const [liked, setLiked] = useState(false);
   const [added, setAdded] = useState(false);
+  const [, navigate] = useLocation();
 
-  const addToCart = () => {
+  const slug = p.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+
+  const addToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
 
   return (
-    <div style={{ background:"#fff", borderRadius:12, border:`1px solid ${GB}`,
-                  overflow:"hidden", display:"flex", flexDirection:"column",
-                  boxShadow:"0 1px 4px rgba(0,0,0,0.06)" }}>
+    <div onClick={() => navigate(`/yourpoodle/mama-urun/${slug}`)}
+      style={{ background:"#fff", borderRadius:12, border:`1px solid ${GB}`,
+               overflow:"hidden", display:"flex", flexDirection:"column",
+               boxShadow:"0 1px 4px rgba(0,0,0,0.06)", cursor:"pointer" }}>
       {/* Image area */}
       <div style={{ position:"relative", background:p.brandBg,
                     height:110, display:"flex", alignItems:"center",
@@ -78,7 +83,7 @@ function ProductCard({ p }: { p: Product }) {
           %{p.discount} İndirim
         </div>
         {/* Heart */}
-        <button onClick={() => setLiked(l => !l)}
+        <button onClick={(e) => { e.stopPropagation(); setLiked(l => !l); }}
           style={{ position:"absolute", top:4, right:6,
                    background:"none", border:"none", cursor:"pointer",
                    padding:4, display:"flex", alignItems:"center", justifyContent:"center" }}
