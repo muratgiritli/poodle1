@@ -1,0 +1,521 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "Üye Ol veya Giriş Yap" (Sign Up / Log In) page for YourPoodle.com.
+This is a passwordless SMS authentication page for Turkish users.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, Header, TabNavigation, MobileDrawer, Footer, Toast,
+  Accordion, and auth context. DO NOT rebuild the entire app.
+- After successful verification, set user as authenticated in auth context
+  and redirect to previous page or /magaza.
+- Header "Giriş Yap" and "Üye Ol" across site MUST link to this page.
+- DO NOT delete or rewrite existing pages.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Routes:
+  /uye-ol
+  /giris          → both render same AuthPage component
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT use password fields — SMS-only auth.
+4. DO NOT skip footer — full footer required on this page.
+5. EVERY step, button, timer, checkbox, and link MUST work.
+6. Optimize for 390px mobile. Max width 480px centered.
+7. Mock SMS backend locally — ready for future Twilio/API integration.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #4B2BD6
+  purple-dark:     #3E27B3
+  purple-light:    #F3F0FF
+  purple-badge:    #EDE9FE
+  footer-bg:       #1D1E9B
+  footer-box:      #2D2FA8
+  success-green:   #F0FDF4
+  success-border:  #BBF7D0
+  success-text:    #166534
+  text-dark:       #111827
+  text-secondary:  #6B7280
+  border-light:    #E5E7EB
+
+Typography: Inter (logo can stay sans-serif bold purple)
+Layout: max-w-[480px] mx-auto bg-gray-50 min-h-screen
+Auth card: bg white rounded-2xl border border-gray-100 shadow-sm mx-4
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    auth/
+      AuthCard.tsx
+      AuthHeroImage.tsx
+      AuthPhoneStep.tsx
+      AuthOTPStep.tsx
+      AuthConsentCheckboxes.tsx
+      AuthValueProps.tsx
+      AuthSupportLink.tsx
+      OTPInput.tsx              ← 4 separate digit boxes
+      PhoneInput.tsx            ← +90 TR phone input
+  pages/
+    AuthPage.tsx
+  hooks/
+    useAuthFlow.ts              ← phone, OTP, timer, validation logic
+  context/
+    AuthContext.tsx             ← extend if exists
+  App.tsx
+
+Reuse existing Footer.tsx component — do NOT rebuild footer from scratch.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — AUTH FLOW STATE (useAuthFlow HOOK)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: hooks/useAuthFlow.ts
+
+State:
+  step: "phone" | "otp"           // default "phone", mockup shows "otp" state too
+  phone: string                    // digits only, 10 chars e.g. "5321234848"
+  otp: string[4]                   // ["4","8","2","1"] in demo
+  smsSent: boolean
+  countdown: number                // seconds, default 60, starts after send
+  termsAccepted: boolean           // required checkbox
+  marketingAccepted: boolean       // optional checkbox
+  isLoading: boolean
+  maskedPhone: string              // "+90 532 *** ** 48"
+
+Functions:
+
+  formatPhoneDisplay(raw):
+    Format as "5XX XXX XX XX" while typing
+
+  validatePhone(phone):
+    Must be 10 digits, start with 5 (Turkish mobile)
+    IF invalid → toast "Geçerli bir cep telefonu numarası girin"
+
+  sendSMS():
+    IF !validatePhone → return
+    IF !termsAccepted → toast "Lütfen sözleşmeleri kabul edin"
+    Set smsSent = true, step = "otp"
+    Set maskedPhone from last 2 digits
+    Start countdown = 60
+    showToast("Doğrulama kodu gönderildi ✓")
+    Mock OTP code stored: "4821" (for demo verification)
+
+  verifyOTP():
+    IF otp joined !== "4821" (mock) → toast "Geçersiz doğrulama kodu"
+    ELSE:
+      setAuthenticated(true) in AuthContext
+      showToast("Hoş geldiniz! ✓")
+      navigate(returnUrl || "/magaza")
+
+  resendOTP():
+    IF countdown > 0 → disabled
+    ELSE reset countdown = 60, showToast("Kod yeniden gönderildi")
+
+  changePhone():
+    step = "phone", smsSent = false, otp = ["","","",""], countdown = 0
+
+  onOTPChange(index, digit):
+    Only allow 0-9, single char
+    Auto-focus next box
+    Auto-submit when 4 digits filled (optional)
+
+Countdown timer:
+  useEffect interval, decrement every 1s
+  Format: "00:42" (mm:ss padded)
+  Display: "Kodu tekrar gönder: {countdown}"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — HEADER (EXACT — REUSE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Reuse existing Header.
+
+Sticky top-0 z-40 bg-white border-b border-gray-200
+flex items-center justify-between h-14 px-4
+
+LEFT: Menu icon → MobileDrawer
+CENTER: Logo + "YourPoodle" font-bold text-lg color #4B2BD6
+RIGHT:
+  "Giriş Yap" text-sm text-gray-700 hover:underline
+    onClick → stay on /uye-ol (or scroll top)
+  "Üye Ol" button bg #4B2BD6 text-white rounded-full px-4 py-1.5 text-sm
+    (active/highlighted state on this page — slightly bolder or ring)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — TAB NAVIGATION (EXACT — REUSE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Reuse TabNavigation — NO tab active (all inactive gray)
+OR pass activeTab={null}
+
+Mağaza, Club, AI Asistan, Rehber — all navigate to respective routes
+All inactive: color #9CA3AF, no underline
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — AUTH CARD — HERO (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AuthHeroImage.tsx
+
+Inside AuthCard, centered at top:
+
+  Circular poodle image:
+    w-24 h-24 rounded-full object-cover mx-auto
+    src: https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=200&h=200&fit=crop
+    alt: "YourPoodle"
+
+  Badge below image (mt-3):
+    inline-flex items-center gap-1.5
+    bg #EDE9FE text #4B2BD6
+    text-xs font-medium px-3 py-1 rounded-full
+    ShieldCheck icon size 14
+    Text: "Şifresiz ve Güvenli"
+
+  H1 (mt-4 text-center):
+    "Üye Ol veya Giriş Yap"
+    text-xl font-bold text-gray-900
+
+  Subtext (mt-2 text-center px-2):
+    "Cep telefonu numaranızı yazın. Size SMS ile tek kullanımlık doğrulama kodu gönderelim. Kayıtlıysanız giriş yapılır, değilseniz hesabınız otomatik oluşturulur."
+    text-sm text-gray-500 leading-relaxed
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — STEP 1: PHONE INPUT (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AuthPhoneStep.tsx
+
+  Step label:
+    "1 Cep Telefonu Numaranız"
+    text-sm font-semibold text-gray-900 mb-2
+
+  Phone input row (flex):
+    File: PhoneInput.tsx
+
+    Country code box (left):
+      flex items-center gap-1.5 px-3 py-3
+      border border-gray-200 rounded-l-xl bg-gray-50
+      🇹🇷 flag emoji OR small TR flag
+      "+90" text-sm font-medium text-gray-700
+
+    Phone input (right, flex-1):
+      border border-gray-200 border-l-0 rounded-r-xl
+      px-3 py-3 text-sm outline-none
+      placeholder="5XX XXX XX XX"
+      type="tel" inputMode="numeric"
+      maxLength={14 (formatted) or 10 digits}
+      value formatted as user types
+      onChange → update phone state
+
+  Button "SMS Kodu Gönder":
+    w-full mt-3 bg #4B2BD6 text-white font-semibold py-3.5 rounded-xl
+    flex items-center justify-center gap-2
+    MessageSquare icon size 18
+    hover:bg #3E27B3 active:scale-[0.98]
+    disabled if phone invalid or !termsAccepted
+    onClick → sendSMS()
+
+  Security note below button (mt-2 flex items-center gap-1.5 justify-center):
+    Lock icon size 12 color #9CA3AF
+    "Numaranız güvende, üçüncü taraflarla paylaşılmaz."
+    text-xs text-gray-400
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — STEP 2: SMS OTP (EXACT — SHOW AFTER SMS SENT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AuthOTPStep.tsx
+
+Render ONLY when smsSent === true (step === "otp")
+
+  Success banner (mb-4):
+    bg #F0FDF4 border border #BBF7D0 rounded-xl px-4 py-3
+    flex items-center gap-2
+    CheckCircle icon size 16 color #16A34A
+    Text: "Doğrulama kodu +90 532 *** ** 48 numarasına gönderildi."
+    (Use dynamic maskedPhone from state)
+
+  Step label:
+    "2 SMS Doğrulama Kodu"
+    text-sm font-semibold text-gray-900 mb-3
+
+  OTP Input — File: OTPInput.tsx
+    flex gap-2 justify-center
+
+    4 square boxes:
+      w-12 h-12 border-2 rounded-xl text-center text-xl font-bold
+      IF filled: border #4B2BD6 bg #F3F0FF
+      ELSE: border #E5E7EB
+      inputMode="numeric" maxLength={1}
+      Auto-focus next on input
+      Backspace → focus previous
+      Demo pre-fill optional: 4, 8, 2, 1 when smsSent
+
+  Timer row (mt-3 text-center):
+    "Kodu tekrar gönder: 00:42"
+    text-xs text-gray-500
+    countdown dynamic
+
+  Action links row (flex justify-center gap-3 mt-2):
+    "Kodu yeniden gönder"
+      text-xs font-medium color #4B2BD6
+      IF countdown > 0 → opacity-50 cursor-not-allowed
+      ELSE → clickable, onClick resendOTP()
+
+    "|" text-gray-300
+
+    "Telefon numarasını değiştir"
+      text-xs font-medium color #4B2BD6 hover:underline
+      onClick → changePhone()
+
+  Button "Doğrula ve Devam Et":
+    w-full mt-4 bg #4B2BD6 text-white font-semibold py-3.5 rounded-xl
+    flex items-center justify-center gap-2
+    ShieldCheck icon size 18
+    hover:bg #3E27B3
+    disabled if OTP not 4 digits
+    onClick → verifyOTP()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — CONSENT CHECKBOXES (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AuthConsentCheckboxes.tsx
+
+space-y-3 mt-5
+
+  Checkbox 1 (REQUIRED):
+    flex items-start gap-2
+    input type="checkbox" checked={termsAccepted}
+    text-xs text-gray-600 leading-relaxed
+    Text: "Üyelik Sözleşmesi, KVKK Aydınlatma Metni ve Gizlilik Politikası'nı okudum, kabul ediyorum."
+    Links (color #4B2BD6 hover:underline):
+      "Üyelik Sözleşmesi" → alert/modal
+      "KVKK Aydınlatma Metni" → alert/modal
+      "Gizlilik Politikası" → alert/modal
+    onChange → setTermsAccepted
+    Required before sendSMS()
+
+  Checkbox 2 (OPTIONAL):
+    flex items-start gap-2
+    input type="checkbox" checked={marketingAccepted}
+    text-xs text-gray-600
+    Text: "Kampanya, indirim ve yenilikler hakkında SMS almak istiyorum. (İsteğe bağlı)"
+    onChange → setMarketingAccepted
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — VALUE PROPS BAR (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AuthValueProps.tsx
+
+mt-5 bg #F3F0FF rounded-xl p-4
+grid grid-cols-3 gap-2
+
+  3 items (text-center):
+
+  1. Key icon OR LockOpen icon size 20 color #4B2BD6
+     "Şifre Yok" text-xs font-medium text-gray-700 mt-1
+
+  2. Zap icon size 20 color #4B2BD6
+     "Hızlı Giriş" text-xs font-medium text-gray-700 mt-1
+
+  3. ShieldCheck icon size 20 color #4B2BD6
+     "Güvenli Doğrulama" text-xs font-medium text-gray-700 mt-1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — SUPPORT LINK (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AuthSupportLink.tsx
+
+mt-4 mb-2 text-center
+
+  "Kod gelmedi mi? Destek ekibimizden yardım alın."
+    text-xs text-gray-500
+
+  "Destek Al" link:
+    text-xs font-semibold color #4B2BD6 hover:underline
+    onClick → mailto:destek@yourpoodle.com OR alert
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — FOOTER (EXACT — REUSE EXISTING FOOTER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Reuse existing Footer.tsx with bg #1D1E9B
+
+ALL footer elements required:
+
+  Newsletter:
+    "Poodle dünyasından haberdar olun"
+    Subtext about campaigns (if in mockup)
+    Email input + "Üye Ol" button
+
+  Branding:
+    Logo + "YourPoodle"
+    "Toy Poodle'ınızın mutlu ve sağlıklı yaşamı için alışveriş, bilgi ve topluluk platformu."
+
+  Accordions (4): YourPoodle, Alışveriş, Yardım, Yasal — with +/− toggle
+
+  Contact:
+    destek@yourpoodle.com
+    Pzt–Cmt 09.00–18.00
+
+  Social: Instagram, YouTube, TikTok, Facebook
+
+  Trust: "256-bit SSL ile güvenli alışveriş" + VISA, Mastercard, TROY
+
+  Copyright: "© 2026 YourPoodle. Tüm hakları saklıdır."
+    Links: Gizlilik, Çerezler, KVKK
+
+Footer accordion + newsletter MUST work.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — AUTH PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AuthPage.tsx
+
+<div className="max-w-[480px] mx-auto bg-gray-50 min-h-screen shadow-xl">
+  <Header />
+  <TabNavigation activeTab={null} />
+
+  <main className="py-4">
+    <AuthCard>
+      <AuthHeroImage />
+      <AuthPhoneStep />         ← always visible (step 1)
+      <AuthOTPStep />           ← visible when smsSent
+      <AuthConsentCheckboxes />
+      <AuthValueProps />
+      <AuthSupportLink />
+    </AuthCard>
+  </main>
+
+  <Footer />
+  <MobileDrawer />
+  <Toast />
+</div>
+
+Exact scroll order:
+  1. Header (Giriş Yap + Üye Ol)
+  2. Tab nav (4 items, all inactive)
+  3. Auth card:
+     - Poodle image
+     - "Şifresiz ve Güvenli" badge
+     - "Üye Ol veya Giriş Yap" + subtext
+     - Step 1: phone input + SMS Kodu Gönder + lock note
+     - Step 2 (after send): green banner + 4 OTP boxes + timer + links + Doğrula
+     - Checkboxes (terms + marketing)
+     - Value props bar (3 columns)
+     - Support link
+  4. Full footer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — AUTH CONTEXT INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: context/AuthContext.tsx (extend or create)
+
+State:
+  isAuthenticated: boolean
+  user: { phone: string, isNewUser: boolean } | null
+
+Functions:
+  login(phone) → set authenticated
+  logout() → clear
+
+After verifyOTP success:
+  login(phone)
+  Club page header shows notification icons instead of Giriş/Üye Ol
+
+Add routes:
+  <Route path="/uye-ol" element={<AuthPage />} />
+  <Route path="/giris" element={<AuthPage />} />
+
+Update Header across site:
+  "Giriş Yap" → navigate("/giris")
+  "Üye Ol" → navigate("/uye-ol")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Phone step:
+✅ +90 prefix fixed, Turkish phone formats while typing
+✅ Invalid phone → error toast
+✅ SMS Kodu Gönder disabled without terms checkbox
+✅ Send SMS → shows OTP step + green banner + starts countdown
+
+OTP step:
+✅ 4 digit boxes with auto-focus
+✅ Countdown ticks down from 60 ("00:42" format)
+✅ "Kodu yeniden gönder" disabled during countdown, enabled after
+✅ "Telefon numarasını değiştir" returns to phone step
+✅ Wrong OTP → error toast
+✅ Correct OTP (4821 demo) → authenticate + redirect
+
+Checkboxes:
+✅ Terms required before send
+✅ Marketing optional
+
+Other:
+✅ Value props bar visible
+✅ Destek Al clickable
+✅ Footer accordion works
+✅ Footer newsletter validates email
+✅ No horizontal overflow at 375px
+✅ npm run dev → ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Auth card:
+✅ Poodle circular image centered
+✅ "Şifresiz ve Güvenli" purple badge
+✅ "Üye Ol veya Giriş Yap" title
+✅ SMS explanation subtext
+✅ "1 Cep Telefonu Numaranız" + +90 input
+✅ "SMS Kodu Gönder" purple button
+✅ Lock + "Numaranız güvende..." text
+✅ Green success banner with masked phone
+✅ "2 SMS Doğrulama Kodu" + 4 digit boxes
+✅ "Kodu tekrar gönder: 00:42" timer
+✅ Resend + change phone links
+✅ "Doğrula ve Devam Et" button
+✅ Both checkboxes with exact Turkish text
+✅ Şifre Yok | Hızlı Giriş | Güvenli Doğrulama bar
+✅ "Kod gelmedi mi? ... Destek Al"
+
+Footer:
+✅ Dark purple bg #1D1E9B
+✅ Newsletter + branding + accordions + contact + social + SSL + copyright
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the Sign Up / Login page at /uye-ol and /giris exactly as specified.
+Use the EXISTING project — do not rebuild the whole app.
+
+Passwordless SMS flow must work end-to-end with mock OTP "4821".
+Full footer required. Match mockup pixel-perfect. Turkish text exact.
+Run the app and confirm zero errors before finishing.
