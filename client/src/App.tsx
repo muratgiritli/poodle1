@@ -60,6 +60,7 @@ const FavoritesPage = lazy(() => import("@/pages/favorites"));
 const AuthPage = lazy(() => import("@/pages/auth"));
 const SokakCanlariPage = lazy(() => import("@/pages/sokak-canlari"));
 const ProfilePage = lazy(() => import("@/pages/profile"));
+const YPHesabimPage = lazy(() => import("@/pages/yp-hesabim"));
 const AbonePage = lazy(() => import("@/pages/abone"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 const CampaignPage = lazy(() => import("@/pages/campaign"));
@@ -198,7 +199,7 @@ function Router() {
         <Route path="/favoriler" component={FavoritesPage} />
         <Route path="/giris" component={AuthPage} />
         <Route path="/sokak-canlari" component={SokakCanlariPage} />
-        <Route path="/hesabim" component={ProfilePage} />
+        <Route path="/hesabim" component={YPHesabimPage} />
         <Route path="/abone" component={AbonePage} />
         {/* Task 6: Demo routes blocked in production — code kept, access disabled */}
         {import.meta.env.DEV && <Route path="/demo" component={DemoLanding} />}
