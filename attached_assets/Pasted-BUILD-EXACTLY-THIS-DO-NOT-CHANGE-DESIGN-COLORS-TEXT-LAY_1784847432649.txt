@@ -1,0 +1,827 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "PoodlePuanlarım" (My Poodle Points) loyalty dashboard page for YourPoodle.com.
+Users view balance, tier progress, point history, redeem rewards, and discover ways to earn more points.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, AuthContext, authenticated Header, TabNavigation,
+  MobileDrawer, Toast, and routing.
+- Protected route — redirect to /giris if not authenticated.
+- Link FROM /hesabim quick action "PoodlePuanlarım" → this page.
+- Sync +25 PoodlePuan from support rating submit if that page exists.
+- DO NOT rebuild the entire app.
+- DO NOT delete or rewrite existing pages.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Route: /hesabim/poodle-puanlari
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT skip any card, tab, transaction row, reward, FAQ item, or banner.
+4. DO NOT use Lorem ipsum.
+5. Optimize for 390px mobile. Max width 480px centered.
+
+MANDATORY FEATURES:
+  ✅ Purple gradient points hero card with gold coin
+  ✅ Tier progress bar Mor Poodle → Gold Poodle (64%)
+  ✅ 4 quick stat mini cards
+  ✅ 3 tabs: Puan Hareketleri, Ödüller, Kazanma Yolları
+  ✅ Point transaction list with +/- colors
+  ✅ Rewards cards with "Kullan" buttons
+  ✅ Earn-more tasks with action buttons
+  ✅ Expiration warning banner
+  ✅ FAQ accordion (3 items)
+  ✅ Promo banner + purple footer
+
+6. EVERY tab, filter, Kullan, earn action, and FAQ toggle MUST work.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #5D3EBD
+  purple-dark:     #4A22A0
+  purple-gradient: linear-gradient(135deg, #5D3EBD 0%, #4A22A0 100%)
+  purple-light:    #F3EEFF
+  gold-coin:       #FBBF24
+  gold-dark:       #F59E0B
+  page-bg:         #F9F9FB
+  card-bg:         #FFFFFF
+  points-green:    #16A34A
+  points-red:      #DC2626
+  points-purple:   #5D3EBD
+  warning-yellow-bg:#FEF9C3
+  warning-yellow-border:#FDE68A
+  warning-orange:  #EA580C
+  tier-gold:       #F59E0B
+  text-dark:       #111827
+  text-secondary:  #6B7280
+  footer-bg:       #5D3EBD
+  discount-value:  #C4B5FD
+
+Typography: Inter
+Hero card: mx-4 rounded-2xl overflow-hidden bg gradient purple
+Quick stats: grid grid-cols-2 gap-2 (2×2 on mobile) OR grid-cols-4 if fits
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    points/
+      PointsPageHeader.tsx
+      PointsHeroCard.tsx
+      PointsTierProgress.tsx
+      PointsQuickStats.tsx
+      PointsQuickStatCard.tsx
+      PointsCategoryTabs.tsx
+      PointsActivityList.tsx
+      PointsActivityRow.tsx
+      PointsActivityFilter.tsx
+      PointsViewAllButton.tsx
+      PointsRewardsSection.tsx
+      PointsRewardCard.tsx
+      PointsEarnMoreSection.tsx
+      PointsEarnTaskRow.tsx
+      PointsExpirationBanner.tsx
+      PointsFAQSection.tsx
+      PointsFAQItem.tsx
+      PointsPromoBanner.tsx
+      PointsFooter.tsx
+      UsePointsModal.tsx
+      HowToEarnModal.tsx
+  pages/
+    PoodlePointsPage.tsx
+  data/
+    poodlePointsMockData.ts
+  hooks/
+    usePoodlePointsPage.ts
+  App.tsx
+
+Update AccountPage (/hesabim):
+  Quick action "PoodlePuanlarım" → navigate("/hesabim/poodle-puanlari")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — MOCK DATA (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/poodlePointsMockData.ts:
+
+export type PointsTab = "movements" | "rewards" | "earn";
+export type PointsFilter = "all" | "earned" | "spent";
+export type TransactionType = "earn" | "spend";
+
+export interface PointsBalance {
+  total: number;              // 1275
+  tlValue: string;            // "127,50 TL"
+  expiringPoints: number;     // 120
+  expiringDate: string;       // "31 Ağustos"
+  tier: string;               // "Mor Poodle Üye"
+  nextTier: string;           // "Gold Poodle"
+  pointsToNextTier: number;   // 725
+  tierProgress: number;       // 64 (percent)
+}
+
+export interface QuickStat {
+  id: string;
+  icon: "plus" | "bag" | "clock" | "crown";
+  label: string;
+  value: string;
+}
+
+export interface PointTransaction {
+  id: string;
+  type: TransactionType;
+  title: string;
+  subtitle?: string;
+  points: number;             // positive earn, negative spend
+  date: string;
+  category: "support" | "order" | "club" | "coupon" | "daily" | "guide";
+}
+
+export interface PointsReward {
+  id: string;
+  title: string;
+  pointsCost: number;
+  minCart: string;
+  image?: string;
+  iconType: "coupon" | "shipping" | "care";
+}
+
+export interface EarnTask {
+  id: string;
+  title: string;
+  points: number;
+  buttonLabel: string;
+  progress?: number;          // 0-100 for profile task
+  link?: string;
+}
+
+export interface FAQItem {
+  id: string;
+  question: string;
+  answer: string;
+}
+
+export const pointsBalance: PointsBalance = {
+  total: 1275,
+  tlValue: "127,50 TL",
+  expiringPoints: 120,
+  expiringDate: "31 Ağustos",
+  tier: "Mor Poodle Üye",
+  nextTier: "Gold Poodle",
+  pointsToNextTier: 725,
+  tierProgress: 64,
+};
+
+export const quickStats: QuickStat[] = [
+  { id: "month", icon: "plus", label: "Bu Ay", value: "+425 Puan" },
+  { id: "spent", icon: "bag", label: "Harcanan", value: "350 Puan" },
+  { id: "upcoming", icon: "clock", label: "Yaklaşan", value: "120 Puan" },
+  { id: "tier", icon: "crown", label: "Seviye", value: "Mor Poodle Üye" },
+];
+
+export const pointTransactions: PointTransaction[] = [
+  {
+    id: "pt-1",
+    type: "earn",
+    title: "Destek değerlendirmesi",
+    subtitle: "Talep #YP-4798",
+    points: 25,
+    date: "Bugün",
+    category: "support",
+  },
+  {
+    id: "pt-2",
+    type: "earn",
+    title: "Sipariş alışverişi",
+    subtitle: "Sipariş #YP-20260723 • 1.338 TL",
+    points: 134,
+    date: "Dün",
+    category: "order",
+  },
+  {
+    id: "pt-3",
+    type: "earn",
+    title: "Club paylaşımı",
+    subtitle: "Gönderiniz 100 beğeniye ulaştı",
+    points: 50,
+    date: "22 Tem",
+    category: "club",
+  },
+  {
+    id: "pt-4",
+    type: "spend",
+    title: "Kupon indirimi",
+    subtitle: "100 TL alışveriş indirimi",
+    points: -1000,
+    date: "20 Tem",
+    category: "coupon",
+  },
+  {
+    id: "pt-5",
+    type: "earn",
+    title: "Günlük giriş serisi",
+    subtitle: "7 gün üst üste giriş",
+    points: 75,
+    date: "19 Tem",
+    category: "daily",
+  },
+  {
+    id: "pt-6",
+    type: "earn",
+    title: "Rehber tamamlandı",
+    subtitle: "Toy Poodle Tuvalet Eğitimi",
+    points: 20,
+    date: "18 Tem",
+    category: "guide",
+  },
+];
+
+export const rewards: PointsReward[] = [
+  {
+    id: "rw-1",
+    title: "50 TL İndirim",
+    pointsCost: 500,
+    minCart: "Min. sepet 500 TL",
+    iconType: "coupon",
+  },
+  {
+    id: "rw-2",
+    title: "Ücretsiz Kargo",
+    pointsCost: 300,
+    minCart: "Min. sepet 250 TL",
+    iconType: "shipping",
+  },
+  {
+    id: "rw-3",
+    title: "%15 Bakım İndirimi",
+    pointsCost: 750,
+    minCart: "Min. sepet 300 TL",
+    iconType: "care",
+  },
+];
+
+export const earnTasks: EarnTask[] = [
+  {
+    id: "et-1",
+    title: "Poodle Profilini Tamamla",
+    points: 100,
+    buttonLabel: "Tamamla",
+    progress: 80,
+    link: "/hesabim/poodle-profil",
+  },
+  {
+    id: "et-2",
+    title: "Club'da İlk Yorumunu Yap",
+    points: 20,
+    buttonLabel: "Club'a Git",
+    link: "/club",
+  },
+  {
+    id: "et-3",
+    title: "Arkadaşını Davet Et",
+    points: 250,
+    buttonLabel: "Davet Et",
+  },
+];
+
+export const faqItems: FAQItem[] = [
+  {
+    id: "faq-1",
+    question: "PoodlePuan Nasıl Çalışır?",
+    answer: "Her alışverişte, Club paylaşımında ve rehber tamamladığınızda puan kazanırsınız. 10 PoodlePuan = 1 TL indirim değerindedir.",
+  },
+  {
+    id: "faq-2",
+    question: "Seviye Avantajları",
+    answer: "Mor Poodle üyeler standart oranda puan kazanır. Gold seviyede alışverişlerden %5 daha fazla puan kazanırsınız.",
+  },
+  {
+    id: "faq-3",
+    question: "Puan Kullanım Koşulları",
+    answer: "Puanlar 12 ay geçerlidir. Minimum sepet tutarı ödül kartında belirtilir. Puanlar nakde çevrilemez.",
+  },
+];
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — usePoodlePointsPage HOOK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: hooks/usePoodlePointsPage.ts
+
+State:
+  activeTab: PointsTab (default "movements")
+  activityFilter: PointsFilter (default "all")
+  balance: PointsBalance
+  transactions: PointTransaction[]
+  expandedFaqId: string | null (default null)
+  usePointsModalOpen: boolean
+  howToEarnModalOpen: boolean
+  showAllMovements: boolean
+
+Functions:
+  setTab(tab)
+  setActivityFilter(filter) → filter transactions earned/spent/all
+  toggleFaq(id)
+  useReward(rewardId) → if balance sufficient deduct + toast "Ödül kullanıldı ✓" else toast error
+  usePoints() → open UsePointsModal → navigate /magaza or apply coupon stub
+  howToEarn() → open HowToEarnModal or setTab("earn")
+  viewAllMovements() → set showAllMovements true
+  earnTaskAction(taskId) → navigate link or toast/modal
+  useExpiringPoints() → open use points modal focused on expiring
+
+Persist balance/transactions to localStorage "yourpoodle-points" (optional).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — PAGE HEADER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PointsPageHeader.tsx
+
+px-4 pt-3 pb-2
+
+  Breadcrumb:
+    ArrowLeft color #5D3EBD → navigate("/hesabim")
+    "Hesabım / PoodlePuanlarım" text-xs color #5D3EBD
+
+  Title:
+    "PoodlePuanlarım"
+      text-xl font-bold color #5D3EBD mt-2
+
+  Subtitle:
+    "Alışveriş yapın, Club'a katılın, puan kazanın ve ödülleri kullanın."
+      text-sm text-gray-500 mt-0.5
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — HERO POINTS CARD (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PointsHeroCard.tsx
+
+mx-4 mb-4 rounded-2xl overflow-hidden
+  bg gradient from #5D3EBD to #4A22A0 p-4
+
+  flex gap-3
+
+  LEFT:
+    Gold coin visual:
+      w-16 h-16 rounded-full bg gradient gold #FBBF24 to #F59E0B
+      flex items-center justify-center shadow-lg flex-shrink-0
+      PawPrint icon size 28 color white OR embossed paw in center
+
+  CENTER flex-1 min-w-0:
+    "Kullanılabilir Puan" text-[10px] text-white/80 uppercase tracking-wide
+    "1.275 PoodlePuan"
+      text-2xl font-bold text-white leading-tight
+    "127,50 TL indirim değerinde"
+      text-xs color #C4B5FD mt-0.5
+    flex items-center gap-1 mt-1.5:
+      Clock icon size 12 color white/70
+      "120 puan • 31 Ağustos'ta sona erecek"
+        text-[10px] text-white/80
+
+  TOP-RIGHT absolute or flex:
+    Badge "Mor Poodle Üye":
+      flex items-center gap-1 bg white/20 rounded-full px-2 py-0.5
+      Crown icon size 12 color #FBBF24
+      text-[10px] text-white font-semibold
+
+  RIGHT buttons column (flex flex-col gap-1.5 flex-shrink-0):
+    "Puan Kullan":
+      bg white text #5D3EBD text-[10px] font-bold px-3 py-2 rounded-lg
+      onClick → usePoints()
+    "Nasıl Kazanırım?":
+      border border white/60 text white text-[10px] font-semibold px-3 py-2 rounded-lg
+      onClick → howToEarn()
+
+Format points with Turkish locale: 1.275 (dot thousands separator).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — TIER PROGRESS (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PointsTierProgress.tsx
+
+mx-4 mb-4 bg white rounded-2xl border border-gray-100 shadow-sm p-4
+
+  "Bir sonraki seviyeye 725 puan kaldı"
+    text-sm font-semibold text-gray-900 mb-3
+
+  Progress bar container:
+    relative h-2.5 bg #F3EEFF rounded-full overflow-hidden mb-2
+    Fill: w-[64%] bg #5D3EBD rounded-full h-full
+
+  Labels row flex justify-between:
+    LEFT flex items-center gap-1:
+      Crown icon size 14 color #5D3EBD
+      "Mor Poodle" text-xs font-semibold color #5D3EBD
+    RIGHT flex items-center gap-1:
+      Crown icon size 14 color #F59E0B
+      "Gold Poodle" text-xs font-semibold text-gray-500
+
+  "Gold seviyede alışverişlerden %5 daha fazla puan kazanırsınız."
+    text-[11px] text-gray-500 mt-2
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — QUICK STATS ROW (EXACT — 4 CARDS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PointsQuickStats.tsx + PointsQuickStatCard.tsx
+
+px-4 mb-4
+
+  grid grid-cols-2 gap-2   (2×2 grid on mobile — 4 cards)
+
+  Card: bg white rounded-xl border border-gray-100 p-3
+
+  Icon circle w-8 h-8 rounded-lg bg #F3EEFF flex items-center justify-center mb-1.5
+  label text-[10px] text-gray-500
+  value text-xs font-bold text-gray-900
+
+  1. PlusCircle — "Bu Ay" — "+425 Puan"
+  2. ShoppingBag — "Harcanan" — "350 Puan"
+  3. Clock — "Yaklaşan" — "120 Puan"
+  4. Crown — "Seviye" — "Mor Poodle Üye"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — CATEGORY TABS (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PointsCategoryTabs.tsx
+
+px-4 mb-3 flex gap-2
+
+  3 pill tabs:
+
+  | key       | label            |
+  |-----------|------------------|
+  | movements | Puan Hareketleri |
+  | rewards   | Ödüller          |
+  | earn      | Kazanma Yolları  |
+
+  ACTIVE (default movements):
+    bg #5D3EBD text white font-semibold px-4 py-2 rounded-full text-sm
+
+  INACTIVE:
+    bg white border border-gray-200 text gray-600 px-4 py-2 rounded-full text-sm
+
+  onClick → setTab(key)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — PUAN HAREKETLERİ TAB (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PointsActivityList.tsx + PointsActivityRow.tsx
+
+Show when activeTab === "movements" OR always show sections on default scroll view.
+
+px-4 mb-4
+
+  Header flex justify-between items-center mb-3:
+    "Son Puan Hareketleri" text-sm font-bold text-gray-900
+    Filter dropdown "Tümü":
+      border border-gray-200 rounded-lg px-2 py-1 text-xs
+      options: Tümü, Kazanılan, Harcanan
+      onChange → setActivityFilter
+
+File: PointsActivityRow.tsx
+
+  flex items-center gap-3 py-3 border-b border-gray-50 last:border-0
+
+  LEFT icon circle w-9 h-9 rounded-full flex items-center justify-center
+    earn: bg #F0FDF4 Plus icon color #16A34A
+    spend: bg #FEF2F2 Minus icon color #DC2626
+    club earn: bg #F3EEFF Plus color #5D3EBD
+
+  CENTER flex-1 min-w-0:
+    title text-sm font-semibold text-gray-900 truncate
+    IF subtitle: text-xs text-gray-500 truncate
+    date text-[10px] text-gray-400 mt-0.5
+
+  RIGHT:
+    IF points > 0: "+{n} Puan" text-sm font-bold color #16A34A
+    IF points < 0: "{n} Puan" text-sm font-bold color #DC2626 (show -1.000)
+
+  Format: -1.000 Puan with dot thousands separator
+
+  6 transactions from mock data EXACT
+
+File: PointsViewAllButton.tsx
+
+  w-full border-2 border #5D3EBD text #5D3EBD font-semibold text-sm py-3 rounded-xl mt-3
+  "Tüm Puan Hareketlerini Gör"
+  onClick → viewAllMovements()
+
+DEFAULT PAGE VIEW: Show movements section + rewards + earn sections below (as mockup shows all on scroll).
+When tab "rewards" only → show rewards section prominently.
+When tab "earn" only → show earn tasks prominently.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — ÖDÜLLER SECTION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PointsRewardsSection.tsx + PointsRewardCard.tsx
+
+px-4 mb-4
+
+  Header flex justify-between mb-3:
+    "Puanlarınla Alabileceğin Ödüller" text-sm font-bold text-gray-900
+    "Tüm Ödüller" text-xs font-medium color #5D3EBD → setTab("rewards")
+
+  flex gap-3 overflow-x-auto scrollbar-hide pb-1
+
+File: PointsRewardCard.tsx
+
+  min-w-[150px] bg white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col
+
+  Image/icon area h-24 bg #F9FAFB flex items-center justify-center
+    coupon: Ticket/Percent icon large purple
+    shipping: Package/box image unsplash
+    care: grooming products image unsplash
+
+  Content p-3 flex-1 flex flex-col:
+    title text-sm font-bold text-gray-900
+    "{pointsCost} Puan" text-xs color #5D3EBD font-semibold
+    minCart text-[10px] text-gray-500
+
+    Button "Kullan":
+      mt-auto w-full bg #5D3EBD text white text-xs font-semibold py-2 rounded-lg
+      disabled IF balance.total < pointsCost
+      onClick → useReward(id)
+
+  Rewards EXACT:
+  1. 50 TL İndirim — 500 Puan — Min. sepet 500 TL
+  2. Ücretsiz Kargo — 300 Puan — Min. sepet 250 TL
+  3. %15 Bakım İndirimi — 750 Puan — Min. sepet 300 TL
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — KAZANMA YOLLARI / EARN MORE (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PointsEarnMoreSection.tsx + PointsEarnTaskRow.tsx
+
+px-4 mb-4
+
+  "Daha Fazla Puan Kazan"
+    text-sm font-bold text-gray-900 mb-3
+
+File: PointsEarnTaskRow.tsx
+
+  bg white rounded-xl border border-gray-100 p-3 mb-2
+
+  flex items-center justify-between gap-2
+
+  LEFT flex-1:
+    title text-sm font-semibold text-gray-900
+    IF progress !== undefined:
+      progress bar mt-2 h-1.5 bg gray-100 rounded-full
+      fill w-[80%] bg #5D3EBD rounded-full
+    "+{points} Puan" text-xs font-bold color #16A34A mt-1
+
+  RIGHT:
+    Button "{buttonLabel}":
+      border border #5D3EBD text #5D3EBD text-[10px] font-semibold px-3 py-1.5 rounded-lg
+      onClick → earnTaskAction(id)
+
+  Tasks:
+  1. Poodle Profilini Tamamla — 80% bar — +100 — Tamamla → /hesabim/poodle-profil
+  2. Club'da İlk Yorumunu Yap — +20 — Club'a Git → /club
+  3. Arkadaşını Davet Et — +250 — Davet Et → share modal stub
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — EXPIRATION WARNING BANNER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PointsExpirationBanner.tsx
+
+mx-4 mb-4 bg #FEF9C3 border border #FDE68A rounded-2xl p-3.5
+
+  flex items-center gap-3
+
+  Clock icon size 20 color #EA580C flex-shrink-0
+
+  CENTER flex-1:
+    "Puanların boşa gitmesin"
+      text-sm font-semibold text-gray-900
+    "120 PoodlePuan 31 Ağustos 2026 tarihinde sona erecek."
+      text-xs text-gray-700 mt-0.5
+
+  Button "Şimdi Kullan":
+    border border #EA580C text #EA580C text-xs font-semibold px-3 py-1.5 rounded-lg flex-shrink-0
+    onClick → useExpiringPoints()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — FAQ ACCORDION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PointsFAQSection.tsx + PointsFAQItem.tsx
+
+px-4 mb-4
+
+  3 accordion items bg white rounded-xl border border-gray-100 mb-2 overflow-hidden
+
+  Header row px-4 py-3.5 flex justify-between cursor-pointer
+    question text-sm font-semibold text-gray-900
+    ChevronDown/Plus icon
+
+  IF expanded: answer px-4 pb-3 text-xs text-gray-600 leading-relaxed
+
+  Items:
+  1. PoodlePuan Nasıl Çalışır?
+  2. Seviye Avantajları
+  3. Puan Kullanım Koşulları
+
+  onClick → toggleFaq(id)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — PROMO BANNER + FOOTER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PointsPromoBanner.tsx
+
+mx-4 mb-6 bg #F3EEFF rounded-2xl p-4
+
+  flex items-center gap-3
+
+  Poodle image w-16 h-16 rounded-full object-cover holding coin style
+  src: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=80&h=80&fit=crop"
+
+  "Her hareketin ödüle dönüşür!"
+    text-sm font-bold text-gray-900
+  "Alışveriş, Club ve Rehber ile her gün puan kazan."
+    text-xs text-gray-600 mt-0.5
+
+File: PointsFooter.tsx
+
+bg #5D3EBD text-white px-4 pt-6 pb-8
+  Logo + Yardım | İletişim | KVKK
+  © 2026 YourPoodle
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — MODALS (STUB)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+UsePointsModal:
+  Title: "Puan Kullan"
+  List available rewards to redeem
+  Button "Mağazaya Git" → /magaza
+
+HowToEarnModal:
+  Title: "Nasıl Puan Kazanırım?"
+  Bullet list: Alışveriş, Club, Rehber, Değerlendirme, Günlük giriş
+  Button "Tamam"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 17 — PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: PoodlePointsPage.tsx
+
+<div className="max-w-[480px] mx-auto bg-[#F9F9FB] min-h-screen pb-8 shadow-xl">
+  <AuthenticatedHeader />
+  <TabNavigation activeTab="club" />
+
+  <PointsPageHeader />
+  <PointsHeroCard />
+  <PointsTierProgress />
+  <PointsQuickStats />
+  <PointsCategoryTabs />
+
+  {/* Tab content — default scroll shows all sections like mockup */}
+  {(activeTab === "movements" || activeTab === "rewards" || activeTab === "earn") && (
+    <>
+      {(activeTab === "movements") && (
+        <PointsActivityList />
+      )}
+      {(activeTab === "movements" || activeTab === "rewards") && (
+        <PointsRewardsSection />
+      )}
+      {(activeTab === "movements" || activeTab === "earn") && (
+        <PointsEarnMoreSection />
+      )}
+    </>
+  )}
+
+  <PointsExpirationBanner />
+  <PointsFAQSection />
+  <PointsPromoBanner />
+  <PointsFooter />
+
+  <UsePointsModal />
+  <HowToEarnModal />
+  <MobileDrawer />
+  <Toast />
+</div>
+
+DEFAULT (movements tab) scroll order — matches mockup showing everything:
+  1. Header + breadcrumb
+  2. Purple hero 1.275 PoodlePuan
+  3. Tier progress 64% Mor → Gold
+  4. 4 quick stat cards
+  5. Tabs: Puan Hareketleri active
+  6. Son Puan Hareketleri list (6 items)
+  7. Tüm Puan Hareketlerini Gör
+  8. Ödüller horizontal cards (3)
+  9. Daha Fazla Puan Kazan (3 tasks)
+  10. Yellow expiration banner
+  11. FAQ accordion (3)
+  12. Promo banner
+  13. Footer
+
+When "Ödüller" tab: scroll to rewards, hide movements list.
+When "Kazanma Yolları" tab: scroll to earn tasks, hide movements list.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 18 — ROUTING & INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add route (ProtectedRoute):
+  <Route path="/hesabim/poodle-puanlari" element={<PoodlePointsPage />} />
+
+Update AccountPage:
+  "PoodlePuanlarım" quick action → navigate("/hesabim/poodle-puanlari")
+
+Update SupportExperienceRatingPage submitRating():
+  Add +25 to balance + append transaction "Destek değerlendirmesi"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 19 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Hero:
+✅ 1.275 PoodlePuan + 127,50 TL value
+✅ 120 puan expiry + Mor Poodle Üye badge
+✅ Puan Kullan + Nasıl Kazanırım? work
+
+Progress:
+✅ 725 puan kaldı + 64% bar
+✅ Mor Poodle / Gold Poodle labels
+
+Stats:
+✅ 4 mini cards with correct values
+
+Tabs:
+✅ Puan Hareketleri default
+✅ Ödüller + Kazanma Yolları switch content
+
+Transactions:
+✅ 6 rows with +/- colors
+✅ -1.000 Puan red for kupon
+✅ Filter Tümü/Kazanılan/Harcanan
+✅ Tüm Puan Hareketlerini Gör
+
+Rewards:
+✅ 3 cards with Kullan (disabled if insufficient points)
+✅ Toast on redeem success
+
+Earn:
+✅ Profile 80% bar + Tamamla navigates
+✅ Club'a Git + Davet Et work
+
+Other:
+✅ Expiration banner + Şimdi Kullan
+✅ FAQ accordion 3 items
+✅ Promo banner + footer
+✅ npm run dev ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 20 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ "PoodlePuanlarım" purple title + subtitle
+✅ Gold coin hero card gradient purple
+✅ Tier progress 64%
+✅ Quick stats 2×2 grid
+✅ Tabs 3 pills
+✅ All 6 transactions listed
+✅ 3 reward cards horizontal scroll
+✅ 3 earn tasks with progress
+✅ Yellow expiry warning
+✅ FAQ 3 questions
+✅ Poodle promo banner
+✅ © 2026 YourPoodle footer
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the PoodlePuanlarım page at /hesabim/poodle-puanlari exactly as specified.
+Use the EXISTING project — do not rebuild the whole app.
+MUST work: balance display, tier progress, 3 tabs, transaction filter,
+reward redeem, earn task actions, FAQ accordion, point usage flow.
+Match the mockup pixel-perfect. Turkish text must be exact.
+Run the app and confirm zero errors before finishing.

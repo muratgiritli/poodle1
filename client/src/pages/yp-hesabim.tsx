@@ -604,7 +604,7 @@ function ClubActivitySection() {
             {loyaltyPoints.current} / {loyaltyPoints.target}
           </div>
 
-          <button onClick={() => alert("Puan sistemi yakında!")}
+          <button onClick={() => navigate("/hesabim/poodle-puanlari")}
             style={{ background: "none", border: "none", cursor: "pointer",
                      fontSize: 12, color: "rgba(255,255,255,0.9)", marginTop: 8,
                      textDecoration: "underline", padding: 0, fontFamily: "inherit" }}>
