@@ -1,0 +1,707 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "Destek Talebi Oluştur" (Create Support Request) page for YourPoodle.com.
+This is the "Bize Ulaşın" contact flow where users submit support tickets with topic, order,
+description, file uploads, and contact preferences.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, AuthContext, authenticated Header, TabNavigation,
+  MobileDrawer, Toast, and routing.
+- Protected route — redirect to /giris if not authenticated.
+- Link from /hesabim/yardim "Mesaj Gönder" contact card AND HelpCenter → this page.
+- REUSE order mock data from Siparişlerim page if it exists.
+- DO NOT rebuild the entire app.
+- DO NOT delete or rewrite existing pages.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Route: /hesabim/yardim/yeni-talep
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact 5-step form order below.
+3. DO NOT skip any form field, upload area, toggle, checkbox, or button.
+4. DO NOT use Lorem ipsum.
+5. Optimize for 390px mobile. Max width 480px centered.
+
+MANDATORY FEATURES:
+  ✅ 5 numbered form sections
+  ✅ Topic dropdown + 6 issue-type grid cards (single select)
+  ✅ Order selection card with radio + Değiştir
+  ✅ Title + description with 1000 char counter
+  ✅ File upload (max 5, JPG/PNG/PDF, 10MB) with preview + delete
+  ✅ Contact method radio cards + SMS toggle
+  ✅ KVKK consent checkbox (required to submit)
+  ✅ Talebi Gönder + Vazgeç buttons
+  ✅ Security trust banner + purple footer
+
+6. EVERY selection, upload, toggle, validation, submit, and cancel MUST work.
+7. Form validates required fields before submit; shows toast on success.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #5D3EBD
+  purple-dark:     #4A22A0
+  purple-light:    #F3EEFF
+  page-bg:         #FFFFFF
+  section-bg:      #F9FAFB
+  online-green:    #16A34A
+  online-green-bg: #DCFCE7
+  selected-border: #5D3EBD
+  upload-dashed:   #C4B5FD
+  danger-red:      #DC2626
+  trust-bg:        #EFF6FF
+  trust-border:    #BFDBFE
+  text-dark:       #111827
+  text-secondary:  #6B7280
+  footer-bg:       #5D3EBD
+  status-delivered:#16A34A
+  status-delivered-bg:#DCFCE7
+
+Typography: Inter
+Form section label: text-sm font-bold text-gray-900 mb-2
+Step number prefix: "1.", "2.", etc. in label
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    support/
+      SupportRequestHeader.tsx
+      SupportOnlineBar.tsx
+      SupportTopicSection.tsx
+      SupportIssueGrid.tsx
+      SupportIssueCard.tsx
+      SupportOrderSection.tsx
+      SupportOrderCard.tsx
+      SupportDescriptionSection.tsx
+      SupportFileUploadSection.tsx
+      SupportUploadedFile.tsx
+      SupportContactSection.tsx
+      SupportContactOption.tsx
+      SupportConsentSection.tsx
+      SupportSubmitButtons.tsx
+      SupportTrustBanner.tsx
+      SupportFooter.tsx
+      OrderPickerModal.tsx
+      SupportSuccessModal.tsx
+  pages/
+    CreateSupportRequestPage.tsx
+  data/
+    supportRequestMockData.ts
+  hooks/
+    useSupportRequestForm.ts
+  App.tsx
+
+Update HelpCenterPage:
+  "Mesaj Gönder" contact card → navigate("/hesabim/yardim/yeni-talep")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — MOCK DATA (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/supportRequestMockData.ts:
+
+export type IssueType =
+  | "missing"
+  | "wrong"
+  | "damaged"
+  | "delay"
+  | "return"
+  | "other";
+
+export type ContactMethod = "app" | "phone";
+
+export interface TopicOption {
+  value: string;
+  label: string;
+}
+
+export interface IssueOption {
+  id: IssueType;
+  label: string;
+  icon: "package-open" | "refresh" | "package-x" | "truck-clock" | "repeat" | "more";
+}
+
+export interface OrderOption {
+  id: string;
+  orderNumber: string;        // "YP-20260723"
+  date: string;               // "23 Temmuz 2026"
+  itemCount: number;          // 2
+  totalPrice: string;         // "1.338 TL"
+  status: string;             // "Teslim Edildi"
+  thumbnails: string[];
+}
+
+export interface UploadedFile {
+  id: string;
+  name: string;
+  size: string;               // "412 KB"
+  type: "image" | "pdf";
+  previewUrl?: string;
+}
+
+export const topicOptions: TopicOption[] = [
+  { value: "order", label: "Sipariş ve Teslimat" },
+  { value: "payment", label: "Ödeme ve Taksit" },
+  { value: "product", label: "Ürün Bilgisi" },
+  { value: "club", label: "Club ve Hesap" },
+  { value: "membership", label: "Üyelik" },
+  { value: "other", label: "Diğer" },
+];
+
+export const issueOptions: IssueOption[] = [
+  { id: "missing", label: "Eksik Ürün", icon: "package-open" },
+  { id: "wrong", label: "Yanlış Ürün", icon: "refresh" },
+  { id: "damaged", label: "Hasarlı Ürün", icon: "package-x" },
+  { id: "delay", label: "Kargo Gecikmesi", icon: "truck-clock" },
+  { id: "return", label: "İade / Değişim", icon: "repeat" },
+  { id: "other", label: "Diğer", icon: "more" },
+];
+
+export const userOrders: OrderOption[] = [
+  {
+    id: "ord-1",
+    orderNumber: "YP-20260723",
+    date: "23 Temmuz 2026",
+    itemCount: 2,
+    totalPrice: "1.338 TL",
+    status: "Teslim Edildi",
+    thumbnails: [
+      "https://images.unsplash.com/photo-1589924691995-400dc9e7c8?w=48&h=48&fit=crop",
+      "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=48&h=48&fit=crop",
+    ],
+  },
+  {
+    id: "ord-2",
+    orderNumber: "YP-20260715",
+    date: "15 Temmuz 2026",
+    itemCount: 1,
+    totalPrice: "449 TL",
+    status: "Teslim Edildi",
+    thumbnails: [
+      "https://images.unsplash.com/photo-1544568100-847a948583b9?w=48&h=48&fit=crop",
+    ],
+  },
+];
+
+export const defaultFormValues = {
+  topic: "order",
+  issueType: "missing" as IssueType,
+  selectedOrderId: "ord-1",
+  title: "Siparişimde bir ürün eksik geldi",
+  description:
+    "Kargo paketimi teslim aldım ancak Buharlı Masaj Tarağı paket içerisinden çıkmadı. Kontrol edilmesini rica ederim.",
+  contactMethod: "app" as ContactMethod,
+  smsOnReply: true,
+  consentAccepted: true,
+};
+
+export const preloadedFiles: UploadedFile[] = [
+  {
+    id: "file-1",
+    name: "paket.jpg",
+    size: "412 KB",
+    type: "image",
+    previewUrl: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=80&h=80&fit=crop",
+  },
+  {
+    id: "file-2",
+    name: "fatura.pdf",
+    size: "186 KB",
+    type: "pdf",
+  },
+];
+
+export const userPhone = "+90 532 *** ** 47";
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — useSupportRequestForm HOOK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: hooks/useSupportRequestForm.ts
+
+State:
+  topic: string (default "order")
+  issueType: IssueType (default "missing")
+  selectedOrderId: string (default "ord-1")
+  title: string
+  description: string
+  files: UploadedFile[]
+  contactMethod: ContactMethod (default "app")
+  smsOnReply: boolean (default true)
+  consentAccepted: boolean (default true)
+  orderPickerOpen: boolean
+  successModalOpen: boolean
+  errors: Record<string, string>
+
+Functions:
+  setTopic(v)
+  setIssueType(id)
+  setSelectedOrder(id)
+  setTitle(v) / setDescription(v)
+  addFiles(FileList) → validate max 5, 10MB, JPG/PNG/PDF → append + toast on error
+  removeFile(id)
+  setContactMethod(m)
+  toggleSms()
+  setConsent(v)
+  openOrderPicker() / closeOrderPicker()
+  validate():
+    - title min 5 chars
+    - description min 20 chars
+    - consentAccepted must be true
+    - selectedOrderId required when topic is order
+  submit():
+    if validate fails → set errors + return
+    → generate ticket #YP-XXXX
+    → openSuccessModal + toast "Destek talebiniz oluşturuldu ✓"
+    → optional navigate back to /hesabim/yardim
+  cancel() → navigate("/hesabim/yardim")
+
+descriptionLength → description.length (show "126 / 1000")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — PAGE HEADER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportRequestHeader.tsx
+
+px-4 pt-3 pb-2
+
+  Breadcrumb row (flex items-center gap-1 flex-wrap):
+    ArrowLeft size 16 color #5D3EBD → navigate("/hesabim/yardim")
+    "Hesabım / Yardım Merkezi / Yeni Talep"
+      text-xs color #5D3EBD
+
+  Title:
+    "Destek Talebi Oluştur"
+      text-xl font-bold text-gray-900 mt-3
+
+  Subtitle:
+    "Sorununuzu detaylı anlatın, ekibimiz en kısa sürede size yardımcı olsun."
+      text-sm text-gray-500 mt-1
+
+File: SupportOnlineBar.tsx
+
+mx-4 mb-4 mt-2 bg #F3F4F6 rounded-xl px-4 py-2.5 flex items-center justify-between
+
+  LEFT flex items-center gap-2:
+    Headphones icon size 18 color #5D3EBD
+    "Ortalama yanıt süresi: 3 dakika"
+      text-xs text-gray-700
+
+  RIGHT flex items-center gap-1.5:
+    w-2 h-2 rounded-full bg #22C55E
+    "Çevrimiçi"
+      text-xs font-medium color #16A34A
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — SECTION 1: YARDIM KONUSU (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportTopicSection.tsx
+
+px-4 mb-5
+
+  Section label:
+    "1. Yardım Konusu"
+      text-sm font-bold text-gray-900 mb-3
+
+  Sub-label "Konu Seçin":
+    text-xs text-gray-500 mb-1.5
+
+  Dropdown select:
+    w-full bg white border border-gray-200 rounded-xl px-4 py-3 text-sm
+    Default selected: "Sipariş ve Teslimat"
+    Options from topicOptions
+    onChange → setTopic
+
+File: SupportIssueGrid.tsx + SupportIssueCard.tsx
+
+  mt-3 grid grid-cols-2 gap-2
+
+  6 issue cards:
+
+  | id      | label            | icon        |
+  |---------|------------------|-------------|
+  | missing | Eksik Ürün       | PackageOpen |
+  | wrong   | Yanlış Ürün      | RefreshCw   |
+  | damaged | Hasarlı Ürün     | PackageX    |
+  | delay   | Kargo Gecikmesi  | Truck+Clock |
+  | return  | İade / Değişim   | Repeat      |
+  | other   | Diğer            | MoreHorizontal |
+
+  Each card:
+    bg white border-2 rounded-xl p-3 flex flex-col items-center gap-1.5 cursor-pointer
+    IF selected (default missing):
+      border #5D3EBD bg #F3EEFF
+      CheckCircle icon top-right or inline size 14 color #5D3EBD
+    ELSE:
+      border gray-200
+
+    icon size 20 color #5D3EBD (or gray-500 if not selected)
+    label text-xs font-semibold text-center text-gray-900
+
+  onClick → setIssueType(id) — single select only
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — SECTION 2: SİPARİŞ SEÇİMİ (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportOrderSection.tsx + SupportOrderCard.tsx
+
+px-4 mb-5
+
+  Section label:
+    "2. Siparişinizi Seçin"
+      text-sm font-bold text-gray-900 mb-3
+
+  Card: bg white border border-gray-200 rounded-2xl p-4
+
+    flex items-center gap-3
+
+    LEFT — product thumbnails:
+      flex -space-x-2
+      2 small images w-10 h-10 rounded-lg border-2 border-white object-cover
+
+    CENTER flex-1 min-w-0:
+      "Sipariş #{orderNumber}"
+        text-sm font-bold text-gray-900
+      "{date} • {itemCount} ürün"
+        text-xs text-gray-500 mt-0.5
+      "{totalPrice}"
+        text-sm font-bold color #5D3EBD mt-0.5
+
+    RIGHT flex flex-col items-end gap-2:
+      Badge "Teslim Edildi":
+        bg #DCFCE7 text #16A34A text-[10px] font-semibold px-2 py-0.5 rounded-full
+      Radio button selected (purple filled circle)
+      Button "Değiştir":
+        border border #5D3EBD text #5D3EBD text-[10px] font-semibold
+        px-2.5 py-1 rounded-lg
+        onClick → openOrderPicker()
+
+File: OrderPickerModal.tsx
+
+  Title: "Sipariş Seçin"
+  List userOrders as selectable rows
+  onSelect → setSelectedOrder + close
+
+Show section when topic is "order" OR always show (as mockup).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — SECTION 3: SORUN AÇIKLAMASI (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportDescriptionSection.tsx
+
+px-4 mb-5
+
+  Section label:
+    "3. Sorununuzu Anlatın"
+      text-sm font-bold text-gray-900 mb-3
+
+  Field "Talep Başlığı":
+    label text-xs text-gray-500 mb-1
+    Input:
+      w-full border border-gray-200 rounded-xl px-4 py-3 text-sm
+      value: "Siparişimde bir ürün eksik geldi"
+      onChange → setTitle
+      maxLength 100
+
+  Field "Açıklama":
+    label text-xs text-gray-500 mb-1 mt-3
+    Textarea:
+      w-full border border-gray-200 rounded-xl px-4 py-3 text-sm min-h-[100px] resize-none
+      value: default description EXACT Turkish text
+      onChange → setDescription
+      maxLength 1000
+
+    Character counter bottom-right:
+      "{length} / 1000"
+        text-[11px] text-gray-400 text-right mt-1
+        default shows "126 / 1000"
+
+  Show error text under fields if validation fails (red text-xs).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — SECTION 4: DOSYA YÜKLEME (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportFileUploadSection.tsx + SupportUploadedFile.tsx
+
+px-4 mb-5
+
+  Section label:
+    "4. Fotoğraf veya Belge Ekleyin"
+      text-sm font-bold text-gray-900 mb-3
+
+  Upload drop zone:
+    border-2 border-dashed border #C4B5FD rounded-2xl p-4
+    flex items-center justify-between gap-3
+
+    LEFT flex items-center gap-3 flex-1:
+      Camera icon size 24 color #5D3EBD
+      div:
+        "Fotoğraf eklemek için dokunun"
+          text-sm font-medium text-gray-900
+        "En fazla 5 dosya • JPG, PNG veya PDF • 10 MB"
+          text-[11px] text-gray-500 mt-0.5
+
+    RIGHT:
+      Button "Dosya Seç":
+        border border #5D3EBD text #5D3EBD text-xs font-semibold
+        px-3 py-2 rounded-xl
+        hidden input type=file accept=".jpg,.jpeg,.png,.pdf" multiple
+        onClick → trigger file input
+
+  Uploaded files row (flex gap-2 mt-3 flex-wrap):
+
+File: SupportUploadedFile.tsx
+
+  flex items-center gap-2 bg #F9FAFB border border-gray-200 rounded-xl p-2 pr-3
+
+  IF image:
+    thumbnail w-10 h-10 rounded-lg object-cover
+  IF pdf:
+    FileText icon in gray box w-10 h-10
+
+  name text-xs font-medium text-gray-900
+  size text-[10px] text-gray-500
+
+  X button red:
+    XCircle OR X icon size 16 color #DC2626
+    onClick → removeFile(id)
+
+  Preload 2 files: paket.jpg (412 KB) + fatura.pdf (186 KB)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — SECTION 5: İLETİŞİM TERCİHİ (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportContactSection.tsx + SupportContactOption.tsx
+
+px-4 mb-5
+
+  Section label:
+    "5. Size nasıl ulaşalım?"
+      text-sm font-bold text-gray-900 mb-3
+
+  2 contact option cards (stacked gap-2):
+
+  Card 1 — Uygulama Bildirimi (SELECTED default):
+    flex items-center gap-3 bg #F3EEFF border-2 border #5D3EBD rounded-xl p-3.5 cursor-pointer
+    Bell icon size 20 color #5D3EBD
+    CENTER:
+      "Uygulama Bildirimi" text-sm font-semibold
+      "Önerilen yöntem" text-xs text-gray-500
+    Radio: filled purple circle selected
+
+  Card 2 — Cep Telefonu:
+    flex items-center gap-3 bg white border border-gray-200 rounded-xl p-3.5 cursor-pointer
+    Phone icon size 20 color gray-500
+    CENTER:
+      "Cep Telefonu" text-sm font-semibold
+      "+90 532 *** ** 47" text-xs text-gray-500
+    Radio: empty circle
+
+  onClick → setContactMethod
+
+  SMS Toggle row (mt-3 flex items-center justify-between):
+    "Yanıt geldiğinde SMS gönder"
+      text-sm text-gray-700
+    Toggle switch ON (purple) default
+      onClick → toggleSms()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — CONSENT, BUTTONS, TRUST BANNER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportConsentSection.tsx
+
+px-4 mb-4
+
+  flex items-start gap-2
+
+  Checkbox checked by default accent #5D3EBD
+    onChange → setConsent
+
+  Text:
+    "Destek talebinin incelenmesi için paylaştığım bilgilerin işlenmesini kabul ediyorum."
+      text-xs text-gray-600
+    Link "Aydınlatma Metni":
+      text-xs color #5D3EBD font-semibold underline
+      onClick → alert KVKK stub
+
+File: SupportSubmitButtons.tsx
+
+px-4 mb-4 space-y-2
+
+  Button "Talebi Gönder":
+    w-full bg #5D3EBD text white font-semibold text-sm py-3.5 rounded-xl
+    disabled IF !consentAccepted → opacity-50
+    onClick → submit()
+
+  Button "Vazgeç":
+    w-full border-2 border #5D3EBD text #5D3EBD bg white font-semibold text-sm py-3.5 rounded-xl
+    onClick → cancel()
+
+File: SupportTrustBanner.tsx
+
+mx-4 mb-6 bg #EFF6FF border border #BFDBFE rounded-2xl p-4 flex items-start gap-3
+
+  ShieldCheck icon size 22 color #3B82F6 flex-shrink-0
+
+  div:
+    "Bilgileriniz güvende"
+      text-sm font-semibold text-gray-900
+    "Paylaştığınız dosyalar yalnızca destek talebiniz için kullanılır."
+      text-xs text-gray-600 mt-0.5
+
+File: SupportSuccessModal.tsx
+
+  Title: "Talebiniz Alındı"
+  Ticket number: "#YP-4822" (generated)
+  Text: "En kısa sürede size dönüş yapacağız."
+  Button "Tamam" → navigate("/hesabim/yardim")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — FOOTER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SupportFooter.tsx
+
+bg #5D3EBD text-white px-4 pt-6 pb-8
+
+  YourPoodle logo row mb-4
+
+  flex gap-4 text-xs mb-4:
+    "Yardım" | "İletişim" | "KVKK"
+
+  "© 2026 YourPoodle"
+    text-[10px] text-white/70
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: CreateSupportRequestPage.tsx
+
+<div className="max-w-[480px] mx-auto bg-white min-h-screen pb-8 shadow-xl">
+  <AuthenticatedHeader />
+  <TabNavigation activeTab="club" />
+
+  <SupportRequestHeader />
+  <SupportOnlineBar />
+
+  <SupportTopicSection />         ← 1. Yardım Konusu
+  <SupportOrderSection />         ← 2. Siparişinizi Seçin
+  <SupportDescriptionSection />   ← 3. Sorununuzu Anlatın
+  <SupportFileUploadSection />    ← 4. Fotoğraf veya Belge
+  <SupportContactSection />       ← 5. Size nasıl ulaşalım?
+
+  <SupportConsentSection />
+  <SupportSubmitButtons />
+  <SupportTrustBanner />
+  <SupportFooter />
+
+  <OrderPickerModal />
+  <SupportSuccessModal />
+  <MobileDrawer />
+  <Toast />
+</div>
+
+Scroll order:
+  1. Breadcrumb + title + subtitle
+  2. Online bar (3 dk + Çevrimiçi)
+  3. Section 1: dropdown + 6 issue grid (Eksik Ürün selected)
+  4. Section 2: order card YP-20260723
+  5. Section 3: title + description + 126/1000
+  6. Section 4: upload zone + paket.jpg + fatura.pdf
+  7. Section 5: contact cards + SMS toggle
+  8. Consent checkbox + Aydınlatma Metni
+  9. Talebi Gönder + Vazgeç
+  10. Trust banner
+  11. Footer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — ROUTING & INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add route (ProtectedRoute):
+  <Route path="/hesabim/yardim/yeni-talep" element={<CreateSupportRequestPage />} />
+
+Update HelpCenterPage:
+  "Mesaj Gönder" card → navigate("/hesabim/yardim/yeni-talep")
+
+After submit success → user sees ticket on HelpCenter active ticket section (optional localStorage sync).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Form sections:
+✅ Breadcrumb "Hesabım / Yardım Merkezi / Yeni Talep"
+✅ Online bar "3 dakika" + green Çevrimiçi
+✅ Topic dropdown "Sipariş ve Teslimat"
+✅ Issue grid: Eksik Ürün selected with purple border + checkmark
+✅ Single-select issue types work
+✅ Order card: #YP-20260723, 23 Temmuz 2026, 2 ürün, 1.338 TL, Teslim Edildi
+✅ Değiştir opens order picker modal
+✅ Title prefilled + editable
+✅ Description prefilled + char counter 126/1000
+✅ File upload: max 5, type/size validation
+✅ paket.jpg + fatura.pdf shown with delete X
+✅ Contact: Uygulama Bildirimi selected, phone option works
+✅ SMS toggle ON/OFF
+✅ Consent required — submit blocked if unchecked
+✅ Talebi Gönder validates + shows success modal
+✅ Vazgeç navigates back to /hesabim/yardim
+
+Other:
+✅ Protected route
+✅ No overflow at 375px
+✅ npm run dev → ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ "Destek Talebi Oluştur" title + subtitle exact Turkish
+✅ 5 numbered sections in order
+✅ 2×3 issue grid with Eksik Ürün highlighted
+✅ Order card with 2 thumbnails + Teslim Edildi badge
+✅ Description text about Buharlı Masaj Tarağı exact
+✅ Dashed upload area + Dosya Seç
+✅ 2 uploaded file chips
+✅ Uygulama Bildirimi + Önerilen yöntem
+✅ Yanıt geldiğinde SMS gönder toggle
+✅ Consent + Aydınlatma Metni link
+✅ Purple Talebi Gönder + outline Vazgeç
+✅ Bilgileriniz güvende trust banner
+✅ Footer © 2026 YourPoodle
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the Destek Talebi Oluştur page at /hesabim/yardim/yeni-talep exactly as specified.
+Use the EXISTING project — do not rebuild the whole app.
+MUST work: topic select, issue grid, order picker, description counter,
+file upload/delete, contact method, SMS toggle, consent validation, submit + cancel.
+Match the mockup pixel-perfect. Turkish text must be exact.
+Run the app and confirm zero errors before finishing.

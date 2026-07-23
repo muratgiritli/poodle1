@@ -349,7 +349,7 @@ export default function YPHesabimYardimPage() {
               </div>
             </button>
             {/* Mesaj Gönder */}
-            <button onClick={() => showToast("Mesaj formu yakında")}
+            <button onClick={() => navigate("/hesabim/yardim/yeni-talep")}
               style={{ background:"#fff", border:`1px solid ${GBR}`, borderRadius:14,
                        padding:"14px 8px", textAlign:"center", cursor:"pointer",
                        fontFamily:"inherit", display:"flex", flexDirection:"column",
