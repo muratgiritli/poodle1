@@ -1,0 +1,689 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "Hesap Ayarları" (Account Settings) page for YourPoodle.com.
+Users manage personal info, Poodle profile, notification preferences, privacy/security,
+and support/legal links from this page.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, AuthContext, authenticated Header, TabNavigation,
+  MobileDrawer, Toast, Poodle profile pages, and routing.
+- Protected route — redirect to /giris if not authenticated.
+- Link from /hesabim "Hesap Ayarları" menu item → this page.
+- REUSE existing user/poodle mock data where available.
+- DO NOT rebuild the entire app.
+- DO NOT delete or rewrite existing pages.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Route: /hesabim/ayarlar
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT skip any card, row, toggle, button, or footer link.
+4. DO NOT use Lorem ipsum.
+5. Optimize for 390px mobile. Max width 480px centered.
+
+MANDATORY FEATURES:
+  ✅ Profile header card with avatar, name, membership, verified badge, Profili Düzenle
+  ✅ Kişisel Bilgiler: Ad Soyad, Cep Telefonu (Doğrulandı), E-posta (Ekle link)
+  ✅ Poodle Profilim: Tarçın card + 3 sub-menu rows
+  ✅ Bildirim Tercihleri: 4 toggle switches (3 ON, 1 OFF)
+  ✅ Gizlilik ve Güvenlik: 4 clickable rows
+  ✅ Destek ve Yasal: 4 clickable rows
+  ✅ Oturumu Kapat logout button
+  ✅ Hesabı Sil danger zone with confirm
+  ✅ Purple footer
+
+6. EVERY toggle, row click, edit button, logout, and delete MUST work (stub or navigate).
+7. Toggle states persist to localStorage key "yourpoodle-settings".
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #5D3EBD
+  purple-dark:     #4A22A0
+  purple-light:    #F3EEFF
+  page-bg:         #F9F9FB
+  card-bg:         #FFFFFF
+  verified-green:  #16A34A
+  verified-green-bg:#F0FDF4
+  danger-red:      #DC2626
+  danger-red-bg:   #FEF2F2
+  danger-red-border:#FECACA
+  text-dark:       #111827
+  text-secondary:  #6B7280
+  footer-bg:       #5D3EBD
+  toggle-on:       #5D3EBD
+  toggle-off:      #D1D5DB
+
+Typography: Inter
+Section card: bg white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4 mx-4
+Setting row: flex items-center gap-3 py-3 border-b border-gray-50 last:border-0
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    settings/
+      SettingsPageHeader.tsx
+      SettingsProfileCard.tsx
+      SettingsSectionCard.tsx
+      SettingsRow.tsx
+      SettingsToggleRow.tsx
+      PoodleProfileMiniCard.tsx
+      SettingsLogoutButton.tsx
+      SettingsDeleteAccount.tsx
+      SettingsFooter.tsx
+      EditProfileModal.tsx
+      AddEmailModal.tsx
+      DeleteAccountConfirmModal.tsx
+  pages/
+    AccountSettingsPage.tsx
+  data/
+    accountSettingsMockData.ts
+  hooks/
+    useAccountSettings.ts
+  App.tsx
+
+Update AccountPage (/hesabim):
+  Menu item or quick action "Hesap Ayarları" → navigate("/hesabim/ayarlar")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — MOCK DATA (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/accountSettingsMockData.ts:
+
+export interface UserProfile {
+  id: string;
+  fullName: string;
+  avatar: string;
+  membershipDate: string;     // "Temmuz 2026"
+  isVerified: boolean;
+  phone: string;              // "+90 532 ••• •• 47"
+  phoneVerified: boolean;
+  email: string | null;       // null → "E-posta eklenmedi"
+}
+
+export interface PoodleProfile {
+  id: string;
+  name: string;
+  breed: string;              // "Toy Poodle"
+  age: string;                // "3 yaş"
+  avatar: string;
+}
+
+export interface NotificationPrefs {
+  orders: boolean;            // Sipariş Bildirimleri — default true
+  club: boolean;              // Club Bildirimleri — default true
+  guide: boolean;             // Rehber Önerileri — default true
+  campaigns: boolean;         // Kampanya ve İndirimler — default false
+}
+
+export interface PrivacySettings {
+  profilePrivacy: string;     // "Herkese Açık"
+  blockedAccounts: number;      // 2
+  loggedInDevices: number;      // 1
+}
+
+export const userProfile: UserProfile = {
+  id: "user-1",
+  fullName: "Hacı Murat Giritli",
+  avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop",
+  membershipDate: "Temmuz 2026",
+  isVerified: true,
+  phone: "+90 532 ••• •• 47",
+  phoneVerified: true,
+  email: null,
+};
+
+export const poodleProfile: PoodleProfile = {
+  id: "poodle-1",
+  name: "Tarçın",
+  breed: "Toy Poodle",
+  age: "3 yaş",
+  avatar: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=48&h=48&fit=crop",
+};
+
+export const defaultNotificationPrefs: NotificationPrefs = {
+  orders: true,
+  club: true,
+  guide: true,
+  campaigns: false,
+};
+
+export const privacySettings: PrivacySettings = {
+  profilePrivacy: "Herkese Açık",
+  blockedAccounts: 2,
+  loggedInDevices: 1,
+};
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — useAccountSettings HOOK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: hooks/useAccountSettings.ts
+
+State:
+  profile: UserProfile
+  poodle: PoodleProfile
+  notificationPrefs: NotificationPrefs
+  privacy: PrivacySettings
+  editProfileModalOpen: boolean
+  addEmailModalOpen: boolean
+  deleteConfirmOpen: boolean
+
+Functions:
+  openEditProfile() / closeEditProfile()
+  openAddEmail() / closeAddEmail()
+  saveProfile(data) → update profile + toast "Profil güncellendi ✓"
+  saveEmail(email) → set profile.email + toast "E-posta eklendi ✓"
+  toggleNotification(key: keyof NotificationPrefs) → flip + persist localStorage
+  logout() → AuthContext logout + navigate("/giris") + toast "Oturum kapatıldı"
+  deleteAccount() → open deleteConfirmOpen
+  confirmDeleteAccount() → logout + toast "Hesap silme talebi alındı"
+
+Load notificationPrefs from localStorage on mount if exists.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — PAGE HEADER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SettingsPageHeader.tsx
+
+px-4 pt-3 pb-2
+
+  Breadcrumb row (flex items-center gap-1):
+    ArrowLeft size 16 color #5D3EBD cursor-pointer → navigate("/hesabim")
+    "Hesabım / Hesap Ayarları"
+      text-xs color #5D3EBD
+
+  Title:
+    "Hesap Ayarları"
+      text-xl font-bold text-gray-900 mt-2
+
+  Subtitle:
+    "Kişisel bilgilerinizi, güvenlik ve tercihlerinizi yönetin."
+      text-sm text-gray-500 mt-0.5
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — PROFILE HEADER CARD (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SettingsProfileCard.tsx
+
+mx-4 mb-4 bg white rounded-2xl border border-gray-100 shadow-sm p-4
+
+  flex items-center gap-3
+
+  LEFT:
+    Avatar: w-14 h-14 rounded-full object-cover border-2 border #F3EEFF
+
+  CENTER flex-1 min-w-0:
+    fullName: text-base font-bold text-gray-900 truncate
+      "Hacı Murat Giritli"
+
+    "Üyelik: {membershipDate}"
+      text-xs text-gray-500 mt-0.5
+      "Üyelik: Temmuz 2026"
+
+    Verified badge (flex items-center gap-1 mt-1):
+      BadgeCheck icon size 12 color #5D3EBD
+      "Doğrulanmış Üye"
+        text-[10px] font-semibold color #5D3EBD
+        bg #F3EEFF px-2 py-0.5 rounded-full inline-flex items-center gap-1
+
+  RIGHT:
+    Button "Profili Düzenle":
+      border-2 border #5D3EBD text #5D3EBD
+      bg white rounded-xl px-3 py-2 text-xs font-semibold whitespace-nowrap
+      onClick → openEditProfile()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — REUSABLE COMPONENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SettingsSectionCard.tsx
+
+Props: title, children
+
+  mx-4 mb-4 bg white rounded-2xl border border-gray-100 shadow-sm overflow-hidden
+
+  Section title (px-4 pt-4 pb-2):
+    title text-sm font-bold text-gray-900
+
+  Content: px-4 pb-2
+    {children}
+
+File: SettingsRow.tsx
+
+Props: icon (Lucide), label, value?, badge?, actionLink?, subtitle?, onClick
+
+  flex items-center gap-3 py-3.5 border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50 -mx-1 px-1 rounded-lg
+
+  Icon wrapper:
+    w-9 h-9 rounded-xl bg #F3EEFF flex items-center justify-center flex-shrink-0
+    icon size 16 color #5D3EBD
+
+  CENTER flex-1 min-w-0:
+    label: text-sm font-medium text-gray-900
+    IF subtitle: text-xs text-gray-500 mt-0.5
+    IF value: text-xs text-gray-500 mt-0.5 truncate
+
+  RIGHT flex items-center gap-2 flex-shrink-0:
+    IF badge === "verified":
+      "Doğrulandı" bg #F0FDF4 text #16A34A text-[10px] font-semibold px-2 py-0.5 rounded-full
+    IF actionLink:
+      "{actionLink}" text-xs font-semibold color #5D3EBD e.g. "Ekle"
+    ChevronRight icon size 16 color gray-300
+
+  onClick → onClick handler
+
+File: SettingsToggleRow.tsx
+
+Props: label, description, checked, onChange
+
+  flex items-center justify-between py-3.5 border-b border-gray-50 last:border-0
+
+  LEFT flex-1 pr-3:
+    label: text-sm font-medium text-gray-900
+    description: text-xs text-gray-500 mt-0.5
+
+  RIGHT:
+    Toggle switch (custom):
+      w-11 h-6 rounded-full relative cursor-pointer transition-colors
+      IF checked: bg #5D3EBD
+      ELSE: bg #D1D5DB
+      Knob: w-5 h-5 bg white rounded-full absolute top-0.5
+        IF checked: translate-x-5
+        ELSE: translate-x-0.5
+      shadow on knob
+      onClick → onChange()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — KİŞİSEL BİLGİLER SECTION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Inside SettingsSectionCard title="Kişisel Bilgiler":
+
+  Row 1 — Ad Soyad:
+    icon: User
+    label: "Ad Soyad"
+    value: "Hacı Murat Giritli"
+    onClick → openEditProfile()
+
+  Row 2 — Cep Telefonu:
+    icon: Phone
+    label: "Cep Telefonu"
+    value: "+90 532 ••• •• 47"
+    badge: "verified" → shows "Doğrulandı" green pill
+    onClick → alert("Telefon doğrulama yakında!")
+
+  Row 3 — E-posta Adresi:
+    icon: Mail
+    label: "E-posta Adresi"
+    value: "E-posta eklenmedi"
+    actionLink: "Ekle"
+    onClick → openAddEmail()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — POODLE PROFİLİM SECTION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Inside SettingsSectionCard title="Poodle Profilim":
+
+File: PoodleProfileMiniCard.tsx
+
+  flex items-center gap-3 py-3 border-b border-gray-100 mb-1
+
+  LEFT:
+    poodle avatar w-10 h-10 rounded-full object-cover
+
+  CENTER flex-1:
+    name: "Tarçın" text-sm font-bold text-gray-900
+    "{breed} • {age}": "Toy Poodle • 3 yaş" text-xs text-gray-500
+
+  RIGHT:
+    Button "Profili Yönet":
+      text-xs font-semibold color #5D3EBD
+      onClick → navigate("/hesabim/poodle-profili")
+
+  Then 3 SettingsRow items:
+
+  Row 1:
+    icon: HeartPulse
+    label: "Sağlık ve Bakım Bilgileri"
+    onClick → navigate("/hesabim/poodle-profili") or alert stub
+
+  Row 2:
+    icon: UtensilsCrossed OR BowlFood (dog bowl style)
+    label: "Mama Tercihleri"
+    onClick → navigate("/mama-ozelleri") or alert stub
+
+  Row 3:
+    icon: Ruler
+    label: "Ölçüler ve Beden Bilgileri"
+    onClick → alert stub
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — BİLDİRİM TERCİHLERİ SECTION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Inside SettingsSectionCard title="Bildirim Tercihleri":
+
+  Toggle 1:
+    label: "Sipariş Bildirimleri"
+    description: "Kargo, teslimat ve sipariş durumu bildirimleri"
+    checked: true (default ON)
+
+  Toggle 2:
+    label: "Club Bildirimleri"
+    description: "Yorum, beğeni ve takip bildirimleri"
+    checked: true (default ON)
+
+  Toggle 3:
+    label: "Rehber Önerileri"
+    description: "Size özel rehber içerik önerileri"
+    checked: true (default ON)
+
+  Toggle 4:
+    label: "Kampanya ve İndirimler"
+    description: "İndirim ve özel fırsat bildirimleri"
+    checked: false (default OFF — gray toggle)
+
+  onChange each → toggleNotification(key) + toast optional subtle save
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — GİZLİLİK VE GÜVENLİK SECTION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Inside SettingsSectionCard title="Gizlilik ve Güvenlik":
+
+  Row 1:
+    icon: Lock
+    label: "Profil Gizliliği"
+    subtitle: "Herkese Açık"
+    onClick → alert/modal privacy options
+
+  Row 2:
+    icon: Ban OR UserX
+    label: "Engellenen Hesaplar"
+    subtitle: "2 hesap"
+    onClick → alert stub
+
+  Row 3:
+    icon: Smartphone
+    label: "Oturum Açılan Cihazlar"
+    subtitle: "1 cihaz"
+    onClick → alert stub
+
+  Row 4:
+    icon: Download
+    label: "Verilerimi İndir"
+    onClick → toast "Veri indirme talebi alındı ✓"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — DESTEK VE YASAL SECTION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Inside SettingsSectionCard title="Destek ve Yasal":
+
+  Row 1:
+    icon: HelpCircle
+    label: "Yardım Merkezi"
+    onClick → alert stub or /yardim
+
+  Row 2:
+    icon: MessageSquare
+    label: "Bize Ulaşın"
+    onClick → alert stub or /iletisim
+
+  Row 3:
+    icon: ShieldCheck
+    label: "Gizlilik Politikası"
+    onClick → alert stub or /kvkk
+
+  Row 4:
+    icon: FileText
+    label: "Üyelik Sözleşmesi"
+    onClick → alert stub
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — LOGOUT + DELETE ACCOUNT (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SettingsLogoutButton.tsx
+
+mx-4 mb-4
+
+  Button "Oturumu Kapat":
+    w-full flex items-center justify-center gap-2
+    border-2 border #5D3EBD text #5D3EBD bg white
+    font-semibold text-sm py-3 rounded-xl
+    LogOut icon size 18
+    onClick → logout()
+
+File: SettingsDeleteAccount.tsx
+
+mx-4 mb-6
+bg #FEF2F2 border border #FECACA rounded-2xl p-4
+
+  flex items-start gap-3
+
+  LEFT:
+    Trash2 icon size 20 color #DC2626 flex-shrink-0 mt-0.5
+
+  CENTER flex-1:
+    "Hesabı Sil"
+      text-sm font-bold text-gray-900
+    "Hesabınızı ve tüm verilerinizi kalıcı olarak silin."
+      text-xs text-gray-600 mt-0.5
+
+  Button "Hesabı Sil":
+    mt-3 border-2 border #DC2626 text #DC2626 bg white
+    text-xs font-semibold px-4 py-2 rounded-xl
+    onClick → deleteAccount() → open confirm modal
+
+File: DeleteAccountConfirmModal.tsx
+
+  Overlay dark/50
+  Card centered max-w-sm mx-4 p-5 rounded-2xl bg white
+
+  Title: "Hesabı silmek istediğinize emin misiniz?"
+  Body: "Bu işlem geri alınamaz. Tüm verileriniz kalıcı olarak silinecektir."
+  Buttons:
+    "İptal" ghost
+    "Evet, Sil" bg #DC2626 text white
+  onConfirm → confirmDeleteAccount()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — MODALS (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: EditProfileModal.tsx
+
+  Title: "Profili Düzenle"
+  Fields:
+    Ad Soyad input (default "Hacı Murat Giritli")
+    Avatar change button stub "Fotoğraf Değiştir"
+  Buttons: "İptal" + "Kaydet" (purple)
+  onSave → saveProfile()
+
+File: AddEmailModal.tsx
+
+  Title: "E-posta Ekle"
+  Input: type email placeholder "ornek@email.com"
+  Buttons: "İptal" + "Kaydet"
+  onSave → saveEmail() → row updates from "E-posta eklenmedi" to actual email
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — FOOTER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: SettingsFooter.tsx
+
+bg #5D3EBD text-white px-4 pt-6 pb-8
+
+  YourPoodle logo row (poodle icon + text) mb-4
+
+  flex gap-4 text-xs mb-4:
+    "Yardım" | "İletişim" | "KVKK"
+    onClick → alert stubs
+
+  "© 2026 YourPoodle"
+    text-[10px] text-white/70
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: AccountSettingsPage.tsx
+
+<div className="max-w-[480px] mx-auto bg-[#F9F9FB] min-h-screen pb-8 shadow-xl">
+  <AuthenticatedHeader />            ← bell 3, message 2
+  <TabNavigation activeTab="club" /> ← Club active in main nav (as mockup)
+
+  <SettingsPageHeader />
+  <SettingsProfileCard />
+
+  <SettingsSectionCard title="Kişisel Bilgiler">
+    {/* 3 rows: Ad Soyad, Cep Telefonu, E-posta */}
+  </SettingsSectionCard>
+
+  <SettingsSectionCard title="Poodle Profilim">
+    <PoodleProfileMiniCard />
+    {/* 3 rows: Sağlık, Mama, Ölçüler */}
+  </SettingsSectionCard>
+
+  <SettingsSectionCard title="Bildirim Tercihleri">
+    {/* 4 toggle rows */}
+  </SettingsSectionCard>
+
+  <SettingsSectionCard title="Gizlilik ve Güvenlik">
+    {/* 4 rows */}
+  </SettingsSectionCard>
+
+  <SettingsSectionCard title="Destek ve Yasal">
+    {/* 4 rows */}
+  </SettingsSectionCard>
+
+  <SettingsLogoutButton />
+  <SettingsDeleteAccount />
+  <SettingsFooter />
+
+  <EditProfileModal />
+  <AddEmailModal />
+  <DeleteAccountConfirmModal />
+  <MobileDrawer />
+  <Toast />
+</div>
+
+Scroll order:
+  1. Breadcrumb + title + subtitle
+  2. Profile card (Hacı Murat Giritli, Doğrulanmış Üye, Profili Düzenle)
+  3. Kişisel Bilgiler (3 rows)
+  4. Poodle Profilim (Tarçın + 3 rows)
+  5. Bildirim Tercihleri (4 toggles)
+  6. Gizlilik ve Güvenlik (4 rows)
+  7. Destek ve Yasal (4 rows)
+  8. Oturumu Kapat
+  9. Hesabı Sil danger card
+  10. Purple footer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 17 — ROUTING & INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add route (ProtectedRoute):
+  <Route path="/hesabim/ayarlar" element={<AccountSettingsPage />} />
+
+Update AccountPage (/hesabim):
+  Settings/gear menu item "Hesap Ayarları" → navigate("/hesabim/ayarlar")
+
+Link Poodle profile:
+  "Profili Yönet" → /hesabim/poodle-profili (if route exists)
+
+Link notification settings sync:
+  Toggle prefs should match Bildirimler page settings if that page exists
+  (shared localStorage key "yourpoodle-settings")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 18 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Profile:
+✅ Avatar + "Hacı Murat Giritli" + "Üyelik: Temmuz 2026"
+✅ "Doğrulanmış Üye" purple badge
+✅ "Profili Düzenle" opens modal, save updates name
+
+Kişisel Bilgiler:
+✅ Ad Soyad row shows name + chevron
+✅ Cep Telefonu shows masked phone + green "Doğrulandı"
+✅ E-posta shows "E-posta eklenmedi" + purple "Ekle" link
+✅ "Ekle" opens email modal, save updates row
+
+Poodle Profilim:
+✅ Tarçın mini card with "Toy Poodle • 3 yaş"
+✅ "Profili Yönet" navigates to poodle profile page
+✅ 3 sub-rows clickable with chevrons
+
+Bildirim Tercihleri:
+✅ Sipariş ON (purple toggle)
+✅ Club ON
+✅ Rehber ON
+✅ Kampanya OFF (gray toggle)
+✅ Toggle click flips state + persists localStorage
+
+Gizlilik & Destek:
+✅ All 8 rows clickable with icons + chevrons
+✅ Subtitles show correct values (Herkese Açık, 2 hesap, 1 cihaz)
+
+Account actions:
+✅ Oturumu Kapat → logout + redirect /giris
+✅ Hesabı Sil → confirm modal → delete flow stub
+
+Other:
+✅ Protected route
+✅ No overflow at 375px
+✅ npm run dev → ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 19 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Breadcrumb "Hesabım / Hesap Ayarları"
+✅ Title "Hesap Ayarları" + subtitle
+✅ Profile card with verified badge + Profili Düzenle
+✅ Kişisel Bilgiler: Ad Soyad, Cep Telefonu (Doğrulandı), E-posta (Ekle)
+✅ Poodle Profilim: Tarçın, Profili Yönet, Sağlık/Mama/Ölçüler rows
+✅ Bildirim Tercihleri: 4 toggles (3 ON, Kampanya OFF)
+✅ Gizlilik ve Güvenlik: 4 rows with subtitles
+✅ Destek ve Yasal: 4 rows
+✅ Oturumu Kapat purple outline button
+✅ Red Hesabı Sil danger card + button
+✅ Purple footer © 2026 YourPoodle
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the Hesap Ayarları page at /hesabim/ayarlar exactly as specified.
+Use the EXISTING project — do not rebuild the whole app.
+MUST work: profile edit, email add, notification toggles, all row navigation stubs,
+logout, delete account confirm, localStorage persistence for toggles.
+Match the mockup pixel-perfect. Turkish text must be exact.
+Run the app and confirm zero errors before finishing.

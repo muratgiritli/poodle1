@@ -1,0 +1,681 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "Bildirimler" (Notifications) page for YourPoodle.com.
+Notifications are grouped by category: Orders (Sipariş), Club, Guides (Rehber), and Campaigns (Kampanya).
+Users can filter by category, select multiple items, mark as read, and clear notifications.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, AuthContext, authenticated Header, TabNavigation,
+  MobileDrawer, Toast, and routing.
+- Protected route — redirect to /giris if not authenticated.
+- Link from Header bell icon (badge "3") AND /hesabim quick action → this page.
+- DO NOT rebuild the entire app.
+- DO NOT delete or rewrite existing pages.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Route: /hesabim/bildirimler
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT skip any tab, notification row, group header, banner, or button.
+4. DO NOT use Lorem ipsum.
+5. Optimize for 390px mobile. Max width 480px centered.
+
+MANDATORY FEATURES:
+  ✅ 5 filter tabs: Tümü, Sipariş, Club, Rehber, Kampanya (with counts)
+  ✅ Chronological groups: Bugün, Dün, Bu Hafta
+  ✅ Unread purple dot on unread items
+  ✅ Bulk select: Tümünü seç checkbox
+  ✅ Bulk actions: Okundu İşaretle + Tümünü Temizle
+  ✅ Per-row checkbox for selection
+  ✅ Category-specific icons/avatars per notification type
+  ✅ "Ayarlar" button + bottom "Bildirim Ayarları" CTA
+  ✅ "Daha Eski Bildirimleri Göster" load-more button
+  ✅ Purple footer
+
+6. EVERY tab filter, selection, mark-read, clear, and row click MUST work.
+7. Unread count badge "7 okunmamış" updates when items marked read or cleared.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #5D3EBD
+  purple-dark:     #4A22A0
+  purple-light:    #F3EEFF
+  unread-dot:      #5D3EBD
+  page-bg:         #FFFFFF
+  row-hover:       #FAFAFA
+  icon-blue-bg:    #EFF6FF
+  icon-blue:       #3B82F6
+  icon-green-bg:   #F0FDF4
+  icon-green:      #16A34A
+  icon-pink-bg:    #FDF2F8
+  icon-pink:       #EC4899
+  text-dark:       #111827
+  text-secondary:  #6B7280
+  text-link:       #5D3EBD
+  footer-bg:       #5D3EBD
+  divider:         #F3F4F6
+
+Typography: Inter
+Notification row: flex items-start gap-3 px-4 py-3 border-b border-gray-100
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    notifications/
+      NotificationsPageHeader.tsx
+      NotificationsCategoryTabs.tsx
+      NotificationsBulkBar.tsx
+      NotificationGroupHeader.tsx
+      NotificationRow.tsx
+      NotificationIcon.tsx
+      NotificationsLoadMore.tsx
+      NotificationsCTABanner.tsx
+      NotificationsFooter.tsx
+      NotificationsEmptyState.tsx
+      NotificationSettingsModal.tsx
+  pages/
+    NotificationsPage.tsx
+  data/
+    notificationsMockData.ts
+  hooks/
+    useNotificationsPage.ts
+  App.tsx
+
+Update:
+  - AuthenticatedHeader bell icon onClick → navigate("/hesabim/bildirimler")
+  - AccountPage quick action "Bildirimler" → navigate("/hesabim/bildirimler")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — MOCK DATA (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/notificationsMockData.ts:
+
+export type NotificationCategory = "order" | "club" | "guide" | "campaign";
+export type NotificationTab = "all" | "order" | "club" | "guide" | "campaign";
+export type NotificationGroup = "today" | "yesterday" | "this_week";
+
+export interface NotificationItem {
+  id: string;
+  category: NotificationCategory;
+  group: NotificationGroup;
+  title: string;
+  description: string;
+  timestamp: string;          // display text e.g. "12 dk önce"
+  isRead: boolean;
+  iconType: "truck" | "avatar" | "book" | "cart" | "percent" | "heart" | "camera";
+  avatarUrl?: string;         // for club/social notifications
+  link?: string;              // navigation target on row click
+}
+
+export const tabCounts = {
+  all: 24,
+  order: 5,
+  club: 11,
+  guide: 3,
+  campaign: 5,
+  unread: 7,
+};
+
+export const notifications: NotificationItem[] = [
+
+  // ── BUGÜN (Today) ──
+  {
+    id: "n-1",
+    category: "order",
+    group: "today",
+    title: "Siparişiniz kargoya verildi",
+    description: "YP-20260723 numaralı siparişiniz yola çıktı.",
+    timestamp: "12 dk önce",
+    isRead: false,
+    iconType: "truck",
+    link: "/hesabim/siparisler",
+  },
+  {
+    id: "n-2",
+    category: "club",
+    group: "today",
+    title: "Gönderinize yeni yorum",
+    description: "@lunatoypoodle gönderinize yorum yaptı.",
+    timestamp: "45 dk önce",
+    isRead: false,
+    iconType: "avatar",
+    avatarUrl: "https://images.unsplash.com/photo-1591946614720-90a587da4a36?w=40&h=40&fit=crop",
+    link: "/club",
+  },
+  {
+    id: "n-3",
+    category: "club",
+    group: "today",
+    title: "Yeni takipçiniz var",
+    description: "@puffy.poodle sizi takip etti.",
+    timestamp: "2 saat önce",
+    isRead: false,
+    iconType: "avatar",
+    avatarUrl: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=40&h=40&fit=crop",
+    link: "/club",
+  },
+
+  // ── DÜN (Yesterday) ──
+  {
+    id: "n-4",
+    category: "guide",
+    group: "yesterday",
+    title: "Rehber güncellendi",
+    description: "Toy Poodle Beslenme Rehberi güncellendi.",
+    timestamp: "Dün 18:40",
+    isRead: false,
+    iconType: "book",
+    link: "/rehber",
+  },
+  {
+    id: "n-5",
+    category: "order",
+    group: "yesterday",
+    title: "Sepetinizde ürünler var",
+    description: "3 ürün sepetinizde sizi bekliyor.",
+    timestamp: "Dün 14:20",
+    isRead: true,
+    iconType: "cart",
+    link: "/sepet",
+  },
+
+  // ── BU HAFTA (This Week) ──
+  {
+    id: "n-6",
+    category: "campaign",
+    group: "this_week",
+    title: "Kampanya başladı",
+    description: "%20 indirim mama kategorisinde geçerli.",
+    timestamp: "21 Tem",
+    isRead: false,
+    iconType: "percent",
+    link: "/magaza",
+  },
+  {
+    id: "n- "n-7",
+    category: "club",
+    group: "this_week",
+    title: "Gönderiniz beğenildi",
+    description: "@tarcin.poodle gönderinizi beğendi.",
+    timestamp: "20 Tem",
+    isRead: true,
+    iconType: "avatar",
+    avatarUrl: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=40&h=40&fit=crop",
+    link: "/club",
+  },
+  {
+    id: "n-8",
+    category: "club",
+    group: "this_week",
+    title: "Club'da yeni paylaşım",
+    description: "@mia.poodle yeni fotoğraf paylaştı.",
+    timestamp: "19 Tem",
+    isRead: false,
+    iconType: "avatar",
+    avatarUrl: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=40&h=40&fit=crop",
+    link: "/club",
+  },
+];
+
+// Additional hidden items for "load more" (older notifications)
+export const olderNotifications: NotificationItem[] = [
+  {
+    id: "n-9",
+    category: "order",
+    group: "this_week",
+    title: "Siparişiniz teslim edildi",
+    description: "YP-20260715 numaralı siparişiniz teslim edildi.",
+    timestamp: "15 Tem",
+    isRead: true,
+    iconType: "truck",
+    link: "/hesabim/siparisler",
+  },
+  {
+    id: "n-10",
+    category: "campaign",
+    group: "this_week",
+    title: "Özel indirim fırsatı",
+    description: "Favorilerinizdeki ürünlerde %15 indirim.",
+    timestamp: "14 Tem",
+    isRead: true,
+    iconType: "percent",
+    link: "/hesabim/favoriler",
+  },
+];
+
+export const groupLabels: Record<NotificationGroup, string> = {
+  today: "Bugün",
+  yesterday: "Dün",
+  this_week: "Bu Hafta",
+};
+
+export const groupOrder: NotificationGroup[] = ["today", "yesterday", "this_week"];
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — useNotificationsPage HOOK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: hooks/useNotificationsPage.ts
+
+State:
+  activeTab: NotificationTab (default "all")
+  notifications: NotificationItem[] (from mock + older when loaded)
+  selectedIds: Set<string>
+  showOlder: boolean
+  settingsModalOpen: boolean
+
+Functions:
+  setTab(tab) → filter notifications by category
+  toggleSelect(id)
+  selectAll() → select all VISIBLE filtered notifications
+  deselectAll()
+  markSelectedAsRead() → set isRead=true for selected + toast "Okundu olarak işaretlendi ✓"
+  markAllVisibleAsRead() → if nothing selected, mark all visible unread as read
+  clearSelected() → remove selected from list + update tabCounts + toast "Bildirimler temizlendi"
+  clearAll() → remove all visible in current tab + confirm dialog
+  loadOlder() → append olderNotifications + set showOlder true
+  markAsReadOnClick(id) → mark single item read when row clicked
+  openSettings() / closeSettings()
+
+Computed:
+  filteredNotifications → by activeTab
+  groupedNotifications → group filtered by group field preserving groupOrder
+  unreadCount → notifications.filter(n => !n.isRead).length
+  selectedCount → selectedIds.size
+  isAllSelected → all visible selected
+
+Persist read/cleared state to localStorage key "yourpoodle-notifications" (optional).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — PAGE HEADER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: NotificationsPageHeader.tsx
+
+px-4 pt-3 pb-2
+
+  Breadcrumb row (flex items-center gap-1):
+    ArrowLeft size 16 color #5D3EBD cursor-pointer → navigate("/hesabim")
+    "Hesabım / Bildirimler"
+      text-xs color #5D3EBD
+
+  Title row (flex justify-between items-start mt-2 gap-2):
+
+    LEFT:
+      "Bildirimler"
+        text-xl font-bold text-gray-900
+      Subtitle:
+        "Siparişleriniz, Club ve size özel gelişmeler burada."
+        text-sm text-gray-500 mt-0.5
+      Unread badge:
+        "{unreadCount} okunmamış"  → default "7 okunmamış"
+        bg #F3EEFF text #5D3EBD text-xs font-semibold px-2.5 py-0.5 rounded-full mt-1.5 inline-block
+
+    RIGHT:
+      Button "Ayarlar":
+        flex items-center gap-1.5
+        border border-gray-200 text gray-700
+        bg white rounded-xl px-3 py-2 text-xs font-semibold
+        SlidersHorizontal icon size 14
+        onClick → openSettings() or navigate("/hesabim/bildirim-ayarlari")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — CATEGORY TABS (EXACT — 5 TABS, TÜMÜ DEFAULT ACTIVE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: NotificationsCategoryTabs.tsx
+
+px-4 mb-3 mt-2
+
+flex gap-2 overflow-x-auto scrollbar-hide pb-1
+
+  5 pill tabs:
+
+  | key      | label           |
+  |----------|-----------------|
+  | all      | Tümü 24         |
+  | order    | Sipariş 5       |
+  | club     | Club 11         |
+  | guide    | Rehber 3        |
+  | campaign | Kampanya 5      |
+
+  ACTIVE tab (default all):
+    bg #5D3EBD text white font-semibold
+    px-3.5 py-2 rounded-full text-sm whitespace-nowrap
+
+  INACTIVE tab:
+    bg #F3F4F6 text gray-700
+    px-3.5 py-2 rounded-full text-sm whitespace-nowrap
+
+  onClick → setTab(key)
+  Counts update dynamically when notifications cleared
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — BULK ACTION BAR (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: NotificationsBulkBar.tsx
+
+px-4 mb-2 py-2 flex items-center justify-between border-b border-gray-100
+
+  LEFT (flex items-center gap-2):
+    Checkbox:
+      checked={isAllSelected}
+      indeterminate if partial selection
+      onChange → if checked selectAll() else deselectAll()
+      accent-color #5D3EBD
+    "Tümünü seç"
+      text-sm text-gray-700
+
+  RIGHT (flex items-center gap-3):
+    "Okundu İşaretle"
+      text-xs font-semibold color #5D3EBD hover:underline cursor-pointer
+      onClick → markSelectedAsRead() OR markAllVisibleAsRead() if none selected
+
+    "Tümünü Temizle"
+      text-xs font-semibold color #5D3EBD hover:underline cursor-pointer
+      onClick → confirm("Tüm bildirimleri temizlemek istediğinize emin misiniz?") → clearAll()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — NOTIFICATION ROW (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: NotificationIcon.tsx
+
+Props: iconType, avatarUrl, category
+
+Render based on iconType:
+
+  truck (order/shipping):
+    w-10 h-10 rounded-xl bg #EFF6FF flex items-center justify-center
+    Truck icon size 18 color #3B82F6
+
+  cart (cart reminder):
+    w-10 h-10 rounded-xl bg #EFF6FF flex items-center justify-center
+    ShoppingCart icon size 18 color #3B82F6
+
+  book (guide):
+    w-10 h-10 rounded-xl bg #F0FDF4 flex items-center justify-center
+    BookOpen icon size 18 color #16A34A
+
+  percent (campaign):
+    w-10 h-10 rounded-xl bg #FDF2F8 flex items-center justify-center
+    Percent OR Tag icon size 18 color #EC4899
+
+  avatar (club/social):
+    w-10 h-10 rounded-full overflow-hidden
+    img avatarUrl object-cover w-full h-full
+    fallback: User icon on purple-light bg
+
+File: NotificationRow.tsx
+
+Props: notification, isSelected, onSelect, onClick
+
+  flex items-start gap-3 px-4 py-3.5 border-b border-gray-100
+  bg white hover:bg #FAFAFA cursor-pointer
+  IF !isRead: bg #FAFAFF (very subtle purple tint)
+
+  ── LEFT COLUMN ──
+    flex flex-col items-center gap-2 pt-1 flex-shrink-0
+
+    Unread dot:
+      w-2 h-2 rounded-full bg #5D3EBD
+      IF isRead → invisible (w-2 h-2 but transparent)
+
+    Checkbox:
+      w-4 h-4 accent #5D3EBD
+      checked={isSelected}
+      onChange stopPropagation → onSelect(id)
+
+  ── ICON ──
+    <NotificationIcon />
+
+  ── CONTENT (flex-1 min-w-0) ──
+    title: text-sm font-semibold text-gray-900 leading-snug
+    description: text-xs text-gray-500 mt-0.5 line-clamp-2
+    timestamp: text-[11px] text-gray-400 mt-1
+
+  ── RIGHT ──
+    ChevronRight icon size 16 color gray-300 flex-shrink-0 mt-2
+
+  onClick row → markAsReadOnClick(id) + navigate(link) or alert stub
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — GROUP HEADERS + LIST (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: NotificationGroupHeader.tsx
+
+px-4 pt-4 pb-1
+  "{label}" text-xs font-bold text-gray-500 uppercase tracking-wide
+  Labels: "Bugün", "Dün", "Bu Hafta"
+
+In NotificationsPage.tsx render:
+
+  groupedNotifications.map(group =>
+    <>
+      <NotificationGroupHeader label={groupLabels[group.key]} />
+      {group.items.map(n => <NotificationRow ... />)}
+    </>
+  )
+
+Only show group header IF group has items after filtering.
+
+Filter behavior:
+  Tümü → all notifications
+  Sipariş → category === "order"
+  Club → category === "club"
+  Rehber → category === "guide"
+  Kampanya → category === "campaign"
+
+Empty state per tab:
+  NotificationsEmptyState message e.g. "Bu kategoride bildirim yok."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — LOAD MORE BUTTON (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: NotificationsLoadMore.tsx
+
+px-4 py-4 flex justify-center
+
+  IF !showOlder:
+    Button "Daha Eski Bildirimleri Göster":
+      border-2 border #5D3EBD text #5D3EBD bg white
+      font-semibold text-sm px-6 py-2.5 rounded-xl
+      hover:bg #F3EEFF
+      onClick → loadOlder()
+  ELSE:
+    hide button (all loaded)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — CTA BANNER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: NotificationsCTABanner.tsx
+
+mx-4 mb-6 mt-2 bg #F3EEFF rounded-2xl p-4
+
+  flex items-center gap-3
+
+  LEFT:
+    Bell icon size 22 color #5D3EBD flex-shrink-0
+
+  CENTER flex-1:
+    "Bildirimlerinizi siz yönetin"
+      text-sm font-semibold text-gray-900
+    "Sipariş, Club ve kampanya bildirimlerini düzenleyin."
+      text-xs text-gray-600 mt-0.5
+
+  RIGHT:
+    Button "Bildirim Ayarları":
+      bg #5D3EBD text white text-xs font-semibold
+      px-3 py-2 rounded-xl whitespace-nowrap flex-shrink-0
+      onClick → openSettings()
+
+File: NotificationSettingsModal.tsx (stub)
+
+  Title: "Bildirim Ayarları"
+  Toggle rows:
+    "Sipariş bildirimleri" ON
+    "Club bildirimleri" ON
+    "Rehber bildirimleri" ON
+    "Kampanya bildirimleri" OFF
+  Button "Kaydet" → toast "Ayarlar kaydedildi ✓"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — FOOTER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: NotificationsFooter.tsx
+
+bg #5D3EBD text-white px-4 pt-6 pb-8
+
+  YourPoodle logo row (poodle icon + text) mb-4
+
+  flex gap-4 text-xs mb-4:
+    "Yardım" | "İletişim" | "KVKK"
+    onClick → alert stubs
+
+  "© 2026 YourPoodle"
+    text-[10px] text-white/70
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: NotificationsPage.tsx
+
+<div className="max-w-[480px] mx-auto bg-white min-h-screen pb-8 shadow-xl">
+  <AuthenticatedHeader />            ← bell badge 3, message badge 2
+  <TabNavigation activeTab="club" /> ← Club tab active in main nav (as mockup)
+
+  <NotificationsPageHeader />
+  <NotificationsCategoryTabs />     ← Tümü 24 active
+  <NotificationsBulkBar />
+
+  {/* Grouped notification list */}
+  {groupedNotifications.map(...)}
+
+  <NotificationsLoadMore />
+  <NotificationsCTABanner />
+  <NotificationsFooter />
+
+  <NotificationSettingsModal />
+  <MobileDrawer />
+  <Toast />
+</div>
+
+Scroll order:
+  1. Header + breadcrumb + Ayarlar
+  2. Title "Bildirimler" + "7 okunmamış" + subtitle
+  3. Tabs: Tümü 24 | Sipariş 5 | Club 11 | Rehber 3 | Kampanya 5
+  4. Bulk bar: Tümünü seç | Okundu İşaretle | Tümünü Temizle
+  5. "Bugün" group → 3 notifications
+  6. "Dün" group → 2 notifications
+  7. "Bu Hafta" group → 3 notifications
+  8. "Daha Eski Bildirimleri Göster"
+  9. CTA banner
+  10. Purple footer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — ROUTING & INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add route (ProtectedRoute):
+  <Route path="/hesabim/bildirimler" element={<NotificationsPage />} />
+
+Optional settings route stub:
+  <Route path="/hesabim/bildirim-ayarlari" element={<NotificationSettingsPage />} />
+
+Update AuthenticatedHeader:
+  Bell icon onClick → navigate("/hesabim/bildirimler")
+
+Update AccountPage (/hesabim):
+  If "Bildirimler" quick action exists → navigate("/hesabim/bildirimler")
+
+Sync header bell badge count with unreadCount from notifications state if possible.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tabs:
+✅ Tümü 24 — shows all 8 initial notifications grouped
+✅ Sipariş 5 — filters order notifications only
+✅ Club 11 — filters club notifications only
+✅ Rehber 3 — filters guide notifications only
+✅ Kampanya 5 — filters campaign notifications only
+✅ Tab switch instant, empty state if no items
+
+Bulk actions:
+✅ Tümünü seç toggles all visible checkboxes
+✅ Okundu İşaretle marks selected (or all if none selected) as read
+✅ Purple unread dots disappear after mark read
+✅ "7 okunmamış" badge count decreases
+✅ Tümünü Temizle removes all with confirm dialog
+
+Rows:
+✅ Each row: unread dot + checkbox + icon/avatar + title + description + timestamp + chevron
+✅ Unread rows have subtle purple tint background
+✅ Row click marks read + navigates to link
+✅ Order row: truck icon blue
+✅ Club rows: circular avatar
+✅ Guide row: green book icon
+✅ Campaign row: pink percent icon
+✅ Cart row: blue cart icon
+
+Other:
+✅ Ayarlar button opens settings modal/page
+✅ Daha Eski Bildirimleri Göster loads 2 more items
+✅ CTA Bildirim Ayarları opens settings
+✅ Protected route
+✅ No overflow at 375px
+✅ npm run dev → ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Breadcrumb "Hesabım / Bildirimler"
+✅ "Bildirimler" title + subtitle + "7 okunmamış" badge
+✅ "Ayarlar" button top-right
+✅ Tabs: Tümü 24 (active purple) | Sipariş 5 | Club 11 | Rehber 3 | Kampanya 5
+✅ Tümünü seç + Okundu İşaretle + Tümünü Temizle
+✅ Bugün: Siparişiniz kargoya verildi, Gönderinize yeni yorum, Yeni takipçiniz var
+✅ Dün: Rehber güncellendi, Sepetinizde ürünler var
+✅ Bu Hafta: Kampanya başladı, Gönderiniz beğenildi, Club'da yeni paylaşım
+✅ Timestamps: 12 dk önce, 45 dk önce, 2 saat önce, Dün 18:40, Dün 14:20, 21 Tem, 20 Tem, 19 Tem
+✅ Daha Eski Bildirimleri Göster button
+✅ CTA: "Bildirimlerinizi siz yönetin" + Bildirim Ayarları
+✅ Purple footer © 2026 YourPoodle
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the Bildirimler page at /hesabim/bildirimler exactly as specified.
+Use the EXISTING project — do not rebuild the whole app.
+MUST work: 5 category tabs, chronological groups, bulk select, mark read, clear all,
+load more, settings modal, row navigation.
+Match the mockup pixel-perfect. Turkish text must be exact.
+Run the app and confirm zero errors before finishing.
