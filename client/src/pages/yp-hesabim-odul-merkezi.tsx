@@ -154,9 +154,7 @@ export default function YPOdulMerkeziPage() {
 
   function redeemSelected() {
     if (!canRedeem) return;
-    setBalance(b => b - selected.points);
-    setEarned(prev => [{ id:`er-new-${Date.now()}`, title:selected.title, status:"available", label:"Kullanılabilir", date:"30 gün geçerli" }, ...prev]);
-    showToast("Ödül hesabınıza tanımlandı ✓");
+    navigate(`/hesabim/poodle-puanlari/odul-onayla/${selected.id}`);
   }
 
   function buyWithPoints(id: string) {
