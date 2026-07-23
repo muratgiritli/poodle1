@@ -1,0 +1,697 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "Yardım Merkezi ve Destek" (Help Center & Support) page for YourPoodle.com.
+Users can search help topics, browse quick-help categories, view active support tickets,
+expand FAQ accordion items, contact support, and jump to AI Asistan.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, AuthContext, authenticated Header, TabNavigation,
+  MobileDrawer, Toast, and routing.
+- Link from /hesabim/ayarlar "Yardım Merkezi" row AND footer "Yardım" → this page.
+- Page accessible when logged in (protected) OR public — match existing auth pattern.
+- DO NOT rebuild the entire app.
+- DO NOT delete or rewrite existing pages.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Route: /hesabim/yardim
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT skip any card, FAQ item, banner, contact tile, or button.
+4. DO NOT use Lorem ipsum.
+5. Optimize for 390px mobile. Max width 480px centered.
+
+MANDATORY FEATURES:
+  ✅ Hero search bar with "Ara" button
+  ✅ Live support status banner + "Canlı Desteği Başlat"
+  ✅ Hızlı Yardım 2-column grid (6 category cards)
+  ✅ Active support ticket card with status badge
+  ✅ FAQ accordion (1 expanded by default, 5 collapsed)
+  ✅ "Tüm Soruları Gör" button
+  ✅ Bize Ulaşın 3 contact cards
+  ✅ AI Asistan CTA banner
+  ✅ Purple footer
+
+6. EVERY search, accordion toggle, category click, and CTA button MUST work.
+7. FAQ accordion allows only one open item at a time (optional) OR multiple — default: first open.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #5D3EBD
+  purple-dark:     #4A22A0
+  purple-light:    #F3EEFF
+  page-bg:         #FFFFFF
+  online-green:    #16A34A
+  online-green-dot:#22C55E
+  card-bg:         #FFFFFF
+  card-border:     #F3F4F6
+  text-dark:       #111827
+  text-secondary:  #6B7280
+  footer-bg:       #5D3EBD
+  ticket-badge-bg: #F3EEFF
+  ticket-badge-text:#5D3EBD
+  ai-banner-bg:    #F3EEFF
+
+Category icon backgrounds:
+  orders:    #F3EEFF / icon #5D3EBD
+  returns:   #F0FDF4 / icon #16A34A
+  payment:   #FFF7ED / icon #EA580C
+  products:  #EFF6FF / icon #3B82F6
+  club:      #FDF2F8 / icon #EC4899
+  membership:#FEF2F2 / icon #EF4444
+
+Typography: Inter
+Quick help grid: grid-cols-2 gap-3 px-4
+Contact row: grid grid-cols-3 gap-2 px-4
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    help/
+      HelpPageHeader.tsx
+      HelpSearchBar.tsx
+      HelpLiveSupportBanner.tsx
+      HelpQuickHelpGrid.tsx
+      HelpQuickHelpCard.tsx
+      HelpActiveTicket.tsx
+      HelpFAQSection.tsx
+      HelpFAQItem.tsx
+      HelpContactRow.tsx
+      HelpContactCard.tsx
+      HelpAIBanner.tsx
+      HelpFooter.tsx
+      HelpSearchResults.tsx
+      LiveSupportModal.tsx
+  pages/
+    HelpCenterPage.tsx
+  data/
+    helpCenterMockData.ts
+  hooks/
+    useHelpCenter.ts
+  App.tsx
+
+Update:
+  AccountSettingsPage "Yardım Merkezi" → navigate("/hesabim/yardim")
+  Footer "Yardım" links across app → navigate("/hesabim/yardim")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — MOCK DATA (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/helpCenterMockData.ts:
+
+export interface QuickHelpCategory {
+  id: string;
+  title: string;
+  subtitle: string;
+  icon: "package" | "refresh" | "credit-card" | "shopping-bag" | "paw" | "user";
+  colorKey: "orders" | "returns" | "payment" | "products" | "club" | "membership";
+}
+
+export interface SupportTicket {
+  id: string;
+  ticketNumber: string;       // "#YP-4821"
+  title: string;
+  orderId: string;            // "YP-20260723"
+  status: "waiting" | "resolved" | "in_progress";
+  statusLabel: string;        // "Yanıt Bekleniyor"
+  lastUpdate: string;         // "Bugün 14:32"
+}
+
+export interface FAQItem {
+  id: string;
+  question: string;
+  answer: string;
+}
+
+export const quickHelpCategories: QuickHelpCategory[] = [
+  {
+    id: "orders",
+    title: "Siparişlerim",
+    subtitle: "Kargo ve teslimat",
+    icon: "package",
+    colorKey: "orders",
+  },
+  {
+    id: "returns",
+    title: "İade ve Değişim",
+    subtitle: "Kolay iade işlemleri",
+    icon: "refresh",
+    colorKey: "returns",
+  },
+  {
+    id: "payment",
+    title: "Ödeme",
+    subtitle: "Kart ve taksit sorunları",
+    icon: "credit-card",
+    colorKey: "payment",
+  },
+  {
+    id: "products",
+    title: "Ürünler",
+    subtitle: "Mama ve ürün bilgileri",
+    icon: "shopping-bag",
+    colorKey: "products",
+  },
+  {
+    id: "club",
+    title: "Club",
+    subtitle: "Paylaşım ve hesap desteği",
+    icon: "paw",
+    colorKey: "club",
+  },
+  {
+    id: "membership",
+    title: "Üyelik",
+    subtitle: "Telefon ve profil işlemleri",
+    icon: "user",
+    colorKey: "membership",
+  },
+];
+
+export const activeTicket: SupportTicket = {
+  id: "ticket-1",
+  ticketNumber: "#YP-4821",
+  title: "Eksik ürün bildirimi",
+  orderId: "YP-20260723",
+  status: "waiting",
+  statusLabel: "Yanıt Bekleniyor",
+  lastUpdate: "Bugün 14:32",
+};
+
+export const faqItems: FAQItem[] = [
+  {
+    id: "faq-1",
+    question: "Siparişimi nasıl takip edebilirim?",
+    answer: "Hesabım > Siparişlerim bölümünden kargo durumunu anlık takip edebilirsiniz.",
+  },
+  {
+    id: "faq-2",
+    question: "İade süresi kaç gündür?",
+    answer: "Ürünü teslim aldıktan sonra 14 gün içinde iade talebi oluşturabilirsiniz.",
+  },
+  {
+    id: "faq-3",
+    question: "Peşin fiyatına 3 taksit nasıl uygulanır?",
+    answer: "Sepet ve ödeme adımında uygun kartlarla otomatik olarak uygulanır. Ekstra ücret alınmaz.",
+  },
+  {
+    id: "faq-4",
+    question: "Yanlış ürün geldi, ne yapmalıyım?",
+    answer: "Yardım Merkezi > Mesaj Gönder üzerinden sipariş numaranızla bildirim oluşturun. Ekibimiz 24 saat içinde dönüş yapar.",
+  },
+  {
+    id: "faq-5",
+    question: "Club paylaşımımı nasıl silebilirim?",
+    answer: "Paylaşımınızın sağ üst menüsünden Düzenle veya Sil seçeneklerine ulaşabilirsiniz.",
+  },
+  {
+    id: "faq-6",
+    question: "Telefon numaramı nasıl değiştiririm?",
+    answer: "Hesabım > Hesap Ayarları > Cep Telefonu bölümünden güncelleyebilirsiniz.",
+  },
+];
+
+export const contactOptions = [
+  {
+    id: "live",
+    title: "Canlı Destek",
+    subtitle: "Çevrimiçi",
+    icon: "message-circle",
+    isOnline: true,
+  },
+  {
+    id: "message",
+    title: "Mesaj Gönder",
+    subtitle: "24 saat içinde",
+    icon: "mail",
+    isOnline: false,
+  },
+  {
+    id: "phone",
+    title: "Bizi Arayın",
+    subtitle: "09:00-18:00",
+    icon: "phone",
+    isOnline: false,
+  },
+];
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — useHelpCenter HOOK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: hooks/useHelpCenter.ts
+
+State:
+  searchQuery: string
+  searchResults: FAQItem[]
+  expandedFaqId: string | null (default "faq-1")
+  liveSupportModalOpen: boolean
+  showAllFaqs: boolean
+
+Functions:
+  setSearch(q) → filter faqItems by question/answer text
+  performSearch() → on "Ara" click, filter and scroll to FAQ or show HelpSearchResults
+  toggleFaq(id) → expand/collapse accordion item
+  openLiveSupport() → open LiveSupportModal or toast "Canlı destek başlatılıyor..."
+  viewTicket() → navigate stub or alert ticket detail
+  openQuickHelp(categoryId) → filter FAQ or scroll to relevant section + toast
+  showAllQuestions() → set showAllFaqs true OR navigate to expanded FAQ view
+  contactAction(type: "live" | "message" | "phone") → modal/toast/navigate
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — PAGE HEADER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: HelpPageHeader.tsx
+
+px-4 pt-3 pb-3
+
+  Breadcrumb row (flex items-center gap-1):
+    ArrowLeft size 16 color #5D3EBD cursor-pointer → navigate("/hesabim")
+    "Hesabım / Yardım Merkezi"
+      text-xs color #5D3EBD
+
+  Title:
+    "Size nasıl yardımcı olabiliriz?"
+      text-xl font-bold color #5D3EBD mt-3 leading-tight
+
+  Subtitle:
+    "Aradığınız cevabı bulun veya destek ekibimize ulaşın."
+      text-sm text-gray-500 mt-1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — SEARCH BAR (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: HelpSearchBar.tsx
+
+px-4 mb-4 mt-2
+
+  flex gap-2
+
+  Input wrapper flex-1 relative:
+    Search icon absolute left-3 top-1/2 -translate-y-1/2 size 16 color gray-400
+    Input:
+      w-full bg #F9FAFB border border-gray-200 rounded-xl
+      pl-10 pr-4 py-2.5 text-sm
+      placeholder EXACT: "Sipariş, ödeme veya ürün hakkında ara..."
+      value={searchQuery}
+      onChange → setSearch
+      onKeyDown Enter → performSearch()
+
+  Button "Ara":
+    bg #5D3EBD text white font-semibold text-sm
+    px-5 py-2.5 rounded-xl flex-shrink-0
+    onClick → performSearch()
+
+If search has results → highlight matching FAQ items or show HelpSearchResults list below.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — LIVE SUPPORT BANNER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: HelpLiveSupportBanner.tsx
+
+mx-4 mb-5 bg #F3EEFF border border-purple-100 rounded-2xl p-4
+
+  flex items-center gap-3
+
+  LEFT:
+    w-11 h-11 rounded-full bg white flex items-center justify-center flex-shrink-0
+    Headphones icon size 20 color #5D3EBD
+
+  CENTER flex-1 min-w-0:
+    flex items-center gap-1.5:
+      "Destek ekibimiz çevrimiçi"
+        text-sm font-semibold text-gray-900
+      Green dot: w-2 h-2 rounded-full bg #22C55E
+    "Ortalama yanıt süresi 3 dakika"
+      text-xs text-gray-600 mt-0.5
+
+  RIGHT:
+    Button "Canlı Desteği Başlat":
+      border-2 border #5D3EBD text #5D3EBD bg white
+      text-[10px] font-semibold px-2.5 py-2 rounded-xl whitespace-nowrap
+      onClick → openLiveSupport()
+
+On mobile if cramped: stack button below text (flex-col gap-2).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — HIZLI YARDIM GRID (EXACT — 2 COLS, 6 CARDS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: HelpQuickHelpGrid.tsx
+
+px-4 mb-5
+
+  Section title:
+    "Hızlı Yardım"
+      text-sm font-bold text-gray-900 mb-3
+
+  grid grid-cols-2 gap-3
+
+File: HelpQuickHelpCard.tsx
+
+Props: category, onClick
+
+  bg white rounded-2xl border border-gray-100 shadow-sm p-3.5
+  flex flex-col gap-2 cursor-pointer hover:border-purple-200 transition
+
+  Icon circle:
+    w-9 h-9 rounded-xl flex items-center justify-center
+    bg/color per colorKey (see tokens)
+
+  title: text-sm font-semibold text-gray-900
+  subtitle: text-[11px] text-gray-500
+
+  Icons mapping:
+    package → Package
+    refresh → RefreshCw
+    credit-card → CreditCard
+    shopping-bag → ShoppingBag
+    paw → PawPrint
+    user → User
+
+  onClick → openQuickHelp(category.id)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — ACTIVE SUPPORT TICKET (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: HelpActiveTicket.tsx
+
+px-4 mb-5
+
+  Section title:
+    "Devam Eden Destek Talebiniz"
+      text-sm font-bold text-gray-900 mb-3
+
+  Card: bg white rounded-2xl border border-gray-100 shadow-sm p-4
+
+    TOP ROW flex items-start justify-between gap-2:
+      Badge "Yanıt Bekleniyor":
+        bg #F3EEFF text #5D3EBD text-[10px] font-semibold px-2 py-0.5 rounded-full
+      ticketNumber "#YP-4821":
+        text-xs text-gray-500 font-medium
+
+    Title:
+      "Eksik ürün bildirimi"
+        text-sm font-bold text-gray-900 mt-2
+
+    Order line:
+      "Sipariş: YP-20260723"
+        text-xs text-gray-500 mt-0.5
+
+    BOTTOM ROW flex items-center justify-between mt-3 pt-3 border-t border-gray-50:
+      LEFT:
+        "Son güncelleme: Bugün 14:32"
+          text-[11px] text-gray-400
+      RIGHT flex items-center gap-2:
+        Button "Talebi Gör":
+          border border #5D3EBD text #5D3EBD text-[10px] font-semibold
+          px-3 py-1.5 rounded-lg
+          onClick → viewTicket()
+        ChevronRight size 16 color gray-400
+
+  onClick card → viewTicket()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — FAQ ACCORDION (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: HelpFAQSection.tsx + HelpFAQItem.tsx
+
+px-4 mb-5
+
+  Section title:
+    "Sık Sorulan Sorular"
+      text-sm font-bold text-gray-900 mb-3
+
+  space-y-2
+
+File: HelpFAQItem.tsx
+
+Props: item, isExpanded, onToggle
+
+  bg white rounded-xl border border-gray-100 overflow-hidden
+
+  Header row (flex items-center justify-between px-4 py-3.5 cursor-pointer):
+    question: text-sm font-semibold text-gray-900 flex-1 pr-2
+    IF isExpanded: Minus icon size 18 color #5D3EBD
+    ELSE: Plus icon size 18 color gray-400
+
+  IF isExpanded:
+    Answer panel px-4 pb-3.5:
+      answer text-sm text-gray-600 leading-relaxed
+      border-t border-gray-50 pt-2
+
+  onClick header → toggleFaq(id)
+
+  DEFAULT expanded: faq-1 "Siparişimi nasıl takip edebilirim?"
+  Collapsed: faq-2 through faq-6 with + icons
+
+  Button "Tüm Soruları Gör" (mt-3 w-full):
+    border-2 border #5D3EBD text #5D3EBD bg white
+    font-semibold text-sm py-3 rounded-xl
+    onClick → showAllQuestions() → expand all or show full list
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — BİZE ULAŞIN ROW (EXACT — 3 CARDS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: HelpContactRow.tsx + HelpContactCard.tsx
+
+px-4 mb-5
+
+  Section title:
+    "Bize Ulaşın"
+      text-sm font-bold text-gray-900 mb-3
+
+  grid grid-cols-3 gap-2
+
+File: HelpContactCard.tsx
+
+  bg white rounded-xl border border-gray-100 p-3 text-center cursor-pointer
+  hover:border-purple-200
+
+  Icon top: size 20 color #5D3EBD mx-auto mb-1.5
+    message-circle → MessageCircle
+    mail → Mail
+    phone → Phone
+
+  title: text-[11px] font-semibold text-gray-900
+
+  subtitle row:
+    IF isOnline:
+      flex items-center justify-center gap-1
+      green dot w-1.5 h-1.5 rounded-full bg #22C55E
+      "Çevrimiçi" text-[10px] text-gray-500
+    ELSE:
+      subtitle text-[10px] text-gray-500 e.g. "24 saat içinde" or "09:00-18:00"
+
+  onClick → contactAction(id)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — AI ASISTAN BANNER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: HelpAIBanner.tsx
+
+mx-4 mb-6 bg #F3EEFF rounded-2xl p-4
+
+  flex items-center gap-3
+
+  LEFT:
+    Poodle image w-14 h-14 rounded-full object-cover flex-shrink-0
+    src: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=80&h=80&fit=crop"
+    OR cute poodle illustration
+
+  CENTER flex-1 min-w-0:
+    "AI Asistan'a da sorabilirsiniz"
+      text-sm font-semibold text-gray-900
+    "Toy Poodle bakımı ve ürün seçimi için anında yanıt alın."
+      text-xs text-gray-600 mt-0.5 leading-snug
+
+  RIGHT:
+    Button "AI Asistan'a Sor":
+      bg #5D3EBD text white text-[10px] font-semibold
+      px-3 py-2 rounded-xl whitespace-nowrap flex-shrink-0
+      onClick → navigate("/ai-asistan")
+
+On narrow screens: stack button below text (flex-col).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — LIVE SUPPORT MODAL (STUB)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: LiveSupportModal.tsx
+
+  Overlay + bottom sheet or centered card
+
+  Title: "Canlı Destek"
+  Status: green dot + "Destek ekibimiz çevrimiçi"
+  Textarea placeholder: "Sorununuzu kısaca yazın..."
+  Button "Gönder" purple → toast "Mesajınız iletildi ✓"
+  Button "Kapat"
+
+Opened by "Canlı Desteği Başlat" and "Canlı Destek" contact card.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — FOOTER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: HelpFooter.tsx
+
+bg #5D3EBD text-white px-4 pt-6 pb-8
+
+  YourPoodle logo row (poodle icon + text) mb-4
+
+  flex gap-4 text-xs mb-4:
+    "Yardım" | "İletişim" | "KVKK"
+    Yardım → scroll top or stay
+    onClick stubs for others
+
+  "© 2026 YourPoodle"
+    text-[10px] text-white/70
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: HelpCenterPage.tsx
+
+<div className="max-w-[480px] mx-auto bg-white min-h-screen pb-8 shadow-xl">
+  <AuthenticatedHeader />            ← bell 3, message 2
+  <TabNavigation activeTab="club" /> ← Club active in main nav (as mockup)
+
+  <HelpPageHeader />
+  <HelpSearchBar />
+  <HelpLiveSupportBanner />
+  <HelpQuickHelpGrid />
+  <HelpActiveTicket />
+  <HelpFAQSection />
+  <HelpContactRow />
+  <HelpAIBanner />
+  <HelpFooter />
+
+  <LiveSupportModal />
+  <MobileDrawer />
+  <Toast />
+</div>
+
+Scroll order:
+  1. Breadcrumb + hero title + subtitle
+  2. Search bar + Ara button
+  3. Live support banner (çevrimiçi + 3 dk)
+  4. Hızlı Yardım 6-card grid
+  5. Devam Eden Destek Talebiniz ticket card
+  6. Sık Sorulan Sorular accordion (6 items)
+  7. Tüm Soruları Gör
+  8. Bize Ulaşın 3 cards
+  9. AI Asistan banner
+  10. Purple footer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — ROUTING & INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add route:
+  <Route path="/hesabim/yardim" element={<HelpCenterPage />} />
+
+Update AccountSettingsPage:
+  "Yardım Merkezi" row → navigate("/hesabim/yardim")
+
+Update all footer "Yardım" links → navigate("/hesabim/yardim")
+
+Optional: allow guest access at /yardim redirecting or duplicate — prefer /hesabim/yardim.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 17 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Search:
+✅ Placeholder "Sipariş, ödeme veya ürün hakkında ara..."
+✅ Ara button filters FAQ / shows results
+✅ Enter key triggers search
+
+Live support:
+✅ Banner shows online green dot + "3 dakika"
+✅ Canlı Desteği Başlat opens modal
+
+Quick help:
+✅ 6 cards in 2-column grid
+✅ Each card clickable with toast or FAQ filter
+✅ Correct icons and subtitle text
+
+Ticket:
+✅ #YP-4821 + Yanıt Bekleniyor badge
+✅ Eksik ürün bildirimi + Sipariş YP-20260723
+✅ Son güncelleme: Bugün 14:32
+✅ Talebi Gör works
+
+FAQ:
+✅ First item expanded with minus icon and answer visible
+✅ 5 collapsed items with plus icons
+✅ Toggle expand/collapse works
+✅ Tüm Soruları Gör shows all or expands
+
+Contact:
+✅ Canlı Destek — Çevrimiçi (green dot)
+✅ Mesaj Gönder — 24 saat içinde
+✅ Bizi Arayın — 09:00-18:00
+✅ Each card clickable
+
+AI:
+✅ Banner text exact Turkish
+✅ AI Asistan'a Sor → navigate("/ai-asistan")
+
+Other:
+✅ No overflow at 375px
+✅ npm run dev → ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 18 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Breadcrumb "Hesabım / Yardım Merkezi"
+✅ Purple title "Size nasıl yardımcı olabiliriz?"
+✅ Subtitle exact Turkish
+✅ Search + purple Ara button
+✅ Live support banner with headset icon
+✅ Hızlı Yardım: Siparişlerim, İade ve Değişim, Ödeme, Ürünler, Club, Üyelik
+✅ Active ticket card complete
+✅ FAQ: Siparişimi nasıl takip edebilirim? expanded
+✅ 5 more FAQ items collapsed
+✅ Tüm Soruları Gör button
+✅ Bize Ulaşın 3 cards
+✅ AI Asistan banner with poodle image
+✅ Footer © 2026 YourPoodle
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the Yardım Merkezi ve Destek page at /hesabim/yardim exactly as specified.
+Use the EXISTING project — do not rebuild the whole app.
+MUST work: search, live support modal, quick help cards, ticket view,
+FAQ accordion, contact cards, AI Asistan navigation.
+Match the mockup pixel-perfect. Turkish text must be exact.
+Run the app and confirm zero errors before finishing.

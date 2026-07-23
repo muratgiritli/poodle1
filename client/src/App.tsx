@@ -138,6 +138,7 @@ const YPHesabimAdreslerimPage         = lazy(() => import("@/pages/yp-hesabim-ad
 const YPHesabimClubPaylasimlarimPage  = lazy(() => import("@/pages/yp-hesabim-club-paylasimlarim"));
 const YPHesabimBildirimlerPage        = lazy(() => import("@/pages/yp-hesabim-bildirimler"));
 const YPHesabimAyarlarPage            = lazy(() => import("@/pages/yp-hesabim-ayarlar"));
+const YPHesabimYardimPage             = lazy(() => import("@/pages/yp-hesabim-yardim"));
 const YPGecmisOnerilerPage = lazy(() => import("@/pages/yp-gecmis-oneriler"));
 const YPKategoriPage       = lazy(() => import("@/pages/yp-kategori"));
 const DemoKampanyaPage = lazy(() => import("@/pages/demo-kampanya"));
@@ -213,6 +214,7 @@ function Router() {
         <Route path="/hesabim/club-paylasimlarim"   component={YPHesabimClubPaylasimlarimPage} />
         <Route path="/hesabim/bildirimler"          component={YPHesabimBildirimlerPage} />
         <Route path="/hesabim/ayarlar"              component={YPHesabimAyarlarPage} />
+        <Route path="/hesabim/yardim"               component={YPHesabimYardimPage} />
         <Route path="/yourpoodle/poodle-profili-duzenle" component={YPPoodleProfilDuzenlePage} />
         <Route path="/abone" component={AbonePage} />
         {/* Task 6: Demo routes blocked in production — code kept, access disabled */}
