@@ -450,7 +450,7 @@ export default function YourPoodleHomePage() {
             {/* Right — poodle image */}
             <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: "48%", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: 28, background: "linear-gradient(to right,#EBE1FF,transparent)", zIndex: 1 }} />
-              <img src="/images/poodle-hero_2.jpg" alt="Toy Poodle"
+              <img src="/images/yp-poodle-hero.png" alt="Toy Poodle"
                 style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }} />
             </div>
           </div>
