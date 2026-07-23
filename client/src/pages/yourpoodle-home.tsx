@@ -5,7 +5,7 @@ import { useCustomer } from "@/contexts/CustomerContext";
 import {
   Menu, X, ShoppingBag, BookOpen, MessageCirclePlus, CreditCard,
   ChevronRight, Clock, Sparkles, Mail, Instagram, Youtube, Music2, Facebook,
-  Plus, Minus, Heart, PawPrint,
+  Plus, Minus, Heart, PawPrint, Home, Users, ShoppingCart, Bot,
 } from "lucide-react";
 
 /* ── Colors ─────────────────────────────────── */
@@ -192,12 +192,27 @@ function AccordionSection({ items }: { items:typeof ACCORDION_ITEMS }) {
 export default function YourPoodleHomePage() {
   const [, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [activeTab,  setActiveTab]  = useState("magaza");
+  const [activeNav,  setActiveNav]  = useState("anasayfa");
   const [favorites,  setFavorites]  = useState<Set<string>>(new Set());
   const [toast,      setToast]      = useState({ message:"", visible:false });
   const [newsEmail,  setNewsEmail]  = useState("");
+  const [cartCount,  setCartCount]  = useState(0);
   const toastTimer = useRef<ReturnType<typeof setTimeout>|null>(null);
   const { isLoggedIn } = useCustomer();
+
+  /* Cart counter */
+  useEffect(()=>{
+    const read = ()=>{
+      try {
+        const c = JSON.parse(localStorage.getItem("yp_cart_items")||"[]");
+        setCartCount(Array.isArray(c) ? c.reduce((s:number,i:any)=>s+(i.qty||0),0) : 0);
+      } catch { setCartCount(0); }
+    };
+    read();
+    window.addEventListener("storage", read);
+    const t = setInterval(read, 500);
+    return ()=>{ window.removeEventListener("storage", read); clearInterval(t); };
+  },[]);
 
   /* Real products */
   const { data: apiProducts = [] } = useQuery<YPProduct[]>({
@@ -265,12 +280,13 @@ export default function YourPoodleHomePage() {
     }
   };
 
-  /* Tab definitions */
-  const TABS = [
-    { key:"magaza", label:"Mağaza",     Icon:ShoppingBag     },
-    { key:"club",   label:"Club",       Icon:PawPrint        },
-    { key:"ai",     label:"AI Asistan", Icon:MessageCirclePlus},
-    { key:"rehber", label:"Rehber",     Icon:BookOpen        },
+  /* Bottom nav tabs */
+  const BOT_TABS = [
+    { key:"anasayfa", label:"Ana Sayfa", Icon:Home,         href:"/yourpoodle"            },
+    { key:"club",     label:"Club",      Icon:Users,        href:"/yourpoodle/topluluk"   },
+    // center = Sepetim
+    { key:"magaza",   label:"Mağaza",    Icon:ShoppingBag,  href:"/yourpoodle/magaza"     },
+    { key:"ai",       label:"AI",        Icon:Bot,          href:"/yourpoodle/ai-asistan" },
   ];
 
   /* Fallback food products when API is empty */
@@ -382,23 +398,10 @@ export default function YourPoodleHomePage() {
             </button>
           </div>
         </div>
-        {/* Tab Navigation */}
-        <div style={{ display:"flex",borderBottom:`1px solid ${GB}`,background:"#fff" }}>
-          {TABS.map(({key,label,Icon})=>{
-            const active = activeTab===key;
-            return (
-              <button key={key} onClick={()=>setActiveTab(key)}
-                style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4,padding:"10px 0",border:"none",background:"none",cursor:"pointer",fontFamily:"inherit",borderBottom:active?`2px solid ${P}`:"2px solid transparent",color:active?P:"#9CA3AF",fontWeight:active?600:500,transition:"color 0.15s" }}>
-                <Icon size={20} />
-                <span style={{ fontSize:11 }}>{label}</span>
-              </button>
-            );
-          })}
-        </div>
       </header>
 
       {/* ── Page content ─────────────────────────── */}
-      <main>
+      <main style={{ paddingBottom:80 }}>
 
         {/* ── 1. HERO ──────────────────────────────── */}
         <section style={{ margin:"16px 16px 0" }}>
@@ -618,6 +621,89 @@ export default function YourPoodleHomePage() {
         </footer>
 
       </main>
+
+      {/* ── Fixed Bottom Nav ─────────────────────────── */}
+      <nav style={{
+        position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
+        width:"100%", maxWidth:480,
+        background:"#fff",
+        borderTop:`1px solid ${GB}`,
+        boxShadow:"0 -4px 16px rgba(0,0,0,0.08)",
+        display:"flex", alignItems:"flex-end",
+        height:64, zIndex:900,
+        paddingBottom:4,
+      }}>
+        {/* Left 2 tabs */}
+        {BOT_TABS.slice(0,2).map(({key,label,Icon,href})=>{
+          const active = activeNav===key;
+          return (
+            <button key={key} onClick={()=>{ setActiveNav(key); go(href); }}
+              style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-end",
+                gap:3, paddingBottom:8, border:"none", background:"none", cursor:"pointer",
+                fontFamily:"inherit",
+                color: active ? P : "#9CA3AF",
+              }}>
+              <Icon size={22} strokeWidth={active?2:1.5} />
+              <span style={{ fontSize:10, fontWeight:active?700:500, letterSpacing:0.2,
+                borderBottom: active ? `2px solid ${P}` : "2px solid transparent",
+                paddingBottom:1, lineHeight:1.2 }}>
+                {label}
+              </span>
+            </button>
+          );
+        })}
+
+        {/* Center — Sepetim (elevated) */}
+        <button onClick={()=>{ setActiveNav("sepetim"); go("/yourpoodle/sepet"); }}
+          style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-end",
+            gap:3, paddingBottom:8, border:"none", background:"none", cursor:"pointer",
+            fontFamily:"inherit", position:"relative",
+            color: activeNav==="sepetim" ? P : "#111827",
+          }}>
+          {/* Elevated circle */}
+          <div style={{
+            position:"absolute", bottom:28,
+            width:56, height:56, borderRadius:"50%",
+            background: P,
+            boxShadow:`0 0 0 6px rgba(98,0,238,0.15), 0 4px 16px rgba(98,0,238,0.35)`,
+            display:"flex", alignItems:"center", justifyContent:"center",
+          }}>
+            <ShoppingCart size={26} color="#fff" strokeWidth={2} />
+            {cartCount > 0 && (
+              <span style={{
+                position:"absolute", top:4, right:4,
+                background:"#EF4444", color:"#fff",
+                fontSize:9, fontWeight:800,
+                width:16, height:16, borderRadius:"50%",
+                display:"flex", alignItems:"center", justifyContent:"center",
+                border:"2px solid #fff",
+              }}>{cartCount > 9 ? "9+" : cartCount}</span>
+            )}
+          </div>
+          <span style={{ fontSize:10, fontWeight:700, letterSpacing:0.2, marginTop:2 }}>Sepetim</span>
+        </button>
+
+        {/* Right 2 tabs */}
+        {BOT_TABS.slice(2).map(({key,label,Icon,href})=>{
+          const active = activeNav===key;
+          return (
+            <button key={key} onClick={()=>{ setActiveNav(key); go(href); }}
+              style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-end",
+                gap:3, paddingBottom:8, border:"none", background:"none", cursor:"pointer",
+                fontFamily:"inherit",
+                color: active ? P : "#9CA3AF",
+              }}>
+              <Icon size={22} strokeWidth={active?2:1.5} />
+              <span style={{ fontSize:10, fontWeight:active?700:500, letterSpacing:0.2,
+                borderBottom: active ? `2px solid ${P}` : "2px solid transparent",
+                paddingBottom:1, lineHeight:1.2 }}>
+                {label}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
+
     </div>
   );
 }
