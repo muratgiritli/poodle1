@@ -1,0 +1,139 @@
+Replit Agent’e yapıştırabileceğin **full prompt** bu. Görseli de ekle.
+
+```text
+Build a MOBILE-ONLY homepage for "YourPoodle" (Turkish Toy Poodle community + e-commerce). This must look and behave like a mobile web app only.
+
+CRITICAL CONSTRAINTS:
+- Mobile portrait only. Target width ~375–430px.
+- Do NOT build a desktop layout.
+- Do NOT add desktop breakpoints, multi-column wide layouts, or large-screen redesigns.
+- Use a single-column vertical scroll layout.
+- Center the page in a mobile frame if previewed on larger screens (max-width: 430px).
+- Match the attached design image as closely as possible.
+- All UI text must be in Turkish as shown in the design.
+
+BRAND / VISUAL SYSTEM:
+- Brand name: YourPoodle
+- Logo: small brown poodle puppy icon + “YourPoodle” wordmark
+- Primary purple: approx #5A2D91 (vibrant royal purple)
+- Supporting colors: white, light lavender backgrounds, soft gray text
+- Typography: clean modern sans-serif (Inter / system-ui)
+- Cards, banners, buttons: rounded corners ~12–16px
+- Buttons: full-width or pill/rounded purple CTAs
+- Soft shadows, clean spacing, polished e-commerce look
+- No dark-mode desktop dashboard look — keep it bright, clean, mobile shopping style
+
+PAGE STRUCTURE (top to bottom):
+
+1) STICKY TOP HEADER
+- White background
+- Left: YourPoodle logo (poodle icon + text)
+- Right: text link “Giriş Yap” + purple rounded button “Üye Ol”
+- Sticky on scroll
+
+2) ICON NAVIGATION BAR
+Horizontal 4-item nav under header:
+- Mağaza (active, purple underline)
+- Club
+- AI Asistan
+- Rehber
+Each item has icon + label. Keep compact for mobile.
+
+3) HERO BANNER
+Large purple rounded banner:
+- Eyebrow: “Türkiye'nin en büyük Poodle topluluğu”
+- Heading: “Toy Poodle'ınız için her şey burada.”
+- Subtext: “Bilgi, alışveriş ve gerçek bir topluluk — tek bir yerde.”
+- White CTA button: “Topluluğa Katıl”
+- Right side: high-quality brown Toy Poodle photo
+Make this the first strong visual section.
+
+4) FOOD PRODUCTS SECTION
+Heading row:
+- Title: “Peşin fiyatına 3 taksit” (with small card icon)
+- Subtitle: “Toy Poodle'ınıza özel seçilmiş mamalar”
+2-column product grid (6 products):
+Examples:
+- Puppy Tavuklu — 2 kg — 799 TL
+- Adult Kuzu Etli — 2 kg — 799 TL
+- Sensitive Somonlu — 2 kg — 849 TL
+- Sterilized Hindi — 2 kg — 829 TL
+- Hair & Skin — 2 kg — 869 TL
+- Senior Tavuklu — 2 kg — 819 TL
+Each product card must include:
+- Product image
+- Heart wishlist icon top-right
+- Product name
+- Weight
+- Small “3 Taksit” tag
+- Bold price (TL)
+- Full-width purple button: “Sepete Ekle”
+
+5) POODLE REHBERİ SECTION
+Header:
+- Title: “Poodle Rehberi”
+- Subtitle: “Poodle'ınız için güvenilir ve pratik bilgiler”
+- Right link: “Tümünü Gör”
+Vertical article list (3+ items), each row:
+- Square thumbnail left
+- Title (e.g. “Toy Poodle Tuvalet Eğitimi”, “Mama Seçimi”, “Göz Yaşı Lekesi Bakımı”)
+- Short description
+- Clock icon + reading time (e.g. “5 dk”)
+- Chevron (>) on the right
+
+6) AI ASSISTANT CTA BANNER
+Light lavender/purple rounded section:
+- Chat bubble icon
+- Heading: “Cevabını hemen bul”
+- Subtext: “Poodle'ınızla ilgili merak ettiğiniz her şeyi sorun.”
+- Full-width dark purple button: “AI Asistan'a Sor” (with chat icon)
+
+7) ACCESSORIES PRODUCTS SECTION
+Header:
+- Title: “Poodle'ınıza Özel Ürünler”
+- Subtitle: “Stil, bakım ve günlük ihtiyaçlar bir arada”
+- Right link: “Tümünü Gör”
+2-column product grid (6 products), same card style as food:
+Examples:
+- Lavanta Elbise
+- Air Mesh Göğüs Tasması (with “Çok Satan” badge)
+- Çiş Pedi
+- Poodle Parfümü
+- Buharlı Masaj Tarağı
+- Göz Yaşı Lekesi Losyonu
+Each card: image, heart, title, short spec, price, purple “Sepete Ekle”
+
+8) NEWSLETTER SECTION
+Dark purple rounded box:
+- Title: “Poodle dünyasından haberdar olun”
+- Email input placeholder: “E-posta adresiniz”
+- Purple button: “Üye Ol”
+
+9) FOOTER (deep purple)
+- Logo + short brand description
+- Accordion menus with “+”:
+  - YourPoodle
+  - Alışveriş
+  - Yardım
+  - Yasal
+- Support email + business hours
+- Social icons: Instagram, YouTube, TikTok, Facebook
+- Trust/payment badges: SSL + Visa, Mastercard, Troy
+- Copyright: “© 2025 YourPoodle. Tüm hakları saklıdır.”
+- Legal links: Gizlilik, Çerezler, KVKK
+
+TECH REQUIREMENTS:
+- HTML + CSS + minimal JS (or React if preferred), mobile-first
+- Sticky header
+- Clickable buttons/links (can be placeholders)
+- Product cards and article rows should look interactive
+- Use placeholder product/article images if real assets are unavailable (keep style consistent)
+- Clean component structure: Header, Nav, Hero, ProductGrid, GuideList, AIBanner, Newsletter, Footer
+- Fast, polished, production-looking UI
+- No desktop version, no tablet redesign — mobile homepage only
+
+DELIVERABLE:
+Create a complete mobile homepage that visually matches the attached YourPoodle design screenshot as closely as possible, with all sections above implemented and Turkish copy preserved.
+```
+
+Bu prompt’u Replit’e yapıştırırken **tasarım görselini de attach et**.
