@@ -190,10 +190,11 @@ export default function YPLayout({
 
             {/* Logo */}
             <Link href={BASE || "/"}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
-                <span style={{ fontSize: 24 }}>🐾</span>
-                <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 22, color: "#111", lineHeight: 1, whiteSpace: "nowrap" }}>YourPoodle</span>
-              </div>
+              <img
+                src="/images/yourpoodle-logo.jpg"
+                alt="YourPoodle"
+                style={{ height: 42, width: "auto", objectFit: "contain", cursor: "pointer", flexShrink: 0, display: "block" }}
+              />
             </Link>
 
             {/* Center nav links */}
@@ -321,7 +322,7 @@ export default function YPLayout({
         boxShadow: "4px 0 28px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column",
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 18px 14px", borderBottom: "1px solid #f2f2f2" }}>
-          <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 20, color: "#6B21A8" }}>YourPoodle 🐾</span>
+          <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 30, width: "auto", objectFit: "contain" }} />
           <button onClick={() => setDrawerOpen(false)}
             style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", width: 32, height: 32 }}>
             <X size={20} color="#666" />
@@ -360,7 +361,7 @@ export default function YPLayout({
       }}>
         {authMode ? (
           <Link href={BASE || "/"}>
-            <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 20, color: "#6B21A8", cursor: "pointer" }}>YourPoodle 🐾</span>
+            <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 34, width: "auto", objectFit: "contain", cursor: "pointer" }} />
           </Link>
         ) : (
           <div style={{
@@ -373,7 +374,7 @@ export default function YPLayout({
                 ☰
               </button>
               <Link href={BASE || "/"}>
-                <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 17, color: "#6B21A8", cursor: "pointer" }}>YourPoodle 🐾</span>
+                <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 34, width: "auto", objectFit: "contain", cursor: "pointer" }} />
               </Link>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
