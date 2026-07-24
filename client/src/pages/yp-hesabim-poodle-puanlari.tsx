@@ -339,7 +339,7 @@ export default function YPPoodlePuanlariPage() {
             { key:"rewards"   as Tab, label:"Ödüller"          },
             { key:"earn"      as Tab, label:"Kazanma Yolları"  },
           ].map(({ key, label }) => (
-            <button key={key} onClick={() => setActiveTab(key)}
+            <button key={key} onClick={() => key === "earn" ? navigate("/hesabim/poodle-puanlari/kazan") : setActiveTab(key)}
               style={{
                 flexShrink:0,
                 background: activeTab === key ? P : "#fff",

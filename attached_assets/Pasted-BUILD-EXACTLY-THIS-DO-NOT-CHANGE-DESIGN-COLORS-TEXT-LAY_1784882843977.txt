@@ -1,0 +1,802 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "Puan Kazanma Yolları ve Görevler" (Ways to Earn Points & Tasks) page
+for YourPoodle.com. Users earn PoodlePuan through daily login streaks, daily/weekly/one-time
+tasks, Club activities, shopping, profile completion, and friend referrals.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, AuthContext, authenticated Header, TabNavigation,
+  MobileDrawer, Toast, and routing.
+- Link FROM /hesabim/poodle-puanlari "Kazanma Yolları" tab AND RewardReadyPage
+  "Puan Kazanma Yolları" button → this page.
+- Share balance 775 PoodlePuan with other points pages.
+- DO NOT rebuild the entire app.
+- DO NOT delete or rewrite existing pages.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Route: /hesabim/poodle-puanlari/kazan
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT skip any streak day, task row, banner, FAQ item, or button.
+4. DO NOT use Lorem ipsum.
+5. Optimize for 390px mobile. Max width 480px centered.
+
+MANDATORY FEATURES:
+  ✅ Purple balance hero + Gold Poodle tier progress
+  ✅ Günlük Giriş Serisi 7-day streak with "Bugünkü Puanı Al"
+  ✅ 5 filter tabs: Tümü, Günlük, Club, Mağaza, Rehber
+  ✅ Bugünün Görevleri (4 tasks)
+  ✅ Haftalık Görevler (4 tasks + +200 bonus bar)
+  ✅ Tek Seferlik Görevler (4 tasks incl. profile, phone, poodle, invite)
+  ✅ Referral banner TARCIN250 + Paylaş
+  ✅ Alışverişle Puan Kazan card with multiplier badges
+  ✅ Tamamlanan Görevler list
+  ✅ FAQ accordion + notification CTA + footer
+
+6. EVERY task action, streak claim, filter tab, copy code, and share MUST work.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #5D3EBD
+  purple-dark:     #4A22A0
+  purple-gradient: linear-gradient(135deg, #5D3EBD, #4A22A0)
+  purple-light:    #F3EEFF
+  gold-coin:       #FBBF24
+  gold-badge:      #F59E0B
+  today-blue:      #EFF6FF
+  today-blue-ring: #3B82F6
+  streak-flame:    #EA580C
+  completed-green: #16A34A
+  completed-green-bg:#F0FDF4
+  shopping-card-bg:#EFF6FF
+  page-bg:         #F9F9FB
+  card-bg:         #FFFFFF
+  referral-purple: #5D3EBD
+  text-dark:       #111827
+  footer-bg:       #5D3EBD
+  pending-gray:    #D1D5DB
+
+Typography: Inter
+Task row: flex items-center gap-3 py-3 border-b border-gray-50
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    earn-points/
+      EarnPointsBreadcrumb.tsx
+      EarnPointsBalanceHero.tsx
+      EarnPointsDailyStreak.tsx
+      EarnPointsStreakDay.tsx
+      EarnPointsFilterTabs.tsx
+      EarnPointsTaskSection.tsx
+      EarnPointsTaskRow.tsx
+      EarnPointsWeeklyBonusBar.tsx
+      EarnPointsReferralBanner.tsx
+      EarnPointsShoppingCard.tsx
+      EarnPointsCompletedList.tsx
+      EarnPointsFAQSection.tsx
+      EarnPointsNotificationCTA.tsx
+      EarnPointsFooter.tsx
+  pages/
+    EarnPointsPage.tsx
+  data/
+    earnPointsMockData.ts
+  hooks/
+    useEarnPointsPage.ts
+  App.tsx
+
+Update:
+  PoodlePointsPage tab "Kazanma Yolları" → navigate("/hesabim/poodle-puanlari/kazan")
+  RewardReadyPage "Puan Kazanma Yolları" → same
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — MOCK DATA (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/earnPointsMockData.ts:
+
+export type EarnFilterTab = "all" | "daily" | "club" | "shop" | "guide";
+export type TaskCategory = "daily" | "weekly" | "onetime" | "club" | "shop" | "guide";
+export type TaskStatus = "pending" | "in_progress" | "completed" | "claimed";
+
+export interface PointsSummary {
+  balance: number;              // 775
+  tlValue: string;              // "77,50 TL"
+  currentTier: string;          // "Silver Poodle"
+  nextTier: string;             // "Gold Poodle"
+  pointsToNextTier: number;     // 1225
+  tierProgress: number;         // percent toward gold
+}
+
+export interface StreakDay {
+  day: string;                  // "Pazartesi" etc.
+  label?: string;               // "Bugün" for today
+  points: number;
+  status: "completed" | "today" | "upcoming" | "bonus";
+  isGift?: boolean;             // Sunday gift box
+}
+
+export interface EarnTask {
+  id: string;
+  title: string;
+  category: TaskCategory;
+  section: "today" | "weekly" | "onetime";
+  points: number;
+  progress: number;             // current count
+  progressMax: number;
+  status: TaskStatus;
+  buttonLabel: string;          // "Göreve Git" | "Oku" | "Sor" | "Alındı" | "Tamamla" | "Davet Et"
+  buttonDisabled?: boolean;
+  icon: "login" | "comment" | "book" | "ai" | "post" | "comments" | "guide" | "cart" | "profile" | "phone" | "poodle" | "invite";
+  link?: string;
+}
+
+export interface CompletedTask {
+  id: string;
+  title: string;
+  points: number;
+  date: string;
+}
+
+export const pointsSummary: PointsSummary = {
+  balance: 775,
+  tlValue: "77,50 TL",
+  currentTier: "Silver Poodle",
+  nextTier: "Gold Poodle",
+  pointsToNextTier: 1225,
+  tierProgress: 39,
+};
+
+export const streakDays: StreakDay[] = [
+  { day: "Pzt", points: 5, status: "completed" },
+  { day: "Sal", points: 5, status: "completed" },
+  { day: "Çar", points: 10, status: "completed" },
+  { day: "Per", points: 10, status: "completed" },
+  { day: "Cum", label: "Bugün", points: 15, status: "today" },
+  { day: "Cmt", points: 20, status: "upcoming" },
+  { day: "Paz", points: 50, status: "bonus", isGift: true },
+];
+
+export const todayTasks: EarnTask[] = [
+  {
+    id: "dt-1",
+    title: "Günlük giriş yap",
+    category: "daily",
+    section: "today",
+    points: 15,
+    progress: 1,
+    progressMax: 1,
+    status: "claimed",
+    buttonLabel: "Alındı",
+    buttonDisabled: true,
+    icon: "login",
+  },
+  {
+    id: "dt-2",
+    title: "Club gönderisine yorum yap",
+    category: "club",
+    section: "today",
+    points: 10,
+    progress: 0,
+    progressMax: 1,
+    status: "pending",
+    buttonLabel: "Göreve Git",
+    icon: "comment",
+    link: "/club",
+  },
+  {
+    id: "dt-3",
+    title: "Rehber makalesi oku",
+    category: "guide",
+    section: "today",
+    points: 10,
+    progress: 0,
+    progressMax: 1,
+    status: "pending",
+    buttonLabel: "Oku",
+    icon: "book",
+    link: "/rehber",
+  },
+  {
+    id: "dt-4",
+    title: "AI Asistan'a soru sor",
+    category: "daily",
+    section: "today",
+    points: 10,
+    progress: 0,
+    progressMax: 1,
+    status: "pending",
+    buttonLabel: "Sor",
+    icon: "ai",
+    link: "/ai-asistan",
+  },
+];
+
+export const weeklyTasks: EarnTask[] = [
+  {
+    id: "wt-1",
+    title: "3 Club paylaşımı yap",
+    category: "club",
+    section: "weekly",
+    points: 60,
+    progress: 1,
+    progressMax: 3,
+    status: "in_progress",
+    buttonLabel: "Göreve Git",
+    icon: "post",
+    link: "/club",
+  },
+  {
+    id: "wt-2",
+    title: "5 faydalı yorum bırak",
+    category: "club",
+    section: "weekly",
+    points: 50,
+    progress: 2,
+    progressMax: 5,
+    status: "in_progress",
+    buttonLabel: "Göreve Git",
+    icon: "comments",
+    link: "/club",
+  },
+  {
+    id: "wt-3",
+    title: "2 rehber tamamla",
+    category: "guide",
+    section: "weekly",
+    points: 40,
+    progress: 0,
+    progressMax: 2,
+    status: "pending",
+    buttonLabel: "Oku",
+    icon: "guide",
+    link: "/rehber",
+  },
+  {
+    id: "wt-4",
+    title: "Mağazadan alışveriş yap",
+    category: "shop",
+    section: "weekly",
+    points: 100,
+    progress: 0,
+    progressMax: 1,
+    status: "pending",
+    buttonLabel: "Göreve Git",
+    icon: "cart",
+    link: "/magaza",
+  },
+];
+
+export const weeklyBonus = {
+  completedCount: 2,
+  totalCount: 5,
+  bonusPoints: 200,
+  label: "Tümünü tamamla, +200 bonus kazan",
+};
+
+export const oneTimeTasks: EarnTask[] = [
+  {
+    id: "ot-1",
+    title: "Profilini tamamla",
+    category: "daily",
+    section: "onetime",
+    points: 100,
+    progress: 60,
+    progressMax: 100,
+    status: "in_progress",
+    buttonLabel: "Tamamla",
+    icon: "profile",
+    link: "/hesabim/ayarlar",
+  },
+  {
+    id: "ot-2",
+    title: "Telefonunu doğrula",
+    category: "daily",
+    section: "onetime",
+    points: 50,
+    progress: 1,
+    progressMax: 1,
+    status: "completed",
+    buttonLabel: "Alındı",
+    buttonDisabled: true,
+    icon: "phone",
+  },
+  {
+    id: "ot-3",
+    title: "Toy Poodle profili oluştur",
+    category: "daily",
+    section: "onetime",
+    points: 150,
+    progress: 0,
+    progressMax: 1,
+    status: "pending",
+    buttonLabel: "Tamamla",
+    icon: "poodle",
+    link: "/hesabim/poodle-profil",
+  },
+  {
+    id: "ot-4",
+    title: "Arkadaşını davet et",
+    category: "daily",
+    section: "onetime",
+    points: 250,
+    progress: 0,
+    progressMax: 1,
+    status: "pending",
+    buttonLabel: "Davet Et",
+    icon: "invite",
+  },
+];
+
+export const referralCode = "TARCIN250";
+
+export const shoppingMultipliers = [
+  { label: "Club Üyesi", multiplier: "x2" },
+  { label: "Seçili Ürünler", multiplier: "x3" },
+  { label: "Doğum Gününde", multiplier: "x5" },
+];
+
+export const completedTasks: CompletedTask[] = [
+  { id: "ct-1", title: "Club'da gönderi beğen", points: 5, date: "24 Temmuz 2026" },
+  { id: "ct-2", title: "Favorilere ürün ekle", points: 5, date: "23 Temmuz 2026" },
+  { id: "ct-3", title: "Günlük giriş serisi", points: 15, date: "23 Temmuz 2026" },
+];
+
+export const faqItems = [
+  {
+    id: "faq-1",
+    question: "Puanlar ne zaman yüklenir?",
+    answer: "Görev tamamlandığında puanlar anında hesabınıza eklenir. Alışveriş puanları teslimattan 24 saat sonra yüklenir.",
+  },
+  {
+    id: "faq-2",
+    question: "Puanların son kullanma tarihi var mı?",
+    answer: "Puanlar 12 ay geçerlidir. Sona erecek puanlar size önceden bildirilir.",
+  },
+  {
+    id: "faq-3",
+    question: "Görevler her gün yenilenir mi?",
+    answer: "Günlük görevler her gece yarısı, haftalık görevler her Pazartesi yenilenir.",
+  },
+];
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — useEarnPointsPage HOOK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: hooks/useEarnPointsPage.ts
+
+State:
+  summary: PointsSummary
+  streakDays: StreakDay[]
+  todayTasks, weeklyTasks, oneTimeTasks arrays
+  activeFilter: EarnFilterTab (default "all")
+  todayClaimed: boolean (default true for daily login already claimed)
+  expandedFaqId: string | null
+  streakLength: 5
+
+Functions:
+  setFilter(tab) → filter visible task sections/rows by category
+  claimTodayStreak() → IF !todayClaimed add 15 points + toast "15 PoodlePuan kazandınız ✓"
+  taskAction(taskId) → navigate(link) or handle invite/share modal
+  copyReferralCode() → clipboard TARCIN250 + toast
+  shareReferral() → Web Share API or toast
+  goToStore() → navigate("/magaza")
+  viewPointHistory() → navigate("/hesabim/poodle-puanlari")
+  viewAllCompleted() → expand list or toast
+  openNotifications() → navigate("/hesabim/ayarlar") or toast
+  toggleFaq(id)
+
+Filter logic:
+  all → show all sections
+  daily → today tasks + daily streak + onetime profile tasks
+  club → club category tasks only
+  shop → shop tasks + shopping card
+  guide → guide tasks only
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — BREADCRUMB (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: EarnPointsBreadcrumb.tsx
+
+px-4 pt-3 pb-1
+
+  ArrowLeft color #5D3EBD → navigate("/hesabim/poodle-puanlari")
+  "Hesabım / PoodlePuanlarım / Puan Kazan"
+    text-xs color #5D3EBD
+
+Page title below breadcrumb (in page or header component):
+  "Puan Kazanma Yolları" text-xl font-bold color #5D3EBD mt-2 px-4
+  Optional subtitle: "Görevleri tamamla, puan kazan, ödülleri aç."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — BALANCE HERO CARD (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: EarnPointsBalanceHero.tsx
+
+mx-4 mb-4 rounded-2xl bg gradient purple p-4
+
+  flex gap-3
+
+  LEFT flex-1:
+    Gold coin + "775 PoodlePuan" text-xl font-bold text-white
+    "77,50 TL değerinde" text-xs text-white/80
+    Link "Puan Geçmişi >" text-[10px] text-white/90 mt-1 underline-offset-2
+      onClick → viewPointHistory()
+
+  RIGHT flex-1:
+    Gold badge/seal icon
+    "Gold Poodle seviyesine 1.225 puan kaldı" text-[10px] text-white leading-snug
+    Progress bar mt-2 h-2 bg white/20 rounded-full
+      fill w-[39%] bg #FBBF24 rounded-full
+    "Silver Poodle" text-[10px] text-white/90 mt-1 flex items-center gap-1
+      Medal icon size 12
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — GÜNLÜK GİRİŞ SERİSİ (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: EarnPointsDailyStreak.tsx + EarnPointsStreakDay.tsx
+
+mx-4 mb-4 bg white rounded-2xl border border-gray-100 shadow-sm p-4
+
+  Header flex justify-between items-center mb-3:
+    flex items-center gap-1.5:
+      Flame icon size 18 color #EA580C
+      "Günlük Giriş Serisi" text-sm font-bold text-gray-900
+    "Serin: 5 gün" text-xs font-semibold color #EA580C
+
+  flex justify-between gap-1 mb-3 overflow-x-auto
+
+File: EarnPointsStreakDay.tsx
+
+  flex flex-col items-center min-w-[40px]
+
+  Circle w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-bold
+
+  completed: bg #F3EEFF Check icon purple + "+5" or points below
+  today ("Bugün"): bg #EFF6FF ring-2 ring #3B82F6 "+15"
+  upcoming: bg gray-100 text gray-400 "+20"
+  bonus gift: Gift icon + "+50"
+
+  Day label below: Pzt, Sal, Çar, Per, Cum(Bugün), Cmt, Paz
+
+  Button "Bugünkü Puanı Al":
+    w-full bg #5D3EBD text white text-xs font-semibold py-2.5 rounded-xl
+    disabled IF today already claimed via streak
+    onClick → claimTodayStreak()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — FILTER TABS (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: EarnPointsFilterTabs.tsx
+
+px-4 mb-3 flex gap-2 overflow-x-auto scrollbar-hide
+
+  5 tabs with icons optional:
+
+  | key   | label   |
+  |-------|---------|
+  | all   | Tümü    |
+  | daily | Günlük  |
+  | club  | Club    |
+  | shop  | Mağaza  |
+  | guide | Rehber  |
+
+  ACTIVE: bg #5D3EBD text white px-3.5 py-2 rounded-full text-xs font-semibold
+  INACTIVE: bg white border text gray-600 px-3.5 py-2 rounded-full text-xs
+
+  onClick → setFilter
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — TASK ROW COMPONENT (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: EarnPointsTaskSection.tsx + EarnPointsTaskRow.tsx
+
+Section wrapper:
+  px-4 mb-4
+  Title: "Bugünün Görevleri" | "Haftalık Görevler" | "Tek Seferlik Görevler"
+    text-sm font-bold text-gray-900 mb-2
+
+File: EarnPointsTaskRow.tsx
+
+  flex items-center gap-3 py-3 border-b border-gray-50 last:border-0
+
+  LEFT icon circle w-10 h-10 rounded-xl bg #F3EEFF flex items-center justify-center
+    icon size 18 color #5D3EBD per task type
+
+  CENTER flex-1 min-w-0:
+    title text-sm font-semibold text-gray-900 truncate
+    Progress bar mt-1 h-1 bg gray-100 rounded-full max-w-[120px]
+      fill purple width = progress/progressMax %
+    IF progressMax > 1: text-[10px] text-gray-400 "{progress}/{progressMax}"
+
+  Points badge:
+    "+{points}" text-xs font-bold color #FBBF24 flex items-center gap-0.5
+    small coin icon
+
+  RIGHT button:
+    IF status claimed/completed disabled:
+      "Alındı" bg #F0FDF4 text #16A34A text-[10px] px-2.5 py-1.5 rounded-lg Check icon
+    ELSE:
+      buttonLabel "Göreve Git" | "Oku" | "Sor" | "Tamamla" | "Davet Et"
+      border border #5D3EBD text #5D3EBD text-[10px] font-semibold px-2.5 py-1.5 rounded-lg
+      onClick → taskAction(id)
+
+File: EarnPointsWeeklyBonusBar.tsx
+
+  Above weekly tasks list:
+  bg #F3EEFF rounded-xl p-3 mb-2
+  "Tümünü tamamla, +200 bonus kazan" text-xs font-semibold
+  Progress 2/5 — bar fill 40%
+  "+200" gold text right
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — TASK SECTIONS CONTENT (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BUGÜNÜN GÖREVLERİ — 4 tasks:
+1. Günlük giriş yap — +15 — Alındı ✓
+2. Club gönderisine yorum yap — +10 — 0/1 — Göreve Git
+3. Rehber makalesi oku — +10 — 0/1 — Oku
+4. AI Asistan'a soru sor — +10 — 0/1 — Sor
+
+HAFTALIK GÖREVLER — bonus bar + 4 tasks:
+1. 3 Club paylaşımı yap — +60 — 1/3
+2. 5 faydalı yorum bırak — +50 — 2/5
+3. 2 rehber tamamla — +40 — 0/2
+4. Mağazadan alışveriş yap — +100 — 0/1
+
+TEK SEFERLİK GÖREVLER — 4 tasks:
+1. Profilini tamamla — +100 — 60% progress bar — Tamamla
+2. Telefonunu doğrula — +50 — Alındı
+3. Toy Poodle profili oluştur — +150 — Tamamla
+4. Arkadaşını davet et — +250 — Davet Et
+
+Show/hide sections based on activeFilter.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — REFERRAL BANNER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: EarnPointsReferralBanner.tsx
+
+mx-4 mb-4 rounded-2xl bg gradient purple p-4 relative overflow-hidden
+
+  Background: two poodle photos overlapping decorative right side
+
+  "Arkadaşını Davet Et, 250 PoodlePuan Kazan"
+    text-sm font-bold text-white relative z-10
+
+  Code box mt-3 bg white/20 rounded-xl px-3 py-2 flex items-center justify-between relative z-10:
+    "TARCIN250" text-sm font-bold text-white tracking-wider
+    Copy icon white → copyReferralCode()
+
+  Button "Paylaş":
+    mt-2 bg white text #5D3EBD text-xs font-semibold px-4 py-2 rounded-xl
+    onClick → shareReferral()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — ALIŞVERİŞLE PUAN KAZAN CARD (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: EarnPointsShoppingCard.tsx
+
+mx-4 mb-4 bg #EFF6FF rounded-2xl border border-blue-100 p-4
+
+  flex gap-3
+
+  LEFT: Shopping bag purple icon + gold coins illustration
+
+  CENTER flex-1:
+    "Alışverişle Puan Kazan" text-sm font-bold text-gray-900
+    "Her 10 TL alışverişe 1 PoodlePuan" text-xs text-gray-600 mt-0.5
+
+    flex flex-wrap gap-1.5 mt-2:
+      3 white pill badges:
+      "Club Üyesi x2" | "Seçili Ürünler x3" | "Doğum Gününde x5"
+      text-[9px] font-semibold px-2 py-0.5 rounded-full bg white border
+
+  Button "Mağazaya Git":
+    mt-2 w-full bg #3B82F6 text white text-xs font-semibold py-2.5 rounded-xl
+    onClick → goToStore()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — TAMAMLANAN GÖREVLER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: EarnPointsCompletedList.tsx
+
+px-4 mb-4
+
+  Header flex justify-between mb-2:
+    "Tamamlanan Görevler" text-sm font-bold
+    "Tümünü Gör >" text-xs color #5D3EBD → viewAllCompleted()
+
+  3 rows:
+    Check green + title + "+5 Puan" + date
+
+  Examples:
+  - Club'da gönderi beğen — +5 — 24 Temmuz 2026
+  - Favorilere ürün ekle — +5 — 23 Temmuz 2026
+  - Günlük giriş serisi — +15 — 23 Temmuz 2026
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — FAQ + NOTIFICATION CTA + FOOTER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: EarnPointsFAQSection.tsx
+
+px-4 mb-4 — 3 accordion items from faqItems
+
+File: EarnPointsNotificationCTA.tsx
+
+mx-4 mb-4 bg #F3EEFF rounded-2xl p-4 flex items-center gap-3
+
+  Poodle puppy image w-12 h-12 rounded-full
+
+  "Her gün yeni görevler seni bekliyor!" text-sm font-semibold text-gray-900 flex-1
+
+  Button "Bildirimleri Aç":
+    bg #5D3EBD text white text-[10px] font-semibold px-3 py-2 rounded-xl flex-shrink-0
+    onClick → openNotifications()
+
+File: EarnPointsFooter.tsx
+
+bg #5D3EBD text-white px-4 pt-6 pb-8
+  Logo + Yardım • İletişim • KVKK
+  © 2026 YourPoodle
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: EarnPointsPage.tsx
+
+<div className="max-w-[480px] mx-auto bg-[#F9F9FB] min-h-screen pb-8 shadow-xl">
+  <AuthenticatedHeader />
+  <TabNavigation activeTab="club" />
+
+  <EarnPointsBreadcrumb />
+  {/* Page title in breadcrumb area or separate */}
+  <div className="px-4 pb-2">
+    <h1 className="text-xl font-bold text-[#5D3EBD]">Puan Kazanma Yolları</h1>
+  </div>
+
+  <EarnPointsBalanceHero />
+  <EarnPointsDailyStreak />
+  <EarnPointsFilterTabs />
+
+  <EarnPointsTaskSection title="Bugünün Görevleri" tasks={filteredToday} />
+  <EarnPointsWeeklyBonusBar />
+  <EarnPointsTaskSection title="Haftalık Görevler" tasks={filteredWeekly} />
+  <EarnPointsTaskSection title="Tek Seferlik Görevler" tasks={filteredOneTime} />
+
+  <EarnPointsReferralBanner />
+  <EarnPointsShoppingCard />
+  <EarnPointsCompletedList />
+  <EarnPointsFAQSection />
+  <EarnPointsNotificationCTA />
+  <EarnPointsFooter />
+
+  <MobileDrawer />
+  <Toast />
+</div>
+
+Scroll order:
+  1. Breadcrumb Puan Kazan
+  2. Title Puan Kazanma Yolları
+  3. Balance hero 775 + Gold tier progress
+  4. Daily streak 7 days + Bugünkü Puanı Al
+  5. Filter tabs Tümü active
+  6. Bugünün Görevleri (4)
+  7. Haftalık bonus + 4 tasks
+  8. Tek Seferlik (4)
+  9. Referral TARCIN250
+  10. Alışverişle Puan Kazan
+  11. Tamamlanan Görevler
+  12. FAQ
+  13. Bildirimleri Aç banner
+  14. Footer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 16 — ROUTING & INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add route:
+  <Route path="/hesabim/poodle-puanlari/kazan" element={<EarnPointsPage />} />
+
+Update PoodlePointsPage:
+  Kazanma Yolları tab → navigate("/hesabim/poodle-puanlari/kazan")
+
+Update RewardReadyPage:
+  "Puan Kazanma Yolları" → navigate("/hesabim/poodle-puanlari/kazan")
+
+Task links integrate with existing routes:
+  /club, /rehber, /ai-asistan, /magaza, /hesabim/ayarlar, /hesabim/poodle-profil
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 17 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Balance:
+✅ 775 PoodlePuan + 77,50 TL
+✅ Gold Poodle 1.225 puan kaldı progress bar
+✅ Silver Poodle badge
+✅ Puan Geçmişi link
+
+Streak:
+✅ 7 days Mon-Sun with checkmarks and points
+✅ Bugün highlighted +15
+✅ Sunday gift +50
+✅ Serin: 5 gün
+✅ Bugünkü Puanı Al claims points
+
+Filters:
+✅ Tümü, Günlük, Club, Mağaza, Rehber filter tasks
+
+Tasks:
+✅ All 12 tasks render with progress bars
+✅ Alındı state for completed
+✅ Göreve Git/Oku/Sor/Tamamla/Davet Et navigate or action
+✅ Weekly +200 bonus bar 2/5
+
+Promo:
+✅ TARCIN250 copy + Paylaş
+✅ Shopping card multipliers x2 x3 x5
+✅ Mağazaya Git → /magaza
+
+Other:
+✅ Tamamlanan Görevler 3 items
+✅ FAQ accordion
+✅ Bildirimleri Aç
+✅ npm run dev ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 18 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Breadcrumb Hesabım / PoodlePuanlarım / Puan Kazan
+✅ Puan Kazanma Yolları title
+✅ Purple balance hero complete
+✅ Günlük Giriş Serisi full week UI
+✅ 5 filter tabs
+✅ Bugünün + Haftalık + Tek Seferlik sections
+✅ Referral banner with poodles
+✅ Alışverişle Puan Kazan card
+✅ Tamamlanan Görevler
+✅ FAQ + notification CTA
+✅ © 2026 YourPoodle footer
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the Puan Kazanma Yolları ve Görevler page at /hesabim/poodle-puanlari/kazan exactly as specified.
+Use the EXISTING project — do not rebuild the whole app.
+MUST work: daily login streak claim, task filters, all task action buttons,
+referral copy/share, shopping CTA, profile/Club/shop/guide navigation.
+Match mockup pixel-perfect. Turkish text must be exact.
+Run the app and confirm zero errors before finishing.

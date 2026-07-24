@@ -588,7 +588,7 @@ export default function YPOdulHazirPage() {
               style={{ background:P, color:"#fff", border:"none", borderRadius:12,
                        padding:"8px 16px", fontSize:11, fontWeight:700,
                        cursor:"pointer", fontFamily:"inherit" }}>
-              Puan Kazanma Yolları
+              Puan Kazanma Yolları →
             </button>
           </div>
         </div>
