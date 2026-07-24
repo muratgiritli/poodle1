@@ -189,7 +189,7 @@ export default function YPOdulOnaylaPage() {
 
   function confirmRedeem() {
     if (!termsAccepted) { showToast("Lütfen koşulları kabul edin"); return; }
-    setSuccessModalOpen(true);
+    navigate(`/hesabim/poodle-puanlari/odul-hazir/${rewardId}`);
   }
 
   const DETAIL_ROWS = [

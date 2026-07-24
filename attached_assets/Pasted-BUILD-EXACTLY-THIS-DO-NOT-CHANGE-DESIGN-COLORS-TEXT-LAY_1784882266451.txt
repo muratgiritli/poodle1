@@ -1,0 +1,644 @@
+BUILD EXACTLY THIS — DO NOT CHANGE DESIGN, COLORS, TEXT, LAYOUT, OR ORDER.
+
+You are building the "Ödülünüz Hazır" (Your Reward is Ready) success page for YourPoodle.com.
+This page opens AFTER point redemption is completed on Ödülü Onayla.
+Shows coupon code, QR code, remaining balance, expiry, store CTA, product suggestions,
+reminder toggle, and share options.
+Recreate the provided mobile mockup PIXEL-PERFECT.
+Zero improvisation.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, AuthContext, authenticated Header, TabNavigation,
+  MobileDrawer, Toast, cart hooks, and routing.
+- Opens FROM RewardConfirmPage after successful "500 Puan Kullan ve Ödülü Al".
+- Balance after redeem: 775 PoodlePuan (was 1275, spent 500).
+- DO NOT rebuild the entire app.
+- DO NOT delete or rewrite existing pages.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+Route: /hesabim/poodle-puanlari/odul-hazir/:rewardId
+Example: /hesabim/poodle-puanlari/odul-hazir/pr-1
+
+After finishing, run `npm run dev` and fix ALL errors before stopping.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DO NOT change any Turkish text. Copy character-for-character.
+2. DO NOT change section order. Follow exact scroll order below.
+3. DO NOT skip any element: coupon, QR, balance, steps, products, FAQ, footer.
+4. DO NOT use Lorem ipsum.
+5. Optimize for 390px mobile. Max width 480px centered.
+
+MANDATORY FEATURES:
+  ✅ Success hero with poodle + gift + checkmark + confetti
+  ✅ Transaction number copy-to-clipboard
+  ✅ Purple coupon card with code POODLE50-84K2 + QR + Kodu Kopyala
+  ✅ Kullanılabilir green badge
+  ✅ Min sepet / Son kullanma / Tüm ürünler footer on card
+  ✅ Mağazada Kullan + Kuponlarıma Git buttons
+  ✅ New balance 775 PoodlePuan card
+  ✅ 3-step usage guide + reminder toggle
+  ✅ Product grid + bundle offer with -50 TL calculation
+  ✅ Share row + security badge + FAQ
+  ✅ Purple footer
+
+6. EVERY copy, cart add, navigation, toggle, and share action MUST work.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  purple-primary:  #5D3EBD
+  purple-dark:     #4A22A0
+  purple-light:    #F3EEFF
+  purple-card-bg:  #5D3EBD with paw pattern overlay opacity 10%
+  gold-coin:       #FBBF24
+  success-green:   #16A34A
+  success-green-bg:#F0FDF4
+  available-badge: #F0FDF4 / text #16A34A
+  page-bg:         #F9F9FB
+  card-bg:         #FFFFFF
+  security-green-border:#BBF7D0
+  share-bg:        #FFFFFF
+  text-dark:       #111827
+  footer-bg:       #5D3EBD
+  bundle-green:    #16A34A
+
+Typography: Inter
+Product grid: grid-cols-2 gap-3 px-4
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/
+  components/
+    reward-ready/
+      RewardReadyBreadcrumb.tsx
+      RewardReadyHeroSection.tsx
+      RewardReadyTransactionBox.tsx
+      RewardReadyCouponCard.tsx
+      RewardReadyCouponFooter.tsx
+      RewardReadyActionButtons.tsx
+      RewardReadyBalanceCard.tsx
+      RewardReadyHowToSteps.tsx
+      RewardReadyReminderToggle.tsx
+      RewardReadyProductsGrid.tsx
+      RewardReadyProductCard.tsx
+      RewardReadyBundleOffer.tsx
+      RewardReadyMyRewardsList.tsx
+      RewardReadyShareRow.tsx
+      RewardReadySecurityBadge.tsx
+      RewardReadyFAQSection.tsx
+      RewardReadyClosingBanner.tsx
+      RewardReadyFooter.tsx
+  pages/
+    RewardReadyPage.tsx
+  data/
+    rewardReadyMockData.ts
+  hooks/
+    useRewardReady.ts
+  App.tsx
+
+Update RewardConfirmPage confirmRedeem():
+  navigate(`/hesabim/poodle-puanlari/odul-hazir/${rewardId}`)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — MOCK DATA (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/rewardReadyMockData.ts:
+
+export interface ReadyReward {
+  id: string;
+  title: string;                // "50 TL Alışveriş İndirimi"
+  couponLabel: string;          // "50 TL İNDİRİM"
+  couponCode: string;           // "POODLE50-84K2"
+  pointsUsed: number;           // 500
+  discountAmount: string;       // "50 TL"
+  status: string;               // "Kullanılabilir"
+  minCart: string;              // "500 TL"
+  expiryDate: string;           // "31 Ağustos 2026"
+  validFor: string;             // "Tüm ürünlerde geçerli"
+  transactionNo: string;        // "PP-20260724-1842"
+  transactionDate: string;      // "24 Temmuz 2026 • 01:18"
+  newBalance: number;           // 775
+  newBalanceTl: string;         // "77,50 TL"
+}
+
+export interface SuggestedProduct {
+  id: string;
+  name: string;
+  price: string;
+  image: string;
+  couponEligible: boolean;
+}
+
+export interface BundleOffer {
+  items: string[];
+  images: string[];
+  subtotal: string;
+  couponDiscount: string;
+  total: string;
+}
+
+export interface OtherReward {
+  id: string;
+  title: string;
+  expiry: string;
+}
+
+export const readyReward: ReadyReward = {
+  id: "pr-1",
+  title: "50 TL Alışveriş İndirimi",
+  couponLabel: "50 TL İNDİRİM",
+  couponCode: "POODLE50-84K2",
+  pointsUsed: 500,
+  discountAmount: "50 TL",
+  status: "Kullanılabilir",
+  minCart: "500 TL",
+  expiryDate: "31 Ağustos 2026",
+  validFor: "Tüm ürünlerde geçerli",
+  transactionNo: "PP-20260724-1842",
+  transactionDate: "24 Temmuz 2026 • 01:18",
+  newBalance: 775,
+  newBalanceTl: "77,50 TL",
+};
+
+export const suggestedProducts: SuggestedProduct[] = [
+  {
+    id: "sp-1",
+    name: "Buharlı Masaj Tarağı",
+    price: "399 TL",
+    image: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=200&h=200&fit=crop",
+    couponEligible: true,
+  },
+  {
+    id: "sp-2",
+    name: "Göz Temizleme Losyonu",
+    price: "289 TL",
+    image: "https://images.unsplash.com/photo-1591946614720-90a587da4a36?w=200&h=200&fit=crop",
+    couponEligible: true,
+  },
+  {
+    id: "sp-3",
+    name: "Premium Deri Tasma",
+    price: "549 TL",
+    image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=200&h=200&fit=crop",
+    couponEligible: true,
+  },
+  {
+    id: "sp-4",
+    name: "Doğal Ödül Maması",
+    price: "199 TL",
+    image: "https://images.unsplash.com/photo-1589924691995-400dc9e7c8?w=200&h=200&fit=crop",
+    couponEligible: true,
+  },
+];
+
+export const bundleOffer: BundleOffer = {
+  items: ["Buharlı Masaj Tarağı", "Göz Temizleme Losyonu"],
+  images: [
+    "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=60&h=60&fit=crop",
+    "https://images.unsplash.com/photo-1591946614720-90a587da4a36?w=60&h=60&fit=crop",
+  ],
+  subtotal: "688 TL",
+  couponDiscount: "-50 TL",
+  total: "638 TL",
+};
+
+export const otherRewards: OtherReward[] = [
+  { id: "or-1", title: "50 TL İndirim", expiry: "31 Ağustos 2026" },
+  { id: "or-2", title: "Ücretsiz Kargo", expiry: "12 Ağustos 2026" },
+];
+
+export const howToSteps = [
+  { step: 1, text: "Mağazadan ürünleri seç", icon: "bag" },
+  { step: 2, text: "500 TL sepet tutarına ulaş", icon: "cart" },
+  { step: 3, text: "Ödemede kuponu uygula", icon: "ticket" },
+];
+
+export const faqItems = [
+  {
+    id: "faq-1",
+    question: "Kupon neden çalışmıyor?",
+    answer: "Minimum sepet tutarına ulaştığınızdan emin olun. Kupon tek kullanımlıktır ve başka kuponlarla birleştirilemez.",
+  },
+  {
+    id: "faq-2",
+    question: "İptal ve puan iadesi",
+    answer: "Kullanılmamış kuponlar 30 gün içinde iade talep edilebilir. Kullanılan kuponlarda puan iadesi yapılmaz.",
+  },
+  {
+    id: "faq-3",
+    question: "Yardım ve destek",
+    answer: "Yardım Merkezi'nden destek ekibimize ulaşabilirsiniz.",
+  },
+];
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — useRewardReady HOOK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: hooks/useRewardReady.ts
+
+State:
+  reward: ReadyReward
+  reminderOn: boolean (default true)
+  copiedCode: boolean
+  copiedTransaction: boolean
+  expandedFaqId: string | null
+
+Functions:
+  copyCouponCode() → clipboard POODLE50-84K2 + toast "Kupon kodu kopyalandı ✓"
+  copyTransactionNo() → clipboard PP-20260724-1842 + toast "İşlem no kopyalandı ✓"
+  useInStore() → navigate("/magaza") with coupon applied stub + toast
+  goToMyCoupons() → navigate("/hesabim/poodle-puanlari/odul-merkezi") scroll earned
+  viewPointDetails() → navigate("/hesabim/poodle-puanlari")
+  toggleReminder() → flip + toast if off "Hatırlatıcı kapatıldı"
+  addToCart(productId) → cart hook + toast "Sepete eklendi ✓"
+  addBundleToCart() → cart hook + toast
+  shareVia(type: "link"|"sms"|"whatsapp"|"email"|"more") → Web Share API or toast
+  earnMorePoints() → navigate("/hesabim/poodle-puanlari") setTab earn
+  toggleFaq(id)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — BREADCRUMB + SUCCESS HERO (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardReadyBreadcrumb.tsx
+
+px-4 pt-3 pb-1
+  ArrowLeft → navigate("/hesabim/poodle-puanlari/odul-merkezi")
+  "Hesabım / PoodlePuanlarım / Ödülünüz Hazır" text-xs color #5D3EBD
+
+File: RewardReadyHeroSection.tsx
+
+px-4 pb-3 text-center
+
+  Illustration area relative h-32 mb-3:
+    Poodle image center-left w-20 h-20 rounded-full object-cover
+    Purple gift box icon/box right
+    Large checkmark circle purple bg white check floating top
+    Small confetti dots scattered (Sparkles icons purple/gold)
+
+  "Ödülünüz Hazır!"
+    text-xl font-bold color #5D3EBD
+
+  "500 PoodlePuan başarıyla kullanıldı. 50 TL indirim kuponunuz hesabınıza tanımlandı."
+    text-sm text-gray-600 mt-2 px-2 leading-relaxed
+
+File: RewardReadyTransactionBox.tsx
+
+mx-4 mb-4 bg gray-100 rounded-xl px-4 py-2.5 flex items-center justify-between
+
+  "İşlem No: PP-20260724-1842" text-xs text-gray-700 font-medium
+  Copy icon size 14 → copyTransactionNo()
+
+  Below or inline-right:
+  "24 Temmuz 2026 • 01:18" text-[10px] text-gray-400
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — COUPON CARD (EXACT — MAIN FEATURE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardReadyCouponCard.tsx
+
+mx-4 mb-3 rounded-2xl overflow-hidden bg #5D3EBD p-4 relative
+  Optional: paw print pattern overlay opacity-10
+
+  flex gap-3
+
+  LEFT:
+    3D ticket visual "50 TL İNDİRİM" white text on lighter purple ticket shape
+
+  CENTER flex-1 min-w-0:
+    "50 TL Alışveriş İndirimi" text-sm font-bold text-white
+    Badge "Kullanılabilir":
+      bg #F0FDF4 text #16A34A text-[10px] font-semibold px-2 py-0.5 rounded-full mt-1 inline-block
+
+    Code box mt-2 bg white rounded-lg px-3 py-2 flex items-center justify-between:
+      "POODLE50-84K2" text-sm font-bold text-gray-900 tracking-wide
+      Copy icon → copyCouponCode()
+
+    Button "Kodu Kopyala":
+      mt-2 w-full flex items-center justify-center gap-1
+      bg white/20 border border white/40 text white text-xs font-semibold py-2 rounded-lg
+      Copy icon + "Kodu Kopyala"
+      onClick → copyCouponCode()
+
+  RIGHT:
+    QR code placeholder w-16 h-16 bg white rounded-lg p-1 flex-shrink-0
+      Use QR code SVG or grid pattern stub
+    "Kasada okut" text-[9px] text-white/80 text-center mt-1
+
+File: RewardReadyCouponFooter.tsx
+
+Inside card bottom or separate row below code — 3 segments flex border-t border white/20 pt-3 mt-3
+
+  1. ShoppingCart icon white/80 + "Min. Sepet" + "500 TL" text-[10px] text-white
+  2. Calendar icon + "Son Kullanma" + "31 Ağustos 2026"
+  3. Tag icon + "Tüm ürünlerde geçerli"
+
+File: RewardReadyActionButtons.tsx
+
+px-4 mb-4 space-y-2
+
+  "Mağazada Kullan":
+    w-full bg #5D3EBD text white font-semibold text-sm py-3.5 rounded-xl
+    onClick → useInStore()
+
+  "Kuponlarıma Git":
+    w-full border-2 border #5D3EBD text #5D3EBD bg white font-semibold text-sm py-3 rounded-xl
+    onClick → goToMyCoupons()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — NEW BALANCE CARD (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardReadyBalanceCard.tsx
+
+mx-4 mb-4 bg white rounded-2xl border border-gray-100 shadow-sm p-4
+
+  flex items-start gap-3
+
+  Gold paw coin icon w-10 h-10
+
+  flex-1:
+    "Yeni Puan Bakiyen" text-xs text-gray-500
+    "775 PoodlePuan" text-lg font-bold text-gray-900
+    "(77,50 TL indirim değerinde)" text-xs text-gray-500
+
+    flex items-center gap-1 mt-1:
+      CheckCircle size 14 color #16A34A
+      "İşlem tamamlandı" text-xs color #16A34A font-medium
+
+    Link "Puan Detaylarını Gör >" text-xs color #5D3EBD font-semibold mt-2
+      onClick → viewPointDetails()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 — HOW TO USE + REMINDER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardReadyHowToSteps.tsx
+
+mx-4 mb-3 bg white rounded-2xl border p-4
+
+  "Kuponu nasıl kullanırsın?" text-sm font-bold text-gray-900 mb-3
+
+  Horizontal 3-step stepper flex justify-between
+
+  Each step text-center flex-1:
+    circle w-7 h-7 rounded-full bg #5D3EBD text white text-xs font-bold mx-auto
+    icon below step number (Bag, Cart, Ticket)
+    text text-[10px] text-gray-600 mt-1 leading-tight
+
+  Steps:
+  1. Mağazadan ürünleri seç
+  2. 500 TL sepet tutarına ulaş
+  3. Ödemede kuponu uygula
+
+File: RewardReadyReminderToggle.tsx
+
+mx-4 mb-4 bg #F3EEFF rounded-xl p-3 flex items-center gap-3
+
+  Bell icon size 18 color #5D3EBD
+
+  "Kuponunu unutma. Sona ermeden 3 gün önce sana haber vereceğiz." text-xs text-gray-700 flex-1
+
+  Toggle + label "Hatırlatıcı Açık":
+    purple when ON, default ON
+    onClick → toggleReminder()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 9 — PRODUCT GRID + BUNDLE (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardReadyProductsGrid.tsx + RewardReadyProductCard.tsx
+
+px-4 mb-4
+
+  "Kuponla Alabileceğin Ürünler" text-sm font-bold text-gray-900 mb-3
+
+  grid grid-cols-2 gap-3
+
+  Card:
+    image square rounded-lg object-cover
+    badge "50 TL kuponuna uygun" text-[9px] bg #F3EEFF text #5D3EBD px-1.5 py-0.5 rounded
+    name text-xs font-semibold
+    price text-sm font-bold color #5D3EBD
+    "Sepete Ekle" button purple text-[10px] py-1.5 rounded-lg w-full
+    onClick → addToCart
+
+  4 products from mock
+
+File: RewardReadyBundleOffer.tsx
+
+mx-4 mb-4 bg white rounded-2xl border p-4
+
+  "Kuponu hemen kullan" text-sm font-bold text-gray-900 mb-2
+
+  flex gap-2 items-center mb-3:
+    2 overlapping product thumbnails
+    "Tarak + Losyon Paketi" text-xs font-medium
+
+  Rows:
+    Ara Toplam: 688 TL
+    Kupon: -50 TL (green)
+    Toplam: 638 TL (bold green)
+
+  "Sepete Ekle" full width purple button
+  onClick → addBundleToCart()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 10 — MY REWARDS + SHARE + SECURITY + FAQ (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardReadyMyRewardsList.tsx
+
+px-4 mb-4
+
+  "Kazandığım Ödüller" text-sm font-bold mb-2
+  Header right "Tüm Ödüllerim >" color #5D3EBD text-xs → goToMyCoupons()
+
+  2 rows:
+  - 50 TL İndirim — 31 Ağustos 2026
+  - Ücretsiz Kargo — 12 Ağustos 2026
+
+File: RewardReadyShareRow.tsx
+
+px-4 mb-4
+
+  "Ödülünü paylaş" text-sm font-bold mb-2
+
+  flex gap-3 justify-center
+  5 circle buttons: Link, MessageSquare (SMS), share WhatsApp color, Mail, MoreHorizontal
+  onClick → shareVia(type)
+
+File: RewardReadySecurityBadge.tsx
+
+mx-4 mb-4 border-2 border #BBF7D0 bg #F0FDF4 rounded-xl p-3 flex gap-2
+
+  ShieldCheck icon color #16A34A
+  "Ödülünüz güvenle hesabınıza eklendi. Kupon kodunuz yalnızca size özeldir."
+    text-xs text-gray-700
+
+File: RewardReadyFAQSection.tsx
+
+px-4 mb-4 — 3 accordion items from faqItems
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 11 — CLOSING BANNER + FOOTER (EXACT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardReadyClosingBanner.tsx
+
+mx-4 mb-4 bg #F3EEFF rounded-2xl p-4 flex items-center gap-3
+
+  Poodle image w-14 h-14 rounded-full
+
+  "Güle güle kullan!" text-sm font-bold
+  "Yeni ödüller için puan kazanmaya devam et." text-xs text-gray-600
+
+  Button "Puan Kazanma Yolları":
+    mt-2 bg #5D3EBD text white text-xs font-semibold px-4 py-2 rounded-xl
+    onClick → earnMorePoints()
+
+File: RewardReadyFooter.tsx
+
+bg #5D3EBD text-white px-4 pt-6 pb-8
+  Logo + Yardım • İletişim • KVKK
+  © 2026 YourPoodle
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 12 — PAGE ASSEMBLY (EXACT SCROLL ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: RewardReadyPage.tsx
+
+<div className="max-w-[480px] mx-auto bg-[#F9F9FB] min-h-screen pb-8 shadow-xl">
+  <AuthenticatedHeader />
+  <TabNavigation activeTab="club" />
+
+  <RewardReadyBreadcrumb />
+  <RewardReadyHeroSection />
+  <RewardReadyTransactionBox />
+  <RewardReadyCouponCard />
+  <RewardReadyCouponFooter />      ← may be inside coupon card
+  <RewardReadyActionButtons />
+  <RewardReadyBalanceCard />
+  <RewardReadyHowToSteps />
+  <RewardReadyReminderToggle />
+  <RewardReadyProductsGrid />
+  <RewardReadyBundleOffer />
+  <RewardReadyMyRewardsList />
+  <RewardReadyShareRow />
+  <RewardReadySecurityBadge />
+  <RewardReadyFAQSection />
+  <RewardReadyClosingBanner />
+  <RewardReadyFooter />
+
+  <MobileDrawer />
+  <Toast />
+</div>
+
+Scroll order:
+  1. Breadcrumb Ödülünüz Hazır
+  2. Success hero + confetti
+  3. 500 puan used message
+  4. İşlem No box
+  5. Purple coupon card + QR + POODLE50-84K2
+  6. Mağazada Kullan + Kuponlarıma Git
+  7. 775 PoodlePuan balance card
+  8. 3-step how to use
+  9. Reminder toggle ON
+  10. 4 product cards
+  11. Bundle 688 - 50 = 638
+  12. Kazandığım Ödüller
+  13. Share row
+  14. Security badge
+  15. FAQ
+  16. Güle güle kullan banner
+  17. Footer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 13 — ROUTING & INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add route:
+  <Route path="/hesabim/poodle-puanlari/odul-hazir/:rewardId"
+         element={<RewardReadyPage />} />
+
+Update useRewardConfirm confirmRedeem():
+  Deduct 500 points (1275 → 775) in localStorage
+  navigate(`/hesabim/poodle-puanlari/odul-hazir/pr-1`)
+
+Mağazada Kullan → /magaza with coupon code in sessionStorage for checkout auto-apply stub.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 14 — INTERACTIVITY QA (ALL MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Hero:
+✅ Ödülünüz Hazır! + poodle illustration
+✅ 500 PoodlePuan message exact
+✅ Copy transaction no works
+
+Coupon:
+✅ POODLE50-84K2 displayed
+✅ Kodu Kopyala + copy icon toast
+✅ QR placeholder + Kasada okut
+✅ Kullanılabilir badge green
+✅ Min sepet 500 TL, expiry 31 Ağustos 2026, Tüm ürünlerde geçerli
+
+Actions:
+✅ Mağazada Kullan → /magaza
+✅ Kuponlarıma Git → ödül merkezi
+
+Balance:
+✅ 775 PoodlePuan + 77,50 TL + İşlem tamamlandı
+✅ Puan Detaylarını Gör link
+
+Usage:
+✅ 3 steps displayed
+✅ Reminder toggle works default ON
+
+Products:
+✅ 4 products with Sepete Ekle
+✅ Bundle calculation 688 - 50 = 638
+
+Other:
+✅ Share buttons toast/share
+✅ FAQ accordion
+✅ Puan Kazanma Yolları navigates
+✅ npm run dev ZERO errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 15 — FINAL VISUAL QA (DO NOT STOP UNTIL ALL PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Full page matches mockup scroll order
+✅ Coupon card purple with all elements
+✅ Remaining balance 775 shown
+✅ Expiry 31 Ağustos 2026 visible
+✅ Mağazada Kullan primary CTA
+✅ All Turkish text exact
+✅ © 2026 YourPoodle footer
+
+If ANY item fails → fix immediately. Do NOT stop until ALL pass.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build the Ödülünüz Hazır page at /hesabim/poodle-puanlari/odul-hazir/:rewardId exactly as specified.
+Use the EXISTING project — do not rebuild the whole app.
+MUST work: coupon copy, transaction copy, QR display, balance 775,
+Mağazada Kullan, products add to cart, reminder toggle, share, FAQ.
+Opens after successful point redemption from Ödülü Onayla.
+Match mockup pixel-perfect. Turkish text must be exact.
+Run the app and confirm zero errors before finishing.
