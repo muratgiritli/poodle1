@@ -149,6 +149,21 @@ export default function YourPoodleV4() {
           ))}
 
           <div style={{ position: "relative", zIndex: 1, maxWidth: 680, margin: "0 auto" }}>
+            {/* poodle avatar */}
+            <div style={{
+              width: 88, height: 88, borderRadius: "50%",
+              background: "rgba(255,255,255,0.15)",
+              border: "3px solid rgba(255,255,255,0.3)",
+              overflow: "hidden", margin: "0 auto 20px",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <img src="/images/poodle-hero-transparent.png" alt="Poodle"
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                onError={e => {
+                  (e.target as HTMLImageElement).outerHTML = '<span style="font-size:48px">🐩</span>';
+                }} />
+            </div>
+
             {/* pill badge */}
             <div style={{
               display: "inline-flex", alignItems: "center", gap: 8,
@@ -405,41 +420,68 @@ export default function YourPoodleV4() {
           </div>
         </section>
 
-        {/* ══════════ 7. SERVICES ══════════ */}
+        {/* ══════════ 7. CLUB ══════════ */}
         <section style={{ maxWidth: 1060, margin: "52px auto 0", padding: "0 20px" }}>
           <div style={{
-            background: "#F9FAFB", border: "1px solid #F3F4F6",
-            borderRadius: 24, padding: "40px 40px",
+            background: `linear-gradient(135deg, ${PUR2} 0%, ${PUR} 100%)`,
+            borderRadius: 24, padding: "48px 52px",
             display: "flex", alignItems: "center", justifyContent: "space-between",
-            gap: 32, flexWrap: "wrap",
+            gap: 32, flexWrap: "wrap", position: "relative", overflow: "hidden",
           }}>
-            <div style={{ flex: 1, minWidth: 260 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: PUR, textTransform: "uppercase",
-                          letterSpacing: 1.2, marginBottom: 8 }}>Konum odaklı</p>
-              <h3 style={{ fontSize: "clamp(18px, 2.5vw, 26px)", fontWeight: 900, color: "#111", marginBottom: 10 }}>
-                Yakınınızdaki güvenilir<br />hizmetleri bulun
+            {/* bg blobs */}
+            <div style={{ position:"absolute", width:260, height:260, borderRadius:"50%",
+                          background:"rgba(255,255,255,0.06)", top:-80, right:120, pointerEvents:"none" }} />
+            <div style={{ position:"absolute", width:160, height:160, borderRadius:"50%",
+                          background:"rgba(255,255,255,0.05)", bottom:-60, right:40, pointerEvents:"none" }} />
+
+            <div style={{ flex: 1, minWidth: 260, position: "relative", zIndex: 1 }}>
+              <div style={{ display:"inline-flex", alignItems:"center", gap:6,
+                            background:"rgba(255,255,255,0.15)", borderRadius:99,
+                            padding:"4px 14px", marginBottom:14 }}>
+                <span style={{ fontSize:14 }}>🐩</span>
+                <span style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.9)",
+                               textTransform:"uppercase", letterSpacing:1 }}>YourPoodle Club</span>
+              </div>
+              <h3 style={{ fontSize:"clamp(20px, 2.8vw, 30px)", fontWeight:900, color:"#fff",
+                           marginBottom:10, lineHeight:1.2 }}>
+                Topluluğa katıl,<br />farkı hisset
               </h3>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 28 }}>
-                {["Veteriner", "Köpek kuaförü", "Eğitim", "Otel", "Pet taksi"].map(s => (
-                  <span key={s} style={{
-                    fontSize: 13, fontWeight: 600, color: "#374151",
-                    background: "#fff", border: "1px solid #E5E7EB",
-                    padding: "6px 14px", borderRadius: 99,
-                  }}>{s}</span>
+              <p style={{ fontSize:14, color:"rgba(255,255,255,0.75)", marginBottom:22, maxWidth:400 }}>
+                Poodle profilini oluştur, özel indirimlerden ve kişisel önerilerden yararlan.
+              </p>
+              <div style={{ display:"flex", gap:20, flexWrap:"wrap", marginBottom:28 }}>
+                {["Poodle profili","Soru-cevap topluluğu","Üyelere özel fiyatlar","Kişisel bakım önerileri"].map(f => (
+                  <div key={f} style={{ display:"flex", alignItems:"center", gap:6,
+                                        fontSize:13, color:"rgba(255,255,255,0.85)" }}>
+                    <CheckCircle2 size={13} color="#A78BFA" /> {f}
+                  </div>
                 ))}
               </div>
-              <Link href="/hizmetler">
+              <Link href="/uye-ol">
                 <button style={{
-                  display: "flex", alignItems: "center", gap: 8,
-                  background: PUR, color: "#fff", border: "none",
-                  padding: "13px 24px", borderRadius: 12, fontSize: 14,
-                  fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                  background:"#fff", color:PUR, border:"none",
+                  padding:"14px 32px", borderRadius:14, fontSize:15,
+                  fontWeight:800, cursor:"pointer", fontFamily:"inherit",
+                  boxShadow:"0 4px 20px rgba(0,0,0,0.18)",
                 }}>
-                  <MapPin size={15} /> Konumumu Kullan
+                  Ücretsiz Üye Ol 🎉
                 </button>
               </Link>
             </div>
-            <div style={{ fontSize: 80, opacity: 0.12, userSelect: "none", pointerEvents: "none" }}>📍</div>
+
+            {/* poodle illustration */}
+            <div style={{ flexShrink:0, position:"relative", zIndex:1 }}>
+              <div style={{
+                width:160, height:160, borderRadius:"50%",
+                background:"rgba(255,255,255,0.12)",
+                border:"3px solid rgba(255,255,255,0.25)",
+                overflow:"hidden", display:"flex", alignItems:"center", justifyContent:"center",
+              }}>
+                <img src="/images/poodle-hero-transparent.png" alt="Poodle"
+                  style={{ width:"100%", height:"100%", objectFit:"cover" }}
+                  onError={e => { (e.target as HTMLImageElement).style.display="none"; }} />
+              </div>
+            </div>
           </div>
         </section>
 
