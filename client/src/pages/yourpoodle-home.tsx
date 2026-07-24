@@ -1,335 +1,511 @@
 import React, { useState, useRef } from "react";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { useCustomer } from "@/contexts/CustomerContext";
+import { IS_YP } from "@/lib/store";
 import {
-  CreditCard, ChevronRight, Clock, Sparkles, MessageCirclePlus, Heart,
+  Bot, BookOpen, MapPin, Utensils, Heart, ShoppingCart,
+  ChevronRight, Bookmark, Clock, Star,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 
-/* ── Colors ── */
-const P   = "#6200EE";
-const PD  = "#3D0099";
-const FBG = "#1A0052";
-const PL  = "#F3EEFF";
-const PB  = "#EDE7FF";
-const GT  = "#6B7280";
-const GB  = "#E5E7EB";
-const GBG = "#F9FAFB";
-const BL  = "#2563EB";
-const BS  = "#DBEAFE";
-const BST = "#1D4ED8";
-const HA  = "#EF4444";
+const BASE = IS_YP ? "" : "/yourpoodle";
+const P    = "#7022C4";
 
-/* ── Types ── */
-interface YPProduct {
-  id: number; name: string; price: number; originalPrice?: number | null;
-  img?: string | null; stock: number; isActive: boolean;
+/* ── Static fallback products (match design screenshot) ── */
+interface StaticProduct {
+  id: string; name: string; price: number; rating: number; reviews: number;
+  img: string; category: string;
 }
-
-interface AccessoryProduct {
-  id: string; title: string; price: string; image: string; bestseller?: boolean;
-}
-
-interface GuideArticle {
-  id: string; title: string; description: string; readTime: string; image: string;
-}
-
-/* ── Static data ── */
-const ACCESSORIES: AccessoryProduct[] = [
-  { id:"a1", title:"Lavanta Poodle Elbisesi", price:"549 TL", image:"https://images.unsplash.com/photo-1591946614720-90a587da4a36?w=400&h=400&fit=crop" },
-  { id:"a2", title:"Air Mesh Göğüs Tasması",  price:"429 TL", image:"https://images.unsplash.com/photo-1608093273490-9a4a4c4d8661?w=400&h=400&fit=crop", bestseller:true },
-  { id:"a3", title:"Köpek Çiş Bezi",          price:"249 TL", image:"https://images.unsplash.com/photo-1544568100-847a948583b9?w=400&h=400&fit=crop" },
-  { id:"a4", title:"Poodle Parfümü",           price:"319 TL", image:"https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=400&h=400&fit=crop" },
-  { id:"a5", title:"Buharlı Maşa Tarağı",     price:"399 TL", image:"https://images.unsplash.com/photo-1516734212184-a967f81ad0d2?w=400&h=400&fit=crop" },
-  { id:"a6", title:"Göz Yaşı Bakım Losyonu",  price:"289 TL", image:"https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=400&fit=crop" },
+const FEATURED_PRODUCTS: StaticProduct[] = [
+  {
+    id: "rc-poodle-adult",
+    name: "Royal Canin Poodle Adult Kuru Mama 1.5 Kg",
+    price: 699,
+    rating: 4.8,
+    reviews: 124,
+    img: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=300&h=300&fit=crop",
+    category: "mama",
+  },
+  {
+    id: "eye-envy",
+    name: "Eye Envy Gözyaşı Lekesi Temizleme Losyonu 118 ml",
+    price: 499,
+    rating: 4.6,
+    reviews: 89,
+    img: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=300&h=300&fit=crop",
+    category: "bakim",
+  },
+  {
+    id: "chris-brush",
+    name: "Chris Christensen Mark II Slicker Fırça – Küçük",
+    price: 749,
+    rating: 4.9,
+    reviews: 67,
+    img: "https://images.unsplash.com/photo-1516734212184-a967f81ad0d2?w=300&h=300&fit=crop",
+    category: "bakim",
+  },
+  {
+    id: "puppia-harness",
+    name: "Puppia Soft Air-Mesh Göğüs Tasması (Mor)",
+    price: 599,
+    rating: 4.7,
+    reviews: 52,
+    img: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=300&h=300&fit=crop",
+    category: "aksesuar",
+  },
 ];
 
-const GUIDES: GuideArticle[] = [
-  { id:"g1", title:"Toy Poodle Tuvalet Eğitimi",      description:"Adım adım tuvalet eğitimi rehberi",    readTime:"5 dk", image:"https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=120&h=120&fit=crop" },
-  { id:"g2", title:"Doğru Mama Nasıl Seçilir?",       description:"Yaşa ve ihtiyacına uygun mama seçimi", readTime:"4 dk", image:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=120&h=120&fit=crop" },
-  { id:"g3", title:"Göz Yaşı Lekesi Bakımı",          description:"Günlük bakım önerileri",               readTime:"3 dk", image:"https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=120&h=120&fit=crop" },
-  { id:"g4", title:"Tüy Bakımı ve Tarama",             description:"Düğümsüz, temiz ve parlak tüyler",     readTime:"6 dk", image:"https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=120&h=120&fit=crop" },
-  { id:"g5", title:"Yavru Poodle Eve İlk Geldiğinde", description:"İlk günlerde sağlıklı başlangıç",      readTime:"7 dk", image:"https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=120&h=120&fit=crop" },
+const TOP_ARTICLES = [
+  { slug: "tuy-bakimi-nasil-yapilir",  title: "Toy Poodle Tüy Bakımı Nasıl Yapılır?",         readMin: 5, img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=80&h=80&fit=crop" },
+  { slug: "dogru-mama-secimi",          title: "Poodle Beslenme Rehberi: Doğru Mama Seçimi",    readMin: 6, img: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=80&h=80&fit=crop" },
+  { slug: "goz-yaslari",               title: "Gözyaşı Lekeleri Neden Olur ve Nasıl Geçer?",   readMin: 4, img: "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=80&h=80&fit=crop" },
 ];
 
-/* ── Subcomponents ── */
-function Toast({ message, visible }: { message: string; visible: boolean }) {
+const COMMUNITY_AVATARS = [
+  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=40&h=40&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=40&h=40&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=40&h=40&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=40&h=40&fit=crop&crop=face",
+];
+
+/* ── Star Rating ── */
+function StarRating({ rating, reviews }: { rating: number; reviews: number }) {
   return (
-    <div style={{ position:"fixed", bottom:90, left:"50%", transform:"translateX(-50%)",
-                  zIndex:999, pointerEvents:"none", opacity:visible?1:0, transition:"opacity 0.3s ease" }}>
-      <div style={{ background:FBG, color:"#fff", padding:"12px 24px", borderRadius:999,
-                    fontSize:14, fontWeight:500, whiteSpace:"nowrap", boxShadow:"0 4px 16px rgba(0,0,0,0.25)" }}>
-        {message}
+    <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 6 }}>
+      {[1,2,3,4,5].map(s => (
+        <Star key={s} size={12}
+          fill={s <= Math.round(rating) ? "#FBBF24" : "none"}
+          color={s <= Math.round(rating) ? "#FBBF24" : "#D1D5DB"}
+          strokeWidth={1.5} />
+      ))}
+      <span style={{ fontSize: 11, color: "#6B7280" }}>({reviews})</span>
+    </div>
+  );
+}
+
+/* ── Toast ── */
+function Toast({ msg, show }: { msg: string; show: boolean }) {
+  return (
+    <div style={{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)",
+                  zIndex:9999, pointerEvents:"none", transition:"opacity 0.3s",
+                  opacity: show ? 1 : 0 }}>
+      <div style={{ background:"#1F2937", color:"#fff", padding:"10px 22px",
+                    borderRadius:999, fontSize:13, fontWeight:600,
+                    boxShadow:"0 4px 16px rgba(0,0,0,0.25)", whiteSpace:"nowrap" }}>
+        {msg}
       </div>
     </div>
   );
 }
 
-function ProductCard({
-  title, price, image, installment, bestseller, isFavorite, onToggleFavorite, onAddToCart,
-}: {
-  title:string; price:string; image:string; installment?:boolean; bestseller?:boolean;
-  isFavorite:boolean; onToggleFavorite:()=>void; onAddToCart:()=>void;
+/* ── Product Card ── */
+function ProductCard({ product, isFav, onFav, onCart }: {
+  product: StaticProduct;
+  isFav: boolean;
+  onFav: () => void;
+  onCart: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
   return (
-    <div onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}
-      style={{ background:"#fff", borderRadius:12, border:`1px solid ${GB}`,
-               boxShadow: hovered ? "0 4px 12px rgba(0,0,0,0.12)" : "0 1px 3px rgba(0,0,0,0.08)",
-               padding:12, display:"flex", flexDirection:"column", transition:"box-shadow 0.2s" }}>
-      <div style={{ position:"relative", marginBottom:8 }}>
-        <div style={{ height:128, background:GBG, borderRadius:8, padding:8,
-                      display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden" }}>
-          <img src={image} alt={title} loading="lazy"
-            style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }}
-            onError={e => { (e.currentTarget as HTMLImageElement).style.display="none"; }} />
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: "#fff", borderRadius: 16, border: "1px solid #F3F4F6",
+        boxShadow: hovered ? "0 8px 24px rgba(0,0,0,0.12)" : "0 2px 8px rgba(0,0,0,0.06)",
+        padding: 12, display: "flex", flexDirection: "column",
+        transition: "box-shadow 0.2s, transform 0.2s",
+        transform: hovered ? "translateY(-2px)" : "none",
+        cursor: "pointer",
+      }}>
+      {/* Image */}
+      <div style={{ position: "relative", marginBottom: 10 }}>
+        <div style={{ height: 148, borderRadius: 10, background: "#F9FAFB",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      overflow: "hidden" }}>
+          <img src={product.img} alt={product.name}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
         </div>
-        <button aria-label={isFavorite ? "Favorilerden çıkar" : "Favorilere ekle"}
-          onClick={onToggleFavorite}
-          style={{ position:"absolute", top:6, right:6, background:"rgba(255,255,255,0.9)", border:"none",
-                   borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center",
-                   justifyContent:"center", cursor:"pointer", boxShadow:"0 1px 4px rgba(0,0,0,0.15)" }}>
-          <Heart size={15} fill={isFavorite?HA:"none"} color={isFavorite?HA:GT} strokeWidth={1.5} />
+        <button
+          aria-label={isFav ? "Favorilerden çıkar" : "Favorilere ekle"}
+          onClick={e => { e.stopPropagation(); onFav(); }}
+          style={{ position: "absolute", top: 8, right: 8, background: "rgba(255,255,255,0.92)",
+                   border: "none", borderRadius: "50%", width: 32, height: 32,
+                   display: "flex", alignItems: "center", justifyContent: "center",
+                   cursor: "pointer", boxShadow: "0 2px 6px rgba(0,0,0,0.12)" }}>
+          <Heart size={15} fill={isFav ? "#EF4444" : "none"} color={isFav ? "#EF4444" : "#9CA3AF"} strokeWidth={1.8} />
         </button>
-        {bestseller && (
-          <span style={{ position:"absolute", top:6, left:6, background:BS, color:BST,
-                         fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:999 }}>Çok Satan</span>
-        )}
       </div>
-      <div style={{ fontSize:13, fontWeight:600, color:"#111827", lineHeight:1.4, marginBottom:4,
-                    display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" as any, overflow:"hidden" }}>
-        {title}
+      {/* Name */}
+      <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", lineHeight: 1.45,
+                    marginBottom: 4, flex: 1,
+                    display: "-webkit-box", WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical" as any, overflow: "hidden" }}>
+        {product.name}
       </div>
-      {installment && (
-        <span style={{ display:"inline-block", background:PB, color:P, fontSize:10, fontWeight:600,
-                       padding:"2px 8px", borderRadius:999, marginBottom:6, alignSelf:"flex-start" }}>3 Taksit</span>
-      )}
-      <div style={{ fontSize:15, fontWeight:700, color:P, marginBottom:8 }}>{price}</div>
-      <button aria-label={`${title} sepete ekle`} onClick={onAddToCart}
-        style={{ width:"100%", background:P, color:"#fff", fontSize:12, fontWeight:600,
-                 padding:"8px 0", borderRadius:8, border:"none", cursor:"pointer",
-                 transition:"background 0.15s", fontFamily:"inherit" }}
-        onMouseEnter={e=>{e.currentTarget.style.background="#5200CC";}}
-        onMouseLeave={e=>{e.currentTarget.style.background=P;}}>
+      {/* Stars */}
+      <StarRating rating={product.rating} reviews={product.reviews} />
+      {/* Price */}
+      <div style={{ fontSize: 17, fontWeight: 800, color: P, marginBottom: 10 }}>
+        {product.price.toLocaleString("tr-TR")},00 TL
+      </div>
+      {/* Add to cart */}
+      <button
+        onClick={e => { e.stopPropagation(); onCart(); }}
+        style={{ width: "100%", background: P, color: "#fff", border: "none",
+                 borderRadius: 10, padding: "9px 0", fontSize: 13, fontWeight: 700,
+                 cursor: "pointer", fontFamily: "inherit", display: "flex",
+                 alignItems: "center", justifyContent: "center", gap: 6,
+                 transition: "background 0.15s" }}
+        onMouseEnter={e => (e.currentTarget.style.background = "#5A32A3")}
+        onMouseLeave={e => (e.currentTarget.style.background = P)}>
+        <ShoppingCart size={14} />
         Sepete Ekle
       </button>
     </div>
   );
 }
 
-function GuideListItem({ article, onClick }: { article:GuideArticle; onClick:()=>void }) {
+/* ── Quick Action Card ── */
+function QuickCard({ icon: Icon, color, bg, label, desc, href }: {
+  icon: typeof Bot; color: string; bg: string;
+  label: string; desc: string; href: string;
+}) {
+  const [hovered, setHovered] = useState(false);
   return (
-    <button onClick={onClick}
-      style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px",
-               borderBottom:`1px solid ${GB}`, cursor:"pointer", background:"none", border:"none",
-               width:"100%", textAlign:"left", fontFamily:"inherit", transition:"background 0.15s" }}
-      onMouseEnter={e=>{e.currentTarget.style.background=GBG;}}
-      onMouseLeave={e=>{e.currentTarget.style.background="transparent";}}>
-      <img src={article.image} alt={article.title} loading="lazy" width={56} height={56}
-        style={{ width:56, height:56, borderRadius:8, objectFit:"cover", flexShrink:0 }} />
-      <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ fontSize:13, fontWeight:600, color:"#111827", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{article.title}</div>
-        <div style={{ fontSize:11, color:GT, marginTop:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{article.description}</div>
-        <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:4 }}>
-          <Clock size={12} color="#9CA3AF" />
-          <span style={{ fontSize:11, color:"#9CA3AF" }}>{article.readTime}</span>
+    <Link href={href}>
+      <div
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          background: "#fff", borderRadius: 16, border: "1px solid #F3F4F6",
+          boxShadow: hovered ? "0 8px 20px rgba(0,0,0,0.1)" : "0 2px 8px rgba(0,0,0,0.06)",
+          padding: "18px 16px", display: "flex", alignItems: "center", gap: 14,
+          cursor: "pointer", transition: "box-shadow 0.2s, transform 0.2s",
+          transform: hovered ? "translateY(-2px)" : "none",
+        }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, background: bg,
+                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Icon size={22} color={color} />
         </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#111827", marginBottom: 2 }}>{label}</div>
+          <div style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.4,
+                        whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{desc}</div>
+        </div>
+        <ChevronRight size={16} color="#D1D5DB" />
       </div>
-      <ChevronRight size={18} color="#9CA3AF" />
-    </button>
+    </Link>
   );
 }
 
-/* ── Main Page ── */
+/* ════════════ MAIN PAGE ════════════ */
 export default function YourPoodleHomePage() {
   const [, navigate] = useLocation();
-  const [favorites,  setFavorites]  = useState<Set<string>>(new Set());
-  const [toast,      setToast]      = useState({ message:"", visible:false });
-  const toastTimer = useRef<ReturnType<typeof setTimeout>|null>(null);
+  const { isLoggedIn } = useCustomer();
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [toast, setToast] = useState({ msg: "", show: false });
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  /* Real products */
-  const { data: apiProducts = [] } = useQuery<YPProduct[]>({
-    queryKey:["/api/yp-products"], staleTime:5*60*1000,
-  });
-  const foodProducts = apiProducts.filter(p=>p.isActive&&p.stock>0).slice(0,6);
-
-  const go = (href:string) => navigate(href);
-
-  const showToast = (msg:string) => {
+  const showToast = (msg: string) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
-    setToast({message:msg,visible:true});
-    toastTimer.current = setTimeout(()=>setToast(t=>({...t,visible:false})),3000);
+    setToast({ msg, show: true });
+    toastTimer.current = setTimeout(() => setToast(t => ({ ...t, show: false })), 2800);
   };
 
-  const toggleFav = (id:string) => {
-    setFavorites(prev=>{
+  const toggleFav = (id: string) => {
+    setFavorites(prev => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
   };
 
-  const addApiProductToCart = (p:YPProduct) => {
+  const addToCart = (p: StaticProduct) => {
     try {
-      const items = JSON.parse(localStorage.getItem("yp_cart_items")||"[]");
-      const idx = items.findIndex((i:any)=>i.id===p.id);
-      if(idx>=0) items[idx].qty+=1;
-      else items.push({id:p.id,name:p.name,price:p.price,img:p.img,qty:1});
-      localStorage.setItem("yp_cart_items",JSON.stringify(items));
+      const items = JSON.parse(localStorage.getItem("yp_cart_items") || "[]");
+      const idx = items.findIndex((i: any) => i.id === p.id);
+      if (idx >= 0) items[idx].qty += 1;
+      else items.push({ id: p.id, name: p.name, price: p.price, img: p.img, qty: 1 });
+      localStorage.setItem("yp_cart_items", JSON.stringify(items));
       window.dispatchEvent(new Event("storage"));
     } catch {}
-    showToast("Sepete eklendi ✓");
+    showToast("Ürün sepete eklendi ✓");
   };
 
-  const addAccToCart = (a:AccessoryProduct) => {
-    try {
-      const items = JSON.parse(localStorage.getItem("yp_cart_items")||"[]");
-      const idx = items.findIndex((i:any)=>i.id===a.id);
-      if(idx>=0) items[idx].qty+=1;
-      else items.push({id:a.id,name:a.title,price:parseInt(a.price),img:a.image,qty:1});
-      localStorage.setItem("yp_cart_items",JSON.stringify(items));
-      window.dispatchEvent(new Event("storage"));
-    } catch {}
-    showToast("Sepete eklendi ✓");
+  const handleCommunityJoin = () => {
+    if (isLoggedIn) navigate(`${BASE}/club`);
+    else navigate(`${BASE}/giris`);
   };
-
-  /* Fallback food products when API is empty */
-  const foodFallback: YPProduct[] = [
-    { id:1, name:"Puppy Tavuklu",     price:799, originalPrice:null, img:null, stock:10, isActive:true },
-    { id:2, name:"Adult Kuzu Etli",   price:849, originalPrice:null, img:null, stock:10, isActive:true },
-    { id:3, name:"Somonlu Sensitive", price:899, originalPrice:null, img:null, stock:10, isActive:true },
-    { id:4, name:"Kısırlaştırılmış",  price:879, originalPrice:null, img:null, stock:10, isActive:true },
-    { id:5, name:"Hair & Skin",       price:929, originalPrice:null, img:null, stock:10, isActive:true },
-    { id:6, name:"Senior +7",         price:869, originalPrice:null, img:null, stock:10, isActive:true },
-  ];
-  const displayFood = foodProducts.length > 0 ? foodProducts : foodFallback;
 
   return (
-    <YPLayout activeLink="/yourpoodle" constrain={false}>
-      <Toast message={toast.message} visible={toast.visible} />
+    <YPLayout activeLink={BASE || "/"} constrain={false}>
+      <Toast msg={toast.msg} show={toast.show} />
 
-      <main style={{ paddingBottom:80 }}>
+      <style>{`
+        .yp-home-hero         { background: #F8F5FF; }
+        .yp-hero-inner        { display: flex; flex-direction: column; padding: 32px 20px 0; gap: 24px; }
+        .yp-hero-right        { position: relative; }
+        .yp-hero-img          { width: 100%; height: 260px; object-fit: cover; object-position: center top; border-radius: 16px 16px 0 0; }
+        .yp-floating-cards    { display: none; }
+        .yp-quick-row         { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 20px 16px; }
+        .yp-home-main         { padding: 0 16px 40px; }
+        .yp-products-sidebar  { display: block; }
+        .yp-prod-grid-home    { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .yp-sidebar-widgets   { margin-top: 24px; }
+        .yp-hero-social       { display: flex; align-items: center; gap: 8px; }
 
-        {/* ── 1. HERO ── */}
-        <section style={{ margin:"16px 16px 0" }}>
-          <div style={{ background:`linear-gradient(135deg,${P} 0%,${PD} 100%)`, borderRadius:16,
-                        overflow:"hidden", position:"relative", minHeight:200, padding:24 }}>
-            <div style={{ position:"relative", zIndex:10, maxWidth:"60%" }}>
-              <span style={{ display:"inline-block", background:"rgba(255,255,255,0.2)", color:"#fff",
-                             fontSize:11, fontWeight:500, padding:"4px 12px", borderRadius:999, marginBottom:12 }}>
-                Türkiye'nin en büyük Poodle topluluğu
-              </span>
-              <h1 style={{ color:"#fff", fontSize:22, fontWeight:700, lineHeight:1.3, margin:"0 0 8px" }}>
-                Toy Poodle'ınız için her şey burada.
-              </h1>
-              <p style={{ color:"rgba(255,255,255,0.8)", fontSize:13, lineHeight:1.6, margin:"0 0 16px" }}>
-                Bilgi, alışveriş ve gerçek bir topluluk — tek bir yerde.
-              </p>
-              <button onClick={() => alert("Topluluğa katılım yakında!")}
-                style={{ background:"#fff", color:P, fontWeight:600, fontSize:13, padding:"10px 24px",
-                         borderRadius:999, border:"none", cursor:"pointer", fontFamily:"inherit" }}
-                onMouseEnter={e=>{e.currentTarget.style.background="#F3F4F6";}}
-                onMouseLeave={e=>{e.currentTarget.style.background="#fff";}}>
-                Topluluğa Katıl
+        @media (min-width: 900px) {
+          .yp-home-hero       { background: #F8F5FF; }
+          .yp-hero-inner      {
+            flex-direction: row; align-items: stretch;
+            max-width: 1200px; margin: 0 auto;
+            padding: 48px 40px 0;
+            gap: 0;
+          }
+          .yp-hero-left       { flex: 1; padding-right: 32px; display: flex; flex-direction: column; justify-content: center; padding-bottom: 40px; }
+          .yp-hero-right      { flex: 0 0 520px; position: relative; }
+          .yp-hero-img        { width: 100%; height: 400px; border-radius: 20px 20px 0 0; object-position: center top; }
+          .yp-floating-cards  { display: flex; flex-direction: column; gap: 10px; position: absolute; top: 20px; right: -10px; width: 240px; z-index: 10; }
+          .yp-quick-row       { grid-template-columns: repeat(4,1fr); gap: 14px; padding: 24px 40px; max-width: 1200px; margin: 0 auto; }
+          .yp-home-main       { max-width: 1200px; margin: 0 auto; padding: 0 40px 60px; display: grid; grid-template-columns: 1fr 320px; gap: 32px; align-items: start; }
+          .yp-prod-grid-home  { grid-template-columns: repeat(4,1fr); gap: 16px; }
+          .yp-sidebar-widgets { margin-top: 0; }
+        }
+      `}</style>
+
+      {/* ══════════════════════════════ HERO ══════════════════════════════ */}
+      <section className="yp-home-hero">
+        <div className="yp-hero-inner">
+
+          {/* LEFT */}
+          <div className="yp-hero-left">
+            <h1 style={{
+              fontSize: "clamp(26px, 4vw, 44px)", fontWeight: 900,
+              color: "#1F2937", lineHeight: 1.2, margin: "0 0 14px",
+              letterSpacing: "-0.5px",
+            }}>
+              Toy Poodle'ınız İçin<br />
+              <span style={{ color: P }}>Her Şey Tek Yerde</span>
+            </h1>
+            <p style={{ fontSize: 16, color: "#6B7280", lineHeight: 1.65, margin: "0 0 28px", maxWidth: 420 }}>
+              Bakım rehberleri, doğru ürünler ve uzman destekli akıllı asistan.
+            </p>
+
+            {/* CTA Buttons */}
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 28 }}>
+              <button onClick={() => navigate(`${BASE}/mama-bul`)}
+                style={{ display:"flex", alignItems:"center", gap:8, background:P, color:"#fff",
+                         border:"none", borderRadius:12, padding:"13px 24px", fontSize:15,
+                         fontWeight:700, cursor:"pointer", fontFamily:"inherit",
+                         boxShadow:"0 4px 16px rgba(112,34,196,0.35)" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "#5A32A3")}
+                onMouseLeave={e => (e.currentTarget.style.background = P)}>
+                <Utensils size={18} />
+                Mama Bul
+              </button>
+              <button onClick={() => navigate(`${BASE}/rehber`)}
+                style={{ display:"flex", alignItems:"center", gap:8, background:"#fff", color:"#1F2937",
+                         border:"2px solid #E5E7EB", borderRadius:12, padding:"12px 24px", fontSize:15,
+                         fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = P; e.currentTarget.style.color = P; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.color = "#1F2937"; }}>
+                <BookOpen size={18} />
+                Rehbere Git
               </button>
             </div>
-            <img src="/images/yp-poodle-hero.png" alt="Toy Poodle" loading="lazy"
-              style={{ position:"absolute", right:0, bottom:0, width:144, height:160,
-                       objectFit:"cover", objectPosition:"center bottom" }} />
-          </div>
-        </section>
 
-        {/* ── 2. INSTALLMENT BANNER + FOOD PRODUCTS ── */}
-        <section style={{ padding:"24px 16px 0" }}>
-          <div style={{ marginBottom:12 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-              <CreditCard size={18} color={P} />
-              <span style={{ fontSize:14, fontWeight:600, color:"#111827" }}>Peşin fiyatına 3 taksit</span>
+            {/* Social proof */}
+            <div className="yp-hero-social">
+              <div style={{ display: "flex" }}>
+                {COMMUNITY_AVATARS.map((src, i) => (
+                  <img key={i} src={src} alt="üye"
+                    style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #fff",
+                             marginLeft: i === 0 ? 0 : -8, objectFit: "cover" }} />
+                ))}
+                <div style={{ width:32, height:32, borderRadius:"50%", border:"2px solid #fff",
+                              marginLeft:-8, background:P, color:"#fff", fontSize:9, fontWeight:800,
+                              display:"flex", alignItems:"center", justifyContent:"center" }}>+9K</div>
+              </div>
+              <span style={{ fontSize: 13, color: "#6B7280", fontWeight: 600 }}>10.000+ Poodle Ailesi</span>
             </div>
-            <p style={{ fontSize:11, color:GT, margin:0, paddingLeft:26 }}>
-              Toy Poodle'ınıza özel seçilmiş mamalar
-            </p>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-            {displayFood.map((p,i) => (
-              <ProductCard key={p.id||i}
-                title={p.name}
-                price={`${Number(p.price).toLocaleString("tr-TR")} TL`}
-                image={p.img||""}
-                installment={true}
-                isFavorite={favorites.has(String(p.id))}
-                onToggleFavorite={() => toggleFav(String(p.id))}
-                onAddToCart={() => addApiProductToCart(p)} />
-            ))}
-          </div>
-        </section>
 
-        {/* ── 3. POODLE REHBERİ ── */}
-        <section style={{ marginTop:24 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
-                        padding:"0 16px", marginBottom:8 }}>
-            <h2 style={{ fontSize:18, fontWeight:700, color:"#111827", margin:0 }}>Poodle Rehberi</h2>
-            <button onClick={() => alert("Tüm rehberler yakında!")}
-              style={{ fontSize:13, color:BL, background:"none", border:"none",
-                       cursor:"pointer", fontFamily:"inherit" }}>
-              Tümünü Gör
-            </button>
-          </div>
-          <div>
-            {GUIDES.map(g => (
-              <GuideListItem key={g.id} article={g} onClick={() => go("/yourpoodle/rehber")} />
-            ))}
-          </div>
-        </section>
+          {/* RIGHT — photo + floating cards */}
+          <div className="yp-hero-right">
+            <img
+              src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=460&fit=crop&crop=top"
+              alt="Toy Poodle"
+              className="yp-hero-img"
+            />
 
-        {/* ── 4. AI ASSISTANT CARD ── */}
-        <section style={{ margin:"24px 16px" }}>
-          <div style={{ background:PL, borderRadius:16, padding:20, border:`1px dashed #C4B5FD` }}>
-            <MessageCirclePlus size={32} color={P} style={{ marginBottom:12 }} />
-            <h3 style={{ fontSize:16, fontWeight:700, color:"#111827", margin:"0 0 4px" }}>
-              Cevabını hemen bul
-            </h3>
-            <p style={{ fontSize:13, color:GT, margin:"0 0 16px", lineHeight:1.5 }}>
-              Poodle'ınızla ilgili merak ettiğiniz her şeyi sorun.
-            </p>
-            <button onClick={() => go("/yourpoodle/ai-asistan")}
-              style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center",
-                       gap:8, background:P, color:"#fff", fontWeight:600, fontSize:13,
-                       padding:"12px 0", borderRadius:12, border:"none", cursor:"pointer",
-                       fontFamily:"inherit" }}
-              onMouseEnter={e=>{e.currentTarget.style.background="#5200CC";}}
-              onMouseLeave={e=>{e.currentTarget.style.background=P;}}>
-              <Sparkles size={18} />
-              AI Asistan'a Sor
-            </button>
+            {/* Floating feature cards */}
+            <div className="yp-floating-cards">
+              {[
+                {
+                  icon: Bot, bg: "#EDE9FE", color: "#7022C4",
+                  title: "AI Poodle Asistanı",
+                  desc: "7/24 uzman destek sorularınıza anında yanıt.",
+                  href: `${BASE}/ai-asistan`,
+                },
+                {
+                  icon: Utensils, bg: "#FEF3C7", color: "#D97706",
+                  title: "Günlük Mama Hesabı",
+                  desc: "Poodle'ınıza özel günlük mama miktarını öğrenin.",
+                  href: `${BASE}/araclar/mama-hesaplama`,
+                },
+              ].map(({ icon: Icon, bg, color, title, desc, href }) => (
+                <Link key={href} href={href}>
+                  <div style={{
+                    background:"rgba(255,255,255,0.96)", backdropFilter:"blur(12px)",
+                    borderRadius:14, boxShadow:"0 8px 24px rgba(0,0,0,0.12)",
+                    border:"1px solid rgba(255,255,255,0.7)",
+                    padding:"12px 16px", display:"flex", alignItems:"center", gap:12,
+                    cursor:"pointer", transition:"transform 0.2s",
+                  }}
+                    onMouseEnter={e => (e.currentTarget.style.transform = "translateY(-2px)")}
+                    onMouseLeave={e => (e.currentTarget.style.transform = "none")}>
+                    <div style={{ width:40, height:40, borderRadius:10, background:bg,
+                                  display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                      <Icon size={20} color={color} />
+                    </div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:13, fontWeight:700, color:"#111827", marginBottom:2 }}>{title}</div>
+                      <div style={{ fontSize:11, color:"#6B7280", lineHeight:1.4 }}>{desc}</div>
+                    </div>
+                    <ChevronRight size={14} color="#D1D5DB" />
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ── 5. POODLE'INIZA ÖZEL ÜRÜNLER ── */}
-        <section style={{ marginTop:8, marginBottom:24 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
-                        padding:"0 16px", marginBottom:12 }}>
-            <h2 style={{ fontSize:18, fontWeight:700, color:"#111827", margin:0 }}>
-              Poodle'ınıza Özel Ürünler
+      {/* ══════════════════════════════ QUICK ACCESS ══════════════════════════════ */}
+      <div style={{ background:"#fff", borderBottom:"1px solid #F3F4F6" }}>
+        <div className="yp-quick-row">
+          <QuickCard icon={Utensils} color="#7022C4" bg="#F3E8FF" label="Mama Bul"
+            desc="Poodle'ınıza en uygun mamayı bulun."
+            href={`${BASE}/mama-bul`} />
+          <QuickCard icon={Bot} color="#0EA5E9" bg="#E0F2FE" label="AI Asistan"
+            desc="Akıllı asistanınıza sorun, anında yanıt alın."
+            href={`${BASE}/ai-asistan`} />
+          <QuickCard icon={BookOpen} color="#059669" bg="#D1FAE5" label="Poodle Rehberi"
+            desc="Bakım, beslenme ve eğitim rehberleri."
+            href={`${BASE}/rehber`} />
+          <QuickCard icon={MapPin} color="#F97316" bg="#FFEDD5" label="Yakındaki Hizmetler"
+            desc="Kuaför, veteriner ve daha fazlası."
+            href={`${BASE}/hizmetler`} />
+        </div>
+      </div>
+
+      {/* ══════════════════════════════ MAIN CONTENT ══════════════════════════════ */}
+      <div className="yp-home-main">
+
+        {/* LEFT — Products */}
+        <div>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
+            <h2 style={{ fontSize:20, fontWeight:800, color:"#1F2937", margin:0 }}>
+              Poodle'ınız İçin Seçtiklerimiz
             </h2>
-            <button onClick={() => alert("Tüm ürünler yakında!")}
-              style={{ fontSize:13, color:BL, background:"none", border:"none",
-                       cursor:"pointer", fontFamily:"inherit" }}>
-              Tümünü Gör
-            </button>
+            <Link href={`${BASE}/magaza`}>
+              <span style={{ fontSize:13, color:P, fontWeight:700, cursor:"pointer",
+                             display:"flex", alignItems:"center", gap:4 }}>
+                Tümünü Gör <ChevronRight size={14} />
+              </span>
+            </Link>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, padding:"0 16px" }}>
-            {ACCESSORIES.map(a => (
-              <ProductCard key={a.id}
-                title={a.title} price={a.price} image={a.image} bestseller={a.bestseller}
-                isFavorite={favorites.has(a.id)}
-                onToggleFavorite={() => toggleFav(a.id)}
-                onAddToCart={() => addAccToCart(a)} />
+
+          <div className="yp-prod-grid-home">
+            {FEATURED_PRODUCTS.map(p => (
+              <ProductCard
+                key={p.id}
+                product={p}
+                isFav={favorites.has(p.id)}
+                onFav={() => toggleFav(p.id)}
+                onCart={() => addToCart(p)}
+              />
             ))}
           </div>
-        </section>
+        </div>
 
-      </main>
+        {/* RIGHT — Sidebar */}
+        <div className="yp-sidebar-widgets">
+
+          {/* En Çok Okunanlar */}
+          <div style={{ background:"#fff", borderRadius:16, border:"1px solid #F3F4F6",
+                        boxShadow:"0 2px 8px rgba(0,0,0,0.06)", overflow:"hidden", marginBottom:20 }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+                          padding:"16px 16px 12px", borderBottom:"1px solid #F9FAFB" }}>
+              <span style={{ fontSize:15, fontWeight:800, color:"#111827" }}>Bugün En Çok Okunanlar</span>
+              <Bookmark size={17} color={P} strokeWidth={2} />
+            </div>
+            {TOP_ARTICLES.map((a, i) => (
+              <Link key={a.slug} href={`${BASE}/rehber/bakim/${a.slug}`}>
+                <div style={{
+                  display:"flex", alignItems:"center", gap:12,
+                  padding:"12px 16px", cursor:"pointer",
+                  borderBottom: i < TOP_ARTICLES.length - 1 ? "1px solid #F9FAFB" : "none",
+                  transition:"background 0.15s",
+                }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "#F9FAFB")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                  <img src={a.img} alt={a.title}
+                    style={{ width:56, height:56, borderRadius:10, objectFit:"cover", flexShrink:0 }} />
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:"#111827", lineHeight:1.4,
+                                  marginBottom:4, display:"-webkit-box", WebkitLineClamp:2,
+                                  WebkitBoxOrient:"vertical" as any, overflow:"hidden" }}>
+                      {a.title}
+                    </div>
+                    <div style={{ display:"flex", alignItems:"center", gap:4 }}>
+                      <Clock size={11} color="#9CA3AF" />
+                      <span style={{ fontSize:11, color:"#9CA3AF" }}>{a.readMin} dk okuma</span>
+                    </div>
+                  </div>
+                  <ChevronRight size={15} color="#D1D5DB" />
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {/* Poodle Ailesi Büyüyor */}
+          <div style={{ background:"#fff", borderRadius:16, border:"1px solid #F3F4F6",
+                        boxShadow:"0 2px 8px rgba(0,0,0,0.06)", padding:20 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
+              <Heart size={17} color="#EC4899" fill="#EC4899" />
+              <span style={{ fontSize:15, fontWeight:800, color:"#111827" }}>Poodle Ailesi Büyüyor</span>
+            </div>
+            <div style={{ display:"flex", alignItems:"center", gap:0, marginBottom:12 }}>
+              {COMMUNITY_AVATARS.map((src, i) => (
+                <img key={i} src={src} alt="üye"
+                  style={{ width:34, height:34, borderRadius:"50%", border:"2px solid #fff",
+                           marginLeft: i === 0 ? 0 : -8, objectFit:"cover" }} />
+              ))}
+              <div style={{ width:34, height:34, borderRadius:"50%", border:"2px solid #fff",
+                            marginLeft:-8, background:P, color:"#fff", fontSize:9, fontWeight:800,
+                            display:"flex", alignItems:"center", justifyContent:"center" }}>+9K</div>
+            </div>
+            <p style={{ fontSize:13, color:"#6B7280", lineHeight:1.6, margin:"0 0 16px" }}>
+              10.000+ üye ile deneyimlerini paylaş, sorularına yanıt bul.
+            </p>
+            <button onClick={handleCommunityJoin}
+              style={{ width:"100%", background:P, color:"#fff", border:"none",
+                       borderRadius:12, padding:"11px 0", fontSize:14, fontWeight:700,
+                       cursor:"pointer", fontFamily:"inherit",
+                       boxShadow:"0 4px 12px rgba(112,34,196,0.3)" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "#5A32A3")}
+              onMouseLeave={e => (e.currentTarget.style.background = P)}>
+              Topluluğa Katıl
+            </button>
+          </div>
+
+        </div>
+      </div>
+
     </YPLayout>
   );
 }

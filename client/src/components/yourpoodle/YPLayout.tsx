@@ -180,32 +180,66 @@ export default function YPLayout({
       <div className="yp-desktop-hdr" style={{ position: "sticky", top: 0, zIndex: 200 }}>
 
         {/* ── Duyuru çubuğu ── */}
-        <div style={{ background: "#3B0082", color: "#fff", textAlign: "center", padding: "9px 20px", fontSize: 13.5, fontWeight: 500 }}>
-          Toy Poodle dünyasının adresi — 1.000₺ üzeri ücretsiz kargo 🚚
+        <div style={{ background: "#7022C4", color: "#fff", textAlign: "center", padding: "9px 20px", fontSize: 13.5, fontWeight: 500 }}>
+          🎁 Yeni üyelere 100 TL hoş geldin bonusu
         </div>
 
-        {/* ── Ana satır ── */}
-        <div style={{ background: "#fff", borderBottom: "1px solid #F3F4F6", padding: "14px 40px" }}>
-          <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", gap: 24 }}>
+        {/* ── Ana satır (logo + nav + search + auth) ── */}
+        <div style={{ background: "#fff", borderBottom: "1px solid #F3F4F6", padding: "0 40px" }}>
+          <div style={{ maxWidth: 1260, margin: "0 auto", display: "flex", alignItems: "center", height: 64, gap: 20 }}>
 
             {/* Logo */}
             <Link href={BASE || "/"}>
-              <div style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", flexShrink: 0 }}>
-                <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 28, color: "#111", lineHeight: 1 }}>YourPoodle</span>
-                <span style={{ fontSize: 20 }}>🐾</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
+                <span style={{ fontSize: 24 }}>🐾</span>
+                <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 22, color: "#111", lineHeight: 1, whiteSpace: "nowrap" }}>YourPoodle</span>
               </div>
             </Link>
 
+            {/* Center nav links */}
+            {!authMode && (
+              <nav style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: 16 }}>
+                {([
+                  { label: "Mağaza",          href: `${BASE}/magaza` },
+                  { label: "Hizmetler",        href: `${BASE}/hizmetler` },
+                  { label: "Rehber",           href: `${BASE}/rehber` },
+                  { label: "Topluluk",         href: `${BASE}/club` },
+                  { label: "Benim Poodle'ım",  href: `${BASE}/benim-poodleim` },
+                ] as { label: string; href: string }[]).map(({ label, href }) => {
+                  const active = isActive(activeLink, href);
+                  return (
+                    <Link key={href} href={href}>
+                      <div style={{
+                        padding: "6px 12px", borderRadius: 8, cursor: "pointer",
+                        fontSize: 14, fontWeight: active ? 700 : 500,
+                        color: active ? "#7022C4" : "#374151",
+                        background: active ? "#F5F0FF" : "transparent",
+                        transition: "background 0.15s, color 0.15s",
+                        whiteSpace: "nowrap",
+                      }}
+                        onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = "#F9F5FF"; (e.currentTarget as HTMLElement).style.color = "#7022C4"; } }}
+                        onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#374151"; } }}>
+                        {label}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </nav>
+            )}
+
+            {/* Spacer */}
+            <div style={{ flex: 1 }} />
+
             {/* Arama */}
             {!authMode && (
-              <form onSubmit={handleSearch} style={{ flex: 1, position: "relative" }}>
-                <Search size={17} color="#9CA3AF" style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
+              <form onSubmit={handleSearch} style={{ position: "relative", width: 220 }}>
+                <Search size={15} color="#9CA3AF" style={{ position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
                 <input
                   className="yp-search-inp"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder="Mama, aksesuar veya rehber ara..."
-                  style={{ width: "100%", height: 46, borderRadius: 9999, border: "none", background: "#F3F4F6", paddingLeft: 50, paddingRight: 20, fontSize: 14, color: "#374151", fontFamily: "inherit", outline: "none", boxSizing: "border-box" }}
+                  placeholder="Ne aramıştınız?"
+                  style={{ width: "100%", height: 40, borderRadius: 9999, border: "1.5px solid #E5E7EB", background: "#fff", paddingLeft: 38, paddingRight: 16, fontSize: 13, color: "#374151", fontFamily: "inherit", outline: "none", boxSizing: "border-box" }}
                 />
               </form>
             )}
@@ -226,13 +260,13 @@ export default function YPLayout({
                       <ChevronDown size={13} color="#9CA3AF" strokeWidth={2} style={{ transform: profileOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
                     </button>
                     {profileOpen && (
-                      <div className="yp-profile-drop" style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: 16, boxShadow: "0 8px 32px rgba(112,34,196,0.18)", border: "1px solid #EDE9FE", minWidth: 180, zIndex: 300, overflow: "hidden" }}>
+                      <div className="yp-profile-drop" style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: 16, boxShadow: "0 8px 32px rgba(112,34,196,0.18)", border: "1px solid #EDE9FE", minWidth: 200, zIndex: 300, overflow: "hidden" }}>
                         {[
-                          { label: "👤 Profilim",         href: "/hesabim" },
-                          { label: "📦 Siparişlerim",     href: "/yourpoodle/siparislerim" },
-                          { label: "🐾 Köpek Profilim",   href: "/yourpoodle/p/olustur" },
-                          { label: "❤️ Favorilerim",      href: "/favoriler" },
-                          { label: "🚪 Çıkış Yap",        href: "/giris?logout=1" },
+                          { label: "👤 Profilim",           href: "/hesabim" },
+                          { label: "📦 Siparişlerim",       href: "/hesabim/siparisler" },
+                          { label: "🐾 Benim Poodle'ım",    href: `${BASE}/benim-poodleim` },
+                          { label: "❤️ Favorilerim",        href: "/favoriler" },
+                          { label: "🚪 Çıkış Yap",          href: "/giris?logout=1" },
                         ].map(({ label, href }) => (
                           <button key={href} onClick={() => { navigate(href); setProfileOpen(false); }}
                             style={{ display: "block", width: "100%", padding: "11px 18px", fontSize: 13, fontWeight: 600, color: "#374151", background: "none", border: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}
@@ -246,28 +280,26 @@ export default function YPLayout({
                 ) : (
                   <>
                     <button onClick={() => navigate(`${BASE}/giris`)}
-                      style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: "#374151", fontFamily: "inherit", padding: "0 4px", whiteSpace: "nowrap" }}>
+                      style={{ background: "none", border: "1.5px solid #D1D5DB", borderRadius: 9999, cursor: "pointer", fontSize: 14, fontWeight: 600, color: "#374151", fontFamily: "inherit", padding: "8px 18px", whiteSpace: "nowrap" }}
+                      onMouseEnter={e => (e.currentTarget.style.borderColor = "#7022C4")}
+                      onMouseLeave={e => (e.currentTarget.style.borderColor = "#D1D5DB")}>
                       Giriş Yap
                     </button>
                     <button onClick={() => navigate(`${BASE}/uye-ol`)}
-                      style={{ padding: "10px 22px", borderRadius: 9999, border: "none", background: "#7022C4", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                      style={{ padding: "9px 20px", borderRadius: 9999, border: "none", background: "#7022C4", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "#5A32A3")}
+                      onMouseLeave={e => (e.currentTarget.style.background = "#7022C4")}>
                       Üye Ol
                     </button>
                   </>
                 )}
-
-                {/* Favoriler */}
-                <button className="yp-util-btn" onClick={() => navigate("/favoriler")}
-                  style={{ width: 42, height: 42, borderRadius: "50%", border: "1.5px solid #E5E7EB", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-                  <Heart size={18} color="#374151" strokeWidth={1.8} />
-                </button>
 
                 {/* Sepet */}
                 <button className="yp-util-btn" onClick={() => navigate(`${BASE}/sepet`)}
                   style={{ width: 42, height: 42, borderRadius: "50%", border: "1.5px solid #E5E7EB", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, position: "relative" }}>
                   <ShoppingCart size={18} color="#374151" strokeWidth={1.8} />
                   {cartCount > 0 && (
-                    <span style={{ position: "absolute", top: -3, right: -3, background: "#7022C4", color: "#fff", fontSize: 9, fontWeight: 800, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #fff" }}>
+                    <span style={{ position: "absolute", top: -3, right: -3, background: "#EF4444", color: "#fff", fontSize: 9, fontWeight: 800, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #fff" }}>
                       {cartCount > 9 ? "9+" : cartCount}
                     </span>
                   )}
@@ -276,35 +308,6 @@ export default function YPLayout({
             )}
           </div>
         </div>
-
-        {/* ── Alt nav satırı ── */}
-        {!authMode && (
-          <nav style={{ background: "#fff", borderBottom: "1px solid #F3F4F6", padding: "0 40px" }}>
-            <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "center", alignItems: "center", height: 52 }}>
-              {([
-                { label: "Mağaza",     href: `${BASE}/magaza`,     Icon: ShoppingBag },
-                { label: "Club",       href: `${BASE}/club`,        Icon: PawPrint    },
-                { label: "AI Asistan", href: `${BASE}/ai-asistan`,  Icon: Bot         },
-                { label: "Rehber",     href: `${BASE}/rehber`,      Icon: BookOpen    },
-              ] as { label: string; href: string; Icon: typeof ShoppingBag }[]).map(({ label, href, Icon }, i) => {
-                const active = isActive(activeLink, href);
-                return (
-                  <Fragment key={href}>
-                    {i > 0 && <span style={{ color: "#D1D5DB", margin: "0 14px", fontSize: 16, lineHeight: 1, userSelect: "none" }}>•</span>}
-                    <Link href={href}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 7, padding: active ? "7px 18px" : "7px 10px", borderRadius: 9999, background: active ? "#7022C4" : "transparent", cursor: "pointer", transition: "background 0.15s" }}
-                        onMouseEnter={e => { if (!active) (e.currentTarget as HTMLDivElement).style.background = "#F5F0FF"; }}
-                        onMouseLeave={e => { if (!active) (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}>
-                        <Icon size={15} color={active ? "#fff" : "#7022C4"} strokeWidth={active ? 2.5 : 2} />
-                        <span style={{ fontSize: 14, fontWeight: 700, color: active ? "#fff" : "#111", whiteSpace: "nowrap", fontFamily: "inherit" }}>{label}</span>
-                      </div>
-                    </Link>
-                  </Fragment>
-                );
-              })}
-            </div>
-          </nav>
-        )}
       </div>
 
       {/* ════════════ MOBILE DRAWER ════════════ */}

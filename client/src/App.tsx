@@ -173,6 +173,8 @@ const YPLegalPage          = lazy(() => import("@/pages/yp-legal"));
 const YPKampanyalarPage    = lazy(() => import("@/pages/yp-kampanyalar"));
 const YPIletisimPage       = lazy(() => import("@/pages/yp-iletisim"));
 const YPHakkimizdaPage     = lazy(() => import("@/pages/yp-hakkimizda"));
+const YPHizmetlerPage      = lazy(() => import("@/pages/yp-hizmetler"));
+const YPBenimPoodleimPage  = lazy(() => import("@/pages/yp-benim-poodleim"));
 const DemoKampanyaPage = lazy(() => import("@/pages/demo-kampanya"));
 const DemoKampanyaUrunPage = lazy(() => import("@/pages/demo-kampanya").then(m => ({ default: m.DemoKampanyaUrun })));
 const SeoPage = lazy(() => import("@/pages/seo-pages"));
@@ -375,6 +377,9 @@ function Router() {
         <Route path="/sepet"                 component={YPSepetPage} />
         <Route path="/odeme"                 component={YPOdemePage} />
         <Route path="/tesekkurler"           component={YPTesekkurlerPage} />
+        {/* Hizmetler & profil */}
+        <Route path="/hizmetler"             component={YPHizmetlerPage} />
+        <Route path="/benim-poodleim"        component={YPBenimPoodleimPage} />
         {/* Marketing & static */}
         <Route path="/kampanyalar"           component={YPKampanyalarPage} />
         <Route path="/hakkimizda"            component={YPHakkimizdaPage} />
