@@ -1,0 +1,268 @@
+You are an expert frontend engineer. Build a PIXEL-PERFECT, FULLY FUNCTIONAL, MOBILE-FIRST recreation of the "YourPoodle" e-commerce landing page shown in the attached screenshot.
+
+CRITICAL RULES:
+1. Match the screenshot EXACTLY — layout, spacing, typography hierarchy, colors, corner radii, icon sizes, badge positions, section order, and text content. Do not invent alternative layouts.
+2. Mobile-first: design primarily for ~390px width (iPhone-like). Then make it responsive up to desktop without breaking the mobile look.
+3. Everything must WORK: navigation, search overlay/modal, wishlist hearts, add-to-cart (updates cart badge), newsletter form validation, sticky header behavior, horizontal scroll nav if needed, hover/active/focus states, working links (use #section or /routes), smooth scroll.
+4. Use real, high-quality Unsplash/Pexels placeholder images that closely match the screenshot (apricot Toy Poodle hero, product packs, puppy training pad, group of people with poodles).
+5. Tech: HTML + Tailwind CSS + vanilla JS (or React if preferred). Single polished page is fine. Keep code clean and production-quality.
+6. Turkish UI text MUST be copied EXACTLY as specified below (including apostrophes and punctuation).
+7. Do NOT redesign. Do NOT “improve” the brand. Clone the visual system from the screenshot.
+
+═══════════════════════════════════════
+DESIGN TOKENS (match screenshot)
+═══════════════════════════════════════
+- Primary purple: #7C3AED (buttons, logo, accents) — also acceptable family: #6D28D9 / #8B5CF6 for gradients
+- Soft promo lavender background: #EDE4FF / #F3E8FF
+- Page background: #FFFFFF
+- Text primary: #111827 / #1F2937
+- Text muted: #6B7280
+- Border: #E5E7EB
+- Sale red badge: #EF4444
+- Card radius: 12–16px
+- Button radius: 10–12px
+- Section horizontal padding: 16–20px
+- Logo font: elegant SCRIPT / cursive (Google Fonts: "Great Vibes" or "Pacifico" or similar handwritten script) in primary purple
+- UI font: clean modern sans (Inter or Plus Jakarta Sans)
+- Soft shadows only on cards: 0 1px 3px rgba(0,0,0,0.06)
+
+═══════════════════════════════════════
+PAGE STRUCTURE (top → bottom, exact order)
+═══════════════════════════════════════
+
+---------------------------------------
+1) TOP ANNOUNCEMENT BAR
+---------------------------------------
+- Full-width solid primary purple bar
+- Centered white text with gift emoji:
+  "🎁 750 TL Üzeri Ücretsiz Kargo"
+- Font size ~13–14px, medium weight
+- Height ~36–40px
+- Optional: slight close button on right (X) that dismisses the bar with localStorage remember — optional but nice
+
+---------------------------------------
+2) MAIN HEADER
+---------------------------------------
+- White background, sticky on scroll with subtle bottom border/shadow
+- LEFT: "YourPoodle" script logo in primary purple, clickable → scroll to top
+- RIGHT: three icon buttons in dark gray/black, evenly spaced (~20–24px gap):
+  a) Search (magnifying glass)
+  b) Account/Profile (user silhouette)
+  c) Cart (shopping bag/cart) WITH a solid purple circular badge overlapping top-right of the cart icon showing white number "2"
+- Icons ~22–24px, stroke style (not filled heavy)
+- Header height ~56–64px
+- On search icon click: open a full-width search drawer/modal with input placeholder "Ürün, mama veya rehber ara..." and close button. Searching can filter product titles client-side.
+- On cart icon click: open a slide-over cart drawer showing added items, quantities, subtotal, and "Sepete Git" / "Alışverişi Tamamla" buttons.
+- Cart badge must update live when products are added/removed.
+
+---------------------------------------
+3) PRIMARY NAVIGATION
+---------------------------------------
+- Horizontal row under header on white background
+- Links (exact labels, left to right):
+  Mağaza | Mama Bul | Rehber | AI Asistan | Club
+- Font ~14–15px, medium, dark gray
+- Active/current link can be slightly bolder or underlined in purple
+- On mobile: horizontally scrollable with no visible scrollbar (or thin), items do not wrap
+- Each link scrolls to / navigates to the corresponding section on the page:
+  - Mağaza → products section
+  - Mama Bul → hero primary CTA / food finder section
+  - Rehber → guide section
+  - AI Asistan → AI badge/assistant panel
+  - Club → club CTA section
+
+---------------------------------------
+4) HERO SECTION
+---------------------------------------
+- Tall hero (~420–520px on mobile)
+- FULL-BLEED background photo: cute apricot/cream Toy Poodle sitting indoors on a light rug in a bright modern living room (large windows, soft daylight). Image must feel premium and match the screenshot mood.
+- Soft white/light gradient overlay from left/bottom so text remains readable
+- LEFT-ALIGNED content block with padding ~20px:
+  HEADLINE (large, bold, dark, ~28–34px, tight line-height):
+  "Toy Poodle'ınız İçin Her Şey"
+  SUBTEXT (muted gray, ~14–15px):
+  "Doğru mama, güvenilir rehber ve size özel bakım desteği."
+  CTA BUTTONS stacked vertically with ~10–12px gap:
+  1) Primary solid purple button, white text, full-ish width (~180–220px or stretch to content with padding):
+     "Mama Bul"
+  2) Secondary outlined button: white fill, 1.5–2px purple border, purple text:
+     "Rehbere Git"
+  Both buttons rounded, height ~44–48px, font medium
+- FLOATING BADGE bottom-right of hero:
+  Small rounded pill/rectangle with purple→violet gradient, white text, sparkle emoji:
+  "✨ AI Asistan 7/24 Yanınızda"
+  Soft shadow, slightly overlapping hero bottom edge
+  Clicking opens a simple AI assistant chat panel/modal with greeting: "Merhaba! Toy Poodle’ınız hakkında size nasıl yardımcı olabilirim?" and an input to type a message (UI can be front-end only).
+
+---------------------------------------
+5) NEW MEMBER PROMO BANNER
+---------------------------------------
+- Full-width soft lavender/pastel purple background (#EDE4FF)
+- Horizontal layout: [gift box icon] [text] [button]
+- On mobile: still one row if possible, or wrap neatly with consistent padding
+- Left: small 3D-style gift box illustration/icon (emoji 🎁 is acceptable if styled)
+- Center text (dark, medium/semibold, ~14–15px):
+  "Yeni Üye Ol, 100 TL Bonus Kazan"
+- Right: solid purple button white text:
+  "Hemen Üye Ol"
+- Button opens a simple signup modal (name, email, password fields + submit). On submit show success toast: "Hoş geldiniz! 100 TL bonus hesabınıza tanımlandı."
+
+---------------------------------------
+6) PRODUCT GRID — "Sizin İçin Seçtiklerimiz"
+---------------------------------------
+- Section padding top/bottom ~24–32px, horizontal 16–20px
+- Header row:
+  LEFT bold title: "Sizin İçin Seçtiklerimiz"
+  RIGHT purple link: "Tümünü Gör >"
+- Grid: EXACTLY 2 columns on mobile, gap ~12–14px
+- Product CARD style:
+  - White bg, 1px #E5E7EB border, radius ~12–14px
+  - Image area on top (~1:1 or 4:5), light gray/off-white bg
+  - Heart (wishlist) icon top-right over image (outline gray). Click toggles filled purple heart + toast
+  - Below image, padded content:
+    - Category label small purple uppercase/normal: e.g. "Kuru Mama"
+    - Product name bold dark: multi-line ok
+    - Size/weight as part of name or secondary line
+    - Price row:
+      - Current price bold dark (e.g. "799 TL")
+      - If discounted: old price muted strikethrough (e.g. "990 TL") + red pill badge "%19"
+    - Full-width purple button at bottom: "Sepete Ekle"
+      On click: add to cart, bump badge count, show toast "Sepete eklendi"
+
+CREATE THESE 4 PRODUCTS (match screenshot content as closely as possible):
+
+1) Category: Kuru Mama
+   Name: Royal Canin Poodle Adult 1.5 kg
+   Image: dog food bag / kibble product shot
+   Price: 799 TL
+   Old: 990 TL
+   Discount badge: %19
+2) Category: Bakım
+   Name: Poodle Tüy Bakım Şampuanı 250 ml
+   Image: pet shampoo bottle
+   Price: 249 TL
+   (no discount OR small discount if you want visual variety)
+3) Category: Ödül
+   Name: Hipoalerjenik Ödül Maması 200 g
+   Image: treat pouch
+   Price: 189 TL
+4) Category: Aksesuar
+   Name: Ayarlanabilir Yürüyüş Tasması
+   Image: dog leash/harness
+   Price: 329 TL
+
+All "Sepete Ekle" buttons must work with shared cart state.
+
+---------------------------------------
+7) GUIDE / BLOG SECTION — "Poodle Rehberinden"
+---------------------------------------
+- Header row:
+  LEFT: "Poodle Rehberinden"
+  RIGHT purple link: "Tüm Rehberi Keşfet >"
+- Layout on mobile:
+  OPTION A (preferred if space): featured image on top full width, then 3 stacked article rows
+  OPTION B (if matching desktop-in-mobile mock): left featured square + right 3 list items
+  Closest to screenshot: featured large image LEFT, three compact articles RIGHT stacked.
+  On narrow mobile: stack featured on top, then list below.
+- Featured article:
+  Large rounded image of a small puppy standing on a white training pad / puppy pad
+  Optional caption overlay or just image
+- Three list articles, each row:
+  - Small square thumbnail (rounded ~8px) left
+  - Title bold right of thumbnail
+  - Under title: clock icon + muted "X dk okuma"
+  Exact titles:
+  1) "Tuvalet Eğitimi Nasıl Verilir?" — "5 dk okuma"
+  2) "Toy Poodle Mama Seçim Rehberi" — "7 dk okuma"
+  3) "Tüy Bakımı: Tarak ve Şampuan" — "4 dk okuma"
+- Clicking an article opens a simple article detail view/modal with title + 2–3 paragraphs of placeholder Turkish content.
+
+---------------------------------------
+8) CLUB MEMBERSHIP CTA
+---------------------------------------
+- Large rounded container (radius ~16–20px), margin 16–20px, solid primary purple background
+- Optional subtle paw-print pattern overlay at low opacity
+- Content layout:
+  LEFT/TOP text block in white:
+  Heading: "YourPoodle Club'a Katıl"
+  Checklist with white checkmark icons:
+    ✓ Üyelere özel indirimler
+    ✓ Uzmanlara soru sor
+    ✓ Poodle severlerle tanış
+  Button: solid WHITE background, purple text: "Club'ı Keşfet"
+  Button opens club info modal or navigates to #club
+- RIGHT/BOTTOM photo:
+  Photo of multiple people holding poodles (friendly group shot)
+  Rounded corners matching container
+  Overlay at bottom of photo: small overlapping circular avatars (3–5 faces) + white text:
+  "10.000+ Poodle sever"
+- On mobile: stack text then image; keep generous padding (~20–24px)
+
+---------------------------------------
+9) FOOTER
+---------------------------------------
+- White background, top border subtle
+- Logo: purple script "YourPoodle"
+- Social icons in a row (circular or simple icons, dark gray): Instagram, TikTok, YouTube, Pinterest — each links to "#"
+- Newsletter block:
+  Label: "Bültenimize Katıl" (or "Bültenimize Katılın" — match screenshot)
+  Email input (rounded left / full) + purple "Gönder" button
+  Validate email; on success show "Aboneliğiniz alındı!" message and clear input
+- Link columns (on mobile stack or 2–3 columns):
+  Keşfet:
+    - Mağaza
+    - Mama Bul
+    - Rehber
+    - Club
+  Destek:
+    - Sipariş Takibi
+    - İade & Değişim
+    - SSS
+    - İletişim
+  Kurumsal:
+    - Hakkımızda
+    - KVKK
+    - Mesafeli Satış Sözleşmesi
+    - Kariyer
+- Payment & trust row:
+  Visa, Mastercard, Troy, American Express logos (use simple SVG badges)
+  + PCI DSS badge/text
+- Bottom centered copyright:
+  "© 2024 YourPoodle"
+- Adequate spacing; muted link colors; purple on hover
+
+═══════════════════════════════════════
+INTERACTIVITY REQUIREMENTS (MUST WORK)
+═══════════════════════════════════════
+1. Sticky header + cart badge count
+2. Add to cart / remove from cart / quantity update in drawer
+3. Wishlist heart toggle
+4. Search modal filters products by name
+5. Promo signup modal
+6. Newsletter validation
+7. AI assistant simple chat UI (front-end demo responses OK)
+8. Smooth scroll for nav anchors
+9. Toast notifications for cart/wishlist/newsletter
+10. Keyboard accessibility: Esc closes modals; focus trap preferred
+11. Buttons have :hover (slightly darker purple) and :active (scale 0.98)
+12. Images lazy-load; use object-cover; no broken images
+
+═══════════════════════════════════════
+RESPONSIVE RULES
+═══════════════════════════════════════
+- Mobile (default ≤640px): 2-col product grid, stacked club, scrollable nav
+- Tablet ≥768px: keep premium spacing, products can stay 2-col or go 4-col
+- Desktop ≥1024px: max content width ~1120–1200px centered; hero content left; products 4-col; club split left/right; guide featured left + list right as in screenshot composition
+
+═══════════════════════════════════════
+QUALITY BAR
+═══════════════════════════════════════
+- Pixel-tight spacing consistency (8px rhythm)
+- No layout shift, no overflow-x on body
+- Crisp icons (Heroicons/Lucide SVGs)
+- Professional product cards identical in structure
+- Hero text never unreadable over photo
+- Match screenshot energy: clean, premium pet boutique, purple brand, Turkish copy
+- Deliver a finished runnable app (index.html or Vite React) with README: how to run
+
+START NOW. Build the complete page. Do not ask clarifying questions unless a blocking ambiguity exists. Prefer matching the screenshot over creative reinterpretation.
