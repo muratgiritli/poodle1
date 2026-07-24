@@ -19,54 +19,54 @@ interface StaticProduct {
 }
 const FEATURED_PRODUCTS: StaticProduct[] = [
   {
-    id: "rc-poodle-adult",
-    name: "Royal Canin Poodle Adult Kuru Mama 1.5 Kg",
+    id: "2717",
+    name: "Pro Plan Small & Mini Puppy Tavuklu 3 Kg",
     price: 699,
     rating: 4.8,
     reviews: 124,
-    img: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=300&h=300&fit=crop",
+    img: "/product-images/yp-2717.jpg",
     category: "mama",
   },
   {
-    id: "eye-envy",
-    name: "Eye Envy Gözyaşı Lekesi Temizleme Losyonu 118 ml",
-    price: 499,
+    id: "2716",
+    name: "Royal Canin X-Small Adult Köpek Maması 1.5 Kg",
+    price: 529,
     rating: 4.6,
     reviews: 89,
-    img: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=300&h=300&fit=crop",
-    category: "bakim",
+    img: "/product-images/yp-2716.jpg",
+    category: "mama",
   },
   {
-    id: "chris-brush",
-    name: "Chris Christensen Mark II Slicker Fırça – Küçük",
-    price: 749,
+    id: "2721",
+    name: "N&D Quinoa Skin & Coat Köpek Maması 800 g",
+    price: 349,
     rating: 4.9,
     reviews: 67,
-    img: "https://images.unsplash.com/photo-1516734212184-a967f81ad0d2?w=300&h=300&fit=crop",
-    category: "bakim",
+    img: "/product-images/yp-2721.png",
+    category: "mama",
   },
   {
-    id: "puppia-harness",
-    name: "Puppia Soft Air-Mesh Göğüs Tasması (Mor)",
-    price: 599,
+    id: "2737",
+    name: "PetKit Havalandırmalı Poodle Sırt Çantası",
+    price: 849,
     rating: 4.7,
     reviews: 52,
-    img: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=300&h=300&fit=crop",
+    img: "/product-images/yp-2737.jpg",
     category: "aksesuar",
   },
 ];
 
 const TOP_ARTICLES = [
-  { slug: "tuy-bakimi-nasil-yapilir",  title: "Toy Poodle Tüy Bakımı Nasıl Yapılır?",         readMin: 5, img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=80&h=80&fit=crop" },
-  { slug: "dogru-mama-secimi",          title: "Poodle Beslenme Rehberi: Doğru Mama Seçimi",    readMin: 6, img: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=80&h=80&fit=crop" },
-  { slug: "goz-yaslari",               title: "Gözyaşı Lekeleri Neden Olur ve Nasıl Geçer?",   readMin: 4, img: "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=80&h=80&fit=crop" },
+  { slug: "poodle-tuy-bakimi-haftalik-rutin", title: "Toy Poodle Tüy Bakımı Nasıl Yapılır?",       readMin: 5, img: "/images/poodle-avatar-3.jpg" },
+  { slug: "toy-poodle-en-iyi-mama-markalari-2026", title: "Poodle Beslenme Rehberi: Doğru Mama Seçimi", readMin: 6, img: "/images/poodle-avatar-1.jpg" },
+  { slug: "poodle-goz-yasi-lekesi-temizleme", title: "Gözyaşı Lekeleri Neden Olur ve Nasıl Geçer?", readMin: 4, img: "/images/poodle-avatar-2.jpg" },
 ];
 
 const COMMUNITY_AVATARS = [
-  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=40&h=40&fit=crop&crop=face",
-  "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=40&h=40&fit=crop&crop=face",
-  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=40&h=40&fit=crop&crop=face",
-  "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=40&h=40&fit=crop&crop=face",
+  "/images/poodle-avatar-1.jpg",
+  "/images/poodle-avatar-2.jpg",
+  "/images/poodle-avatar-3.jpg",
+  "/images/poodle-avatar-4.jpg",
 ];
 
 /* ── Star Rating ── */
@@ -336,7 +336,7 @@ export default function YourPoodleHomePage() {
           {/* RIGHT — photo + floating cards */}
           <div className="yp-hero-right">
             <img
-              src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=460&fit=crop&crop=top"
+              src="/images/poodle-real-hero.jpg"
               alt="Toy Poodle"
               className="yp-hero-img"
             />
