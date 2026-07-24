@@ -377,7 +377,7 @@ function AiModal({ onClose }: any) {
 /* ══════════════════════════════════
    MAIN
 ══════════════════════════════════ */
-export default function YourPoodleHomePage() {
+export default function YourPoodleDemo3() {
   const [cart, setCart] = useState<any[]>([]);
   const [wishlist, setWishlist] = useState<Set<number>>(new Set());
   const [toast, setToast] = useState("");
