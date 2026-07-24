@@ -90,7 +90,7 @@ export default function YPLayout({
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (search.trim()) { navigate(`${BASE}/magaza?q=${encodeURIComponent(search.trim())}`); setSearch(""); }
+    if (search.trim()) { navigate(`${BASE}/ara?q=${encodeURIComponent(search.trim())}`); setSearch(""); }
   };
 
   const initials = customer?.name?.slice(0, 1).toUpperCase() || "";

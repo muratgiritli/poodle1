@@ -151,6 +151,28 @@ const YPPuanKazanPage                 = lazy(() => import("@/pages/yp-hesabim-pu
 const YPGecmisOnerilerPage = lazy(() => import("@/pages/yp-gecmis-oneriler"));
 const YPKategoriPage       = lazy(() => import("@/pages/yp-kategori"));
 const YPUyeOlPage          = lazy(() => import("@/pages/yp-uye-ol"));
+// New pages — Phase 1-6
+const YPSiparisOnayPage    = lazy(() => import("@/pages/yp-siparis-onay"));
+const YPSiparisDetayPage   = lazy(() => import("@/pages/yp-siparis-detay"));
+const YPSiparisTakipPage   = lazy(() => import("@/pages/yp-siparis-takip"));
+const YPAraPage            = lazy(() => import("@/pages/yp-ara"));
+const YPKategoriSayfasiPage= lazy(() => import("@/pages/yp-kategori-sayfasi"));
+const YPMarkaSayfasiPage   = lazy(() => import("@/pages/yp-marka-sayfasi"));
+const YPAtakumMagazaPage   = lazy(() => import("@/pages/yp-atakum-magaza"));
+const YPRehberMakalePage   = lazy(() => import("@/pages/yp-rehber-makale"));
+const YPAraclarPage        = lazy(() => import("@/pages/yp-araclar"));
+const YPMamaHesaplamaPage  = lazy(() => import("@/pages/yp-mama-hesaplama"));
+const YPYasHesaplamaPage   = lazy(() => import("@/pages/yp-yas-hesaplama"));
+const YPTirasTakvimiPage   = lazy(() => import("@/pages/yp-tiras-takvimi"));
+const YPGonderiDetayPage   = lazy(() => import("@/pages/yp-gonderi-detay"));
+const YPEtkinliklerListePage = lazy(() => import("@/pages/yp-etkinlikler-liste"));
+const YPEtkinlikDetayPage  = lazy(() => import("@/pages/yp-etkinlik-detay"));
+const YPSifremiUnuttumPage = lazy(() => import("@/pages/yp-sifremi-unuttum"));
+const YPSifreSifirlaPage   = lazy(() => import("@/pages/yp-sifre-sifirla"));
+const YPLegalPage          = lazy(() => import("@/pages/yp-legal"));
+const YPKampanyalarPage    = lazy(() => import("@/pages/yp-kampanyalar"));
+const YPIletisimPage       = lazy(() => import("@/pages/yp-iletisim"));
+const YPHakkimizdaPage     = lazy(() => import("@/pages/yp-hakkimizda"));
 const DemoKampanyaPage = lazy(() => import("@/pages/demo-kampanya"));
 const DemoKampanyaUrunPage = lazy(() => import("@/pages/demo-kampanya").then(m => ({ default: m.DemoKampanyaUrun })));
 const SeoPage = lazy(() => import("@/pages/seo-pages"));
@@ -314,24 +336,58 @@ function Router() {
         <Route path="/kullanim-kosullari" component={KullanimKosullariPage} />
         <Route path="/cerez-politikasi" component={CerezPage} />
         <Route path="/islem-rehberi" component={IslemRehberiPage} />
-        <Route path="/hakkimizda" component={HakkimizdaPage} />
-        <Route path="/iletisim" component={IletisimPage} />
         {/* ─── Top-level canonical YP routes (yourpoodle.com) ─── */}
-        <Route path="/magaza"         component={YPMagazaPage} />
-        <Route path="/club/hakkimizda" component={YPClubHakkimizdaPage} />
-        <Route path="/club"           component={YPClubPage} />
+        {/* Order flow */}
+        <Route path="/siparis/onay/:orderId" component={YPSiparisOnayPage} />
+        <Route path="/hesabim/siparisler/:orderId" component={YPSiparisDetayPage} />
+        <Route path="/siparis-takip" component={YPSiparisTakipPage} />
+        {/* Search */}
+        <Route path="/ara" component={YPAraPage} />
+        {/* Catalog */}
+        <Route path="/magaza/kategori/:slug" component={YPKategoriSayfasiPage} />
+        <Route path="/magaza/marka/:slug"    component={YPMarkaSayfasiPage} />
+        <Route path="/magaza"                component={YPMagazaPage} />
+        {/* Club */}
+        <Route path="/club/gonderi/:postId"  component={YPGonderiDetayPage} />
+        <Route path="/club/profil/:username" component={YPProfilPage} />
+        <Route path="/club/hakkimizda"       component={YPClubHakkimizdaPage} />
+        <Route path="/club"                  component={YPClubPage} />
+        {/* Rehber */}
+        <Route path="/rehber/:category/:slug" component={YPRehberMakalePage} />
         <Route path="/rehber/:slug">
           {(params: any) => <YPRehberPage routeSlug={params?.slug} />}
         </Route>
-        <Route path="/rehber"         component={YPRehberPage} />
-        <Route path="/ai-asistan"     component={YPAiAsistanPage} />
-        <Route path="/mama-bul"       component={YPMamaBulPage} />
-        <Route path="/uye-ol"         component={YPUyeOlPage} />
-        <Route path="/sepet"          component={YPSepetPage} />
-        <Route path="/odeme"          component={YPOdemePage} />
-        <Route path="/tesekkurler"    component={YPTesekkurlerPage} />
-        {/* Legacy physical-store page (moved off /magaza) */}
-        <Route path="/magazalar/atakum" component={MagazaPage} />
+        <Route path="/rehber"                component={YPRehberPage} />
+        {/* Araçlar */}
+        <Route path="/araclar/mama-hesaplama" component={YPMamaHesaplamaPage} />
+        <Route path="/araclar/yas-hesaplama"  component={YPYasHesaplamaPage} />
+        <Route path="/araclar/tiras-takvimi"  component={YPTirasTakvimiPage} />
+        <Route path="/araclar"                component={YPAraclarPage} />
+        {/* Events */}
+        <Route path="/etkinlikler/:slug"     component={YPEtkinlikDetayPage} />
+        <Route path="/etkinlikler"           component={YPEtkinliklerListePage} />
+        {/* Auth */}
+        <Route path="/sifremi-unuttum/dogrulama" component={YPSifreSifirlaPage} />
+        <Route path="/sifremi-unuttum"       component={YPSifremiUnuttumPage} />
+        <Route path="/ai-asistan"            component={YPAiAsistanPage} />
+        <Route path="/mama-bul"              component={YPMamaBulPage} />
+        <Route path="/uye-ol"                component={YPUyeOlPage} />
+        <Route path="/sepet"                 component={YPSepetPage} />
+        <Route path="/odeme"                 component={YPOdemePage} />
+        <Route path="/tesekkurler"           component={YPTesekkurlerPage} />
+        {/* Marketing & static */}
+        <Route path="/kampanyalar"           component={YPKampanyalarPage} />
+        <Route path="/hakkimizda"            component={YPHakkimizdaPage} />
+        <Route path="/iletisim"              component={YPIletisimPage} />
+        {/* Legal — canonical */}
+        <Route path="/kullanim-sartlari">
+          {() => <YPLegalPage variant="kullanim-sartlari" />}
+        </Route>
+        <Route path="/mesafeli-satis-sozlesmesi">
+          {() => <YPLegalPage variant="mesafeli-satis" />}
+        </Route>
+        {/* Physical store */}
+        <Route path="/magazalar/atakum"      component={YPAtakumMagazaPage} />
         <Route path="/teslimat-iade" component={TeslimatIadePage} />
         <Route path="/gizlilik-sozlesmesi" component={GizlilikSozlesmesiPage} />
         <Route path="/mesafeli-satis" component={MesafeliSatisSozlesmesiPage} />
@@ -359,7 +415,7 @@ function AppShell() {
   const isAdmin = location.startsWith("/admin");
   // On the live yourpoodle.com domain ALL routes are YP → suppress legacy chrome.
   // On dev hosts, /yourpoodle/* and the canonical top-level YP paths are YP.
-  const YP_TOP = ["/magaza", "/club", "/rehber", "/ai-asistan", "/mama-bul", "/uye-ol", "/sepet", "/odeme", "/tesekkurler", "/giris"];
+  const YP_TOP = ["/magaza", "/club", "/rehber", "/ai-asistan", "/mama-bul", "/uye-ol", "/sepet", "/odeme", "/tesekkurler", "/giris", "/ara", "/araclar", "/etkinlikler", "/kampanyalar", "/hakkimizda", "/iletisim", "/sifremi-unuttum", "/siparis", "/kullanim-sartlari", "/mesafeli-satis-sozlesmesi", "/magazalar"];
   const isYP = IS_YP || location === "/" || location.startsWith("/yourpoodle") ||
     YP_TOP.some(p => location === p || location.startsWith(p + "/") || location.startsWith(p + "?"));
   const isDemo = isYP || location === "/demo" || location.startsWith("/demo-kampanya") || location === "/demo1" || location === "/demo2" || location === "/demo-anasayfa";
