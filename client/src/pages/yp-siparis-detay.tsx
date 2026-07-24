@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRoute, useLocation } from "wouter";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { ArrowLeft, Package, MapPin, CreditCard, Truck, FileText, RotateCcw, HelpCircle } from "lucide-react";
@@ -39,6 +39,8 @@ export default function YPSiparisDetayPage() {
   const [, navigate] = useLocation();
   const orderId = params?.orderId ?? "YP-2026-0847";
   const order = getOrder(orderId) ?? getOrder("YP-2026-0847")!;
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2800); };
 
   useEffect(() => { document.title = `Sipariş Detayı | YourPoodle`; }, []);
 
@@ -114,14 +116,14 @@ export default function YPSiparisDetayPage() {
 
               <Section icon={Truck} title="Kargo">
                 <p style={{ margin: "0 0 10px", fontSize: 13, color: "#374151" }}>Takip No: <strong>{order.trackingNo}</strong></p>
-                <button onClick={() => alert("Kargo takip sistemi yakında aktif olacak.")}
+                <button onClick={() => order.trackingNo && order.trackingNo !== "—" ? navigate(`/siparis-takip?orderId=${orderId}`) : showToast("Kargo bilgisi henüz eklenmedi")}
                   style={{ padding: "8px 16px", borderRadius: 8, border: "1.5px solid " + P, background: "#F5F0FF", color: P, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                   Kargoyu Takip Et
                 </button>
               </Section>
 
               <Section icon={FileText} title="Fatura">
-                <button onClick={() => alert("Fatura indirme özelliği yakında aktif olacak.")}
+                <button onClick={() => showToast("Fatura indirme özelliği yakında aktif olacak.")}
                   style={{ padding: "8px 16px", borderRadius: 8, border: "1.5px solid #E5E7EB", background: "#fff", color: "#374151", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                   Fatura İndir
                 </button>
@@ -135,13 +137,20 @@ export default function YPSiparisDetayPage() {
               style={{ flex: 1, height: 48, borderRadius: 12, border: "1.5px solid #E5E7EB", background: "#fff", color: "#374151", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
               <HelpCircle size={16} /> Yardım Al
             </button>
-            <button onClick={() => { alert("Ürünler sepete eklendi!"); navigate(`${BASE}/sepet`); }}
+            <button onClick={() => navigate(`${BASE}/sepet`)}
               style={{ flex: 1, height: 48, borderRadius: 12, border: "none", background: P, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
               <RotateCcw size={16} /> Siparişi Tekrarla
             </button>
           </div>
         </div>
       </div>
+      {toast && (
+        <div style={{ position:"fixed", bottom:90, left:"50%", transform:"translateX(-50%)", zIndex:999,
+                      background:"#111827", color:"#fff", padding:"10px 20px", borderRadius:12,
+                      fontSize:13, fontWeight:500, whiteSpace:"nowrap", boxShadow:"0 4px 12px rgba(0,0,0,0.25)" }}>
+          {toast}
+        </div>
+      )}
     </YPLayout>
   );
 }

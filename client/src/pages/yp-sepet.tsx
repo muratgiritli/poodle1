@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import {
   ChevronLeft, CheckCircle, X, Trash2, Heart,
@@ -28,7 +28,7 @@ const DELIVERY_OPTIONS: DeliveryOption[] = [
   { id:"express",  title:"Hızlı Teslimat — 79 TL",       price:79, subtitle:"Yarın kapınızda" },
 ];
 
-const VALID_COUPON = { code:"POODLE100", discount:100, label:"POODLE100 — Yeni üyeye 100 TL" };
+// Coupon validation is server-side via /api/coupons/validate
 
 const RECS = [
   { id:"rec-1", name:"Buharlı Masaj Tarağı",   price:399, emoji:"🪮" },
@@ -49,13 +49,23 @@ const DEFAULT_ITEM: CartItemData = {
 
 function fmt(n: number) { return n.toLocaleString("tr-TR"); }
 
-const MOCK_ADDRESSES = [
-  { id:"a1", label:"Ev", detail:"Kadıköy, İstanbul" },
-  { id:"a2", label:"İş", detail:"Beşiktaş, İstanbul" },
-];
 
 function AddressModal({ onSelect, onClose }: { onSelect:(s:string)=>void; onClose:()=>void }) {
-  const [sel, setSel] = useState("a1");
+  const [, navigate] = useLocation();
+  const [sel, setSel] = useState<string | null>(null);
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/customer/addresses")
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(data => { setAddresses(data); if (data.length > 0) setSel(String(data[0].id)); })
+      .catch(() => setAddresses([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const selected = addresses.find(a => String(a.id) === sel);
+
   return (
     <div style={{ position:"fixed",inset:0,zIndex:200,display:"flex",alignItems:"flex-end",
                   justifyContent:"center",background:"rgba(0,0,0,0.5)" }}
@@ -69,32 +79,40 @@ function AddressModal({ onSelect, onClose }: { onSelect:(s:string)=>void; onClos
             <X size={20} color="#6B7280" />
           </button>
         </div>
-        {MOCK_ADDRESSES.map(a=>(
-          <div key={a.id} onClick={()=>setSel(a.id)}
+        {loading && <p style={{ textAlign:"center",color:"#9CA3AF",padding:"20px 0" }}>Yükleniyor…</p>}
+        {!loading && addresses.length === 0 && (
+          <p style={{ textAlign:"center",color:"#6B7280",padding:"16px 0" }}>
+            Kayıtlı adresiniz yok. Hesabınızdan yeni adres ekleyin.
+          </p>
+        )}
+        {addresses.map(a=>(
+          <div key={a.id} onClick={()=>setSel(String(a.id))}
             style={{ display:"flex",alignItems:"center",gap:12,padding:"12px 16px",
                      marginBottom:8,borderRadius:12,
-                     border:`2px solid ${sel===a.id?P:GB}`,
-                     background:sel===a.id?PL:"#fff",cursor:"pointer" }}>
+                     border:`2px solid ${String(a.id)===sel?P:GB}`,
+                     background:String(a.id)===sel?PL:"#fff",cursor:"pointer" }}>
             <div style={{ width:18,height:18,borderRadius:"50%",
-                          border:`2px solid ${sel===a.id?P:"#9CA3AF"}`,
+                          border:`2px solid ${String(a.id)===sel?P:"#9CA3AF"}`,
                           display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-              {sel===a.id && <div style={{ width:9,height:9,borderRadius:"50%",background:P }} />}
+              {String(a.id)===sel && <div style={{ width:9,height:9,borderRadius:"50%",background:P }} />}
             </div>
             <div>
-              <p style={{ fontSize:14,fontWeight:600,color:"#111827" }}>{a.label}</p>
-              <p style={{ fontSize:12,color:"#6B7280" }}>{a.detail}</p>
+              <p style={{ fontSize:14,fontWeight:600,color:"#111827" }}>{a.label || "Adres"}</p>
+              <p style={{ fontSize:12,color:"#6B7280" }}>{[a.district, a.city].filter(Boolean).join(", ") || a.detail || a.address || ""}</p>
             </div>
           </div>
         ))}
-        <button onClick={()=>alert("Yeni adres yakında!")}
+        <button onClick={()=>navigate("/hesabim/adreslerim")}
           style={{ width:"100%",background:"none",border:`1.5px dashed ${GB}`,
                    borderRadius:10,padding:"10px 0",fontSize:13,color:"#6B7280",
                    cursor:"pointer",marginBottom:16,fontFamily:"inherit" }}>
           + Yeni Adres Ekle
         </button>
-        <button onClick={()=>{ const a=MOCK_ADDRESSES.find(x=>x.id===sel)!; onSelect(`${a.label} — ${a.detail}`); onClose(); }}
-          style={{ width:"100%",background:P,color:"#fff",border:"none",borderRadius:12,
-                   padding:"13px 0",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
+        <button
+          disabled={!selected}
+          onClick={()=>{ if(!selected) return; onSelect(`${selected.label || "Adres"} — ${[selected.district, selected.city].filter(Boolean).join(", ") || selected.detail || ""}`); onClose(); }}
+          style={{ width:"100%",background:selected?P:"#D1D5DB",color:"#fff",border:"none",borderRadius:12,
+                   padding:"13px 0",fontSize:14,fontWeight:700,cursor:selected?"pointer":"default",fontFamily:"inherit" }}>
           Kaydet
         </button>
       </div>
@@ -149,17 +167,30 @@ export default function YPSepetPage() {
   const removeItem = (id:string) => setItems(prev=>prev.filter(i=>i.id!==id));
   const clearCart  = () => { if(window.confirm("Sepeti temizlemek istediğinizden emin misiniz?")) setItems([]); };
 
-  const applyCoupon = (code:string) => {
+  const applyCoupon = async (code: string) => {
     const upper = code.trim().toUpperCase();
-    if(upper===VALID_COUPON.code) {
-      setAppliedCoupon({discount:VALID_COUPON.discount,label:VALID_COUPON.label});
-      showToast("Kupon uygulandı ✓");
-    } else { showToast("Geçersiz kupon kodu"); }
+    if (!upper) return;
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: upper, subtotal: saleSubtotal }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setAppliedCoupon({ discount: data.discountAmount, label: `${upper} — ${data.message}` });
+        showToast("Kupon uygulandı ✓");
+      } else {
+        showToast(data.message || "Geçersiz kupon kodu");
+      }
+    } catch {
+      showToast("Kupon doğrulanamadı. Tekrar deneyin.");
+    }
   };
 
   const proceedToPayment = () => {
     if(!address){ showToast("Lütfen teslimat adresi seçin"); setShowAddrModal(true); return; }
-    alert("Ödeme sayfası yakında!");
+    navigate("/odeme");
   };
 
   /* ── EMPTY STATE ── */
@@ -409,17 +440,19 @@ export default function YPSepetPage() {
               Uygula
             </button>
           </div>
-          <div style={{ marginTop:8,background:"#F9FAFB",borderRadius:12,padding:"10px 14px",
-                        display:"flex",alignItems:"center",justifyContent:"space-between" }}>
-            <div style={{ display:"flex",alignItems:"center",gap:7 }}>
-              <Tag size={14} color="#6B7280" />
-              <span style={{ fontSize:12,color:"#374151" }}>{VALID_COUPON.label}</span>
+          {appliedCoupon && (
+            <div style={{ marginTop:8,background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:12,padding:"10px 14px",
+                          display:"flex",alignItems:"center",justifyContent:"space-between" }}>
+              <div style={{ display:"flex",alignItems:"center",gap:7 }}>
+                <Tag size={14} color="#16A34A" />
+                <span style={{ fontSize:12,color:"#15803D",fontWeight:600 }}>{appliedCoupon.label}</span>
+              </div>
+              <button onClick={()=>{ setAppliedCoupon(null); setCouponInput(""); showToast("Kupon kaldırıldı"); }}
+                style={{ background:"none",border:"none",cursor:"pointer",fontSize:12,fontWeight:700,color:"#EF4444",fontFamily:"inherit" }}>
+                Kaldır
+              </button>
             </div>
-            <button onClick={()=>{ setCouponInput(VALID_COUPON.code); applyCoupon(VALID_COUPON.code); }}
-              style={{ background:"none",border:"none",cursor:"pointer",fontSize:12,fontWeight:700,color:P,fontFamily:"inherit" }}>
-              Kullan
-            </button>
-          </div>
+          )}
         </div>
 
         {/* ══ ORDER SUMMARY ════════════════════════════════ */}

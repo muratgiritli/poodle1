@@ -106,11 +106,10 @@ export default function YPMamaUrunPage() {
     setCalcResult(`${mn}–${mx} g`);
   };
 
-  const pickCity = () => {
-    const cities = ["İstanbul", "Ankara", "İzmir", "Samsun"];
-    const chosen = window.prompt("Şehir seçin:\n" + cities.join(", "), city || "");
-    if (chosen && cities.includes(chosen)) setCity(chosen);
-  };
+  const [showCityModal, setShowCityModal] = useState(false);
+  const CITIES = ["İstanbul", "Ankara", "İzmir", "Samsun", "Bursa", "Antalya"];
+
+  const pickCity = () => setShowCityModal(true);
 
   const IMG_COUNT = 2;
 
@@ -458,7 +457,7 @@ export default function YPMamaUrunPage() {
           ))}
         </div>
 
-        <button onClick={() => alert("Tüm yorumlar yakında!")}
+        <button onClick={() => reviewsRef.current?.scrollIntoView({ behavior:"smooth" })}
           style={{ width:"100%", marginTop:16, background:"#fff",
                    border:`2px solid ${P}`, color:P, borderRadius:12,
                    padding:"13px 0", fontSize:13, fontWeight:700,
@@ -495,6 +494,29 @@ export default function YPMamaUrunPage() {
           </button>
         </div>
       </div>
+      {/* City selection modal */}
+      {showCityModal && (
+        <div style={{ position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"flex-end",
+                      justifyContent:"center",background:"rgba(0,0,0,0.5)" }}
+          onClick={()=>setShowCityModal(false)}>
+          <div style={{ maxWidth:480,width:"100%",background:"#fff",borderRadius:"20px 20px 0 0",
+                        padding:"24px 20px 40px" }}
+            onClick={e=>e.stopPropagation()}>
+            <p style={{ fontSize:16,fontWeight:700,color:"#111827",marginBottom:16 }}>Şehir Seçin</p>
+            {CITIES.map(c=>(
+              <button key={c} onClick={()=>{setCity(c);setShowCityModal(false);}}
+                style={{ width:"100%",background:city===c?"#F5F0FF":"#F9FAFB",
+                         border:`1.5px solid ${city===c?P:"transparent"}`,
+                         borderRadius:12,padding:"13px 16px",textAlign:"left",
+                         fontSize:14,fontWeight:city===c?700:500,
+                         color:city===c?P:"#374151",cursor:"pointer",
+                         marginBottom:8,fontFamily:"inherit" }}>
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </YPLayout>
   );
 }

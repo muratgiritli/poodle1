@@ -16,17 +16,44 @@ export default function YPGonderiDetayPage() {
   const postId = params?.postId ?? "1";
   const post = getPost(postId) ?? MOCK_POSTS[0];
 
-  const [liked, setLiked] = useState(false);
+  const LS_KEY = `yp_post_likes`;
+  const [liked, setLiked] = useState<boolean>(() => {
+    try { const s = localStorage.getItem(LS_KEY); return s ? (JSON.parse(s) as string[]).includes(postId) : false; } catch { return false; }
+  });
   const [saved, setSaved] = useState(false);
+  const [following, setFollowing] = useState(false);
   const [comment, setComment] = useState("");
-  const [comments, setComments] = useState(post.comments);
+  const [comments, setComments] = useState(() => {
+    try { const s = localStorage.getItem(`yp_post_comments_${postId}`); return s ? [...post.comments, ...JSON.parse(s)] : post.comments; } catch { return post.comments; }
+  });
 
   useEffect(() => { document.title = `${post.author} | YourPoodle Club`; }, [post.author]);
+
+  function toggleLike() {
+    setLiked(prev => {
+      const next = !prev;
+      try {
+        const s = localStorage.getItem(LS_KEY);
+        const arr: string[] = s ? JSON.parse(s) : [];
+        const updated = next ? [...arr.filter(x => x !== postId), postId] : arr.filter(x => x !== postId);
+        localStorage.setItem(LS_KEY, JSON.stringify(updated));
+      } catch {}
+      return next;
+    });
+  }
 
   function sendComment(e: React.FormEvent) {
     e.preventDefault();
     if (!comment.trim()) return;
-    setComments(c => [...c, { id: Date.now(), author: "Ben", avatar: "👤", text: comment.trim(), time: "şimdi" }]);
+    const newComment = { id: Date.now(), author: "Ben", avatar: "👤", text: comment.trim(), time: "şimdi" };
+    setComments(c => {
+      const updated = [...c, newComment];
+      try {
+        const existing = comments.filter(x => !post.comments.some(p => p.id === x.id));
+        localStorage.setItem(`yp_post_comments_${postId}`, JSON.stringify([...existing, newComment]));
+      } catch {}
+      return updated;
+    });
     setComment("");
   }
 
@@ -64,9 +91,9 @@ export default function YPGonderiDetayPage() {
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => alert("Takip edildi!")}
-                    style={{ padding: "6px 14px", borderRadius: 8, border: `1.5px solid ${P}`, background: "#F5F0FF", color: P, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-                    Takip Et
+                  <button onClick={() => setFollowing(f => !f)}
+                    style={{ padding: "6px 14px", borderRadius: 8, border: `1.5px solid ${P}`, background: following ? P : "#F5F0FF", color: following ? "#fff" : P, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                    {following ? "Takip Ediliyor" : "Takip Et"}
                   </button>
                   <button style={{ background: "none", border: "none", cursor: "pointer", color: "#9CA3AF" }}>
                     <MoreHorizontal size={18} />
@@ -96,14 +123,17 @@ export default function YPGonderiDetayPage() {
               <div style={{ padding: "12px 20px", borderTop: "1px solid #F3F4F6" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                   <div style={{ display: "flex", gap: 14 }}>
-                    <button onClick={() => setLiked(x => !x)}
+                    <button onClick={toggleLike}
                       style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: liked ? "#EF4444" : "#6B7280", fontFamily: "inherit", fontSize: 13, fontWeight: 600 }}>
                       <Heart size={18} fill={liked ? "#EF4444" : "none"} /> {post.likes + (liked ? 1 : 0)}
                     </button>
                     <button style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: "#6B7280", fontFamily: "inherit", fontSize: 13 }}>
                       <MessageCircle size={18} /> {comments.length}
                     </button>
-                    <button onClick={() => alert("Paylaşıldı!")} style={{ background: "none", border: "none", cursor: "pointer", color: "#6B7280" }}>
+                    <button onClick={() => {
+                      if (navigator.share) navigator.share({ title: post.author, text: post.caption, url: window.location.href }).catch(()=>{});
+                      else if (navigator.clipboard) navigator.clipboard.writeText(window.location.href).then(()=>{});
+                    }} style={{ background: "none", border: "none", cursor: "pointer", color: "#6B7280" }}>
                       <Share2 size={18} />
                     </button>
                   </div>

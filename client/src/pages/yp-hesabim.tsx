@@ -76,7 +76,7 @@ function AccountHeader({ onMenuClick }: { onMenuClick: () => void }) {
         </button>
 
         {/* DM */}
-        <button onClick={() => alert("Mesajlar yakında!")} aria-label="Mesajlar"
+        <button onClick={() => navigate("/hesabim/bildirimler")} aria-label="Mesajlar"
           style={{ position: "relative", width: 36, height: 36, borderRadius: "50%",
                    border: "1.5px solid #E5E7EB", background: "#fff",
                    display: "flex", alignItems: "center", justifyContent: "center",
@@ -286,7 +286,7 @@ function PetProfileCard() {
             onMouseLeave={e => { e.currentTarget.style.background = P; }}>
             Bilgileri Güncelle
           </button>
-          <button onClick={() => alert("Club profili yakında!")}
+          <button onClick={() => navigate("/yourpoodle/club")}
             style={{ background: "#fff", color: P, border: `1px solid ${P}`, borderRadius: 10,
                      padding: "7px 10px", fontSize: 10, fontWeight: 600,
                      cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
@@ -452,7 +452,7 @@ function ActiveOrderCard() {
         <OrderProgressStepper currentKey={activeOrder.statusKey} />
 
         {/* Track button */}
-        <button onClick={() => alert("Sipariş takibi yakında!")}
+        <button onClick={() => navigate("/hesabim/siparisler")}
           style={{ width: "100%", marginTop: 16, border: `2px solid ${P}`, color: P,
                    background: "#fff", borderRadius: 14, padding: "10px 0",
                    fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
@@ -473,12 +473,13 @@ const REMINDER_ICONS: Record<string, React.ComponentType<any>> = {
 };
 
 function RemindersSection() {
+  const [, navigate] = useLocation();
   return (
     <div style={{ padding: "0 16px 16px" }}>
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
         <span style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>Yaklaşan Hatırlatmalar</span>
-        <button onClick={() => alert("Takvim yakında!")}
+        <button onClick={() => navigate("/hesabim/hatirlatmalar")}
           style={{ background: "none", border: "none", cursor: "pointer",
                    fontSize: 12, fontWeight: 600, color: P, fontFamily: "inherit" }}>
           Takvimi Gör
@@ -520,7 +521,7 @@ function RemindersSection() {
       </div>
 
       {/* Add reminder */}
-      <button onClick={() => alert("Hatırlatma ekleme yakında!")}
+      <button onClick={() => navigate("/hesabim/hatirlatmalar")}
         style={{ width: "100%", marginTop: 8, fontSize: 13, fontWeight: 600, color: P,
                  border: `1.5px dashed ${P}`, borderRadius: 10, padding: "9px 0",
                  background: "none", cursor: "pointer", fontFamily: "inherit" }}
@@ -664,6 +665,13 @@ function AccountSettingsList({ onLogout }: { onLogout: () => void }) {
    COMPACT FOOTER
 ════════════════════════════════════════════════ */
 function AccountFooter() {
+  const [, navigate] = useLocation();
+  const FOOTER_LINKS: Record<string, string> = {
+    "Hakkımızda": "/yourpoodle/hakkimizda",
+    "Yardım": "/yourpoodle/yardim",
+    "İletişim": "/yourpoodle/iletisim",
+    "KVKK": "/yourpoodle/gizlilik-politikasi",
+  };
   return (
     <footer style={{ background: FBG, color: "#fff", padding: "24px 16px 24px", marginTop: 8 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
@@ -675,8 +683,8 @@ function AccountFooter() {
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
-        {["Hakkımızda", "Yardım", "İletişim", "KVKK"].map(link => (
-          <button key={link} onClick={() => alert(`${link} yakında!`)}
+        {Object.keys(FOOTER_LINKS).map(link => (
+          <button key={link} onClick={() => navigate(FOOTER_LINKS[link])}
             style={{ background: "none", border: "none", cursor: "pointer",
                      fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "inherit", padding: 0 }}
             onMouseEnter={e => { e.currentTarget.style.color = "#fff"; }}

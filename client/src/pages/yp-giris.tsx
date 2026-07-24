@@ -335,17 +335,17 @@ export default function YPGirisPage() {
                 onChange={e => setTermsAccepted(e.target.checked)}
                 style={{ marginTop:2, flexShrink:0, accentColor:P, width:16, height:16 }} />
               <span style={{ fontSize:12, color:"#4B5563", lineHeight:1.6 }}>
-                <span onClick={e => { e.preventDefault(); alert("Üyelik Sözleşmesi"); }}
+                <span onClick={e => { e.preventDefault(); navigate("/kullanim-sartlari"); }}
                   style={{ color:P, fontWeight:600, cursor:"pointer", textDecoration:"underline" }}>
                   Üyelik Sözleşmesi
                 </span>
                 {", "}
-                <span onClick={e => { e.preventDefault(); alert("KVKK Aydınlatma Metni"); }}
+                <span onClick={e => { e.preventDefault(); navigate("/gizlilik-politikasi"); }}
                   style={{ color:P, fontWeight:600, cursor:"pointer", textDecoration:"underline" }}>
                   KVKK Aydınlatma Metni
                 </span>
                 {" ve "}
-                <span onClick={e => { e.preventDefault(); alert("Gizlilik Politikası"); }}
+                <span onClick={e => { e.preventDefault(); navigate("/gizlilik-politikasi"); }}
                   style={{ color:P, fontWeight:600, cursor:"pointer", textDecoration:"underline" }}>
                   Gizlilik Politikası
                 </span>

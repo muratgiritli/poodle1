@@ -8,6 +8,10 @@ export default function YPAyarlarPage() {
   const [, navigate] = useLocation();
   const { isLoggedIn, customer } = useCustomer();
   const [saved, setSaved] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const [notifs, setNotifs] = useState({
     newPost: true,
@@ -23,9 +27,45 @@ export default function YPAyarlarPage() {
     showInSearch: true,
   });
 
-  const save = (section: string) => {
+  const save = async (section: string) => {
+    // Save notification preferences to backend
+    if (section === "bildirim") {
+      try {
+        await fetch("/api/customer/preferences", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            notifyStock: notifs.orderStatus,
+            notifyCampaign: notifs.promotions,
+          }),
+        });
+      } catch { /* silent */ }
+    }
     setSaved(section);
     setTimeout(() => setSaved(null), 2000);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) { setDeleteError("Şifrenizi girin."); return; }
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch("/api/customer/account", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: deletePassword }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        navigate("/giris");
+      } else {
+        setDeleteError(data.message || "Şifre hatalı.");
+      }
+    } catch {
+      setDeleteError("Bağlantı hatası. Tekrar deneyin.");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (!isLoggedIn) {
@@ -188,10 +228,42 @@ export default function YPAyarlarPage() {
         {/* Hesap Sil */}
         <div style={{ margin: "8px 16px 32px" }}>
           <button style={{ width: "100%", padding: "13px", borderRadius: 12, border: "1.5px solid #FCA5A5", background: "#FEF2F2", color: "#EF4444", fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}
-            onClick={() => { if (confirm("Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.")) alert("Hesap silme için destek@yourpoodle.com adresine yazın."); }}>
+            onClick={() => { setShowDeleteModal(true); setDeletePassword(""); setDeleteError(null); }}>
             Hesabı Sil
           </button>
         </div>
+
+        {/* Delete Account Modal */}
+        {showDeleteModal && (
+          <div style={{ position:"fixed",inset:0,zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,0.5)",padding:20 }}
+            onClick={() => setShowDeleteModal(false)}>
+            <div style={{ background:"#fff",borderRadius:20,padding:28,maxWidth:380,width:"100%" }}
+              onClick={e=>e.stopPropagation()}>
+              <h2 style={{ fontSize:18,fontWeight:800,color:"#111827",marginBottom:8 }}>Hesabı Sil</h2>
+              <p style={{ fontSize:13,color:"#6B7280",marginBottom:20,lineHeight:1.5 }}>
+                Bu işlem geri alınamaz. Devam etmek için şifrenizi girin.
+              </p>
+              <input
+                type="password"
+                placeholder="Şifreniz"
+                value={deletePassword}
+                onChange={e => setDeletePassword(e.target.value)}
+                style={{ width:"100%",padding:"12px 14px",borderRadius:12,border:`1.5px solid ${deleteError?"#EF4444":"#E5E7EB"}`,fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:8 }}
+              />
+              {deleteError && <p style={{ fontSize:12,color:"#EF4444",marginBottom:8 }}>{deleteError}</p>}
+              <div style={{ display:"flex",gap:10,marginTop:8 }}>
+                <button onClick={()=>setShowDeleteModal(false)}
+                  style={{ flex:1,padding:"12px 0",borderRadius:12,border:"1.5px solid #E5E7EB",background:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>
+                  İptal
+                </button>
+                <button onClick={handleDeleteAccount} disabled={deleting}
+                  style={{ flex:1,padding:"12px 0",borderRadius:12,border:"none",background:deleting?"#D1D5DB":"#EF4444",color:"#fff",fontSize:14,fontWeight:700,cursor:deleting?"default":"pointer",fontFamily:"inherit" }}>
+                  {deleting ? "Siliniyor…" : "Hesabı Sil"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </YPLayout>
   );

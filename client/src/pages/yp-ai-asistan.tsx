@@ -50,22 +50,7 @@ function calcFood(weightKg: number, kcalPer100g: number) {
 const INITIAL_AI_TEXT =
   "3 aylık bir Toy Poodle yavrusu için günlük mama miktarı; kilosuna, mamanın kalori değerine ve aktivitesine göre değişir. Kilosunu ve kullandığınız mamanın adını yazarsanız birlikte hesaplayabiliriz.";
 
-function getMock(msg: string): { text: string; showCalculator: boolean } {
-  const l = msg.toLowerCase();
-  if (l.includes("mama") || l.includes("beslen") || l.includes("yem"))
-    return { text: "Toy Poodle'lar için mama miktarı yaşa, kiloya ve aktivite seviyesine göre değişir. Aşağıdaki hesaplayıcı ile kişiselleştirilmiş öneri alabilirsiniz.", showCalculator: true };
-  if (l.includes("sağlık") || l.includes("hastalık"))
-    return { text: "Toy Poodle sağlığı için düzenli veteriner kontrolü çok önemlidir. Aşı takviminizi aksatmayın ve olağandışı belirtilerde hemen veterinere başvurun.", showCalculator: false };
-  if (l.includes("tuvalet"))
-    return { text: "Tuvalet eğitimi sabır ve tutarlılık gerektirir. Yavru köpeğinizi yemekten 15–20 dakika sonra dışarı çıkarın, başarıyı ödüllendirin ve asla cezalandırmayın.", showCalculator: false };
-  if (l.includes("tüy") || l.includes("göz") || l.includes("bakım"))
-    return { text: "Toy Poodle tüyleri düzenli taranmalıdır (haftada 3–4 kez). Göz çevresi günlük nemli bezle silinmeli, profesyonel tıraş 4–6 haftada bir önerilir.", showCalculator: false };
-  if (l.includes("davranış") || l.includes("eğitim"))
-    return { text: "Toy Poodle'lar zeki ve öğrenmeye açıktır. Kısa ve eğlenceli eğitim seansları (5–10 dk), pozitif pekiştirme ve tutarlı komutlar en iyi sonucu verir.", showCalculator: false };
-  if (l.includes("aşı") || l.includes("parazit"))
-    return { text: "Toy Poodle yavruları 6–8 haftalıkken aşı programına başlamalıdır. İç ve dış parazit uygulamaları veterinerinizin önerdiği takvime göre düzenli yapılmalıdır.", showCalculator: false };
-  return { text: "Sorunuz için teşekkürler! Toy Poodle'ınızla ilgili daha spesifik bilgi verirseniz size daha iyi yardımcı olabilirim.", showCalculator: false };
-}
+// Removed: getMock — now using real /api/yp-chat endpoint
 
 const QUICK_ACTIONS = [
   { id:"food",     label:"Mama önerisi",      Icon:UtensilsCrossed, color:"purple",  bg:"#F3EEFF", border:"#DDD6FE", icon:P,         prompt:"Toy Poodle'uma hangi mamayı önerirsiniz?" },
@@ -205,19 +190,40 @@ export default function YPAiAsistanPage() {
     setTimeout(() => setToastVis(false), 1800);
   };
 
-  const sendMessage = useCallback((text: string) => {
+  const sendMessage = useCallback(async (text: string) => {
     const t = text.trim();
     if (!t || loading) return;
     const userMsg: Msg = { id:String(Date.now()), role:"user", text:t, ts:new Date() };
-    setMsgs(prev => [...prev, userMsg]);
+    setMsgs(prev => {
+      const next = [...prev, userMsg];
+      // kick off the API call after state update
+      return next;
+    });
     setInput("");
     setLoading(true);
-    setTimeout(() => {
-      const { text:aiText, showCalculator } = getMock(t);
-      setMsgs(prev => [...prev, { id:String(Date.now()+1), role:"ai", text:aiText, showCalculator, ts:new Date() }]);
+    try {
+      // Build message history for context (last 10 msgs + new user msg)
+      const allMsgs = [...msgs, userMsg];
+      const chatHistory = allMsgs.slice(-10).map(m => ({
+        role: m.role === "ai" ? "assistant" : "user",
+        content: m.text,
+      }));
+      const res = await fetch("/api/yp-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: chatHistory }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Bir hata oluştu");
+      const aiMsg: Msg = { id:String(Date.now()+1), role:"ai", text:data.reply, ts:new Date() };
+      setMsgs(prev => [...prev, aiMsg]);
+    } catch (err: any) {
+      const errMsg: Msg = { id:String(Date.now()+1), role:"ai", text:err.message || "Bir hata oluştu. Lütfen tekrar deneyin.", ts:new Date() };
+      setMsgs(prev => [...prev, errMsg]);
+    } finally {
       setLoading(false);
-    }, 800);
-  }, [loading]);
+    }
+  }, [loading, msgs]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); }
@@ -404,8 +410,8 @@ export default function YPAiAsistanPage() {
         <div className="yp-ai-center">
 
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <button aria-label="Dosya ekle"
-            onClick={() => alert("Dosya ekleme yakında!")}
+          <button aria-label="Mama Hesapla"
+            onClick={() => { const calcMsg: Msg = { id:String(Date.now()), role:"ai", text:"Mama hesaplayıcıyı kullanabilirsiniz:", showCalculator:true, ts:new Date() }; setMsgs(prev => [...prev, calcMsg]); }}
             style={{ width:44, height:44, borderRadius:"50%", border:"none",
                      background:"none", display:"flex", alignItems:"center",
                      justifyContent:"center", cursor:"pointer", flexShrink:0,
@@ -429,7 +435,7 @@ export default function YPAiAsistanPage() {
                        fontFamily:"inherit", minWidth:0 }}
             />
             <button aria-label="Sesli mesaj"
-              onClick={() => alert("Sesli mesaj yakında!")}
+              onClick={() => showToast("Sesli mesaj yakında!")}
               style={{ background:"none", border:"none", cursor:"pointer",
                        display:"flex", alignItems:"center", justifyContent:"center",
                        padding:4, flexShrink:0, color:"#9CA3AF",

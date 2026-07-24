@@ -42,11 +42,32 @@ export default function YPUyeOlPage() {
     setErrors({});
     setSubmitting(true);
 
-    // Mock registration — in production this would call /api/customer/register
-    await new Promise(r => setTimeout(r, 900));
-    setSubmitting(false);
-    setSuccess(true);
-    setTimeout(() => navigate("/hesabim"), 1800);
+    try {
+      const res = await fetch("/api/customer/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          phone: form.phone.trim(),
+          password: form.password,
+        }),
+      });
+      const data = await res.json();
+      if (res.status === 201) {
+        setSuccess(true);
+        setTimeout(() => navigate("/hesabim"), 1800);
+      } else if (res.status === 409) {
+        setErrors({ phone: data.message || "Bu telefon numarası zaten kayıtlı" });
+      } else if (res.status === 429) {
+        setErrors({ form: "Çok fazla deneme. Lütfen daha sonra tekrar deneyin." });
+      } else {
+        setErrors({ form: data.message || "Kayıt sırasında bir hata oluştu." });
+      }
+    } catch {
+      setErrors({ form: "Bağlantı hatası. İnternet bağlantınızı kontrol edin." });
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (success) {
@@ -171,6 +192,11 @@ export default function YPUyeOlPage() {
                 {errors.kvkk && <p style={{ margin:"4px 0 0 26px", fontSize:12, color:ERR }}>{errors.kvkk}</p>}
               </div>
 
+              {/* Form-level error */}
+              {errors.form && (
+                <p style={{ margin:"-8px 0 12px", fontSize:13, color:"#EF4444", textAlign:"center" }}>{errors.form}</p>
+              )}
+
               {/* Submit */}
               <button type="submit" disabled={submitting}
                 style={{
@@ -195,7 +221,12 @@ export default function YPUyeOlPage() {
             {/* Social buttons */}
             {["🇬 Google ile Kayıt Ol", "🍎 Apple ile Kayıt Ol"].map(label => (
               <button key={label}
-                onClick={() => alert("Yakında!")}
+                onClick={() => {
+                  const btn = document.activeElement as HTMLButtonElement;
+                  if (btn) btn.blur();
+                  const msg = document.createElement("span");
+                  msg.textContent = "Sosyal giriş yakında aktif olacak!";
+                }}
                 style={{
                   width:"100%", height:48, borderRadius:12, border:`1.5px solid ${BORDER}`,
                   background:"#fff", fontSize:14, fontWeight:600, color:"#374151",

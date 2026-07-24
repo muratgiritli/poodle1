@@ -82,8 +82,8 @@ function QRCode() {
   const cell = (filled:boolean) => (
     <div style={{ width:4, height:4, background: filled ? "#1F2937" : "transparent" }} />
   );
-  const row = (pattern: boolean[]) => (
-    <div style={{ display:"flex" }}>{pattern.map((v,i)=><div key={i}>{cell(v)}</div>)}</div>
+  const row = (pattern: number[]) => (
+    <div style={{ display:"flex" }}>{pattern.map((v,i)=><div key={i}>{cell(!!v)}</div>)}</div>
   );
   const p = [
     [1,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1],

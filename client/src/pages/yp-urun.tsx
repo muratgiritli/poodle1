@@ -28,6 +28,14 @@ interface CartItem { id: number; name: string; price: number; img?: string; qty:
 
 const LS_CART = "yp_cart_items";
 
+function sanitizeHtml(html: string): string {
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    .replace(/\bon\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/javascript:/gi, '');
+}
+
 function loadCart(): CartItem[] {
   try { return JSON.parse(localStorage.getItem(LS_CART) || "[]"); } catch { return []; }
 }
@@ -283,7 +291,7 @@ export default function YPUrunPage() {
             <div style={{ marginBottom: 24 }}>
               <h2 style={{ fontSize: 15, fontWeight: 800, color: "#1a1a1a", marginBottom: 10 }}>Ürün Hakkında</h2>
               <div className="prose-product" style={{ fontSize: 13.5, color: "#555", lineHeight: 1.7 }}
-                dangerouslySetInnerHTML={{ __html: product.longDescription }} />
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.longDescription) }} />
             </div>
           )}
 

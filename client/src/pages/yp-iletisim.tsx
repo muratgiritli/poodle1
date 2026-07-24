@@ -6,17 +6,41 @@ const P = "#7022C4";
 
 export default function YPIletisimPage() {
   useEffect(() => { document.title = "İletişim | YourPoodle"; }, []);
-  const [form, setForm] = useState({ name: "", email: "", konu: "", mesaj: "", kvkk: false });
+  const [form, setForm] = useState({ name: "", phone: "", email: "", konu: "", mesaj: "", kvkk: false });
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.name || !form.email || !form.mesaj || !form.kvkk) { alert("Lütfen tüm zorunlu alanları doldurun."); return; }
+    setFormError(null);
+    if (!form.name.trim() || !form.phone.trim() || !form.mesaj.trim() || !form.kvkk) {
+      setFormError("Lütfen ad soyad, telefon, mesaj alanlarını doldurun ve KVKK onayını işaretleyin.");
+      return;
+    }
     setLoading(true);
-    await new Promise(r => setTimeout(r, 900));
-    setLoading(false);
-    setSent(true);
+    try {
+      const res = await fetch("/api/contact-messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          phone: form.phone.trim(),
+          email: form.email.trim() || undefined,
+          message: form.mesaj.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSent(true);
+      } else {
+        setFormError(data.message || "Bir hata oluştu. Lütfen tekrar deneyin.");
+      }
+    } catch {
+      setFormError("Bağlantı hatası. İnternet bağlantınızı kontrol edin.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   const KONULAR = ["Sipariş / Kargo", "Ürün Bilgisi", "İade / Değişim", "Teknik Destek", "Diğer"];
@@ -45,9 +69,15 @@ export default function YPIletisimPage() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit}>
+                  {formError && (
+                    <div style={{ background:"#FEF2F2", border:"1px solid #FCA5A5", borderRadius:10, padding:"10px 14px", marginBottom:14, fontSize:13, color:"#991B1B" }}>
+                      {formError}
+                    </div>
+                  )}
                   {[
                     { label: "Ad Soyad *", key: "name", type: "text", placeholder: "Adınız Soyadınız" },
-                    { label: "E-posta *", key: "email", type: "email", placeholder: "ornek@email.com" },
+                    { label: "Telefon *", key: "phone", type: "tel", placeholder: "0532 000 00 00" },
+                    { label: "E-posta", key: "email", type: "email", placeholder: "ornek@email.com" },
                   ].map(({ label, key, type, placeholder }) => (
                     <div key={key} style={{ marginBottom: 16 }}>
                       <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>{label}</label>

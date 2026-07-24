@@ -1,6 +1,7 @@
 // Route: /hesabim/poodle-puanlari/kazan
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
+import { useCustomer } from "@/contexts/CustomerContext";
 import {
   ArrowLeft, PawPrint, Flame, Check, Copy, Gift, Medal,
   ShoppingCart, BookOpen, MessageSquare, Bot, Share2,
@@ -127,6 +128,15 @@ function Toast({ msg, onClose }: { msg:string; onClose:()=>void }) {
 /* ── Main Page ───────────────────────── */
 export default function YPPuanKazanPage() {
   const [, navigate] = useLocation();
+  const { customer } = useCustomer();
+
+  // Derive a stable referral code from customer id (no PII in the code)
+  const referralCode = useMemo(() => {
+    if (!customer?.id) return "YP0000";
+    const n = String(customer.id).padStart(5, "0");
+    return `YP${n}`;
+  }, [customer?.id]);
+
   const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
   const [todayClaimed, setTodayClaimed] = useState(false);
   const [balance, setBalance]           = useState(775);
@@ -150,15 +160,16 @@ export default function YPPuanKazanPage() {
   }
 
   function copyReferralCode() {
-    navigator.clipboard.writeText("TARCIN250").catch(()=>{});
+    navigator.clipboard.writeText(referralCode).catch(()=>{});
     setCodeCopied(true); setTimeout(()=>setCodeCopied(false), 2000);
-    showToast("TARCIN250 kopyalandı ✓");
+    showToast(`${referralCode} kopyalandı ✓`);
   }
 
   function shareReferral() {
     if (navigator.share) {
-      navigator.share({ title:"YourPoodle", text:"TARCIN250 koduyla 250 PoodlePuan kazan!", url:"https://yourpoodle.com" }).catch(()=>{});
+      navigator.share({ title:"YourPoodle", text:`${referralCode} koduyla 250 PoodlePuan kazan!`, url:"https://yourpoodle.com" }).catch(()=>{});
     } else {
+      navigator.clipboard.writeText(`https://yourpoodle.com?ref=${referralCode}`).catch(()=>{});
       showToast("Davet bağlantısı kopyalandı ✓");
     }
   }
@@ -412,7 +423,7 @@ export default function YPPuanKazanPage() {
               {/* Code box */}
               <div style={{ background:"rgba(255,255,255,.2)", borderRadius:12, padding:"8px 12px",
                             display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
-                <span style={{ fontSize:13, fontWeight:800, color:"#fff", letterSpacing:2 }}>TARCIN250</span>
+                <span style={{ fontSize:13, fontWeight:800, color:"#fff", letterSpacing:2 }}>{referralCode}</span>
                 <button onClick={copyReferralCode}
                   style={{ background:"none", border:"none", cursor:"pointer", padding:2 }}>
                   {codeCopied ? <Check size={15} color="#4ADE80"/> : <Copy size={15} color="rgba(255,255,255,.8)"/>}
