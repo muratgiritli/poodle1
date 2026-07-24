@@ -246,20 +246,17 @@ export default function YourPoodleHomePage() {
 
       <style>{`
         /* ── MOBILE ── */
-        .yp-home-hero        { background: #F3EEFF; overflow: hidden; }
-        .yp-hero-inner       { display: flex; flex-direction: column; padding: 28px 20px 0; gap: 0; }
-        .yp-hero-left        { padding-bottom: 24px; }
-        .yp-hero-right       { margin: 0 -20px; }
-        .yp-hero-poodle-box  {
-          background: linear-gradient(150deg, #DDD6FE 0%, #C4B5F4 55%, #A78BFA 100%);
-          border-radius: 20px 20px 0 0; overflow: hidden;
-        }
+        .yp-home-hero        { background: #F8F5FF; }
+        .yp-hero-inner       { display: flex; flex-direction: column; padding: 32px 20px 0; gap: 24px; }
+        .yp-hero-left        { }
+        .yp-hero-right       { }
+        .yp-hero-poodle-box  { border-radius: 16px 16px 0 0; overflow: hidden; }
         .yp-hero-img         {
-          width: 100%; height: 240px;
+          width: 100%; height: 260px;
           object-fit: contain; object-position: bottom center; display: block;
         }
         .yp-floating-cards   { display: none; }
-        .yp-quick-row        { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px; }
+        .yp-quick-row        { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 20px 16px; }
         .yp-home-main        { padding: 0 16px 40px; }
         .yp-prod-grid-home   { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .yp-sidebar-widgets  { margin-top: 24px; }

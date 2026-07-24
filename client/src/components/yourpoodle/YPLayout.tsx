@@ -353,7 +353,8 @@ export default function YPLayout({
       {/* ════════════ MOBILE HEADER ════════════ */}
       <header className="yp-mobile-hdr" style={{
         position: "sticky", top: 0, zIndex: 100,
-        background: "linear-gradient(135deg, #F5F0FF 0%, #EDE9FE 100%)",
+        background: "#fff",
+        borderBottom: "1px solid #F3F4F6",
         alignItems: "center",
         justifyContent: authMode ? "center" : "space-between",
         padding: "8px 12px",
@@ -370,7 +371,7 @@ export default function YPLayout({
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <button onClick={() => setDrawerOpen(true)}
-                style={{ background: "#EDE9FE", border: "none", cursor: "pointer", padding: "5px 8px", fontSize: 18, color: "#7C3AED", borderRadius: 10, lineHeight: 1 }}>
+                style={{ background: "#F3F4F6", border: "none", cursor: "pointer", padding: "6px 9px", fontSize: 18, color: "#374151", borderRadius: 10, lineHeight: 1 }}>
                 ☰
               </button>
               <Link href={BASE || "/"}>
@@ -378,10 +379,9 @@ export default function YPLayout({
               </Link>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              {/* Sepet ikonu */}
               <button onClick={() => navigate(`${BASE}/sepet`)}
                 style={{ position: "relative", width: 38, height: 38, borderRadius: "50%", border: "1.5px solid #E5E7EB", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-                <ShoppingCart size={18} color="#7C3AED" strokeWidth={2} />
+                <ShoppingCart size={18} color="#7022C4" strokeWidth={2} />
                 {cartCount > 0 && (
                   <span style={{ position: "absolute", top: -3, right: -3, background: "#7022C4", color: "#fff", fontSize: 9, fontWeight: 800, width: 17, height: 17, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #fff" }}>
                     {cartCount > 9 ? "9+" : cartCount}
@@ -389,7 +389,7 @@ export default function YPLayout({
                 )}
               </button>
               <button onClick={() => navigate(isLoggedIn ? "/hesabim" : `${BASE}/giris`)}
-                style={{ padding: "5px 11px", borderRadius: 20, border: "1.5px solid #7C3AED", background: "#F5F0FF", color: "#7C3AED", fontSize: 11.5, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
+                style={{ padding: "7px 14px", borderRadius: 20, border: "none", background: "#7022C4", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
                 {isLoggedIn ? "Hesabım" : "Giriş"}
               </button>
             </div>
