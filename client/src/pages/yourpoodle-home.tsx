@@ -5,7 +5,7 @@ import { useCustomer } from "@/contexts/CustomerContext";
 import { IS_YP } from "@/lib/store";
 import {
   Bot, BookOpen, MapPin, Utensils, Heart, ShoppingCart,
-  ChevronRight, Bookmark, Clock, Star, Truck, RotateCcw, Shield, CreditCard,
+  ChevronRight, Bookmark, Clock, Star,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 
@@ -19,54 +19,54 @@ interface StaticProduct {
 }
 const FEATURED_PRODUCTS: StaticProduct[] = [
   {
-    id: "2717",
-    name: "Pro Plan Small & Mini Puppy Tavuklu 3 Kg",
+    id: "rc-poodle-adult",
+    name: "Royal Canin Poodle Adult Kuru Mama 1.5 Kg",
     price: 699,
     rating: 4.8,
     reviews: 124,
-    img: "/product-images/yp-2717.jpg",
+    img: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=300&h=300&fit=crop",
     category: "mama",
   },
   {
-    id: "2716",
-    name: "Royal Canin X-Small Adult Köpek Maması 1.5 Kg",
-    price: 529,
+    id: "eye-envy",
+    name: "Eye Envy Gözyaşı Lekesi Temizleme Losyonu 118 ml",
+    price: 499,
     rating: 4.6,
     reviews: 89,
-    img: "/product-images/yp-2716.jpg",
-    category: "mama",
+    img: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=300&h=300&fit=crop",
+    category: "bakim",
   },
   {
-    id: "2721",
-    name: "N&D Quinoa Skin & Coat Köpek Maması 800 g",
-    price: 349,
+    id: "chris-brush",
+    name: "Chris Christensen Mark II Slicker Fırça – Küçük",
+    price: 749,
     rating: 4.9,
     reviews: 67,
-    img: "/product-images/yp-2721.png",
-    category: "mama",
+    img: "https://images.unsplash.com/photo-1516734212184-a967f81ad0d2?w=300&h=300&fit=crop",
+    category: "bakim",
   },
   {
-    id: "2737",
-    name: "PetKit Havalandırmalı Poodle Sırt Çantası",
-    price: 849,
+    id: "puppia-harness",
+    name: "Puppia Soft Air-Mesh Göğüs Tasması (Mor)",
+    price: 599,
     rating: 4.7,
     reviews: 52,
-    img: "/product-images/yp-2737.jpg",
+    img: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=300&h=300&fit=crop",
     category: "aksesuar",
   },
 ];
 
 const TOP_ARTICLES = [
-  { slug: "poodle-tuy-bakimi-haftalik-rutin", title: "Toy Poodle Tüy Bakımı Nasıl Yapılır?",       readMin: 5, img: "/images/poodle-avatar-3.jpg" },
-  { slug: "toy-poodle-en-iyi-mama-markalari-2026", title: "Poodle Beslenme Rehberi: Doğru Mama Seçimi", readMin: 6, img: "/images/poodle-avatar-1.jpg" },
-  { slug: "poodle-goz-yasi-lekesi-temizleme", title: "Gözyaşı Lekeleri Neden Olur ve Nasıl Geçer?", readMin: 4, img: "/images/poodle-avatar-2.jpg" },
+  { slug: "tuy-bakimi-nasil-yapilir",  title: "Toy Poodle Tüy Bakımı Nasıl Yapılır?",         readMin: 5, img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=80&h=80&fit=crop" },
+  { slug: "dogru-mama-secimi",          title: "Poodle Beslenme Rehberi: Doğru Mama Seçimi",    readMin: 6, img: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=80&h=80&fit=crop" },
+  { slug: "goz-yaslari",               title: "Gözyaşı Lekeleri Neden Olur ve Nasıl Geçer?",   readMin: 4, img: "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=80&h=80&fit=crop" },
 ];
 
 const COMMUNITY_AVATARS = [
-  "/images/poodle-avatar-1.jpg",
-  "/images/poodle-avatar-2.jpg",
-  "/images/poodle-avatar-3.jpg",
-  "/images/poodle-avatar-4.jpg",
+  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=40&h=40&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=40&h=40&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=40&h=40&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=40&h=40&fit=crop&crop=face",
 ];
 
 /* ── Star Rating ── */
@@ -245,63 +245,34 @@ export default function YourPoodleHomePage() {
       <Toast msg={toast.msg} show={toast.show} />
 
       <style>{`
-        /* ── MOBILE ── */
-        .yp-home-hero        { background: #F8F5FF; }
-        .yp-hero-inner       { display: flex; flex-direction: column; padding: 32px 20px 0; gap: 24px; }
-        .yp-hero-left        { }
-        .yp-hero-right       { }
-        .yp-hero-poodle-box  { border-radius: 16px 16px 0 0; overflow: hidden; }
-        .yp-hero-img         {
-          width: 100%; height: 260px;
-          object-fit: contain; object-position: bottom center; display: block;
-        }
-        .yp-floating-cards   { display: none; }
-        .yp-quick-row        { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 20px 16px; }
-        .yp-home-main        { padding: 0 16px 40px; }
-        .yp-prod-grid-home   { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .yp-sidebar-widgets  { margin-top: 24px; }
-        .yp-hero-social      { display: flex; align-items: center; gap: 8px; }
+        .yp-home-hero         { background: #F8F5FF; }
+        .yp-hero-inner        { display: flex; flex-direction: column; padding: 32px 20px 0; gap: 24px; }
+        .yp-hero-right        { position: relative; }
+        .yp-hero-img          { width: 100%; height: 260px; object-fit: cover; object-position: center top; border-radius: 16px 16px 0 0; }
+        .yp-floating-cards    { display: none; }
+        .yp-quick-row         { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 20px 16px; }
+        .yp-home-main         { padding: 0 16px 40px; }
+        .yp-products-sidebar  { display: block; }
+        .yp-prod-grid-home    { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .yp-sidebar-widgets   { margin-top: 24px; }
+        .yp-hero-social       { display: flex; align-items: center; gap: 8px; }
 
-        /* mobile overrides for new blocks */
-        .yp-trust-strip      { grid-template-columns: 1fr 1fr !important; padding: 20px 16px !important; }
-        .yp-personalization  { padding: 20px 16px !important; }
-
-        /* ── DESKTOP (≥900px) ── */
         @media (min-width: 900px) {
-          .yp-home-hero      { background: #F3EEFF; }
-          .yp-hero-inner     {
-            flex-direction: row; align-items: flex-end;
+          .yp-home-hero       { background: #F8F5FF; }
+          .yp-hero-inner      {
+            flex-direction: row; align-items: stretch;
             max-width: 1200px; margin: 0 auto;
-            padding: 48px 40px 0; gap: 24px;
+            padding: 48px 40px 0;
+            gap: 0;
           }
-          .yp-hero-left      {
-            flex: 1; display: flex; flex-direction: column;
-            justify-content: center; padding-bottom: 56px;
-          }
-          .yp-hero-right     {
-            flex: 0 0 580px;
-            display: flex; align-items: flex-end; gap: 16px;
-            overflow: visible; background: none;
-          }
-          .yp-hero-poodle-box {
-            flex: 0 0 340px;
-            background: linear-gradient(150deg, #DDD6FE 0%, #C4B5F4 55%, #A78BFA 100%);
-            border-radius: 20px 20px 0 0; overflow: hidden;
-          }
-          .yp-hero-img       {
-            width: 100%; height: 420px;
-            object-fit: contain; object-position: bottom center; display: block;
-          }
-          .yp-floating-cards {
-            flex: 1; display: flex; flex-direction: column; gap: 12px;
-            padding-bottom: 48px;
-          }
-          .yp-trust-strip    { grid-template-columns: repeat(4,1fr) !important; padding: 24px 40px !important; }
-          .yp-personalization{ padding: 28px 40px !important; }
-          .yp-quick-row      { grid-template-columns: repeat(4,1fr); gap: 14px; padding: 24px 40px; max-width: 1200px; margin: 0 auto; }
-          .yp-home-main      { max-width: 1200px; margin: 0 auto; padding: 0 40px 60px; display: grid; grid-template-columns: 1fr 300px; gap: 28px; align-items: start; }
-          .yp-prod-grid-home { grid-template-columns: repeat(4,1fr); gap: 14px; }
-          .yp-sidebar-widgets{ margin-top: 0; }
+          .yp-hero-left       { flex: 1; padding-right: 32px; display: flex; flex-direction: column; justify-content: center; padding-bottom: 40px; }
+          .yp-hero-right      { flex: 0 0 520px; position: relative; }
+          .yp-hero-img        { width: 100%; height: 400px; border-radius: 20px 20px 0 0; object-position: center top; }
+          .yp-floating-cards  { display: flex; flex-direction: column; gap: 10px; position: absolute; top: 20px; right: -10px; width: 240px; z-index: 10; }
+          .yp-quick-row       { grid-template-columns: repeat(4,1fr); gap: 14px; padding: 24px 40px; max-width: 1200px; margin: 0 auto; }
+          .yp-home-main       { max-width: 1200px; margin: 0 auto; padding: 0 40px 60px; display: grid; grid-template-columns: 1fr 320px; gap: 32px; align-items: start; }
+          .yp-prod-grid-home  { grid-template-columns: repeat(4,1fr); gap: 16px; }
+          .yp-sidebar-widgets { margin-top: 0; }
         }
       `}</style>
 
@@ -354,6 +325,9 @@ export default function YourPoodleHomePage() {
                     style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #fff",
                              marginLeft: i === 0 ? 0 : -8, objectFit: "cover" }} />
                 ))}
+                <div style={{ width:32, height:32, borderRadius:"50%", border:"2px solid #fff",
+                              marginLeft:-8, background:P, color:"#fff", fontSize:9, fontWeight:800,
+                              display:"flex", alignItems:"center", justifyContent:"center" }}>+9K</div>
               </div>
               <span style={{ fontSize: 13, color: "#6B7280", fontWeight: 600 }}>10.000+ Poodle Ailesi</span>
             </div>
@@ -361,13 +335,11 @@ export default function YourPoodleHomePage() {
 
           {/* RIGHT — photo + floating cards */}
           <div className="yp-hero-right">
-            <div className="yp-hero-poodle-box">
-              <img
-                src="/images/poodle-hero-transparent.png"
-                alt="Toy Poodle"
-                className="yp-hero-img"
-              />
-            </div>
+            <img
+              src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=460&fit=crop&crop=top"
+              alt="Toy Poodle"
+              className="yp-hero-img"
+            />
 
             {/* Floating feature cards */}
             <div className="yp-floating-cards">
@@ -429,9 +401,6 @@ export default function YourPoodleHomePage() {
             href={`${BASE}/hizmetler`} />
         </div>
       </div>
-
-      {/* ══════════════════════════════ BENİM POODLE'IM ══════════════════════════════ */}
-      <PersonalizationBlock BASE={BASE} navigate={navigate} />
 
       {/* ══════════════════════════════ MAIN CONTENT ══════════════════════════════ */}
       <div className="yp-home-main">
@@ -516,6 +485,9 @@ export default function YourPoodleHomePage() {
                   style={{ width:34, height:34, borderRadius:"50%", border:"2px solid #fff",
                            marginLeft: i === 0 ? 0 : -8, objectFit:"cover" }} />
               ))}
+              <div style={{ width:34, height:34, borderRadius:"50%", border:"2px solid #fff",
+                            marginLeft:-8, background:P, color:"#fff", fontSize:9, fontWeight:800,
+                            display:"flex", alignItems:"center", justifyContent:"center" }}>+9K</div>
             </div>
             <p style={{ fontSize:13, color:"#6B7280", lineHeight:1.6, margin:"0 0 16px" }}>
               10.000+ üye ile deneyimlerini paylaş, sorularına yanıt bul.
@@ -534,101 +506,6 @@ export default function YourPoodleHomePage() {
         </div>
       </div>
 
-      {/* ══════════════════════════════ TRUST STRIP ══════════════════════════════ */}
-      <div style={{ background:"#F8F5FF", borderTop:"1px solid #EDE9FE" }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"24px 40px",
-                      display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16 }}
-          className="yp-trust-strip">
-          {[
-            { icon: Truck,      color:"#7022C4", bg:"#EDE9FE", label:"Hızlı Teslimat",    desc:"Siparişleriniz hızlıca kapınızda" },
-            { icon: RotateCcw,  color:"#059669", bg:"#D1FAE5", label:"Kolay İade",         desc:"14 gün içinde sorunsuz iade" },
-            { icon: Shield,     color:"#0EA5E9", bg:"#E0F2FE", label:"Güvenli Ödeme",      desc:"256-bit SSL ile korumalı" },
-            { icon: CreditCard, color:"#D97706", bg:"#FEF3C7", label:"Taksit İmkânı",      desc:"12 aya kadar taksit seçeneği" },
-          ].map(({ icon: Icon, color, bg, label, desc }) => (
-            <div key={label} style={{ display:"flex", alignItems:"center", gap:12 }}>
-              <div style={{ width:40, height:40, borderRadius:10, background:bg, flexShrink:0,
-                            display:"flex", alignItems:"center", justifyContent:"center" }}>
-                <Icon size={19} color={color} />
-              </div>
-              <div>
-                <div style={{ fontSize:13, fontWeight:700, color:"#111827" }}>{label}</div>
-                <div style={{ fontSize:11, color:"#6B7280" }}>{desc}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
     </YPLayout>
-  );
-}
-
-/* ══════════════════════════════ PERSONALIZATION BLOCK ══════════════════════════════ */
-function PersonalizationBlock({ BASE, navigate }: { BASE: string; navigate: (path: string) => void }) {
-  const [age,  setAge]  = useState("");
-  const [weight, setWeight] = useState("");
-  const P = "#7022C4";
-
-  const canSubmit = age && weight;
-
-  const handleSubmit = () => {
-    const params = new URLSearchParams();
-    if (age)    params.set("yas", age);
-    if (weight) params.set("kilo", weight);
-    navigate(`${BASE}/araclar/mama-hesaplama?${params.toString()}`);
-  };
-
-  const selStyle: React.CSSProperties = {
-    flex: 1, minWidth: 140, height: 42,
-    border: "1.5px solid #DDD6FE", borderRadius: 10,
-    padding: "0 12px", fontSize: 13, color: "#374151",
-    background: "#fff", cursor: "pointer", fontFamily: "inherit",
-    outline: "none", appearance: "none" as any,
-  };
-
-  return (
-    <div style={{ background:"#fff", borderTop:"1px solid #F3F4F6", borderBottom:"1px solid #F3F4F6" }}>
-      <div style={{ maxWidth:1200, margin:"0 auto", padding:"28px 40px" }} className="yp-personalization">
-        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
-          <div style={{ width:36, height:36, borderRadius:10, background:"#EDE9FE",
-                        display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <span style={{ fontSize:18 }}>🐾</span>
-          </div>
-          <div>
-            <div style={{ fontSize:16, fontWeight:800, color:"#111827" }}>Benim Poodle'ım</div>
-            <div style={{ fontSize:12, color:"#6B7280" }}>Poodle'ınıza özel günlük mama miktarını saniyeler içinde öğrenin</div>
-          </div>
-        </div>
-        <div style={{ display:"flex", gap:12, flexWrap:"wrap", alignItems:"center" }}>
-          <select value={age} onChange={e => setAge(e.target.value)} style={selStyle}>
-            <option value="">Yaş seçin</option>
-            <option value="0-1">Yavru (0–1 yaş)</option>
-            <option value="1-3">Genç (1–3 yaş)</option>
-            <option value="3-8">Yetişkin (3–8 yaş)</option>
-            <option value="8+">Yaşlı (8+ yaş)</option>
-          </select>
-          <select value={weight} onChange={e => setWeight(e.target.value)} style={selStyle}>
-            <option value="">Ağırlık seçin</option>
-            <option value="1-2">1–2 kg</option>
-            <option value="2-4">2–4 kg</option>
-            <option value="4-6">4–6 kg</option>
-          </select>
-          <button
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-            style={{
-              height:42, padding:"0 24px", borderRadius:10, border:"none",
-              background: canSubmit ? P : "#E5E7EB",
-              color: canSubmit ? "#fff" : "#9CA3AF",
-              fontSize:13, fontWeight:700, cursor: canSubmit ? "pointer" : "default",
-              fontFamily:"inherit", whiteSpace:"nowrap", transition:"background 0.15s",
-            }}
-            onMouseEnter={e => { if (canSubmit) (e.currentTarget.style.background = "#5A32A3"); }}
-            onMouseLeave={e => { if (canSubmit) (e.currentTarget.style.background = P); }}>
-            Mama Miktarını Hesapla →
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
