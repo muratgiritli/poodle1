@@ -1,0 +1,157 @@
+Ana sayfanın tek amacı şu olmalı: Ziyaretçi ilk 10 saniyede ihtiyacını anlayıp doğru alana girmeli.
+
+Ancak burada **5 kapı** var: Mama / Rehber / AI / Hizmet / Club. En doğru çözüm, ilk 4’ünü ana kapı yapmak; **Club’ı üyelik ve topluluk katmanı** olarak ayrı konumlandırmak.
+
+## 1. Üst kampanya şeridi
+
+Kısa ve tek mesaj:
+
+**Yeni üyelere 100 TL alışveriş bonusu 🎁 — Hemen Üye Ol**
+
+## 2. Header
+
+* YourPoodle logosu
+* Arama: **“Ne arıyorsunuz?”**
+* Üye Girişi
+* Üye Ol
+* Sepet
+* Mobilde hamburger menü
+
+Ana menü:
+
+**Mama & Market · Rehber · AI Asistan · Hizmetler · Club**
+
+## 3. Hero alanı
+
+Ev ortamında, kadrajda baskın ve sempatik bir Toy Poodle. Karmaşık açıklama ve yüzen büyük kartlar olmamalı.
+
+### Başlık
+
+**Toy Poodle’ınız için ihtiyacınız olan her şey**
+
+### Alt metin
+
+**Doğru mamayı bulun, uzman rehberleri okuyun, AI asistana sorun veya yakınınızdaki hizmetleri keşfedin.**
+
+### Ana arama
+
+**“Toy Poodle’ınız için ne arıyorsunuz?”**
+
+Örnek aramalar:
+
+* Gözyaşı lekesi nasıl geçer?
+* Yavru köpek maması
+* Yakınımdaki kuaför
+* Tuvalet eğitimi
+
+## 4. Dört ana kapı
+
+Hero’nun hemen altında, aynı ekranda görünmeli.
+
+| Kapı | Başlık                 | Kısa açıklama                                    | Buton         |
+| ---- | ---------------------- | ------------------------------------------------ | ------------- |
+| 🛍️  | **Mama Bul**           | Yaşına, kilosuna ve ihtiyacına uygun mamayı bul. | Mama Bul      |
+| 📖   | **Poodle Rehberi**     | Bakım, eğitim, sağlık ve beslenme rehberleri.    | Rehbere Git   |
+| ✨    | **AI Poodle Asistanı** | Sorunu yaz, saniyeler içinde yol haritası al.    | AI’a Sor      |
+| 📍   | **Hizmet Bul**         | Veteriner, kuaför, eğitim, otel ve pet taksi.    | Yakınımda Bul |
+
+Kartların tamamı tıklanabilir olmalı. Başlıklar kısa, ikonlar tutarlı, her kartın rengi hafif farklı ama marka moru baskın olmalı.
+
+## 5. Club alanı
+
+Club, beşinci eşit kart yerine dört kapının altında yatay üyelik bandı olabilir:
+
+### **YourPoodle Club’a katıl**
+
+**Poodle profilini oluştur, topluluğa katıl, özel indirimlerden ve kişisel önerilerden yararlan.**
+
+* Poodle profili
+* Soru-cevap topluluğu
+* Üyelere özel fiyatlar
+* Kişiselleştirilmiş bakım önerileri
+
+Buton: **Ücretsiz Üye Ol**
+
+## 6. “Poodle’ını tanıyalım” alanı
+
+Kullanıcıyı üyeliğe götüren kısa seçim:
+
+**Poodle’ınız kaç yaşında?**
+
+* 0–12 ay Yavru
+* 1–7 yaş Yetişkin
+* 7+ Senior
+* Henüz sahiplenmedim
+
+Seçimden sonra ana sayfadaki mama, rehber ve ürün önerileri kişiselleştirilebilir.
+
+## 7. Bugün en çok arananlar
+
+Yatay ve kolay taranan kartlar:
+
+* Gözyaşı Lekesi
+* Tuvalet Eğitimi
+* Doğru Mama Seçimi
+* Tüy Bakımı
+* Yalnız Kalma Eğitimi
+* Yasak Yiyecekler
+
+Başlık: **Poodle sahipleri bugün bunları araştırıyor**
+
+## 8. Sizin için seçtiklerimiz
+
+Market ana sayfayı ele geçirmemeli. En fazla 4 ürün:
+
+* Yavru Toy Poodle maması
+* Gözyaşı bakım losyonu
+* Tüy açıcı sprey
+* Buharlı tarak
+
+Buton: **Tüm Ürünleri Gör**
+
+## 9. Hizmetler alanı
+
+Konum odaklı kısa bölüm:
+
+**Yakınınızdaki güvenilir hizmetleri bulun**
+
+* Veteriner
+* Köpek kuaförü
+* Eğitim
+* Otel
+* Pet taksi
+
+Konum butonu: **Konumumu Kullan**
+
+## 10. Güven ve topluluk
+
+Kısa rakamlar ve gerçek kullanıcı içerikleri:
+
+* Doğrulanmış hizmet sağlayıcılar
+* Uzman kontrolünden geçen rehberler
+* Gerçek Poodle sahiplerinin yorumları
+* Güvenli alışveriş
+
+## Mobil sıralama
+
+Mobilde ilk ekran şu kadar sade olmalı:
+
+1. Logo + arama + sepet
+2. Hero başlığı
+3. Büyük arama kutusu
+4. 2×2 dört ana kapı
+5. Club üyelik bandı
+
+Sabit alt menü:
+
+**Mağaza · Club · AI Asistan · Rehber**
+
+En güçlü ana sayfa cümlesi:
+
+> **Poodle’ınız için neye ihtiyacınız var?**
+
+Altında dört net cevap:
+
+**Mama Bul · Bilgi Al · AI’a Sor · Hizmet Bul**
+
+Böylece ziyaretçiye siteyi anlatmaya çalışmıyoruz; doğrudan ihtiyacını seçtiriyoruz. Club ise kullanıcıyı ilk ziyaretinde zorlamadan, bu dört deneyimi birbirine bağlayan üyelik sistemi oluyor.
