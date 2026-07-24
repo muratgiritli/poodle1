@@ -11,7 +11,7 @@ import FloatingCartBar from "@/components/FloatingCartBar";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SocialProofToast from "@/components/SocialProofToast";
-import { CURRENT_STORE } from "@/lib/store";
+import { CURRENT_STORE, IS_YP } from "@/lib/store";
 const Landing = lazy(() => import("@/pages/landing"));
 const AdLanding = lazy(() => import("@/pages/ad-landing"));
 
@@ -150,6 +150,7 @@ const YPOdulHazirPage                 = lazy(() => import("@/pages/yp-hesabim-od
 const YPPuanKazanPage                 = lazy(() => import("@/pages/yp-hesabim-puan-kazan"));
 const YPGecmisOnerilerPage = lazy(() => import("@/pages/yp-gecmis-oneriler"));
 const YPKategoriPage       = lazy(() => import("@/pages/yp-kategori"));
+const YPUyeOlPage          = lazy(() => import("@/pages/yp-uye-ol"));
 const DemoKampanyaPage = lazy(() => import("@/pages/demo-kampanya"));
 const DemoKampanyaUrunPage = lazy(() => import("@/pages/demo-kampanya").then(m => ({ default: m.DemoKampanyaUrun })));
 const SeoPage = lazy(() => import("@/pages/seo-pages"));
@@ -214,7 +215,7 @@ function Router() {
         <Route path="/admin" component={AdminPage} />
         <Route path="/siparis-takip" component={OrderTrackingPage} />
         <Route path="/favoriler" component={FavoritesPage} />
-        <Route path="/giris" component={AuthPage} />
+        <Route path="/giris" component={YPGirisPage} />
         <Route path="/sokak-canlari" component={SokakCanlariPage} />
         <Route path="/hesabim" component={YPHesabimPage} />
         <Route path="/hesabim/siparisler" component={YPHesabimSiparislerimPage} />
@@ -315,7 +316,22 @@ function Router() {
         <Route path="/islem-rehberi" component={IslemRehberiPage} />
         <Route path="/hakkimizda" component={HakkimizdaPage} />
         <Route path="/iletisim" component={IletisimPage} />
-        <Route path="/magaza" component={MagazaPage} />
+        {/* ─── Top-level canonical YP routes (yourpoodle.com) ─── */}
+        <Route path="/magaza"         component={YPMagazaPage} />
+        <Route path="/club/hakkimizda" component={YPClubHakkimizdaPage} />
+        <Route path="/club"           component={YPClubPage} />
+        <Route path="/rehber/:slug">
+          {(params: any) => <YPRehberPage routeSlug={params?.slug} />}
+        </Route>
+        <Route path="/rehber"         component={YPRehberPage} />
+        <Route path="/ai-asistan"     component={YPAiAsistanPage} />
+        <Route path="/mama-bul"       component={YPMamaBulPage} />
+        <Route path="/uye-ol"         component={YPUyeOlPage} />
+        <Route path="/sepet"          component={YPSepetPage} />
+        <Route path="/odeme"          component={YPOdemePage} />
+        <Route path="/tesekkurler"    component={YPTesekkurlerPage} />
+        {/* Legacy physical-store page (moved off /magaza) */}
+        <Route path="/magazalar/atakum" component={MagazaPage} />
         <Route path="/teslimat-iade" component={TeslimatIadePage} />
         <Route path="/gizlilik-sozlesmesi" component={GizlilikSozlesmesiPage} />
         <Route path="/mesafeli-satis" component={MesafeliSatisSozlesmesiPage} />
@@ -341,8 +357,12 @@ const YPCookieBanner = lazy(() => import("@/components/YPCookieBanner").then(m =
 function AppShell() {
   const [location] = useLocation();
   const isAdmin = location.startsWith("/admin");
-  const isDemo = location === "/" || location === "/demo" || location.startsWith("/demo-kampanya") || location === "/demo1" || location === "/demo2" || location === "/demo-anasayfa" || location.startsWith("/yourpoodle");
-  const isYP = location === "/" || location.startsWith("/yourpoodle");
+  // On the live yourpoodle.com domain ALL routes are YP → suppress legacy chrome.
+  // On dev hosts, /yourpoodle/* and the canonical top-level YP paths are YP.
+  const YP_TOP = ["/magaza", "/club", "/rehber", "/ai-asistan", "/mama-bul", "/uye-ol", "/sepet", "/odeme", "/tesekkurler", "/giris"];
+  const isYP = IS_YP || location === "/" || location.startsWith("/yourpoodle") ||
+    YP_TOP.some(p => location === p || location.startsWith(p + "/") || location.startsWith(p + "?"));
+  const isDemo = isYP || location === "/demo" || location.startsWith("/demo-kampanya") || location === "/demo1" || location === "/demo2" || location === "/demo-anasayfa";
   const isLandingLike = LANDING_LIKE_ROUTES.has(location);
 
   useEffect(() => {

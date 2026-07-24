@@ -53,7 +53,7 @@ export default function YPGizlilikPolitikasi() {
             </p>
             <ul>
               <li><strong>Platform:</strong> YourPoodle</li>
-              <li><strong>E-posta:</strong> <a href="mailto:info@sizpa.com" style={{ color:"#7C3AFF" }}>info@sizpa.com</a></li>
+              <li><strong>E-posta:</strong> <a href="mailto:info@yourpoodle.com" style={{ color:"#7C3AFF" }}>info@yourpoodle.com</a></li>
             </ul>
           </div>
 
@@ -168,14 +168,14 @@ export default function YPGizlilikPolitikasi() {
               <li>Otomatik işleme sonucu ortaya çıkan aleyhte kararları itiraz etme</li>
               <li>Zararın giderilmesini talep etme</li>
             </ul>
-            <p style={{ marginTop:10 }}>Bu haklarınızı kullanmak için <a href="mailto:info@sizpa.com" style={{ color:"#7C3AFF", fontWeight:700 }}>info@sizpa.com</a> adresine e-posta gönderebilirsiniz. Talepler 30 gün içinde yanıtlanır.</p>
+            <p style={{ marginTop:10 }}>Bu haklarınızı kullanmak için <a href="mailto:info@yourpoodle.com" style={{ color:"#7C3AFF", fontWeight:700 }}>info@yourpoodle.com</a> adresine e-posta gönderebilirsiniz. Talepler 30 gün içinde yanıtlanır.</p>
           </div>
 
           <div className="giz-section" style={{ background:"#F5F0FF", borderRadius:16, padding:"20px", border:"none" }}>
             <h2 style={{ border:"none", paddingTop:0 }}>İletişim</h2>
             <p>Gizlilik politikamız hakkında sorularınız için:</p>
             <ul style={{ marginTop:8 }}>
-              <li><strong>E-posta:</strong> <a href="mailto:info@sizpa.com" style={{ color:"#7C3AFF" }}>info@sizpa.com</a></li>
+              <li><strong>E-posta:</strong> <a href="mailto:info@yourpoodle.com" style={{ color:"#7C3AFF" }}>info@yourpoodle.com</a></li>
               <li><strong>Veri Sorumlusu:</strong> Sizpa Yazılım ve Teknoloji A.Ş.</li>
             </ul>
             <p style={{ marginTop:10, fontSize:13 }}>Kişisel Verileri Koruma Kurulu'na (KVKK) şikâyet hakkınız saklıdır: <a href="https://www.kvkk.gov.tr" target="_blank" rel="noopener noreferrer" style={{ color:"#7C3AFF" }}>www.kvkk.gov.tr</a></p>

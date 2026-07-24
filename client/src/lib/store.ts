@@ -29,6 +29,17 @@ export const CURRENT_STORE: StoreConfig =
   __override ??
   getStoreByHost(typeof window !== "undefined" ? window.location.hostname : undefined);
 
+/**
+ * True when the browser hostname exactly matches one of the YourPoodle production
+ * domains. False on all other hosts (dev, Replit preview, other branded stores).
+ * Use this to serve canonical /magaza, /club, /rehber etc. instead of /yourpoodle/*.
+ */
+export const IS_YP: boolean =
+  typeof window !== "undefined" &&
+  CURRENT_STORE.hostnames.some(
+    (h) => h.toLowerCase() === window.location.hostname.toLowerCase(),
+  );
+
 export function useStore(): StoreConfig {
   return CURRENT_STORE;
 }

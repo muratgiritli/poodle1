@@ -1,0 +1,412 @@
+FIX ALL CRITICAL BUGS AND GAPS ON YOURPOODLE.COM — LIVE SITE AUDIT REMEDIATION
+
+You are fixing the production YourPoodle.com React SPA based on a mobile audit (390px viewport).
+The homepage (/) works with the NEW design system. Most other routes are broken, show 404,
+use the OLD legacy UI, or display wrong content. Your job is to unify routing, navigation,
+and page wiring WITHOUT breaking the existing homepage design.
+
+DO NOT rebuild the entire app from scratch.
+DO NOT delete working homepage components.
+DO NOT change Turkish UI text on pages that already match mockups.
+DO NOT introduce new design systems — reuse existing tokens and components.
+
+Stack (keep as-is): React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AUDIT FINDINGS — WHAT IS BROKEN (YOU MUST FIX ALL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. ROUTING / 404 — These routes currently show "Aradığınız sayfayı bulamadık" 404 page:
+   /rehber
+   /ai-asistan
+   /uye-ol
+   /sepet
+   /mama-bul
+
+2. WRONG CONTENT — /magaza shows a physical pet shop page (Atakum, Samsun address,
+   info@sizpa.com) instead of the designed e-commerce Mağaza page.
+
+3. TWO PARALLEL UI SYSTEMS coexist:
+   NEW (homepage only): Header with hamburger + bell + message + avatar, TabNavigation chips
+   (Mağaza, Club, AI Asistan, Rehber), BottomNav (Ana Sayfa, Club, Sepetim FAB, Mağaza, AI).
+   OLD (404, /magaza, /giris, etc.): Purple "Köpek" bar, header with "Giriş Yap / Üye Ol" pills,
+   BottomNav (Ana Sayfa, Kategoriler, Sepet, İletişim, Giriş).
+   → REMOVE old UI everywhere. Use NEW layout on ALL pages.
+
+4. ACCOUNT PAGES — Routes return HTTP 200 but do not render designed pages:
+   /hesabim, /hesabim/favoriler, /hesabim/siparisler, /hesabim/bildirimler,
+   /hesabim/ayarlar, /hesabim/yardim, /hesabim/poodle-puanlari, /hesabim/kaydedilenler,
+   /hesabim/destek-talepleri, and all sub-routes below.
+
+5. SEO — Almost every URL shares the same <title>:
+   "Toy Poodle Rehberi, Bakımı ve Mama Seçimi | YourPoodle"
+   404 pages also return HTTP 200 (soft 404). Hidden SEO sitemap block appears in accessibility
+   tree on every page including 404s.
+
+6. BRANDING — info@sizpa.com appears on /magaza. Replace with info@yourpoodle.com everywhere.
+
+7. LOGIN — /giris uses SMS OTP (phone only). Designed flow uses email + password + social login.
+   Align with mockup OR keep SMS as secondary tab — but /uye-ol must work (currently 404).
+
+8. CLUB — /club route exists but does not show the designed Club social feed.
+
+9. BROKEN LINKS — Homepage tab chips and bottom nav link to 404 routes.
+   404 page buttons "Rehberlere Git" and "AI Asistana Sor" also hit broken routes.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DESIGN TOKENS — USE ON EVERY PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Primary purple: #5D3EBD
+Primary hover: #4E32A8
+Light purple bg: #F3EEFF / #F5F0FF
+Accent yellow: #FFD93D
+Text primary: #1A1A2E
+Text secondary: #6B7280
+Border: #E5E7EB
+Success: #10B981
+Error: #EF4444
+Font: Inter (400, 500, 600, 700)
+Mobile max-width: 480px centered (mx-auto)
+Page bottom padding: pb-24 (clear BottomNav)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 1 — SINGLE ROUTER CONFIG (HIGHEST PRIORITY)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create or refactor src/router.tsx (or App.tsx routes) into ONE canonical route table.
+Use react-router-dom v6 with BrowserRouter. Every route must map to an existing or new page component.
+
+PUBLIC ROUTES:
+  /                          → HomePage
+  /magaza                    → StorePage (e-commerce — NOT physical shop)
+  /magaza/kuru-mama          → FoodFinderPage
+  /magaza/kuru-mama/sonuc    → FoodResultsPage
+  /magaza/urun/:slug         → ProductDetailPage
+  /club                      → ClubPage
+  /rehber                    → GuidePage
+  /rehber/:category/:slug    → GuideArticlePage (or GuidePage detail)
+  /ai-asistan                → AIAssistantPage
+  /mama-bul                  → FoodFinderPage (alias redirect OR same component)
+  /giris                     → LoginPage
+  /uye-ol                    → RegisterPage
+  /sepet                     → CartPage
+  /odeme                     → CheckoutPage (if exists)
+  /iletisim                  → ContactPage
+  /hakkimizda                → AboutPage
+  /magazalar/atakum          → PhysicalStorePage (MOVE legacy Atakum content HERE)
+
+PROTECTED ROUTES (redirect to /giris if !authenticated):
+  /hesabim                   → AccountPage
+  /hesabim/siparisler        → OrdersPage
+  /hesabim/favoriler         → FavoritesPage
+  /hesabim/adresler          → AddressesPage
+  /hesabim/kuponlar          → CouponsPage
+  /hesabim/club-paylasimlar  → MyClubPostsPage
+  /hesabim/kaydedilenler     → SavedItemsPage
+  /hesabim/bildirimler       → NotificationsPage
+  /hesabim/ayarlar           → AccountSettingsPage
+  /hesabim/poodle-profil     → PoodleProfilePage
+  /hesabim/yardim            → HelpCenterPage
+  /hesabim/yardim/talep/:ticketId → SupportTicketDetailPage
+  /hesabim/destek-talepleri  → SupportTicketsPage
+  /hesabim/destek-talepleri/degerlendir/:ticketId → SupportRatingPage
+  /hesabim/poodle-puanlari   → PoodlePointsPage
+  /hesabim/poodle-puanlari/odul-merkezi → RewardCenterPage
+  /hesabim/poodle-puanlari/odul-onayla/:rewardId → RewardConfirmPage
+  /hesabim/poodle-puanlari/odul-hazir/:rewardId → RewardReadyPage
+  /hesabim/poodle-puanlari/kazan → EarnPointsPage
+
+CATCH-ALL:
+  *                          → NotFoundPage (404 component — see Phase 7)
+
+RULES:
+- Remove duplicate route definitions across files.
+- Remove any legacy router that only registers old pet-shop routes.
+- TabNavigation activeTab must derive from current pathname.
+- BottomNav active state must derive from current pathname.
+- After fix: clicking Mağaza chip on homepage MUST navigate to /magaza and show StorePage.
+
+If a page component file does not exist yet, CREATE a minimal placeholder that uses the NEW
+layout shell (Header + TabNavigation + BottomNav) with correct Turkish H1 and mock data —
+then wire the route. Do NOT leave any route hitting 404 unless truly unknown.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 2 — UNIFY LAYOUT (REMOVE LEGACY UI)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DELETE or stop rendering these legacy elements on ALL pages:
+- Purple "Köpek" category header bar
+- Old BottomNav: Ana Sayfa | Kategoriler | Sepet | İletişim | Giriş
+- Old header with standalone "Giriş Yap" / "Üye Ol" pill buttons (replace with new Header)
+- Any duplicate footer/nav that conflicts with new BottomNav
+
+EVERY page (except maybe full-screen chat) must use AppLayout:
+
+  <AppLayout activeTab={...} showTabNav={true|false}>
+    {page content}
+  </AppLayout>
+
+AppLayout includes:
+1. Header — hamburger (opens MobileDrawer), YourPoodle logo center, bell (badge 3),
+   message icon (badge 2), avatar circle (or login icon if guest)
+2. TabNavigation — chips: Mağaza | Club | AI Asistan | Rehber
+   (hide on pages where mockup hides it, e.g. cart/checkout)
+3. BottomNav — Ana Sayfa | Club | Sepetim (center FAB, cart count badge) | Mağaza | AI
+4. MobileDrawer — slide-in menu with links to all main sections + account links
+5. Toast provider
+
+Guest vs authenticated Header:
+- Guest: avatar tap → /giris
+- Authenticated: avatar tap → /hesabim
+
+Ensure Header bell → /hesabim/bildirimler
+Ensure Sepetim FAB → /sepet with live cart count from CartContext
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 3 — FIX /magaza (WRONG CONTENT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CURRENT BUG: /magaza renders "YourPoodle Pet Shop Atakum Mağazası" with Samsun address.
+
+FIX:
+1. /magaza MUST render the designed e-commerce StorePage:
+   - Search bar "Ürün, marka veya kategori ara..."
+   - Category pills (Kuru Mama, Yaş Mama, Ödül, Oyuncak, Bakım, Aksesuar)
+   - Promo banner
+   - "Sizin için seçtiklerimiz" product grid (2 columns)
+   - Product cards with image, name, price, "3 Taksit" badge, heart icon, "Sepete Ekle"
+   - Reuse homepage product card component if it exists
+
+2. MOVE the entire Atakum physical store page content to NEW route:
+   /magazalar/atakum → PhysicalStorePage
+   Keep all existing Turkish text, address, hours, WhatsApp — but fix email to info@yourpoodle.com
+   Link to it from footer or Help Center as "Atakum Mağazamız" — NOT from main Mağaza tab.
+
+3. Remove info@sizpa.com from entire codebase. Global find-replace → info@yourpoodle.com
+
+4. Wire "Sepete Ekle" on homepage AND /magaza → add to CartContext → navigate or toast success.
+   Cart must persist in localStorage.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 4 — WIRE CORE FEATURE PAGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For each page below: if component exists, ensure route works + uses AppLayout.
+If missing, build from existing mockup specs in the project (search codebase for page names).
+
+/rehber → GuidePage
+  - Category tabs: Tümü, Mama, Bakım, Eğitim, Sağlık
+  - Search "Rehberlerde ara..."
+  - Article cards with image, title, read time, category badge
+  - "Tümünü Gör" from homepage links here
+
+/club → ClubPage
+  - Instagram-style photo feed for Poodle owners
+  - Stories row, like/comment/share, "Fotoğraf Paylaş" FAB
+  - Uses authenticated Header variant when logged in
+
+/ai-asistan → AIAssistantPage
+  - Chat UI with suggested prompts, message bubbles, input bar
+  - Mock AI responses (no real API required)
+
+/mama-bul → redirect to /magaza/kuru-mama OR render FoodFinderPage directly
+
+/sepet → CartPage
+  - Line items from CartContext, quantity +/- , remove, subtotal
+  - "Alışverişe Devam Et" → /magaza
+  - "Siparişi Tamamla" → /odeme (or checkout step)
+  - Empty state: "Sepetiniz boş" + CTA to /magaza
+
+/magaza/urun/:slug → ProductDetailPage
+  - Wire from product cards on homepage and /magaza
+
+/giris → LoginPage (NEW layout shell)
+  - Primary: email + password form per mockup
+  - Optional secondary tab: "Telefon ile Giriş" (keep existing SMS flow if already built)
+  - Links: "Şifremi Unuttum", "Üye Ol" → /uye-ol
+  - Google / Apple social buttons (mock — toast "Yakında")
+  - On success → redirect to /hesabim or returnUrl
+
+/uye-ol → RegisterPage (currently 404 — MUST CREATE)
+  - Ad Soyad, E-posta, Telefon, Şifre, Şifre Tekrar
+  - KVKK checkbox
+  - "Hesabım Var" → /giris
+  - On success → auto-login → /hesabim
+
+/iletisim → ContactPage (not login page)
+/hakkimizda → AboutPage
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 5 — AUTH & PROTECTED ROUTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Implement AuthContext (or fix existing):
+- user: { id, name, email, phone, avatarUrl } | null
+- login(email, password), loginWithPhone(phone, code), register(data), logout()
+- Persist session in localStorage key "yourpoodle_auth"
+
+Create ProtectedRoute wrapper:
+  if (!user) return <Navigate to="/giris" state={{ from: location }} replace />
+
+Wrap ALL /hesabim/* routes with ProtectedRoute.
+
+After login, redirect to state.from.pathname or /hesabim.
+
+Mock auth is fine — any valid email format + password min 6 chars = success.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 6 — ACCOUNT & LOYALTY PAGES (WIRE ALL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ensure these pages exist, use AppLayout + ProtectedRoute, and are linked from /hesabim:
+
+/hesabim — AccountPage dashboard with:
+  - User greeting, Poodle profile card, PoodlePuan balance
+  - Quick actions grid: Siparişlerim, Favorilerim, Adreslerim, Kuponlarım,
+    Club Paylaşımlarım, Kaydettiklerim, Bildirimler, PoodlePuanlarım, Hesap Ayarları
+
+/hesabim/siparisler — order list with status badges + OrderProgressStepper
+/hesabim/favoriler — tabs: Ürünler | Rehber | Club | Listeler, 2-col product grid
+/hesabim/adresler — address CRUD with default selection
+/hesabim/kuponlar — available/used/expired coupons
+/hesabim/club-paylasimlar — user's Club photo grid
+/hesabim/kaydedilenler — saved posts/articles/products + collections
+/hesabim/bildirimler — grouped notifications, filters, mark read
+/hesabim/ayarlar — personal info, notifications, privacy, logout, delete account
+/hesabim/poodle-profil — dog profile edit
+/hesabim/yardim — Help Center with FAQ accordion + contact form
+/hesabim/yardim/talep/:ticketId — ticket detail + timeline
+/hesabim/destek-talepleri — ticket list with status filters
+/hesabim/destek-talepleri/degerlendir/:ticketId — star rating + PoodlePuan reward
+/hesabim/poodle-puanlari — points dashboard, tier, history
+/hesabim/poodle-puanlari/odul-merkezi — redeem rewards catalog
+/hesabim/poodle-puanlari/odul-onayla/:rewardId — confirm redemption
+/hesabim/poodle-puanlari/odul-hazir/:rewardId — success screen
+/hesabim/poodle-puanlari/kazan — ways to earn points
+
+Each page: if already built in codebase, ONLY fix routing + layout wrapper.
+If not built, create functional page with mock data matching Turkish labels from mockups.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 7 — 404 PAGE, SEO & ACCESSIBILITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+NOT FOUND PAGE (/not-found internal, catch-all *):
+- Use NEW AppLayout (NOT old Köpek bar / old BottomNav)
+- Turkish copy (keep exact):
+  H1: "Aradığınız sayfayı bulamadık"
+  Sub: "Bu sayfa taşınmış veya kaldırılmış olabilir. Aşağıdaki bağlantılardan devam edebilirsiniz."
+  Buttons:
+    🏠 Ana Sayfaya Dön → /
+    📖 Rehberlere Git → /rehber  (MUST work after fix)
+    🤖 AI Asistana Sor → /ai-asistan  (MUST work after fix)
+
+Per-route document titles — implement usePageTitle hook or react-helmet-async:
+
+  / → "YourPoodle — Toy Poodle Bakım, Alışveriş ve Topluluk"
+  /magaza → "Mağaza | YourPoodle"
+  /club → "Poodle Club | YourPoodle"
+  /rehber → "Rehber | YourPoodle"
+  /ai-asistan → "AI Asistan | YourPoodle"
+  /sepet → "Sepetim | YourPoodle"
+  /giris → "Giriş Yap | YourPoodle"
+  /uye-ol → "Üye Ol | YourPoodle"
+  /hesabim → "Hesabım | YourPoodle"
+  (and unique titles for each /hesabim/* subpage)
+  404 → "Sayfa Bulunamadı | YourPoodle"
+
+SEO hidden content block:
+- Move off-screen SEO sitemap into a dedicated component
+- Add aria-hidden="true" and class="sr-only" OR render only on homepage
+- Must NOT pollute accessibility tree on app pages and 404
+
+Optional server config (if Express/static server exists):
+- Serve index.html for SPA fallback (already works)
+- Do NOT return real HTTP 404 for unknown routes unless SSR is added later
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 8 — SHARED STATE & CROSS-PAGE WIRING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ensure these contexts work across all pages:
+
+CartContext — localStorage "yourpoodle_cart"
+  - addItem, removeItem, updateQty, totalCount, subtotal
+  - BottomNav Sepetim badge shows totalCount
+
+FavoritesContext — localStorage "yourpoodle_favorites"
+  - toggleFavorite on product cards
+
+PoodlePointsContext — localStorage "yourpoodle_points"
+  - balance, addPoints, redeemReward
+  - Sync +25 from support rating page
+
+NotificationsContext — mock notifications, unread count for Header bell badge
+
+All product cards across Home, /magaza, /magaza/kuru-mama/sonuc, /hesabim/favoriler
+must link to /magaza/urun/:slug
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 9 — VERIFICATION CHECKLIST (RUN BEFORE DONE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Manually verify at 390px width. Every item must PASS:
+
+ROUTING:
+[ ] / → homepage with NEW header + tab chips + NEW bottom nav
+[ ] /magaza → e-commerce store (NOT Atakum physical shop)
+[ ] /magazalar/atakum → physical store page (moved content)
+[ ] /club → Club feed (NOT 404)
+[ ] /rehber → Guide page (NOT 404)
+[ ] /ai-asistan → AI chat (NOT 404)
+[ ] /sepet → Cart page (NOT 404)
+[ ] /mama-bul → Food finder (NOT 404)
+[ ] /giris → Login page with NEW layout
+[ ] /uye-ol → Register page (NOT 404)
+[ ] /hesabim → Account dashboard (redirects to /giris if guest)
+
+NAVIGATION:
+[ ] NO page shows old "Köpek" purple bar
+[ ] NO page shows old BottomNav (Kategoriler, İletişim)
+[ ] Homepage Mağaza chip → /magaza works
+[ ] Homepage Club chip → /club works
+[ ] Homepage AI chip → /ai-asistan works
+[ ] Homepage Rehber chip → /rehber works
+[ ] BottomNav Sepetim → /sepet works with badge count
+[ ] 404 buttons link to working /rehber and /ai-asistan
+
+E-COMMERCE FLOW:
+[ ] "Sepete Ekle" on homepage adds item + updates badge
+[ ] /sepet shows added items
+[ ] Empty cart shows empty state
+
+AUTH:
+[ ] /hesabim/* redirects to /giris when logged out
+[ ] Login → /hesabim works
+[ ] Logout from /hesabim/ayarlar works
+
+BRANDING & SEO:
+[ ] No info@sizpa.com anywhere in codebase
+[ ] Each main route has unique <title>
+[ ] SEO block hidden from screen readers on app pages
+[ ] No horizontal overflow at 390px on any tested page
+
+ACCOUNT (when logged in with mock user):
+[ ] All /hesabim/* quick actions navigate to correct pages
+[ ] /hesabim/bildirimler accessible from Header bell
+
+Report a summary of files changed and any pages still using placeholders.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EXECUTION ORDER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Phase 1 (router) + Phase 2 (layout unification) — FIRST
+2. Phase 3 (/magaza fix) + Phase 4 (core pages)
+3. Phase 5 (auth) + Phase 6 (account pages)
+4. Phase 7 (SEO/404) + Phase 8 (shared state)
+5. Phase 9 (verification)
+
+Do NOT skip phases. Do NOT mark done until Phase 9 checklist passes.
+Preserve all existing Turkish copy and purple (#5D3EBD) brand identity.

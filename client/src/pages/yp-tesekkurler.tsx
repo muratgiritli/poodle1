@@ -60,7 +60,7 @@ export default function YPTesekkurlerPage() {
 
         {/* Footer note */}
         <p style={{ marginTop: 40, fontSize: 12, color: "#bbb" }}>
-          Sorularınız için: info@sizpa.com
+          Sorularınız için: info@yourpoodle.com
         </p>
       </div>
     </YPLayout>

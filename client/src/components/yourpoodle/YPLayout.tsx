@@ -1,36 +1,47 @@
 import { useState, useEffect, type ReactNode, useRef, Fragment } from "react";
 import { Link, useLocation } from "wouter";
 import { useCustomer } from "@/contexts/CustomerContext";
+import { IS_YP } from "@/lib/store";
 import {
   ShoppingBag, BookOpen, Bot, Utensils, Wrench,
-  PawPrint, Search, Heart, ShoppingCart, ChevronDown, X, User, Users,
+  PawPrint, Search, Heart, ShoppingCart, ChevronDown, X, Users,
 } from "lucide-react";
 import YPFooter from "./YPFooter";
 
-/* ─── Nav items ─────────────────────────────────────────── */
-const NAV_LINKS = [
-  { label: "Ana Sayfa",  href: "/yourpoodle",              Icon: PawPrint   },
-  { label: "Mama Bul",   href: "/yourpoodle/mama-bul",     Icon: Utensils   },
-  { label: "Rehber",     href: "/yourpoodle/rehber",       Icon: BookOpen   },
-  { label: "Araçlar",    href: "/yourpoodle/bilgi",        Icon: Wrench     },
-  { label: "AI Asistan", href: "/yourpoodle/ai-asistan",   Icon: Bot        },
-  { label: "Mağaza",     href: "/yourpoodle/magaza",       Icon: ShoppingBag},
-];
+/**
+ * Route prefix: "" on yourpoodle.com (canonical routes at /magaza etc.),
+ * "/yourpoodle" on dev/other hosts (routes at /yourpoodle/magaza etc.)
+ */
+const BASE = IS_YP ? "" : "/yourpoodle";
 
+/* ─── Path helpers ──────────────────────────────────────────── */
+function normalizePath(p: string): string {
+  // Strip /yourpoodle prefix so /yourpoodle/club and /club both equal "/club"
+  if (p === "/yourpoodle") return "/";
+  return p.replace(/^\/yourpoodle(?=\/|$)/, "") || "/";
+}
+function isActive(activeLink: string, href: string) {
+  const na = normalizePath(activeLink);
+  const nh = normalizePath(href);
+  if (nh === "/" || nh === "") return na === "/" || na === "" || na === "/yourpoodle";
+  return na === nh || na.startsWith(nh + "/");
+}
+
+/* ─── Nav items ─────────────────────────────────────────────── */
 const DRAWER_LINKS_BASE = [
-  { label: "Ana Sayfa",  href: "/yourpoodle" },
-  { label: "Rehber",     href: "/yourpoodle/rehber" },
-  { label: "Mama Bul",   href: "/yourpoodle/mama-bul" },
-  { label: "Araçlar",    href: "/yourpoodle/bilgi" },
-  { label: "AI Asistan", href: "/yourpoodle/ai-asistan" },
-  { label: "Mağaza",     href: "/yourpoodle/magaza" },
-  { label: "Sağlık",     href: "/yourpoodle/saglik" },
-  { label: "Bakım",      href: "/yourpoodle/bakim" },
-  { label: "Eğitim",     href: "/yourpoodle/egitim" },
-  { label: "Topluluk",   href: "/yourpoodle/topluluk" },
+  { label: "Ana Sayfa",   href: BASE || "/" },
+  { label: "Rehber",      href: `${BASE}/rehber` },
+  { label: "Mama Bul",    href: `${BASE}/mama-bul` },
+  { label: "Araçlar",     href: "/yourpoodle/bilgi" },
+  { label: "AI Asistan",  href: `${BASE}/ai-asistan` },
+  { label: "Mağaza",      href: `${BASE}/magaza` },
+  { label: "Sağlık",      href: "/yourpoodle/saglik" },
+  { label: "Bakım",       href: "/yourpoodle/bakim" },
+  { label: "Eğitim",      href: "/yourpoodle/egitim" },
+  { label: "Topluluk",    href: "/yourpoodle/topluluk" },
   { label: "Etkinlik",    href: "/yourpoodle/etkinlikler" },
   { label: "Bildirimler", href: "/yourpoodle/bildirimler" },
-  { label: "Ayarlar",    href: "/yourpoodle/ayarlar"    },
+  { label: "Ayarlar",     href: "/yourpoodle/ayarlar" },
 ];
 
 interface Props {
@@ -39,11 +50,6 @@ interface Props {
   bottomNavActive?: string;
   constrain?: boolean;
   authMode?: boolean;
-}
-
-function isActive(activeLink: string, href: string) {
-  if (href === "/yourpoodle") return activeLink === "/yourpoodle" || activeLink === "" || activeLink === "/";
-  return activeLink === href || activeLink.startsWith(href + "/");
 }
 
 export default function YPLayout({
@@ -84,7 +90,7 @@ export default function YPLayout({
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (search.trim()) { navigate(`/yourpoodle/magaza?q=${encodeURIComponent(search.trim())}`); setSearch(""); }
+    if (search.trim()) { navigate(`${BASE}/magaza?q=${encodeURIComponent(search.trim())}`); setSearch(""); }
   };
 
   const initials = customer?.name?.slice(0, 1).toUpperCase() || "";
@@ -100,7 +106,7 @@ export default function YPLayout({
         .yp-page-body   { padding-bottom: 80px; }
 
         /* ── Responsive page wrappers ──────────────────────── */
-        /* Account inner: mobile 100%, tablet 680px, desktop 860px */
+        /* Account inner: mobile 480px, desktop 860px */
         .yp-acct { max-width: 480px; margin: 0 auto; width: 100%; }
 
         /* Cat grid: mobile flex-col, desktop 2-col */
@@ -109,14 +115,15 @@ export default function YPLayout({
         /* Section grid: mobile stack, desktop 2-col */
         .yp-section-grid { }
 
+        /* Content columns: max 480px centered on mobile/tablet (key tablet fix) */
+        .yp-pw          { max-width: 480px; margin: 0 auto; }
+        .yp-feed-center { max-width: 480px; margin: 0 auto; }
+        .yp-ai-center   { max-width: 480px; margin: 0 auto; }
+
         /* Sticky AI input: mobile offset for bottom nav, desktop flush */
         @media (min-width: 900px) {
           .yp-ai-sticky-bar { bottom: 0 !important; }
           .yp-ai-scroll     { padding-bottom: 0 !important; }
-        }
-
-        @media (min-width: 680px) {
-          .yp-acct { max-width: 680px; }
         }
 
         @media (min-width: 900px) {
@@ -135,7 +142,7 @@ export default function YPLayout({
           .yp-section-title { font-size: 20px !important; }
 
           /* Page content wrapper for constrain=false pages */
-          .yp-pw { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+          .yp-pw { max-width: 1200px; margin: 0 auto; }
 
           /* Magaza: 2-col category grid */
           .yp-cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; align-items: start; }
@@ -147,8 +154,9 @@ export default function YPLayout({
           .yp-feed-center { max-width: 720px; margin: 0 auto; }
           .yp-ai-center   { max-width: 800px; margin: 0 auto; }
 
-          /* Account pages wider on desktop */
+          /* Account pages wider on tablet/desktop */
           .yp-acct { max-width: 860px; }
+
 
           /* Quick pills: 4-col on desktop (Rehber) */
           .yp-pill-row { display: grid !important; grid-template-columns: repeat(4,1fr) !important; gap: 12px !important; }
@@ -181,7 +189,7 @@ export default function YPLayout({
           <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", gap: 24 }}>
 
             {/* Logo */}
-            <Link href="/yourpoodle">
+            <Link href={BASE || "/"}>
               <div style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", flexShrink: 0 }}>
                 <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 28, color: "#111", lineHeight: 1 }}>YourPoodle</span>
                 <span style={{ fontSize: 20 }}>🐾</span>
@@ -237,11 +245,11 @@ export default function YPLayout({
                   </div>
                 ) : (
                   <>
-                    <button onClick={() => navigate("/yourpoodle/giris")}
+                    <button onClick={() => navigate(`${BASE}/giris`)}
                       style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: "#374151", fontFamily: "inherit", padding: "0 4px", whiteSpace: "nowrap" }}>
                       Giriş Yap
                     </button>
-                    <button onClick={() => navigate("/yourpoodle/giris")}
+                    <button onClick={() => navigate(`${BASE}/uye-ol`)}
                       style={{ padding: "10px 22px", borderRadius: 9999, border: "none", background: "#7022C4", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
                       Üye Ol
                     </button>
@@ -255,7 +263,7 @@ export default function YPLayout({
                 </button>
 
                 {/* Sepet */}
-                <button className="yp-util-btn" onClick={() => navigate("/yourpoodle/sepet")}
+                <button className="yp-util-btn" onClick={() => navigate(`${BASE}/sepet`)}
                   style={{ width: 42, height: 42, borderRadius: "50%", border: "1.5px solid #E5E7EB", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, position: "relative" }}>
                   <ShoppingCart size={18} color="#374151" strokeWidth={1.8} />
                   {cartCount > 0 && (
@@ -274,11 +282,11 @@ export default function YPLayout({
           <nav style={{ background: "#fff", borderBottom: "1px solid #F3F4F6", padding: "0 40px" }}>
             <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "center", alignItems: "center", height: 52 }}>
               {([
-                { label: "Mağaza",     href: "/yourpoodle/magaza",     Icon: ShoppingBag },
-                { label: "Club",       href: "/yourpoodle/club",        Icon: PawPrint    },
-                { label: "AI Asistan", href: "/yourpoodle/ai-asistan",  Icon: Bot         },
-                { label: "Rehber",     href: "/yourpoodle/rehber",      Icon: BookOpen    },
-              ] as const).map(({ label, href, Icon }, i) => {
+                { label: "Mağaza",     href: `${BASE}/magaza`,     Icon: ShoppingBag },
+                { label: "Club",       href: `${BASE}/club`,        Icon: PawPrint    },
+                { label: "AI Asistan", href: `${BASE}/ai-asistan`,  Icon: Bot         },
+                { label: "Rehber",     href: `${BASE}/rehber`,      Icon: BookOpen    },
+              ] as { label: string; href: string; Icon: typeof ShoppingBag }[]).map(({ label, href, Icon }, i) => {
                 const active = isActive(activeLink, href);
                 return (
                   <Fragment key={href}>
@@ -348,7 +356,7 @@ export default function YPLayout({
         height: 58,
       }}>
         {authMode ? (
-          <Link href="/yourpoodle">
+          <Link href={BASE || "/"}>
             <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 20, color: "#6B21A8", cursor: "pointer" }}>YourPoodle 🐾</span>
           </Link>
         ) : (
@@ -361,13 +369,13 @@ export default function YPLayout({
                 style={{ background: "#EDE9FE", border: "none", cursor: "pointer", padding: "5px 8px", fontSize: 18, color: "#7C3AED", borderRadius: 10, lineHeight: 1 }}>
                 ☰
               </button>
-              <Link href="/yourpoodle">
+              <Link href={BASE || "/"}>
                 <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 17, color: "#6B21A8", cursor: "pointer" }}>YourPoodle 🐾</span>
               </Link>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {/* Sepet ikonu */}
-              <button onClick={() => navigate("/yourpoodle/sepet")}
+              <button onClick={() => navigate(`${BASE}/sepet`)}
                 style={{ position: "relative", width: 38, height: 38, borderRadius: "50%", border: "1.5px solid #E5E7EB", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
                 <ShoppingCart size={18} color="#7C3AED" strokeWidth={2} />
                 {cartCount > 0 && (
@@ -376,7 +384,7 @@ export default function YPLayout({
                   </span>
                 )}
               </button>
-              <button onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
+              <button onClick={() => navigate(isLoggedIn ? "/hesabim" : `${BASE}/giris`)}
                 style={{ padding: "5px 11px", borderRadius: 20, border: "1.5px solid #7C3AED", background: "#F5F0FF", color: "#7C3AED", fontSize: 11.5, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
                 {isLoggedIn ? "Hesabım" : "Giriş"}
               </button>
@@ -394,10 +402,10 @@ export default function YPLayout({
           position: "sticky", top: 58, zIndex: 99,
         }}>
           {([
-            { label: "Mağaza",     href: "/yourpoodle/magaza",      emoji: "🛍️" },
-            { label: "Club",       href: "/yourpoodle/club",         emoji: "🐾" },
-            { label: "AI Asistan", href: "/yourpoodle/ai-asistan",   emoji: "🤖" },
-            { label: "Rehber",     href: "/yourpoodle/rehber",       emoji: "📖" },
+            { label: "Mağaza",     href: `${BASE}/magaza`,      emoji: "🛍️" },
+            { label: "Club",       href: `${BASE}/club`,         emoji: "🐾" },
+            { label: "AI Asistan", href: `${BASE}/ai-asistan`,   emoji: "🤖" },
+            { label: "Rehber",     href: `${BASE}/rehber`,       emoji: "📖" },
           ] as const).map(({ label, href, emoji }) => {
             const active = isActive(effectiveBottomLink, href);
             return (
@@ -439,8 +447,8 @@ export default function YPLayout({
           }}>
             {/* Sol 2 tab */}
             {[
-              { label: "Ana Sayfa", href: "/yourpoodle",        Icon: PawPrint },
-              { label: "Club",      href: "/yourpoodle/club",   Icon: Users    },
+              { label: "Ana Sayfa", href: BASE || "/",          Icon: PawPrint },
+              { label: "Club",      href: `${BASE}/club`,       Icon: Users    },
             ].map(({ label, href, Icon }) => {
               const active = isActive(effectiveBottomLink, href);
               return (
@@ -455,9 +463,10 @@ export default function YPLayout({
 
             {/* Merkez — Sepet butonu */}
             {(() => {
-              const cartActive = effectiveBottomLink.startsWith("/yourpoodle/sepet") || effectiveBottomLink.startsWith("/yourpoodle/odeme");
+              const normLink = normalizePath(effectiveBottomLink);
+              const cartActive = normLink.startsWith("/sepet") || normLink.startsWith("/odeme");
               return (
-                <button onClick={() => navigate("/yourpoodle/sepet")}
+                <button onClick={() => navigate(`${BASE}/sepet`)}
                   aria-label="Sepetim"
                   style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", flex: "0 0 auto", padding: 0 }}>
                   <div style={{
@@ -491,8 +500,8 @@ export default function YPLayout({
 
             {/* Sağ 2 tab */}
             {[
-              { label: "Mağaza", href: "/yourpoodle/magaza",     Icon: ShoppingBag },
-              { label: "AI",     href: "/yourpoodle/ai-asistan", Icon: Bot         },
+              { label: "Mağaza", href: `${BASE}/magaza`,     Icon: ShoppingBag },
+              { label: "AI",     href: `${BASE}/ai-asistan`, Icon: Bot         },
             ].map(({ label, href, Icon }) => {
               const active = isActive(effectiveBottomLink, href);
               return (

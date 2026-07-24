@@ -56,7 +56,7 @@ export default function YPKullanimSartlari() {
               <li>Platform üyeliği tamamen <strong>ücretsizdir</strong>. Gizli ücret veya zorunlu abonelik bulunmamaktadır.</li>
               <li>Üye olmak için Türkiye'de geçerli bir cep telefonu numarası (5XX formatında) veya Google hesabı gereklidir.</li>
               <li>Her telefon numarası ile yalnızca bir hesap oluşturulabilir.</li>
-              <li>Hesap güvenliğinden kullanıcı sorumludur. Şüpheli giriş durumunda derhal <a href="mailto:info@sizpa.com">info@sizpa.com</a> ile iletişime geçin.</li>
+              <li>Hesap güvenliğinden kullanıcı sorumludur. Şüpheli giriş durumunda derhal <a href="mailto:info@yourpoodle.com">info@yourpoodle.com</a> ile iletişime geçin.</li>
               <li>18 yaşın altındaki kullanıcılar platformu yalnızca ebeveyn/vasi gözetiminde kullanabilir.</li>
             </ul>
           </div>
@@ -96,7 +96,7 @@ export default function YPKullanimSartlari() {
           <div className="tos-section">
             <h2>6. Hesap Feshi</h2>
             <ul>
-              <li>Hesabınızı dilediğiniz zaman <a href="mailto:info@sizpa.com">info@sizpa.com</a> adresine yazarak silebilirsiniz.</li>
+              <li>Hesabınızı dilediğiniz zaman <a href="mailto:info@yourpoodle.com">info@yourpoodle.com</a> adresine yazarak silebilirsiniz.</li>
               <li>Şirket, Şartları ihlal eden hesapları önceden bildirim yapmaksızın askıya alabilir veya silebilir.</li>
               <li>Hesap silinmesi durumunda kullanıcı tarafından paylaşılan içerikler 30 gün içinde silinir (yasal zorunluluklar hariç).</li>
             </ul>
@@ -118,7 +118,7 @@ export default function YPKullanimSartlari() {
             <h2 style={{ border:"none", paddingTop:0 }}>İletişim</h2>
             <p>Kullanım şartları hakkında sorularınız için:</p>
             <ul style={{ marginTop:8 }}>
-              <li><strong>E-posta:</strong> <a href="mailto:info@sizpa.com" style={{ color:"#7C3AFF" }}>info@sizpa.com</a></li>
+              <li><strong>E-posta:</strong> <a href="mailto:info@yourpoodle.com" style={{ color:"#7C3AFF" }}>info@yourpoodle.com</a></li>
               <li><strong>Platform:</strong> YourPoodle / Sizpa Yazılım ve Teknoloji A.Ş.</li>
             </ul>
           </div>

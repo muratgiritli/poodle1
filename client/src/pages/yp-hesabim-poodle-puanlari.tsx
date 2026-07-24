@@ -205,7 +205,7 @@ export default function YPPoodlePuanlariPage() {
 
   return (
     <YPLayout activeLink="club" constrain={false}>
-      <div style={{ maxWidth:860, margin:"0 auto", background:"#F9F9FB",
+      <div className="yp-acct" style={{ margin:"0 auto", background:"#F9F9FB",
                     minHeight:"100vh", fontFamily:"Inter, sans-serif" }}>
 
         {/* ── BREADCRUMB + HEADER ── */}

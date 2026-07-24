@@ -218,7 +218,7 @@ export default function YPOdulOnaylaPage() {
         />
       )}
 
-      <div style={{ maxWidth:860, margin:"0 auto", background:BG, minHeight:"100vh", paddingBottom:32, fontFamily:"Inter,sans-serif" }}>
+      <div className="yp-acct" style={{ margin:"0 auto", background:BG, minHeight:"100vh", paddingBottom:32, fontFamily:"Inter,sans-serif" }}>
 
         {/* ── BREADCRUMB ── */}
         <div style={{ padding:"12px 16px 6px" }}>

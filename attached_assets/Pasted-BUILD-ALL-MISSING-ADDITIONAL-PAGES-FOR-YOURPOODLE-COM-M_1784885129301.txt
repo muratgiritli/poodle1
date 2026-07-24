@@ -1,0 +1,484 @@
+BUILD ALL MISSING & ADDITIONAL PAGES FOR YOURPOODLE.COM
+Mobile (390px) + Tablet (768px / 1024px) + Desktop (1440px)
+
+You are adding pages that are missing from the live site or only exist as SEO links.
+These pages complete the e-commerce, content, community, auth, and legal flows.
+
+CRITICAL — EXISTING PROJECT:
+- USE the existing React project, AppLayout, DesktopHeader, MobileHeader, DesktopNav,
+  TabNavigation, BottomNav, MobileDrawer, AuthContext, CartContext, Toast, and routing.
+- If AppLayout does not exist yet, create it FIRST (mobile <1024px, desktop lg: ≥1024px).
+- EVERY new page MUST wrap in <AppLayout activeTab="..." containerVariant="...">.
+- DO NOT use legacy header ("Ürün ara..."), "Köpek" bar, or old bottom nav.
+- Turkish UI text must be EXACT as specified below. Zero improvisation on copy.
+- Brand purple: #5D3EBD. Font: Inter. Mobile column: max-w-[480px] lg:max-w-7xl mx-auto.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NEW ROUTES TO ADD (register ALL in router)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+COMMERCE:
+  /siparis/onay/:orderId              → OrderConfirmationPage
+  /hesabim/siparisler/:orderId        → OrderDetailPage (ProtectedRoute)
+  /siparis-takip                      → GuestOrderTrackingPage
+  /ara                                → SearchResultsPage (?q= query param)
+  /magaza/kategori/:slug              → CategoryPage
+  /magaza/marka/:slug                 → BrandPage
+  /magazalar/atakum                   → PhysicalStorePage
+
+CONTENT:
+  /rehber/:category/:slug             → GuideArticlePage
+  /araclar                            → ToolsHubPage
+  /araclar/mama-hesaplama             → FoodCalculatorPage
+  /araclar/yas-hesaplama              → AgeCalculatorPage
+  /araclar/tiras-takvimi              → GroomingCalendarPage
+
+COMMUNITY:
+  /club/gonderi/:postId               → ClubPostDetailPage
+  /club/profil/:username              → ClubPublicProfilePage
+  /etkinlikler                        → EventsListPage
+  /etkinlikler/:slug                  → EventDetailPage
+
+AUTH & LEGAL:
+  /sifremi-unuttum                    → ForgotPasswordPage
+  /sifremi-unuttum/dogrulama          → ResetPasswordPage (?token= mock)
+  /kvkk                               → KvkkPage
+  /gizlilik                           → PrivacyPage
+  /kullanim-sartlari                  → TermsPage
+  /mesafeli-satis-sozlesmesi          → DistanceSalesPage
+
+MARKETING:
+  /kampanyalar                        → CampaignsPage
+  /iletisim                           → ContactPage (rebuild if broken)
+  /hakkimizda                         → AboutPage (rebuild if broken)
+
+Wire DesktopHeader search submit → /ara?q={query}
+Wire homepage / magaza search bars → /ara?q={query}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 1 — ORDER FLOW PAGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1) OrderConfirmationPage — /siparis/onay/:orderId
+   containerVariant="narrow" (mobile) / "default" (desktop centered card)
+   Shown AFTER successful checkout from /odeme.
+
+   Content (Turkish EXACT):
+   - Success icon (green check in purple circle)
+   - H1: "Siparişiniz Alındı!"
+   - Sub: "Teşekkür ederiz. Siparişiniz hazırlanıyor."
+   - Order number card: "Sipariş No: #YP-{orderId}" (mock: YP-2026-0847)
+   - Summary: product names, total paid, delivery address (from checkout state)
+   - Estimated delivery: "Tahmini teslimat: 2-4 iş günü"
+   - PoodlePuan earned badge: "+45 PoodlePuan kazandınız!"
+   - Buttons:
+     Primary purple: "Siparişimi Görüntüle" → /hesabim/siparisler/:orderId
+     Secondary: "Alışverişe Devam Et" → /magaza
+   - Share order tracking: "Sipariş Takip No: {trackingCode}" with copy button
+
+   Desktop (lg:): centered card max-w-lg, confetti optional (CSS only, subtle)
+   Mobile: full width within 480px column
+   Clear cart in CartContext on mount if orderId matches last checkout
+
+2) OrderDetailPage — /hesabim/siparisler/:orderId (ProtectedRoute)
+   containerVariant="account"
+   Link FROM OrdersPage list item tap.
+
+   Header: back arrow → /hesabim/siparisler
+   H1: "Sipariş Detayı"
+   Order ID + date: "#YP-2026-0847 · 24 Temmuz 2026"
+
+   OrderProgressStepper (reuse from OrdersPage):
+   Sipariş Alındı → Hazırlanıyor → Kargoda → Teslim Edildi
+   Current step highlighted purple
+
+   Sections:
+   - Ürünler: line items with image, name, qty, price
+   - Teslimat Adresi: name, phone, full address
+   - Ödeme: "Kapıda Kart" or "Havale" + total
+   - Kargo: tracking number + "Kargoyu Takip Et" (mock link, toast)
+   - Fatura: "Fatura İndir" button (toast mock)
+
+   Bottom actions:
+   "Yardım Al" → /hesabim/yardim
+   "Siparişi Tekrarla" → adds items to cart, toast, → /sepet
+
+   Desktop: 2-column — stepper + items left, address/payment sticky right
+   Mobile: stacked
+
+3) GuestOrderTrackingPage — /siparis-takip
+   containerVariant="narrow"
+   Public page — no auth required.
+
+   H1: "Sipariş Takip"
+   Sub: "Sipariş numaranız ve e-posta adresiniz ile siparişinizi takip edin."
+
+   Form:
+   - Sipariş No: placeholder "YP-2026-0847"
+   - E-posta: placeholder "ornek@email.com"
+   - Purple button: "Siparişi Sorgula"
+
+   On submit (mock): if both fields filled → show mini order status card
+   (same stepper as OrderDetailPage, simplified)
+   Link: "Üye misiniz? Giriş yapın" → /giris
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 2 — SEARCH & CATALOG PAGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+4) SearchResultsPage — /ara?q={query}
+   containerVariant="default"
+   Read query from URL searchParams. activeTab="magaza"
+
+   Header area:
+   H1: "Arama Sonuçları"
+   Sub: "\"{query}\" için {count} sonuç bulundu" (mock count)
+
+   Filter pills (horizontal scroll mobile):
+   Tümü | Ürünler | Rehber | Club
+
+   Tabs content:
+   - Ürünler: 2-col mobile / 4-col desktop product grid (reuse ProductCard)
+   - Rehber: article list cards → link /rehber/:category/:slug
+   - Club: mini post cards → link /club/gonderi/:postId
+
+   Empty state if q empty:
+   "Arama yapmak için bir kelime girin"
+   Popular searches chips: "Poodle maması", "Tuvalet eğitimi", "Royal Canin"
+
+   Wire ALL search inputs in DesktopHeader + MobileDrawer + /magaza → navigate /ara?q=
+
+5) CategoryPage — /magaza/kategori/:slug
+   containerVariant="default"
+   Slugs: kuru-mama, yas-mama, odul, oyuncak, bakim, aksesuar
+
+   Breadcrumb: Mağaza > {CategoryName}
+   H1 from slug map:
+     kuru-mama → "Kuru Mama"
+     yas-mama → "Yaş Mama"
+     odul → "Ödül & Ek Besin"
+     oyuncak → "Oyuncaklar"
+     bakim → "Bakım Ürünleri"
+     aksesuar → "Aksesuarlar"
+
+   Filter/sort bar: "Sırala: Önerilen" dropdown (mock)
+   Product grid: 2-col / 4-col
+   Link category pills on /magaza → these routes
+
+6) BrandPage — /magaza/marka/:slug
+   containerVariant="default"
+   Example: /magaza/marka/royal-canin
+
+   Brand header: logo placeholder, name "Royal Canin", short description
+   Product grid filtered by brand (mock data)
+   Breadcrumb: Mağaza > Royal Canin
+
+7) PhysicalStorePage — /magazalar/atakum
+   containerVariant="default"
+   MOVE all legacy Atakum physical shop content HERE (off /magaza).
+
+   H1: "YourPoodle Pet Shop Atakum Mağazası"
+   Sub: "YourPoodle Pet Shop — Atakum, Samsun"
+   Store description paragraph (keep existing Turkish text from live site)
+
+   2-column desktop / stacked mobile:
+   LEFT — Adres ve İletişim:
+     Adres, Telefon, WhatsApp, E-posta: info@yourpoodle.com (NOT sizpa.com)
+     Buttons: green WhatsApp, blue Ara (tel: link)
+
+   RIGHT — Çalışma Saatleri:
+     Mon-Sun hours table
+
+   Full-width: embedded map placeholder (gray box + "Yol Tarifi Al →" link)
+   Link from footer "Mağazalarımız" and Help Center
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 3 — CONTENT & GUIDE PAGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+8) GuideArticlePage — /rehber/:category/:slug
+   containerVariant="default" (mobile narrow reading) / lg:max-w-3xl for article body
+   activeTab="rehber"
+   Link FROM /rehber list cards AND search results.
+
+   Mock article example:
+   category: egitim, slug: toy-poodle-tuvalet-egitimi
+
+   Layout:
+   - Breadcrumb: Rehber > Eğitim
+   - Category badge: "Eğitim"
+   - H1: "Toy Poodle Tuvalet Eğitimi"
+   - Meta row: "5 dk okuma · 24 Temmuz 2026 · 👁 1.2K"
+   - Hero image (placeholder gradient + paw icon)
+   - Article body (mock markdown-style paragraphs, 4-5 sections with H2s)
+   - Tip box (purple border): "💡 İpucu: Sabır ve tutarlılık en önemli anahtardır."
+   - Related products carousel: 2-3 mama products "Bu rehber için önerilen ürünler"
+   - Related articles: 3 cards
+   - Bottom sticky bar mobile: "Favorilere Kaydet" heart + "Paylaş"
+   - Desktop: floating share/favorite top-right
+
+9) ToolsHubPage — /araclar
+   containerVariant="default"
+   activeTab="rehber" (or none)
+
+   H1: "Poodle Araçları"
+   Sub: "Poodle'ınız için pratik hesaplama araçları"
+
+   Tool cards grid (1 col mobile, 3 col desktop):
+   - 🍽️ Mama Hesaplama → /araclar/mama-hesaplama
+     "Günlük mama miktarını hesaplayın"
+   - 🎂 Yaş Hesaplama → /araclar/yas-hesaplama
+     "Poodle yaşını insan yaşına çevirin"
+   - ✂️ Tıraş Takvimi → /araclar/tiras-takvimi
+     "Bakım takviminizi oluşturun"
+
+   Link from MobileDrawer "Araçlar" and footer
+
+10) FoodCalculatorPage — /araclar/mama-hesaplama
+    containerVariant="narrow"
+    Form: Kilo (kg), Yaş grubu (Yavru/Yetişkin/Yaşlı), Aktivite (Düşük/Orta/Yüksek)
+    Purple button: "Hesapla"
+    Result card: "Günlük önerilen mama: 85g" + product recommendations → /magaza
+
+11) AgeCalculatorPage — /araclar/yas-hesaplama
+    containerVariant="narrow"
+    Form: Poodle yaşı (yıl/ay)
+    Result: "İnsan yaşına göre: ~32 yaş"
+
+12) GroomingCalendarPage — /araclar/tiras-takvimi
+    containerVariant="narrow"
+    Form: Tıraş tipi, son tıraş tarihi
+    Result: next grooming dates list + "Takvime Ekle" (toast mock)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 4 — COMMUNITY PAGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+13) ClubPostDetailPage — /club/gonderi/:postId
+    containerVariant="default" lg:max-w-2xl mx-auto
+    activeTab="club"
+    Link FROM Club feed tap on post.
+
+    Layout (Instagram-style):
+    - Author row: avatar, @username, "Tarçın'ın annesi", follow button, ··· menu
+    - Large image (placeholder)
+    - Action row: ❤️ 128 · 💬 24 · ↗️ Paylaş · 🔖 Kaydet
+    - Caption with hashtags #toypoodle #yourpoodle
+    - Time: "2 saat önce"
+    - Comments section (3 mock comments + input "Yorum ekle...")
+    - Related: "Benzer gönderiler" 3-col grid
+
+    Desktop: image left 60%, info/comments right 40% (lg:flex)
+    Mobile: stacked
+
+14) ClubPublicProfilePage — /club/profil/:username
+    containerVariant="default"
+    activeTab="club"
+
+    Profile header:
+    - Large avatar, @username, bio, location
+    - Stats: 14 gönderi · 128 takipçi · 56 takip
+    - Poodle card mini: "Tarçın · 2 yaş · Toy Poodle"
+    - Follow / Message buttons (mock toast)
+
+    Tabs: Gönderiler | Kaydedilenler
+    Photo grid 3 columns → tap → /club/gonderi/:postId
+
+15) EventsListPage — /etkinlikler
+    containerVariant="default"
+
+    H1: "Poodle Etkinlikleri"
+    Sub: "Yakınınızdaki etkinlikleri keşfedin"
+
+    Event cards (stacked mobile, 2-col desktop):
+    - Image, title, date, location, attendee count
+    - Badge: "Ücretsiz" or "₺150"
+    - Button: "Detayları Gör" → /etkinlikler/:slug
+
+16) EventDetailPage — /etkinlikler/:slug
+    containerVariant="default" lg:max-w-3xl
+
+    Mock event: "İstanbul Poodle Buluşması"
+    Hero image, date/time, location map pin, description
+    Attendee avatars row "+24 katılımcı"
+    Primary: "Katıl" (auth required → /giris if guest, toast if logged in)
+    Secondary: "Takvime Ekle"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 5 — AUTH & LEGAL PAGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+17) ForgotPasswordPage — /sifremi-unuttum
+    containerVariant="narrow"
+    Link FROM /giris "Şifremi Unuttum"
+
+    H1: "Şifremi Unuttum"
+    Sub: "E-posta adresinize şifre sıfırlama bağlantısı göndereceğiz."
+    Input: E-posta
+    Button: "Sıfırlama Bağlantısı Gönder"
+    On submit: success state "E-postanızı kontrol edin" + mail icon
+    Link: "Giriş sayfasına dön" → /giris
+
+18) ResetPasswordPage — /sifremi-unuttum/dogrulama?token=mock
+    containerVariant="narrow"
+
+    H1: "Yeni Şifre Belirle"
+    Inputs: Yeni Şifre, Yeni Şifre Tekrar
+    Password strength indicator (weak/medium/strong)
+    Button: "Şifreyi Güncelle"
+    Success → redirect /giris with toast
+
+19-22) Legal pages — simple readable layout, containerVariant="default" lg:max-w-3xl
+
+    KvkkPage — /kvkk
+    H1: "KVKK Aydınlatma Metni"
+    Sections with H2s: Veri Sorumlusu, İşlenen Veriler, Amaç, Haklar, İletişim
+    Mock legal paragraphs (3-4 sections, Turkish placeholder text — lorem style but labeled)
+
+    PrivacyPage — /gizlilik
+    H1: "Gizlilik Politikası"
+
+    TermsPage — /kullanim-sartlari
+    H1: "Kullanım Şartları"
+
+    DistanceSalesPage — /mesafeli-satis-sozlesmesi
+    H1: "Mesafeli Satış Sözleşmesi"
+    Required for TR e-commerce checkout — link from /odeme footer checkbox
+
+    All legal pages:
+    - Last updated: "Son güncelleme: 24 Temmuz 2026"
+    - Footer links cross-reference each other
+    - Link from /uye-ol KVKK checkbox, /odeme legal links, footer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 6 — MARKETING & STATIC PAGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+23) CampaignsPage — /kampanyalar
+    containerVariant="default"
+    H1: "Kampanyalar"
+    Banner cards: "Peşin fiyatına 3 taksit", "1.000₺ üzeri ücretsiz kargo", "Yeni üyelere %10"
+    Each card: image, title, description, expiry date, CTA → /magaza
+
+24) ContactPage — /iletisim (rebuild)
+    containerVariant="default"
+    H1: "İletişim"
+    Form: Ad Soyad, E-posta, Konu (dropdown), Mesaj, KVKK checkbox
+    Button: "Gönder" → toast success
+    Sidebar desktop: info@yourpoodle.com, phone, WhatsApp, address
+    Mobile: stacked
+
+25) AboutPage — /hakkimizda (rebuild)
+    containerVariant="default"
+    H1: "Hakkımızda"
+    Sections: Our story, mission, Toy Poodle focus, team photo placeholder
+    CTA: "Topluluğa Katıl" → /club
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 7 — CROSS-LINKING & INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Wire these navigation paths:
+
+CHECKOUT FLOW:
+  /odeme "Siparişi Onayla" → create mock order → clear cart → /siparis/onay/:orderId
+
+ORDERS:
+  /hesabim/siparisler → tap order → /hesabim/siparisler/:orderId
+  OrderConfirmationPage → /hesabim/siparisler/:orderId
+
+SEARCH:
+  DesktopHeader search onSubmit → /ara?q={value}
+  /magaza search → /ara?q={value}
+
+GUIDE:
+  /rehber card → /rehber/:category/:slug
+  GuideArticlePage related → other articles
+
+CLUB:
+  /club feed → /club/gonderi/:postId
+  /club post author → /club/profil/:username
+  ClubPublicProfilePage grid → /club/gonderi/:postId
+
+STORE:
+  /magaza category pills → /magaza/kategori/:slug
+  /magaza brand filter → /magaza/marka/:slug
+  Footer "Atakum Mağazası" → /magazalar/atakum
+
+AUTH:
+  /giris "Şifremi Unuttum" → /sifremi-unuttum
+  /uye-ol KVKK link → /kvkk
+  /odeme legal checkbox links → /mesafeli-satis-sozlesmesi, /kvkk
+
+FOOTER (add to all pages via AppLayout footer component if missing):
+  Hakkımızda | İletişim | Kampanyalar | Etkinlikler | Araçlar
+  KVKK | Gizlilik | Kullanım Şartları | Mesafeli Satış
+  Mağazalarımız → /magazalar/atakum
+
+usePageTitle() for every new route:
+  /ara → "Arama: {query} | YourPoodle"
+  /siparis/onay/:id → "Sipariş Onayı | YourPoodle"
+  /rehber/:cat/:slug → "{article title} | YourPoodle Rehber"
+  /kvkk → "KVKK | YourPoodle"
+  (etc.)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 8 — MOCK DATA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create src/data/ files:
+  orders.ts       — mock orders for list + detail + tracking
+  articles.ts     — guide articles with category, slug, body, readTime
+  clubPosts.ts    — posts with id, author, likes, comments, image
+  events.ts       — events with slug, date, location
+  campaigns.ts    — campaign banners
+  searchResults.ts — products + articles + posts for /ara
+
+All mock data in Turkish. Reuse product data from homepage/magaza where possible.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 9 — RESPONSIVE RULES (ALL NEW PAGES)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Every page must pass at 390px, 768px, 1024px, 1440px:
+
+  <1024px: MobileHeader + TabNavigation + BottomNav, max-w-[480px] centered
+  ≥1024px: DesktopHeader + PromoBar + DesktopNav, BottomNav HIDDEN
+  Product grids: grid-cols-2 lg:grid-cols-4
+  Article/legal body: max-w-3xl mx-auto on desktop
+  Forms (auth, tracking): max-w-[480px] lg:max-w-md mx-auto
+  No legacy "Köpek" bar or "Ürün ara..." header on ANY new page
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 10 — VERIFICATION CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[ ] /siparis/onay/test-order loads after mock checkout
+[ ] /hesabim/siparisler/:id shows stepper + items (auth required)
+[ ] /siparis-takip form shows mock result
+[ ] /ara?q=mama shows products + guides + club tabs
+[ ] DesktopHeader search navigates to /ara?q=
+[ ] /magaza/kategori/kuru-mama shows product grid
+[ ] /magaza/marka/royal-canin works
+[ ] /magazalar/atakum shows physical store, info@yourpoodle.com
+[ ] /rehber/egitim/toy-poodle-tuvalet-egitimi full article renders
+[ ] /araclar + 3 calculator pages work
+[ ] /club/gonderi/1 post detail with comments
+[ ] /club/profil/tarcin profile with grid
+[ ] /etkinlikler + /etkinlikler/istanbul-poodle-bulusmasi
+[ ] /sifremi-unuttum + reset flow
+[ ] /kvkk, /gizlilik, /kullanim-sartlari, /mesafeli-satis-sozlesmesi
+[ ] /kampanyalar, /iletisim, /hakkimizda
+[ ] All pages use AppLayout — no legacy UI
+[ ] All 4 viewports: no horizontal overflow, correct header variant
+[ ] Footer links work on mobile and desktop
+
+Report files created, routes added, and any pages still using placeholder content.
+
+EXECUTION ORDER: Phase 7 integration rules → build pages Phases 1-6 → mock data Phase 8
+→ responsive pass Phase 9 → verify Phase 10.
+
+DO NOT mark done until Phase 10 checklist passes.
+Preserve Turkish copy exactly. Brand #5D3EBD. Font Inter.

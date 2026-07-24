@@ -1,0 +1,409 @@
+FULL SITE FIX — YOURPOODLE.COM
+Mobile (390px) + Tablet (768px / 1024px) + Desktop (1440px)
+Routing · Layout · Responsive · E-commerce · Account pages
+
+You are fixing the entire YourPoodle.com React SPA based on a live audit across all viewports.
+The homepage (/) mostly works. Almost everything else is broken, inconsistent, or uses legacy UI.
+Your job: one unified app that works pixel-perfect on mobile, tablet, and desktop.
+
+DO NOT rebuild from scratch.
+DO NOT delete working homepage components — extract and reuse them.
+DO NOT change Turkish UI text on pages that already match mockups.
+DO NOT improvise design — use exact tokens and copy below.
+
+Stack: React 18 + Vite + TypeScript + Tailwind CSS v3 + lucide-react + react-router-dom
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AUDIT FINDINGS — FIX ALL OF THESE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ROUTING / 404 (all viewports):
+  /rehber, /ai-asistan, /uye-ol, /sepet, /mama-bul → show 404 "Aradığınız sayfayı bulamadık"
+  /club → 404 on desktop; broken on mobile
+  Homepage tab chips and bottom nav link to these broken routes
+
+WRONG CONTENT:
+  /magaza → physical pet shop (Atakum, Samsun, info@sizpa.com) instead of e-commerce store
+
+THREE PARALLEL UI SYSTEMS:
+  NEW MOBILE (homepage <1024px): hamburger header, tab chips, bottom nav (Sepetim FAB)
+  NEW DESKTOP (homepage ≥1024px): promo bar, search header, secondary nav, 4-col grid
+  LEGACY (other pages): "Ürün ara..." search, purple "Köpek" bar, old bottom nav
+  → Remove legacy everywhere. One AppLayout for all pages.
+
+TABLET BUG (768px):
+  Mobile layout stretches full 768px width instead of centered max-w-[480px]
+  Product grid shows 4 columns — should be 2
+  Bottom nav + tab chips both visible — redundant
+
+DESKTOP BUG (1440px):
+  Inner pages use legacy header, NOT homepage desktop header
+  /magaza, /giris, 404 → narrow centered strip with huge side margins
+  Broken routes same as mobile
+
+ACCOUNT PAGES:
+  /hesabim/* routes exist but don't render designed pages; show drawer/menu or login
+
+AUTH:
+  /giris → SMS phone login only; /uye-ol → 404
+  Mockup design: email + password + social login
+
+SEO:
+  Same generic <title> on all URLs; 404 returns HTTP 200; hidden SEO block in a11y tree
+
+BRANDING:
+  info@sizpa.com on /magaza → must be info@yourpoodle.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DESIGN TOKENS — ALL VIEWPORTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Primary purple:     #5D3EBD
+Primary hover:      #4E32A8
+Light purple bg:    #F3EEFF / #F5F0FF
+Accent yellow:      #FFD93D
+Text primary:       #1A1A2E
+Text secondary:     #6B7280
+Border:             #E5E7EB
+Success:            #10B981
+Error:              #EF4444
+Font:               Inter (400, 500, 600, 700)
+Promo bar bg:       #1A1A2E (dark)
+
+BREAKPOINTS (Tailwind):
+  < 1024px (default)  → MOBILE MODE (includes tablet portrait 768px)
+  ≥ 1024px (lg:)      → DESKTOP MODE (includes tablet landscape 1024px)
+
+Mobile content column:  max-w-[480px] mx-auto  (MUST stay centered at 768px — do NOT stretch)
+Desktop container:      max-w-7xl mx-auto px-4 lg:px-8
+Narrow pages (login, 404): max-w-[480px] lg:max-w-2xl mx-auto
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 1 — UNIFIED LAYOUT SYSTEM (ALL VIEWPORTS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create/refactor src/components/layout/:
+
+  AppLayout.tsx       — master wrapper, every page uses this
+  PromoBar.tsx        — desktop only top bar
+  DesktopHeader.tsx   — extract from working homepage desktop header
+  MobileHeader.tsx    — extract from working homepage mobile header
+  DesktopNav.tsx      — Mağaza | Club | AI Asistan | Rehber (desktop secondary nav)
+  TabNavigation.tsx   — mobile chip tabs (reuse existing)
+  BottomNav.tsx       — Ana Sayfa | Club | Sepetim FAB | Mağaza | AI
+  MobileDrawer.tsx    — hamburger menu
+  PageContainer.tsx   — responsive max-width wrapper
+  ProtectedRoute.tsx  — auth guard for /hesabim/*
+
+AppLayout.tsx structure:
+
+  <div className="min-h-screen bg-gray-50 lg:bg-white">
+    <div className="hidden lg:block"><PromoBar /></div>
+    <div className="lg:hidden"><MobileHeader /></div>
+    <div className="hidden lg:block"><DesktopHeader /></div>
+    <div className="hidden lg:block"><DesktopNav activeTab={activeTab} /></div>
+    <div className="lg:hidden"><TabNavigation activeTab={activeTab} /></div>
+    <PageContainer variant={containerVariant}>{children}</PageContainer>
+    <div className="lg:hidden"><BottomNav /></div>
+    <MobileDrawer />
+    <Toaster />
+  </div>
+
+PageContainer.tsx:
+
+  variant "default" → max-w-[480px] lg:max-w-7xl mx-auto px-4 pb-24 lg:pb-8
+  variant "narrow"  → max-w-[480px] lg:max-w-2xl mx-auto px-4 pb-24 lg:pb-8
+  variant "account" → max-w-[480px] lg:max-w-5xl mx-auto px-4 pb-24 lg:pb-8
+
+DELETE / STOP RENDERING everywhere:
+  - Purple "Köpek" category bar
+  - Legacy header with "Ürün ara..." placeholder
+  - Old bottom nav: Ana Sayfa | Kategoriler | Sepet | İletişim | Giriş
+  - Any page that renders its own header outside AppLayout
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 2 — HEADER SPECS (EXTRACT FROM HOMEPAGE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PromoBar (lg:block only):
+  "Toy Poodle dünyasının adresi — 1.000₺ üzeri ücretsiz kargo 🚚"
+
+DesktopHeader (lg:block only):
+  LEFT:   YourPoodle logo → /
+  CENTER: Search "Mama, aksesuar veya rehber ara..." (rounded-full, bg-gray-100)
+  RIGHT:  "Giriş Yap" → /giris | "Üye Ol" pill → /uye-ol
+          Heart → /hesabim/favoriler (guest → /giris)
+          Cart icon + badge (CartContext) → /sepet
+  Authenticated: avatar dropdown → /hesabim
+
+MobileHeader (lg:hidden only):
+  LEFT:   ☰ hamburger → MobileDrawer
+  CENTER: YourPoodle logo
+  RIGHT:  Bell badge 3 → /hesabim/bildirimler
+          Message badge 2
+          Avatar or "Giriş" → /hesabim or /giris
+
+DesktopNav (lg:block only):
+  🛍️ Mağaza → /magaza | 🐾 Club → /club | 🤖 AI Asistan → /ai-asistan | 📖 Rehber → /rehber
+  activeTab prop highlights current section
+
+TabNavigation (lg:hidden only):
+  Same 4 chips as DesktopNav — Mağaza | Club | AI Asistan | Rehber
+
+BottomNav (lg:hidden only — CRITICAL: hidden at 1024px+):
+  Ana Sayfa → / | Club → /club | Sepetim FAB (cart badge) → /sepet
+  Mağaza → /magaza | AI → /ai-asistan
+
+MobileDrawer links:
+  Ana Sayfa, Mağaza, Club, AI Asistan, Rehber, Mama Bul, Sepetim,
+  Hesabım (auth), Giriş Yap / Üye Ol (guest), Yardım, İletişim
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 3 — RESPONSIVE GRIDS & COMPONENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Product grids (ALL pages):
+  className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-6"
+  → 2 cols mobile/tablet portrait | 4 cols desktop/tablet landscape
+
+Guide/article grids:
+  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+
+Hero banner:
+  Mobile/tablet: stacked within 480px column
+  Desktop (lg:): flex row — text 50% + poodle image 50%, rounded-2xl purple bg
+
+Cart/checkout desktop (lg:):
+  2-column: items 60% | sticky order summary 40%
+  Mobile: single column stacked
+
+Club feed:
+  Mobile: single column in 480px column
+  Desktop: max-w-2xl mx-auto centered feed
+
+AI chat:
+  Mobile: full height minus header/bottom nav
+  Desktop: max-w-2xl mx-auto, full height minus desktop header
+
+Show/hide summary:
+  PromoBar, DesktopHeader, DesktopNav  → hidden lg:block (visible ≥1024px)
+  MobileHeader, TabNavigation, BottomNav → lg:hidden (visible <1024px)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 4 — COMPLETE ROUTE TABLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create ONE canonical router. Every route → page component wrapped in AppLayout.
+
+PUBLIC:
+  /                                    → HomePage
+  /magaza                              → StorePage (e-commerce)
+  /magaza/kuru-mama                    → FoodFinderPage
+  /magaza/kuru-mama/sonuc              → FoodResultsPage
+  /magaza/urun/:slug                   → ProductDetailPage
+  /club                                → ClubPage
+  /rehber                              → GuidePage
+  /rehber/:category/:slug              → GuideArticlePage
+  /ai-asistan                          → AIAssistantPage
+  /mama-bul                            → redirect to /magaza/kuru-mama
+  /giris                               → LoginPage
+  /uye-ol                              → RegisterPage
+  /sepet                               → CartPage
+  /odeme                               → CheckoutPage
+  /iletisim                            → ContactPage
+  /hakkimizda                          → AboutPage
+  /magazalar/atakum                    → PhysicalStorePage (MOVED from /magaza)
+
+PROTECTED (ProtectedRoute → redirect /giris if !auth):
+  /hesabim                             → AccountPage
+  /hesabim/siparisler                  → OrdersPage
+  /hesabim/favoriler                   → FavoritesPage
+  /hesabim/adresler                    → AddressesPage
+  /hesabim/kuponlar                    → CouponsPage
+  /hesabim/club-paylasimlar            → MyClubPostsPage
+  /hesabim/kaydedilenler               → SavedItemsPage
+  /hesabim/bildirimler                 → NotificationsPage
+  /hesabim/ayarlar                     → AccountSettingsPage
+  /hesabim/poodle-profil               → PoodleProfilePage
+  /hesabim/yardim                      → HelpCenterPage
+  /hesabim/yardim/talep/:ticketId      → SupportTicketDetailPage
+  /hesabim/destek-talepleri            → SupportTicketsPage
+  /hesabim/destek-talepleri/degerlendir/:ticketId → SupportRatingPage
+  /hesabim/poodle-puanlari             → PoodlePointsPage
+  /hesabim/poodle-puanlari/odul-merkezi → RewardCenterPage
+  /hesabim/poodle-puanlari/odul-onayla/:rewardId → RewardConfirmPage
+  /hesabim/poodle-puanlari/odul-hazir/:rewardId → RewardReadyPage
+  /hesabim/poodle-puanlari/kazan       → EarnPointsPage
+
+CATCH-ALL:
+  *                                    → NotFoundPage
+
+If page component missing: create functional page with mock data + correct AppLayout.
+Do NOT leave any route hitting legacy 404 shell.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 5 — KEY PAGE SPECS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+HOMEPAGE (/) — preserve existing design, wrap in AppLayout:
+  Hero, product cards, guide preview, club preview, PoodlePuan banner
+  "Sepete Ekle" → CartContext.addItem + toast
+
+/MAGaza — e-commerce StorePage (NOT physical shop):
+  Search "Ürün, marka veya kategori ara..."
+  Category pills: Kuru Mama, Yaş Mama, Ödül, Oyuncak, Bakım, Aksesuar
+  Promo banner, "Sizin için seçtiklerimiz" 2-col mobile / 4-col desktop grid
+  Product cards: image, name, price, "3 Taksit", heart, "Sepete Ekle"
+  containerVariant="default"
+
+/MAGazalar/atakum — PhysicalStorePage (moved legacy content):
+  Atakum address, hours, WhatsApp, phone, map
+  Email: info@yourpoodle.com (NOT info@sizpa.com)
+
+/REHBER — GuidePage:
+  Tabs: Tümü, Mama, Bakım, Eğitim, Sağlık
+  Search "Rehberlerde ara..."
+  Article cards: image, title, read time, category badge
+
+/CLUB — ClubPage:
+  Stories row, photo feed, like/comment/share, "Fotoğraf Paylaş" FAB
+
+/AI-ASISTAN — AIAssistantPage:
+  Chat bubbles, suggested prompts, input bar, mock AI responses
+
+/MAMA-BUL → redirect /magaza/kuru-mama (FoodFinderPage):
+  Age group + special needs selection wizard
+
+/SEPET — CartPage:
+  Line items, qty +/-, remove, subtotal
+  Empty: "Sepetiniz boş" + "Alışverişe Devam Et" → /magaza
+  Desktop: 2-column with sticky summary
+
+/GIRIS — LoginPage (containerVariant="narrow"):
+  Primary tab: E-posta + Şifre form
+  Secondary tab: "Telefon ile Giriş" (SMS OTP — keep if already built)
+  "Şifremi Unuttum" | "Üye Ol" → /uye-ol
+  Google / Apple buttons (mock toast "Yakında")
+  On success → /hesabim or returnUrl
+
+/UYE-OL — RegisterPage (containerVariant="narrow"):
+  Ad Soyad, E-posta, Telefon, Şifre, Şifre Tekrar, KVKK checkbox
+  "Hesabım Var" → /giris
+
+/HESABIM — AccountPage (containerVariant="account", ProtectedRoute):
+  Greeting, Poodle profile card, PoodlePuan balance
+  Quick actions: Siparişlerim, Favorilerim, Adreslerim, Kuponlarım,
+  Club Paylaşımlarım, Kaydettiklerim, Bildirimler, PoodlePuanlarım, Hesap Ayarları
+
+Build or wire ALL /hesabim/* subpages with mock data if not present.
+
+404 NotFoundPage (containerVariant="narrow"):
+  H1: "Aradığınız sayfayı bulamadık"
+  Sub: "Bu sayfa taşınmış veya kaldırılmış olabilir. Aşağıdaki bağlantılardan devam edebilirsiniz."
+  Buttons: 🏠 Ana Sayfaya Dön → / | 📖 Rehberlere Git → /rehber | 🤖 AI Asistana Sor → /ai-asistan
+  MUST use AppLayout (new headers) — NOT legacy shell
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 6 — SHARED STATE (ALL VIEWPORTS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AuthContext — localStorage "yourpoodle_auth"
+  user | null, login(), register(), logout()
+  Mock: valid email + password min 6 chars = success
+
+CartContext — localStorage "yourpoodle_cart"
+  addItem, removeItem, updateQty, totalCount, subtotal
+  Badge on Mobile BottomNav FAB + DesktopHeader cart icon
+
+FavoritesContext — localStorage "yourpoodle_favorites"
+PoodlePointsContext — localStorage "yourpoodle_points"
+NotificationsContext — unread count for bell badge (3)
+
+Product cards everywhere link to /magaza/urun/:slug
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 7 — SEO & ACCESSIBILITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+usePageTitle() hook — unique <title> per route:
+  /         → "YourPoodle — Toy Poodle Bakım, Alışveriş ve Topluluk"
+  /magaza   → "Mağaza | YourPoodle"
+  /club     → "Poodle Club | YourPoodle"
+  /rehber   → "Rehber | YourPoodle"
+  /ai-asistan → "AI Asistan | YourPoodle"
+  /sepet    → "Sepetim | YourPoodle"
+  /giris    → "Giriş Yap | YourPoodle"
+  /uye-ol   → "Üye Ol | YourPoodle"
+  /hesabim  → "Hesabım | YourPoodle"
+  (+ unique titles for each /hesabim/* subpage)
+  404       → "Sayfa Bulunamadı | YourPoodle"
+
+Hidden SEO sitemap block:
+  aria-hidden="true" + sr-only OR render homepage-only
+  Must NOT appear in screen reader tree on app pages
+
+Global find-replace: info@sizpa.com → info@yourpoodle.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHASE 8 — FULL VERIFICATION (ALL 4 VIEWPORTS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Test in DevTools at 390px, 768px, 1024px, 1440px. ALL must PASS.
+
+MOBILE (390px):
+[ ] max-w-[480px] centered, no horizontal scroll
+[ ] MobileHeader + TabNavigation + BottomNav visible
+[ ] DesktopHeader + PromoBar + DesktopNav hidden
+[ ] Product grid: 2 columns
+[ ] /, /magaza, /club, /rehber, /ai-asistan, /sepet, /giris, /uye-ol work (not 404)
+[ ] No legacy Köpek bar or old bottom nav
+[ ] Tab chips navigate correctly
+
+TABLET PORTRAIT (768px):
+[ ] Content max-w-[480px] CENTERED — NOT stretched to 768px ← KEY FIX
+[ ] Equal side margins, no full-width stretch
+[ ] BottomNav visible, DesktopHeader hidden
+[ ] Product grid: 2 columns (NOT 4)
+[ ] scrollWidth === clientWidth (no overflow)
+
+TABLET LANDSCAPE (1024px):
+[ ] DesktopHeader + PromoBar + DesktopNav visible
+[ ] BottomNav + TabNavigation hidden
+[ ] Product grid: 4 columns, max-w-7xl container
+[ ] Same look as 1440px homepage header
+
+DESKTOP (1440px):
+[ ] Homepage unchanged and good
+[ ] /magaza → e-commerce with DesktopHeader (NOT legacy, NOT Atakum shop)
+[ ] /magazalar/atakum → physical store page
+[ ] /giris, /uye-ol → DesktopHeader, form max-w-2xl centered
+[ ] /rehber, /club, /ai-asistan, /sepet → real pages, DesktopHeader
+[ ] /hesabim/* → account pages when logged in; redirect when guest
+[ ] 404 → AppLayout + DesktopHeader, no legacy UI
+[ ] BottomNav hidden
+[ ] No info@sizpa.com
+
+CROSS-VIEWPORT:
+[ ] Home → Mağaza → Rehber → Club → Sepet → Giriş at each viewport
+[ ] Header consistent within each breakpoint
+[ ] No layout jump at 768→1024px resize
+[ ] "Sepete Ekle" updates cart badge on mobile FAB + desktop cart icon
+[ ] Resize 390 → 768 → 1024 → 1440 without broken layout
+
+Report: files changed, legacy components deleted, pages still placeholder.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EXECUTION ORDER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Phase 1 + 2 — AppLayout + headers (extract from homepage)
+2. Phase 8 show/hide — delete legacy UI components
+3. Phase 3 — responsive grids + PageContainer
+4. Phase 4 + 5 — routing + page wiring (/magaza fix, 404, auth pages)
+5. Phase 6 — shared state contexts
+6. Phase 7 — SEO titles + email fix
+7. Phase 8 — test 390, 768, 1024, 1440px before done
+
+DO NOT mark complete until ALL Phase 8 checkboxes pass.
+Preserve Turkish text exactly. Brand purple #5D3EBD. Font Inter.
+Mobile-first with lg: desktop enhancement — NOT three separate apps.
