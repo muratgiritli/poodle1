@@ -245,34 +245,60 @@ export default function YourPoodleHomePage() {
       <Toast msg={toast.msg} show={toast.show} />
 
       <style>{`
-        .yp-home-hero         { background: #F8F5FF; }
-        .yp-hero-inner        { display: flex; flex-direction: column; padding: 32px 20px 0; gap: 24px; }
-        .yp-hero-right        { position: relative; }
-        .yp-hero-img          { width: 100%; height: 260px; object-fit: cover; object-position: center top; border-radius: 16px 16px 0 0; }
-        .yp-floating-cards    { display: none; }
-        .yp-quick-row         { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 20px 16px; }
-        .yp-home-main         { padding: 0 16px 40px; }
-        .yp-products-sidebar  { display: block; }
-        .yp-prod-grid-home    { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .yp-sidebar-widgets   { margin-top: 24px; }
-        .yp-hero-social       { display: flex; align-items: center; gap: 8px; }
+        /* ── MOBILE ── */
+        .yp-home-hero        { background: #F3EEFF; overflow: hidden; }
+        .yp-hero-inner       { display: flex; flex-direction: column; padding: 28px 20px 0; gap: 0; }
+        .yp-hero-left        { padding-bottom: 24px; }
+        .yp-hero-right       { margin: 0 -20px; }
+        .yp-hero-poodle-box  {
+          background: linear-gradient(150deg, #DDD6FE 0%, #C4B5F4 55%, #A78BFA 100%);
+          border-radius: 20px 20px 0 0; overflow: hidden;
+        }
+        .yp-hero-img         {
+          width: 100%; height: 240px;
+          object-fit: contain; object-position: bottom center; display: block;
+        }
+        .yp-floating-cards   { display: none; }
+        .yp-quick-row        { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px; }
+        .yp-home-main        { padding: 0 16px 40px; }
+        .yp-prod-grid-home   { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .yp-sidebar-widgets  { margin-top: 24px; }
+        .yp-hero-social      { display: flex; align-items: center; gap: 8px; }
 
+        /* ── DESKTOP (≥900px) ── */
         @media (min-width: 900px) {
-          .yp-home-hero       { background: #F8F5FF; }
-          .yp-hero-inner      {
-            flex-direction: row; align-items: stretch;
+          .yp-home-hero      { background: #F3EEFF; }
+          .yp-hero-inner     {
+            flex-direction: row; align-items: flex-end;
             max-width: 1200px; margin: 0 auto;
-            padding: 48px 40px 0;
-            gap: 0;
+            padding: 48px 40px 0; gap: 24px;
           }
-          .yp-hero-left       { flex: 1; padding-right: 32px; display: flex; flex-direction: column; justify-content: center; padding-bottom: 40px; }
-          .yp-hero-right      { flex: 0 0 520px; position: relative; }
-          .yp-hero-img        { width: 100%; height: 400px; border-radius: 20px 20px 0 0; object-position: center top; }
-          .yp-floating-cards  { display: flex; flex-direction: column; gap: 10px; position: absolute; top: 20px; right: -10px; width: 240px; z-index: 10; }
-          .yp-quick-row       { grid-template-columns: repeat(4,1fr); gap: 14px; padding: 24px 40px; max-width: 1200px; margin: 0 auto; }
-          .yp-home-main       { max-width: 1200px; margin: 0 auto; padding: 0 40px 60px; display: grid; grid-template-columns: 1fr 320px; gap: 32px; align-items: start; }
-          .yp-prod-grid-home  { grid-template-columns: repeat(4,1fr); gap: 16px; }
-          .yp-sidebar-widgets { margin-top: 0; }
+          .yp-hero-left      {
+            flex: 1; display: flex; flex-direction: column;
+            justify-content: center; padding-bottom: 56px;
+          }
+          .yp-hero-right     {
+            flex: 0 0 580px;
+            display: flex; align-items: flex-end; gap: 16px;
+            overflow: visible; background: none;
+          }
+          .yp-hero-poodle-box {
+            flex: 0 0 340px;
+            background: linear-gradient(150deg, #DDD6FE 0%, #C4B5F4 55%, #A78BFA 100%);
+            border-radius: 20px 20px 0 0; overflow: hidden;
+          }
+          .yp-hero-img       {
+            width: 100%; height: 420px;
+            object-fit: contain; object-position: bottom center; display: block;
+          }
+          .yp-floating-cards {
+            flex: 1; display: flex; flex-direction: column; gap: 12px;
+            padding-bottom: 48px;
+          }
+          .yp-quick-row      { grid-template-columns: repeat(4,1fr); gap: 14px; padding: 24px 40px; max-width: 1200px; margin: 0 auto; }
+          .yp-home-main      { max-width: 1200px; margin: 0 auto; padding: 0 40px 60px; display: grid; grid-template-columns: 1fr 300px; gap: 28px; align-items: start; }
+          .yp-prod-grid-home { grid-template-columns: repeat(4,1fr); gap: 14px; }
+          .yp-sidebar-widgets{ margin-top: 0; }
         }
       `}</style>
 
@@ -335,11 +361,13 @@ export default function YourPoodleHomePage() {
 
           {/* RIGHT — photo + floating cards */}
           <div className="yp-hero-right">
-            <img
-              src="/images/poodle-hero-transparent.png"
-              alt="Toy Poodle"
-              className="yp-hero-img"
-            />
+            <div className="yp-hero-poodle-box">
+              <img
+                src="/images/poodle-hero-transparent.png"
+                alt="Toy Poodle"
+                className="yp-hero-img"
+              />
+            </div>
 
             {/* Floating feature cards */}
             <div className="yp-floating-cards">
