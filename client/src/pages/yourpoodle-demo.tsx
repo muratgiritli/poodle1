@@ -215,16 +215,11 @@ export default function YourPoodleDemo() {
             </div>
 
             {/* poodle overflowing bottom-right */}
-            <img src="/images/poodle-real-hero.jpg"
+            <img src="/images/poodle-hero.jpg"
               alt="Toy Poodle"
-              style={{ position: "absolute", bottom: 0, right: 0,
-                       height: 210, width: "auto", objectFit: "contain",
-                       objectPosition: "bottom" }}
-              onError={e => {
-                const el = e.target as HTMLImageElement;
-                el.src = "/images/poodle-hero.jpg";
-                el.onerror = () => { el.src = "/images/yp-poodle-hero.png"; };
-              }} />
+              style={{ position: "absolute", bottom: 0, right: -4,
+                       height: 220, width: "auto", objectFit: "contain",
+                       objectPosition: "bottom" }} />
           </div>
         </div>
 
