@@ -191,3 +191,9 @@ id = "_WTCmxAEG5zkxsC9IwYnN"
 uri = "file://attached_assets/poodle_candidates/cand-5.jpg"
 type = "image"
 title = "cand-5.jpg"
+
+[[outputs]]
+id = "b4Oel7dGu7waKJimNX24Y"
+uri = "file://yourpoodle-sitemap.xml"
+type = "unspecified"
+title = "YourPoodle Site Haritası (sitemap.xml)"
