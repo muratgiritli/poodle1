@@ -336,7 +336,7 @@ export default function YourPoodleHomePage() {
           {/* RIGHT — photo + floating cards */}
           <div className="yp-hero-right">
             <img
-              src="/images/poodle-real-hero.jpg"
+              src="/images/poodle-hero-transparent.png"
               alt="Toy Poodle"
               className="yp-hero-img"
             />
