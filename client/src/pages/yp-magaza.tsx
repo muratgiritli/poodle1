@@ -101,11 +101,11 @@ export default function YPMagazaPage() {
     <YPLayout activeLink="/yourpoodle/magaza" constrain={false}>
       <Toast message={toast.message} visible={toast.visible} />
 
-      <main style={{ padding:"20px 16px 24px", paddingBottom:96 }}>
+      <main className="yp-pw" style={{ padding:"20px 16px 24px", paddingBottom:96 }}>
         <h1 style={{ fontSize:20, fontWeight:700, color:"#111827", margin:"0 0 4px" }}>Mağaza Kategorileri</h1>
         <p style={{ fontSize:14, color:"#6B7280", margin:"0 0 20px" }}>Poodle'ınız için aradığınız her şey</p>
 
-        <div style={{ display:"flex", flexDirection:"column" }}>
+        <div className="yp-cat-grid">
           {CATEGORIES.map(cat=>(
             <CategoryRow key={cat.id} cat={cat}
               onClick={()=>{

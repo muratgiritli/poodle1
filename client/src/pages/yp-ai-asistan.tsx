@@ -238,7 +238,7 @@ export default function YPAiAsistanPage() {
       `}</style>
 
       {/* ══ SCROLLABLE MAIN ═════════════════════════════════════ */}
-      <div className="yp-ai-scroll"
+      <div className="yp-ai-scroll yp-ai-center"
         style={{ flex:1, overflowY:"auto", paddingBottom:8 }}>
 
         {/* ── AI HERO BANNER ──────────────────────────────────── */}
@@ -398,9 +398,10 @@ export default function YPAiAsistanPage() {
       </div>
 
       {/* ══ STICKY INPUT BAR ════════════════════════════════════ */}
-      <div style={{ position:"sticky", bottom:72, background:"#fff",
+      <div className="yp-ai-sticky-bar" style={{ position:"sticky", bottom:72, background:"#fff",
                     borderTop:"1px solid #F3F4F6",
                     padding:"12px 16px 16px", flexShrink:0, zIndex:30 }}>
+        <div className="yp-ai-center">
 
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           <button aria-label="Dosya ekle"
@@ -457,6 +458,7 @@ export default function YPAiAsistanPage() {
         <p style={{ marginTop:8, textAlign:"center", fontSize:11, color:"#9CA3AF" }}>
           AI yanıtları hata içerebilir. Önemli bilgileri doğrulayın.
         </p>
+        </div>{/* end yp-ai-center */}
       </div>
 
       <Toast msg={toast} visible={toastVis} />

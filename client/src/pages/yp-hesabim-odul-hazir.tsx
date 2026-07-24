@@ -179,7 +179,7 @@ export default function YPOdulHazirPage() {
     <YPLayout activeLink="club" constrain={false}>
       {toast && <Toast msg={toast} onClose={()=>setToast(null)} />}
 
-      <div style={{ maxWidth:480, margin:"0 auto", background:BG, minHeight:"100vh", paddingBottom:32, fontFamily:"Inter,sans-serif" }}>
+      <div style={{ maxWidth:860, margin:"0 auto", background:BG, minHeight:"100vh", paddingBottom:32, fontFamily:"Inter,sans-serif" }}>
 
         {/* ── BREADCRUMB ── */}
         <div style={{ padding:"12px 16px 6px" }}>

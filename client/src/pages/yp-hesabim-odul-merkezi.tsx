@@ -196,7 +196,7 @@ export default function YPOdulMerkeziPage() {
         </div>
       )}
 
-      <div style={{ maxWidth:480, margin:"0 auto", background:BG, minHeight:"100vh", paddingBottom:96, fontFamily:"Inter,sans-serif" }}>
+      <div style={{ maxWidth:860, margin:"0 auto", background:BG, minHeight:"100vh", paddingBottom:96, fontFamily:"Inter,sans-serif" }}>
 
         {/* ── BREADCRUMB + TITLE ── */}
         <div style={{ padding:"12px 16px 10px" }}>

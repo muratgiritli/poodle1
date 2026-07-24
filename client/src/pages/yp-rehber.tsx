@@ -130,7 +130,7 @@ export default function YPRehberPage({ routeSlug: _routeSlug }: { routeSlug?: st
         </div>
       )}
 
-      <main style={{ padding:"20px 16px 16px", paddingBottom:96 }}>
+      <main className="yp-pw" style={{ padding:"20px 16px 16px", paddingBottom:96 }}>
         {/* Search bar */}
         <div style={{ display:"flex", alignItems:"center", gap:0, border:`1px solid ${GB}`,
                       borderRadius:12, background:"#F9FAFB", marginBottom:20, overflow:"hidden" }}>
@@ -149,7 +149,7 @@ export default function YPRehberPage({ routeSlug: _routeSlug }: { routeSlug?: st
         </div>
 
         {/* Quick category pills */}
-        <div style={{ display:"flex", gap:10, marginBottom:24 }}>
+        <div className="yp-pill-row" style={{ display:"flex", gap:10, marginBottom:24 }}>
           {SECTIONS.map(s => (
             <QuickPill key={s.id} section={s}
               onClick={() => {
@@ -169,11 +169,13 @@ export default function YPRehberPage({ routeSlug: _routeSlug }: { routeSlug?: st
             </button>
           </div>
         ) : (
-          filtered.map(s => (
-            <div id={`section-${s.id}`} key={s.id}>
-              <SectionCard section={s} />
-            </div>
-          ))
+          <div className="yp-section-grid">
+            {filtered.map(s => (
+              <div id={`section-${s.id}`} key={s.id}>
+                <SectionCard section={s} />
+              </div>
+            ))}
+          </div>
         )}
       </main>
     </YPLayout>

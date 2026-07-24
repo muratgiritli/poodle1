@@ -181,6 +181,7 @@ export default function YPClubPage() {
         </div>
       </div>
 
+      <div className="yp-feed-center">
       {/* Club header row with notification icons */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"flex-end",
                     padding:"10px 16px", borderBottom:`1px solid ${GB}`,
@@ -263,6 +264,7 @@ export default function YPClubPage() {
             onSave={() => toggleSave(post.id)} />
         ))}
       </div>
+      </div>{/* end yp-feed-center */}
     </YPLayout>
   );
 }

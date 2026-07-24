@@ -99,6 +99,26 @@ export default function YPLayout({
         .yp-btm-nav     { display: block !important; }
         .yp-page-body   { padding-bottom: 80px; }
 
+        /* ── Responsive page wrappers ──────────────────────── */
+        /* Account inner: mobile 100%, tablet 680px, desktop 860px */
+        .yp-acct { max-width: 480px; margin: 0 auto; width: 100%; }
+
+        /* Cat grid: mobile flex-col, desktop 2-col */
+        .yp-cat-grid { display: flex; flex-direction: column; }
+
+        /* Section grid: mobile stack, desktop 2-col */
+        .yp-section-grid { }
+
+        /* Sticky AI input: mobile offset for bottom nav, desktop flush */
+        @media (min-width: 900px) {
+          .yp-ai-sticky-bar { bottom: 0 !important; }
+          .yp-ai-scroll     { padding-bottom: 0 !important; }
+        }
+
+        @media (min-width: 680px) {
+          .yp-acct { max-width: 680px; }
+        }
+
         @media (min-width: 900px) {
           .yp-desktop-hdr      { display: block !important; }
           .yp-mobile-hdr       { display: none !important; }
@@ -113,6 +133,29 @@ export default function YPLayout({
           .yp-2col-layout { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 24px !important; align-items: start; }
           .yp-hero-banner { border-radius: 20px; margin: 24px 0 !important; }
           .yp-section-title { font-size: 20px !important; }
+
+          /* Page content wrapper for constrain=false pages */
+          .yp-pw { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+
+          /* Magaza: 2-col category grid */
+          .yp-cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; align-items: start; }
+
+          /* Rehber: 2-col sections grid */
+          .yp-section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; align-items: start; }
+
+          /* Club/AI: centered feed column */
+          .yp-feed-center { max-width: 720px; margin: 0 auto; }
+          .yp-ai-center   { max-width: 800px; margin: 0 auto; }
+
+          /* Account pages wider on desktop */
+          .yp-acct { max-width: 860px; }
+
+          /* Quick pills: 4-col on desktop (Rehber) */
+          .yp-pill-row { display: grid !important; grid-template-columns: repeat(4,1fr) !important; gap: 12px !important; }
+        }
+
+        @media (min-width: 1100px) {
+          .yp-cat-grid { grid-template-columns: repeat(3,1fr); }
         }
 
         .yp-nav-item { transition: background 0.15s, color 0.15s; cursor: pointer; }

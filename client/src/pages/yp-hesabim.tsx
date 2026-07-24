@@ -785,7 +785,7 @@ export default function YPHesabimPage() {
   };
 
   return (
-    <div style={{ maxWidth: 480, margin: "0 auto", background: "#F9FAFB",
+    <div style={{ maxWidth: 760, margin: "0 auto", background: "#F9FAFB",
                   minHeight: "100vh", boxShadow: "0 0 40px rgba(0,0,0,0.15)",
                   fontFamily: "'Inter',-apple-system,sans-serif", paddingBottom: 80 }}>
 
