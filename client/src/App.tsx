@@ -90,6 +90,7 @@ const Demo1Page = lazy(() => import("@/pages/demo1"));
 const Demo2Page = lazy(() => import("@/pages/demo2"));
 const DemoAnasayfaPage = lazy(() => import("@/pages/demo-anasayfa"));
 const YourPoodleHomePage  = lazy(() => import("@/pages/yourpoodle-home"));
+const YourPoodleV2Page    = lazy(() => import("@/pages/yourpoodle-v2"));
 const YPRehberPage        = lazy(() => import("@/pages/yp-rehber"));
 const YPClubPage          = lazy(() => import("@/pages/yp-club"));
 const YPClubHakkimizdaPage= lazy(() => import("@/pages/yp-club-hakkimizda"));
@@ -265,6 +266,7 @@ function Router() {
         {import.meta.env.DEV && <Route path="/demo1" component={Demo1Page} />}
         {import.meta.env.DEV && <Route path="/demo2" component={Demo2Page} />}
         {import.meta.env.DEV && <Route path="/demo-anasayfa" component={DemoAnasayfaPage as any} />}
+        <Route path="/yourpoodle/v2"             component={YourPoodleV2Page} />
         <Route path="/yourpoodle"                component={YourPoodleHomePage} />
         <Route path="/yourpoodle/rehber/:slug">
           {(params) => <YPRehberPage routeSlug={params?.slug} />}
