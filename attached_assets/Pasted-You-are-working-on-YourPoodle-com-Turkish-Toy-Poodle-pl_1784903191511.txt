@@ -1,0 +1,98 @@
+You are working on YourPoodle.com (Turkish Toy Poodle platform: e-commerce + care guides + AI assistant + community + local services).
+
+TASK
+Rebuild / refine the DESKTOP homepage so it works as a clear routing board, not a cluttered catalog. Keep the existing brand (purple/white, YourPoodle logo, Turkish UI copy). Do not redesign the entire site — focus on the homepage composition and section priorities.
+
+HOMEPAGE GOAL
+In ~10 seconds, help a visitor choose the right door:
+1) Find food / shop
+2) Read guides
+3) Ask AI assistant
+4) Find nearby services
+5) Join community / set up My Poodle
+
+REQUIRED HOMEPAGE STRUCTURE (top → bottom)
+
+1) Promo bar (keep)
+- Keep: “Yeni üyelere 100 TL hoş geldin bonusu”
+- Keep it thin and non-intrusive
+
+2) Sticky header (keep, clean up if needed)
+- Logo, nav: Mağaza | Hizmetler | Rehber | Topluluk | Benim Poodle’ım
+- Search, Giriş Yap, Üye Ol, Cart
+- Fix search placeholder to: “Ne arıyorsunuz?”
+- Guest/empty cart must NOT show a fake “1” badge
+
+3) Hero (one composition)
+- H1: “Toy Poodle’ınız İçin Her Şey Tek Yerde”
+- One short supporting sentence about guides, products, and expert AI support
+- Exactly 2 CTAs:
+  - Primary: “Mama Bul”
+  - Secondary: “Rehbere Git” (or “AI’ya Sor” if that converts better — pick one secondary only)
+- Strong poodle hero visual
+- Optional: max 2 floating feature cards (AI Asistanı, Günlük Mama Hesabı) — no extra badges/stickers on the image
+- Social proof text must be consistent (do not mix “+9K” with “10.000+”)
+
+4) Four intent doors (keep this model)
+Cards only:
+- Mama Bul
+- AI Asistan
+- Poodle Rehberi
+- Yakındaki Hizmetler
+Each card: icon + title + one short sentence + click-through. No more than 4 cards.
+
+5) Personalization hook (“Benim Poodle’ım”) — ADD THIS
+Short block asking for simple inputs (age / weight / coat type or similar existing fields)
+Output a soft CTA to daily food amount or care recommendation
+This differentiates YourPoodle from a generic pet shop
+
+6) Selected products (keep, constrain)
+- Section title: “Poodle’ınız İçin Seçtiklerimiz”
+- Show 4–6 products max
+- Mix: food, care, travel/carrier
+- Each card: image, title (no ugly truncation if possible), rating, price, “Sepete Ekle”
+- “Tümünü Gör” link to shop
+- Do NOT turn homepage into a full catalog
+
+7) Trust + content (short)
+- “Bugün En Çok Okunanlar”: 2–3 articles only
+- One community proof block (avatars + short invite + “Topluluğa Katıl”)
+- No long visible SEO essay on the homepage
+
+8) Trust strip + footer (keep)
+- Fast shipping / easy returns / secure payment / installments
+- Keep existing footer columns and contact info
+
+EXPLICITLY DO NOT ADD
+- Multiple promo strips
+- Stats spam / icon rows of 6+ items
+- Extra floating labels/stickers on hero media
+- Equal-weight dumping of shop + guides + community + events all at once
+- Visible SEO keyword walls
+- Dashboard-like clutter
+
+TECH / QUALITY REQUIREMENTS
+- Desktop-first for this task (around 1440px), but don’t break mobile
+- No horizontal overflow
+- No broken images
+- Optimize oversized images (logo/product/hero) with sensible srcset/sizes or compressed assets
+- Keep Turkish copy natural and consistent
+- Keep SEO metadata; if SEO helper content exists, keep it visually hidden (sr-only / clip), never visible on page
+- Preserve existing routes and working links where possible
+- Prefer editing existing homepage components over rewriting unrelated pages
+
+ACCEPTANCE CRITERIA
+- Homepage follows the section order above
+- Hero has exactly 2 CTAs
+- Exactly 4 intent door cards
+- New personalization block is present and usable
+- Products limited to 4–6
+- Search placeholder fixed
+- No fake cart badge for empty cart
+- Social proof numbers consistent
+- Page still looks like YourPoodle (purple brand), not a generic template
+
+DELIVERABLES
+1) Implement the homepage changes in code
+2) Briefly list what you changed and which files
+3) Note any assumptions if existing data/APIs were missing

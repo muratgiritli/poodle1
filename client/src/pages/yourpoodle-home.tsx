@@ -5,7 +5,7 @@ import { useCustomer } from "@/contexts/CustomerContext";
 import { IS_YP } from "@/lib/store";
 import {
   Bot, BookOpen, MapPin, Utensils, Heart, ShoppingCart,
-  ChevronRight, Bookmark, Clock, Star,
+  ChevronRight, Bookmark, Clock, Star, Truck, RotateCcw, Shield, CreditCard,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 
@@ -262,6 +262,10 @@ export default function YourPoodleHomePage() {
         .yp-sidebar-widgets  { margin-top: 24px; }
         .yp-hero-social      { display: flex; align-items: center; gap: 8px; }
 
+        /* mobile overrides for new blocks */
+        .yp-trust-strip      { grid-template-columns: 1fr 1fr !important; padding: 20px 16px !important; }
+        .yp-personalization  { padding: 20px 16px !important; }
+
         /* ── DESKTOP (≥900px) ── */
         @media (min-width: 900px) {
           .yp-home-hero      { background: #F3EEFF; }
@@ -292,6 +296,8 @@ export default function YourPoodleHomePage() {
             flex: 1; display: flex; flex-direction: column; gap: 12px;
             padding-bottom: 48px;
           }
+          .yp-trust-strip    { grid-template-columns: repeat(4,1fr) !important; padding: 24px 40px !important; }
+          .yp-personalization{ padding: 28px 40px !important; }
           .yp-quick-row      { grid-template-columns: repeat(4,1fr); gap: 14px; padding: 24px 40px; max-width: 1200px; margin: 0 auto; }
           .yp-home-main      { max-width: 1200px; margin: 0 auto; padding: 0 40px 60px; display: grid; grid-template-columns: 1fr 300px; gap: 28px; align-items: start; }
           .yp-prod-grid-home { grid-template-columns: repeat(4,1fr); gap: 14px; }
@@ -348,9 +354,6 @@ export default function YourPoodleHomePage() {
                     style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #fff",
                              marginLeft: i === 0 ? 0 : -8, objectFit: "cover" }} />
                 ))}
-                <div style={{ width:32, height:32, borderRadius:"50%", border:"2px solid #fff",
-                              marginLeft:-8, background:P, color:"#fff", fontSize:9, fontWeight:800,
-                              display:"flex", alignItems:"center", justifyContent:"center" }}>+9K</div>
               </div>
               <span style={{ fontSize: 13, color: "#6B7280", fontWeight: 600 }}>10.000+ Poodle Ailesi</span>
             </div>
@@ -426,6 +429,9 @@ export default function YourPoodleHomePage() {
             href={`${BASE}/hizmetler`} />
         </div>
       </div>
+
+      {/* ══════════════════════════════ BENİM POODLE'IM ══════════════════════════════ */}
+      <PersonalizationBlock BASE={BASE} navigate={navigate} />
 
       {/* ══════════════════════════════ MAIN CONTENT ══════════════════════════════ */}
       <div className="yp-home-main">
@@ -510,9 +516,6 @@ export default function YourPoodleHomePage() {
                   style={{ width:34, height:34, borderRadius:"50%", border:"2px solid #fff",
                            marginLeft: i === 0 ? 0 : -8, objectFit:"cover" }} />
               ))}
-              <div style={{ width:34, height:34, borderRadius:"50%", border:"2px solid #fff",
-                            marginLeft:-8, background:P, color:"#fff", fontSize:9, fontWeight:800,
-                            display:"flex", alignItems:"center", justifyContent:"center" }}>+9K</div>
             </div>
             <p style={{ fontSize:13, color:"#6B7280", lineHeight:1.6, margin:"0 0 16px" }}>
               10.000+ üye ile deneyimlerini paylaş, sorularına yanıt bul.
@@ -531,6 +534,101 @@ export default function YourPoodleHomePage() {
         </div>
       </div>
 
+      {/* ══════════════════════════════ TRUST STRIP ══════════════════════════════ */}
+      <div style={{ background:"#F8F5FF", borderTop:"1px solid #EDE9FE" }}>
+        <div style={{ maxWidth:1200, margin:"0 auto", padding:"24px 40px",
+                      display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16 }}
+          className="yp-trust-strip">
+          {[
+            { icon: Truck,      color:"#7022C4", bg:"#EDE9FE", label:"Hızlı Teslimat",    desc:"Siparişleriniz hızlıca kapınızda" },
+            { icon: RotateCcw,  color:"#059669", bg:"#D1FAE5", label:"Kolay İade",         desc:"14 gün içinde sorunsuz iade" },
+            { icon: Shield,     color:"#0EA5E9", bg:"#E0F2FE", label:"Güvenli Ödeme",      desc:"256-bit SSL ile korumalı" },
+            { icon: CreditCard, color:"#D97706", bg:"#FEF3C7", label:"Taksit İmkânı",      desc:"12 aya kadar taksit seçeneği" },
+          ].map(({ icon: Icon, color, bg, label, desc }) => (
+            <div key={label} style={{ display:"flex", alignItems:"center", gap:12 }}>
+              <div style={{ width:40, height:40, borderRadius:10, background:bg, flexShrink:0,
+                            display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <Icon size={19} color={color} />
+              </div>
+              <div>
+                <div style={{ fontSize:13, fontWeight:700, color:"#111827" }}>{label}</div>
+                <div style={{ fontSize:11, color:"#6B7280" }}>{desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
     </YPLayout>
+  );
+}
+
+/* ══════════════════════════════ PERSONALIZATION BLOCK ══════════════════════════════ */
+function PersonalizationBlock({ BASE, navigate }: { BASE: string; navigate: (path: string) => void }) {
+  const [age,  setAge]  = useState("");
+  const [weight, setWeight] = useState("");
+  const P = "#7022C4";
+
+  const canSubmit = age && weight;
+
+  const handleSubmit = () => {
+    const params = new URLSearchParams();
+    if (age)    params.set("yas", age);
+    if (weight) params.set("kilo", weight);
+    navigate(`${BASE}/araclar/mama-hesaplama?${params.toString()}`);
+  };
+
+  const selStyle: React.CSSProperties = {
+    flex: 1, minWidth: 140, height: 42,
+    border: "1.5px solid #DDD6FE", borderRadius: 10,
+    padding: "0 12px", fontSize: 13, color: "#374151",
+    background: "#fff", cursor: "pointer", fontFamily: "inherit",
+    outline: "none", appearance: "none" as any,
+  };
+
+  return (
+    <div style={{ background:"#fff", borderTop:"1px solid #F3F4F6", borderBottom:"1px solid #F3F4F6" }}>
+      <div style={{ maxWidth:1200, margin:"0 auto", padding:"28px 40px" }} className="yp-personalization">
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
+          <div style={{ width:36, height:36, borderRadius:10, background:"#EDE9FE",
+                        display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <span style={{ fontSize:18 }}>🐾</span>
+          </div>
+          <div>
+            <div style={{ fontSize:16, fontWeight:800, color:"#111827" }}>Benim Poodle'ım</div>
+            <div style={{ fontSize:12, color:"#6B7280" }}>Poodle'ınıza özel günlük mama miktarını saniyeler içinde öğrenin</div>
+          </div>
+        </div>
+        <div style={{ display:"flex", gap:12, flexWrap:"wrap", alignItems:"center" }}>
+          <select value={age} onChange={e => setAge(e.target.value)} style={selStyle}>
+            <option value="">Yaş seçin</option>
+            <option value="0-1">Yavru (0–1 yaş)</option>
+            <option value="1-3">Genç (1–3 yaş)</option>
+            <option value="3-8">Yetişkin (3–8 yaş)</option>
+            <option value="8+">Yaşlı (8+ yaş)</option>
+          </select>
+          <select value={weight} onChange={e => setWeight(e.target.value)} style={selStyle}>
+            <option value="">Ağırlık seçin</option>
+            <option value="1-2">1–2 kg</option>
+            <option value="2-4">2–4 kg</option>
+            <option value="4-6">4–6 kg</option>
+          </select>
+          <button
+            onClick={handleSubmit}
+            disabled={!canSubmit}
+            style={{
+              height:42, padding:"0 24px", borderRadius:10, border:"none",
+              background: canSubmit ? P : "#E5E7EB",
+              color: canSubmit ? "#fff" : "#9CA3AF",
+              fontSize:13, fontWeight:700, cursor: canSubmit ? "pointer" : "default",
+              fontFamily:"inherit", whiteSpace:"nowrap", transition:"background 0.15s",
+            }}
+            onMouseEnter={e => { if (canSubmit) (e.currentTarget.style.background = "#5A32A3"); }}
+            onMouseLeave={e => { if (canSubmit) (e.currentTarget.style.background = P); }}>
+            Mama Miktarını Hesapla →
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

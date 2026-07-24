@@ -239,7 +239,7 @@ export default function YPLayout({
                   className="yp-search-inp"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder="Ne aramıştınız?"
+                  placeholder="Ne arıyorsunuz?"
                   style={{ width: "100%", height: 40, borderRadius: 9999, border: "1.5px solid #E5E7EB", background: "#fff", paddingLeft: 38, paddingRight: 16, fontSize: 13, color: "#374151", fontFamily: "inherit", outline: "none", boxSizing: "border-box" }}
                 />
               </form>
