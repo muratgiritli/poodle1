@@ -1033,6 +1033,17 @@ export async function registerRoutes(
       const SITE = store.domain;
       const today = new Date().toISOString().split("T")[0];
 
+      // YourPoodle domain: the SEO corpus is petshop/cargo content (kedi, kuş,
+      // barkod, etc.) which is off-brand and harmful for the poodle niche.
+      // Return an empty sitemap so Google does not index 9k doorway pages under
+      // the yourpoodle.com brand.
+      const isYP = req.hostname?.includes("yourpoodle") || req.headers["x-forwarded-host"]?.toString().includes("yourpoodle");
+      if (isYP) {
+        res.set("Content-Type", "application/xml");
+        res.set("Cache-Control", "public, max-age=86400");
+        return res.send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>`);
+      }
+
       // Priority/changefreq by page type. SEO landing pages are derived from the
       // shared corpus, filtered to THIS domain's commerce model, so cargo
       // domains never list local-only (same-day/neighborhood) pages and local
@@ -1922,6 +1933,22 @@ export async function registerRoutes(
       ],
     });
   });
+
+  // Root legal paths redirect to YourPoodle canonical legal pages (P0 audit fix)
+  // These root paths (/kvkk, /gizlilik, etc.) fall through to the SPA and show
+  // the homepage title instead of the legal page, confusing Google and users.
+  const LEGAL_REDIRECTS: Record<string, string> = {
+    "/kvkk": "/yourpoodle/gizlilik-politikasi",
+    "/gizlilik": "/yourpoodle/gizlilik-politikasi",
+    "/gizlilik-sozlesmesi": "/yourpoodle/gizlilik-politikasi",
+    "/cerez-politikasi": "/yourpoodle/cerez-politikasi",
+    "/mesafeli-satis": "/yourpoodle/mesafeli-satis",
+    "/mesafeli-satis-sozlesmesi": "/yourpoodle/mesafeli-satis",
+    "/kullanim-kosullari": "/yourpoodle/kullanim-sartlari",
+  };
+  for (const [from, to] of Object.entries(LEGAL_REDIRECTS)) {
+    app.get(from, (_req, res) => res.redirect(301, to));
+  }
 
   app.get("/robots.txt", (req, res) => {
     res.set("Content-Type", "text/plain");
@@ -4393,6 +4420,22 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         "yp_daily_tip", "yp_poodle_name", "yp_poodle_city", "yp_poodle_desc", "yp_poodle_img",
       ];
       const settings = await resolveSettings(keys, publicStoreId(req));
+
+      // Safety guard: disable EFT if IBAN is missing or still the test placeholder
+      const iban = settings.bank_iban || "";
+      const looksPlaceholder = !iban || iban.replace(/\s/g, "").toUpperCase().startsWith("TR5555444");
+      if (looksPlaceholder) {
+        settings.payment_eft_enabled = "false";
+      }
+
+      // Strip placeholder campaign keys so frontend falls back to defaults
+      if (!settings.campaign_hero_title || settings.campaign_hero_title === "JETGO_TITLE") {
+        delete settings.campaign_hero_title;
+      }
+      if (!settings.campaign_hero_subtitle || settings.campaign_hero_subtitle === "BASE_SUB") {
+        delete settings.campaign_hero_subtitle;
+      }
+
       res.set("Cache-Control", "no-store");
       res.json(settings);
     } catch {
@@ -7782,11 +7825,13 @@ Kurallar:
         ["top_banner_enabled", "top_banner_image", "top_banner_link"],
         isValidStore(String(req.query.store)) ? String(req.query.store) : publicStoreId(req)
       );
-      res.json({
-        enabled: map.top_banner_enabled === "1",
-        image: map.top_banner_image || "",
-        link: map.top_banner_link || "/giris",
-      });
+      const image = map.top_banner_image || "";
+      // Suppress banner if no image is set (avoid showing a placeholder/broken banner)
+      const enabled = map.top_banner_enabled === "1" && image.trim().length > 0;
+      // Sanitize link: reject placeholder values
+      const rawLink = map.top_banner_link || "/giris";
+      const link = (rawLink === "/base-link" || rawLink === "base-link" || rawLink === "#") ? "/" : rawLink;
+      res.json({ enabled, image, link });
     } catch {
       res.json({ enabled: false, image: "", link: "/giris" });
     }

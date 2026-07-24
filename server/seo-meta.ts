@@ -605,6 +605,13 @@ const YP_ROUTE_META: Record<string, YPMeta> = {
     schemaType: "guide",
     breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "Çerez Politikası", href: "/yourpoodle/cerez-politikasi" }],
   },
+  "/yourpoodle/iletisim": {
+    title: "İletişim | YourPoodle",
+    description: "YourPoodle ile iletişime geçin: sipariş, üyelik, teknik destek ve bayi sorularınız için formu doldurun veya bizi arayın. +90 850 840 3959",
+    keywords: "yourpoodle iletişim, müşteri hizmetleri, destek, yourpoodle telefon",
+    schemaType: "guide",
+    breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "İletişim", href: "/yourpoodle/iletisim" }],
+  },
   "/yourpoodle/kariyer": {
     title: "Kariyer Fırsatları | YourPoodle",
     description: "YourPoodle'da açık pozisyonlar: İçerik Editörü, Topluluk Yöneticisi ve E-ticaret Uzmanı. Uzaktan çalışma imkânı.",
@@ -830,6 +837,11 @@ export async function injectAllMeta(html: string, urlPath: string, host?: string
   out = injectGoogleTags(out, dbGoogle ? { ...store, google: dbGoogle } : store);
 
   const cleanPath = urlPath.split("?")[0].split("#")[0];
+
+  // YourPoodle iletisim root path alias
+  if (cleanPath === "/iletisim") {
+    return injectYPMeta(out, "/yourpoodle/iletisim", store);
+  }
 
   // YourPoodle sub-app: inject platform-specific meta for all /yourpoodle/* routes
   if (cleanPath.startsWith("/yourpoodle")) {

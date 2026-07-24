@@ -1,0 +1,367 @@
+YourPoodle — Sayfa Sayfa Denetim Raporu
+Kaynak: canlı tarama · www.yourpoodle.com · 24 Temmuz 2026 · HTTP başlıkları, sitemap, API ve tarayıcı incelemesi
+
+Özet hüküm
+Site canlı ve marka UI’si güçlü; ancak kritik görsel kırıkları, sahte/placeholder ödeme ayarları, ~9.000 SEO doorway URL ve ince SSR içerik yüzünden hem güven hem SEO hem dönüşüm riski yüksek. Mağazada gerçekte yalnızca 3 ürün var.
+9176
+Sitemap URL
+9037
+SEO doorway sayfa
+3
+Gerçek ürün (API)
+47
+YourPoodle route
+8
+Kritik bulgu
+14
+Yüksek öncelik
+CSP+HSTS
+Temel header OK
+SMS OTP
+Giriş modeli
+Site geneli (tüm sayfaları etkileyen)
+Çift kimlik: EnUygunPet + YourPoodle aynı domainde
+
+CSP ve asset’lerde enuygunpet.com; landing chunk’ları petshop/kedi/kuş SEO’su taşıyor. Marka karmaşası ve soft-404 / yanlış içerik riski.
+
+~9.037 SEO doorway sayfa (sitemap-seo.xml)
+
+Barcode URL’ler (354), petshop (351), kedi (2.221), muhabbet/papağan (1.257). Google spam / manuel aksiyon riski; YourPoodle nişine zarar verir.
+
+Ödeme ayarları placeholder / sahte
+
+GET /api/public-settings → bank_iban: TR55 5544… (geçersiz), campaign_hero_title: "JETGO_TITLE", subtitle: "BASE_SUB". EFT açık, iyzico kapalı.
+
+SSR ince kabuk — Google ince içerik görür
+
+Çoğu /yourpoodle/* sayfasında sunucu HTML ~300–400 karakter (başlık+nav). Asıl içerik client-side. Rehber makaleleri SEO için yetersiz.
+
+Güvenlik header’ları iyi ama boşluklar var
+
+HSTS, X-Frame-Options, nosniff, CSP mevcut. Ancak script-src/style-src 'unsafe-inline'; GAESA cookie’sinde Secure/HttpOnly/SameSite yok; security.txt SPA’ya düşüyor.
+
+dangerouslySetInnerHTML ×13
+
+Bundle’da 13 kullanım. longDescription HTML ürünlerde var → XSS yüzeyi; sanitization doğrulanmalı.
+
+Cache-Control: no-store HTML
+
+Ana HTML no-cache/no-store; TTFB ve CDN verimi düşük. Statik asset’ler ayrı cache’lenmeli, HTML kısa TTL ile cache’lenebilir.
+
+Çerez onayı yalnızca localStorage
+
+yp_cookie_consent; GA/Ads CSP’de var. KVKK için tercih yönetimi, ret ve vendor listesi zayıf görünüyor.
+
+1) Ana sayfa ve hub
+Ana Sayfa
+/
+
+Görsel olarak tam bir Poodle landing’i var; fakat hero, öne çıkan ürünler ve makale thumbnail’leri kırık. Sepet rozeti ve sosyal kanıt şüpheli.
+
+Kırık görseller (hero + ürün + makale)
+
+Hero’da ‘Toy Poodle’ alt metni görünüyor; 4 ürün kartı ve ‘Bugün En Çok Okunanlar’ thumbnail’leri boş. Dönüşüm ve güveni doğrudan öldürür.
+
+Mock ürün ↔ API uyumsuzluğu
+
+UI: Royal Canin 1.5kg 699 TL, Eye Envy, Chris Christensen, Puppia. API /api/products: yalnızca 3 mama (2706/2707/2709), fiyatlar 800–2000 TL. Sahte stok/yorum izlenimi.
+
+‘10.000+ Poodle Ailesi’ iddiası
+
+Doğrulanabilir metrik yoksa reklam/etik ihlali riski. Gerçek kullanıcı sayısı ile hizalanmalı.
+
+H1 eksik / H2 ağırlıklı SEO kabuğu
+
+SSR’de güçlü H1 yok; noscript site haritası + H2 blokları. React hydrate olmazsa zayıf erişilebilirlik.
+
+YourPoodle Hub
+/yourpoodle
+
+Ana sayfa ile neredeyse aynı deneyim; ayrı canonical/route değeri belirsiz. Thin SSR (~384 karakter).
+
+Duplicate / kanibalizasyon
+
+/ ve /yourpoodle aynı vaadi veriyor. Canonical stratejisi netleştirilmeli (biri 301 veya noindex).
+
+Title ana sayfa ile aynı kalabiliyor
+
+Bazı client yüklerinde document title ana sayfa title’ında kalıyor (hydrate/SEO sync sorunu).
+
+2) Rehber ve içerik
+Rehber Hub
+/yourpoodle/rehber
+
+Kategori kartları (Sağlık/Bakım/Eğitim/Araçlar) ve konu listeleri UI’da iyi. İçerik derinliği ve SSR zayıf.
+
+UI ‘10 konu’ vaadi vs sitemap ~15 makale
+
+Hub 4×10 konu gösteriyor; sitemap-yp’te ~15 rehber URL. Çoğu link 404 veya boş sayfa riski.
+
+Arama kutusu var — backend belirsiz
+
+/api/search HTML fallback dönüyor; rehber araması çalışmayabilir.
+
+Rehber Makale
+/yourpoodle/rehber/* (ör. tuvalet-egitimi)
+
+Title/H1 doğru set edilmiş; gövde SSR’de yok (~364 karakter). Google bot büyük ihtimalle ince sayfa görür.
+
+Makale gövdesi SSR’de yok
+
+Sunucu HTML yalnızca title + kısa description + nav. Tam makale metni hydrate sonrası gelmeli; SEO için SSR/prerender şart.
+
+Veteriner disclaimer tutarsızlığı
+
+AI sayfasında disclaimer var; sağlık makalelerinde de sabit uyarı + kaynak/yazar kutusu olmalı.
+
+Mama Rehberi
+/yourpoodle/mama
+
+Title/H1 uygun. İçerik derinliği client’a bağlı.
+
+Ürün bağlama zayıf
+
+Sadece 3 SKU; karşılaştırma tabloları ve stoklu CTA’lar eksik kalır.
+
+Kategori Landing’leri
+/yourpoodle/egitim | /saglik | /bakim
+
+Meta title’lar iyi yazılmış. Thin SSR ortak sorun.
+
+İç link envanteri eksik
+
+Her kategoride gerçek yayınlanmış makale sayısı doğrulanıp UI sayacı güncellenmeli.
+
+3) Araçlar ve AI
+Mama Bul Sihirbazı
+/yourpoodle/mama-bul
+
+11 adımlı wizard (yaş vb.) görsel olarak tamam. En güçlü ürünleşme adaylarından.
+
+Sonuç → stoklu ürün eşlemesi
+
+API’de 3 ürün ve mamaMetadata kısmen dolu. Öneri motoru gerçek katalogla bağlanmalı; aksi halde boş sonuç.
+
+/mama-sonuclar route’u var
+
+Sonuç sayfasının paylaşılabilir URL, SEO ve e-posta yakalama akışı test edilmeli.
+
+Hesaplayıcılar
+/yourpoodle/bilgi (Araçlar)
+
+Nav’da ‘Araçlar’ /bilgi ve /araclar karışık. Mama/yaş/kilo hesapları vaat ediliyor.
+
+Route tutarsızlığı
+
+Sitemap/nav: /bilgi; bazı linkler /araclar. Title bazen ana sayfa title’ına düşüyor.
+
+Hesap formülleri şeffaflığı
+
+Kaynak (NRC/FEDIAF vb.) ve sorumluluk reddi gösterilmeli.
+
+AI Poodle Asistanı
+/yourpoodle/ai-asistan
+
+Chat UI, quick prompt’lar ve veteriner disclaimer mevcut. Backend endpoint’ler HTML fallback veriyor.
+
+API yüzeyi belirsiz / SPA fallback
+
+/api/ai ve /api/ai/chat HTML dönüyor. Chat gerçekten çalışıyorsa rate-limit, abuse, PII log politikası belgelenmeli.
+
+Mikrofon + kamera Permissions-Policy
+
+microphone=() kapalı ama camera=(self). Ses girişi varsa policy ile çelişebilir.
+
+Eski /yourpoodle/ai path
+
+Sitemap’te ai-asistan; yanlış path’ler 200 ile ana title gösterebiliyor.
+
+4) Mağaza ve ödeme
+Mağaza
+/yourpoodle/magaza
+
+17 kategori kartı şık; footer’da kıyafet/özel tasarım vaadi var. Backend’de 3 ürün.
+
+Katalog boşluğu
+
+Kategorilerin çoğu tıklanınca boş/yanıltıcı olacak. Ya ürün ekle ya kategorileri gizle.
+
+Footer vaatleri (Kıyafetler, Kampanyalar)
+
+Envanter yoksa dead-end link. Güven kaybı.
+
+Grid 6+6+5 asimetri
+
+Görsel denge küçük UX kusuru.
+
+Ürün Detay
+/yourpoodle/urun/2706|2707|2709
+
+Ürün görselleri /api/product-image/* çalışıyor (webp). Meta alanları null.
+
+SEO meta boş
+
+metaTitle, metaDescription, metaKeywords null. Unique title/desc + schema Product eklenmeli.
+
+HTML longDescription
+
+2709’da HTML açıklama var → sanitize şart (XSS).
+
+Stok hep 10
+
+Gerçek stok entegrasyonu yok gibi; güvenilirlik düşük.
+
+Sepet & Ödeme
+/yourpoodle/sepet | /odeme | /tesekkurler
+
+Checkout chunk mevcut. Public settings EFT/nakit/Tosla açık; iyzico kapalı; IBAN sahte.
+
+Sahte IBAN ile EFT açık
+
+Müşteri yanlış hesaba transfer eder / sipariş kilitlenir. Canlıya almadan payment_eft kapat veya gerçek IBAN koy.
+
+%5 kart surcharge + iyzico=0
+
+Kart tahsilatı yolu belirsiz; surcharge yasal açıklama ve UI şeffaflığı gerektirir.
+
+Ödeme sayfaları robots Disallow ama 200
+
+Erişim kontrolü sunucu tarafında olmalı; sadece client gate yetmez.
+
+5) Topluluk, hesap, kurumsal
+Topluluk
+/yourpoodle/topluluk
+
+SSR yalnızca title+nav. Feed hydrate olmadığı durumda boş sayfa.
+
+İçerik/backend yok görünümü
+
+/api/community HTML fallback. Moderasyon, UGC, raporlama yoksa açmayın.
+
+Etkinlik / Club
+/yourpoodle/etkinlikler | /club | /fotograf-yarismasi
+
+Route’lar sitemap’te; SSR ince. Club alt path’ler (kesfet, kopekler) var.
+
+Boş topluluk yüzeyleri
+
+Nav’da vaat edip boş bırakmak churn yaratır. Soft-launch veya gizle.
+
+Kimlik & Hesap
+/yourpoodle/giris | /profil | /ayarlar | /siparislerim
+
+Şifresiz SMS OTP UI’si (TR +90) ve KVKK checkbox’ı var. İyi model.
+
+OTP endpoint yüzeyi
+
+Index’te /api/otp/verify, /api/customer/login|register. Rate-limit, brute-force, SIM swap riskleri kontrol edilmeli.
+
+Pazarlama SMS checkbox opsiyonel — iyi
+
+Zorunlu KVKK ile ayrılmış; metin linklerinin doğru legal sayfalara gittiğini doğrula.
+
+/admin 200 SPA
+
+robots Disallow var ama erişilebilir. Authz sunucu tarafı + ayrı origin/path önerilir.
+
+Kurumsal & Destek
+/yourpoodle/hakkinda | /kariyer | /bayi-basvurusu | /sss | /kargo | /iade
+
+Title’lar set; SSR ~330–410 karakter. Yasal/operasyon metinleri client stub olabilir.
+
+Yasal metinlerin SSR/prerender’ı şart
+
+KVKK/mesafeli satış bot ve avukat incelemesinde görünür olmalı; JS kapalıda da okunmalı.
+
+İletişim: 0850 840 3959 + info@yourpoodle.com
+
+Footer’da var; /iletisim root route title’ı ana sayfa — kırık/yanlış map.
+
+Yasal Sayfalar (YP)
+/yourpoodle/gizlilik-politikasi | /cerez-politikasi | /kullanim-sartlari | /mesafeli-satis
+
+YourPoodle path’lerinde doğru title/H1 var. Root /kvkk /gizlilik ise ana sayfa title’ı dönüyor.
+
+Root legal route’lar bozuk
+
+/kvkk, /gizlilik, /cerez-politikasi, /mesafeli-satis → homepage title + SEO kabuğu. Footer bazen bu path’lere link veriyor olabilir.
+
+İçerik uzunluğu SSR’de yetersiz
+
+Compliance için tam metin sunucu HTML’inde olmalı.
+
+6) Eski e-ticaret / SEO sayfaları (aynı domain)
+EnUygunPet mirası
+/magaza | /kategori/* | /kampanya | /siparis/*
+
+Sitemap-main ~103 URL. SSR çoğu kez ana sayfa title (1536 char noscript hub). YourPoodle markasıyla karışıyor.
+
+Yanlış title / soft-404 hissi
+
+Birçok e-ticaret path’i ‘Toy Poodle Rehberi…’ title’ı ile 200 dönüyor.
+
+top-banner placeholder
+
+API: enabled=true, image="", link="/base-link" — kırık kampanya yüzeyi.
+
+SEO Doorway Kitlesi
+/samsun-petshop | /kedi-mamasi | /318255… | /052742…
+
+9037 URL. Samsun petshop, kedi/kuş, barkod sayfaları. YourPoodle nişiyle çelişir.
+
+Doorway / scaled content riski
+
+Sitemap’ten çıkar, noindex veya 301 ile temizle. Aksi halde tüm domain cezalanabilir.
+
+Off-brand içerik
+
+Muhabbet kuşu / kedi sayfaları Poodle markasını sulandırır.
+
+Güvenlik özeti
+Konu	Durum	Not
+HTTPS / HSTS
+İyi	http→https 301; HSTS uzun max-age (header biraz duplicate)
+CSP
+Orta	'unsafe-inline' + Ads/GA; nonce/hash’e geç
+Cookie flags
+Zayıf	GAESA: Secure/HttpOnly/SameSite yok
+security.txt
+Eksik	SPA HTML fallback; gerçek text/plain yok
+Admin/API
+Risk	/admin 200; birçok /api/* HTML fallback
+Ödeme config
+Kritik	Sahte IBAN, placeholder kampanya key’leri public
+XSS yüzeyi
+Orta	dangerouslySetInnerHTML + ürün HTML
+OTP auth
+İyi model	Rate-limit/abuse test edilmeli
+Öncelikli yapılacaklar
+P0 — Bu hafta
+1. Ana sayfa görsellerini düzelt; mock ürünleri kaldır veya API’ye bağla.
+
+2. /api/public-settings içindeki sahte IBAN ve JETGO_TITLE/BASE_SUB temizle; EFT’yi kapat veya gerçek veri koy.
+
+3. Root legal path’leri (/kvkk vb.) YP legal sayfalarına 301 et.
+
+4. sitemap-seo.xml’i yayından kaldır / noindex; 9k doorway’i indeks dışı bırak.
+
+P1 — 2–4 hafta
+1. Rehber/makale/legal için SSR veya prerender.
+
+2. Katalog: ya 50+ gerçek poodle ürünü ya kategori sadeleştirme.
+
+3. Cookie Secure/HttpOnly/SameSite + gerçek security.txt.
+
+4. CSP’den unsafe-inline çıkarma; HTML sanitize.
+
+5. Topluluk/Club/Etkinlik boşsa nav’dan gizle.
+
+P2 — Sonraki
+1. iyzico/Tosla prod doğrulama, taksit/surcharge şeffaflığı.
+
+2. EnUygunPet miras route’larını ayır veya subdomain’e taşı.
+
+3. Schema.org Product/Article/FAQ; Core Web Vitals (HTML cache).
+
+4. OTP rate-limit, admin ayrı origin, API 404 (HTML fallback değil).
+
