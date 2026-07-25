@@ -1,0 +1,103 @@
+```text
+You are upgrading YourPoodle Magaza page in ONE pass so it is a real store experience, not only a category menu.
+URL: https://www.yourpoodle.com/yourpoodle/magaza
+Mobile: 390×844
+
+No stubs. No alert(). No “yakında / coming soon”.
+Do not stop until every acceptance check is green.
+Do NOT regress Mama Bul / Rehber / AI Asistan / Club / Giriş.
+
+==================================================
+A) VERIFIED CURRENT STATE
+==================================================
+KEEP:
+- Route `/yourpoodle/magaza` works
+- App shell with activeLink Magaza
+- Category cards navigate:
+  - kuru-mama → `/yourpoodle/kuru-mama`
+  - others → `/yourpoodle/kategori/{slug}`
+- No alert() currently
+
+FIX:
+1) document.title is NOT set on client
+2) Marketing footer still shown (no hideFooter / no store-appropriate compact footer policy)
+3) Page is only a thin category hub (~7KB chunk) — missing product browsing UX users expect on Magaza:
+   - featured / bestseller product rows OR searchable product listing
+   - filters / sort (or clear entry into filtered category pages)
+   - add-to-cart / product open actions that are real
+4) Any toast-only placeholders must be removed
+
+==================================================
+B) REQUIRED PRODUCT SCOPE (ONE PASS)
+==================================================
+
+### 1) Title + shell
+On mount:
+`document.title = "Poodle Ürünleri: Mama, Aksesuar ve Oyuncaklar | YourPoodle"`
+(or keep SSR title exactly and mirror it in client)
+
+Shell:
+- Keep unified YP header tabs with **Mağaza** active
+- Bottom nav consistent with app (Ana Sayfa · Mama Bul · Sepet · Rehber · Club)
+- Decide footer policy and apply:
+  - Prefer hideFooter on mobile store browse OR keep a short legal strip only
+  - No giant marketing footer pushing content awkwardly above bottom nav
+- Safe-area + padding so content clears bottom nav
+
+### 2) Magaza homepage content (must feel like a store)
+Keep category grid, AND add at least:
+A) Search bar → `/yourpoodle/ara` (or existing search route) with real query param
+B) Horizontal “Öne Çıkanlar” / “Çok Satanlar” product row (real products from existing catalog data/API)
+C) Optional campaign banner linking to real campaign/category route
+
+Each product card MUST:
+- Navigate to real product detail (`/yourpoodle/urun/:id/:slug` or existing product route)
+- Optional quick “Sepete Ekle” that really adds to cart (reuse existing cart store) — if not ready, omit button (do not stub)
+
+### 3) Categories remain correct
+Preserve/fix category click wiring:
+- `kuru-mama` → `/yourpoodle/kuru-mama`
+- other slugs → `/yourpoodle/kategori/{slug}`
+Verify every visible category card lands on a non-404 page with products or honest empty state.
+
+### 4) Empty / loading / error
+- Loading skeletons for product rows
+- Empty state if catalog empty
+- Error state with retry (no alert)
+
+### 5) Accessibility
+- Category and product cards keyboard reachable
+- Images have alt text
+- Header icons 44×44 with aria-labels
+
+==================================================
+C) OUT OF SCOPE
+==================================================
+- Do not rebuild checkout
+- Do not invent fake products if catalog exists — use real data sources already in app
+- Do not leave “coming soon” filters
+
+==================================================
+D) MANDATORY SELF-QA (390×844)
+==================================================
+1. Open `/yourpoodle/magaza`
+2. Title is store-specific (not homepage title)
+3. Magaza tab active; content clear of bottom nav
+4. Footer not a giant marketing wall (or hidden)
+5. Tap 5 category cards → all open real pages (no 404)
+6. Tap at least 2 products from featured/bestsellers → product detail opens
+7. If Sepete Ekle exists → cart count increases; else button absent
+8. Search submits to real search results
+9. Zero alert() / zero yakında stubs in magaza bundle
+10. Regression: `/yourpoodle/giris`, `/yourpoodle/club`, `/yourpoodle/rehber` still load
+
+==================================================
+E) DONE CRITERIA
+==================================================
+- Magaza is a usable store home (categories + products + search)
+- Correct title + clean mobile shell
+- All visible CTAs real
+- Mobile QA all green
+
+Deploy only after checks pass. If any fail, fix and re-test before finishing.
+```
