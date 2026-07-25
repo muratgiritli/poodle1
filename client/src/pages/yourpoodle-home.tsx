@@ -602,20 +602,20 @@ export default function YourPoodleHomePage() {
               </a>
             </div>
           </div>
-          {/* AI Badge */}
-          <button onClick={() => setShowAi(true)}
+          {/* AI Badge → real route */}
+          <a href="/yourpoodle/ai-asistan"
             style={{ position:"absolute", bottom:20, right:16,
                      background:`linear-gradient(135deg, ${P}, #8B5CF6)`,
-                     color:"#fff", border:"none", borderRadius:24,
+                     color:"#fff", borderRadius:24,
                      padding:"10px 16px", fontSize:12, fontWeight:700,
-                     cursor:"pointer", fontFamily:"inherit",
                      boxShadow:"0 4px 16px rgba(124,58,237,0.35)",
                      display:"flex", alignItems:"center", gap:6,
+                     textDecoration:"none",
                      transition:"transform 0.2s" }}
             onMouseOver={e => (e.currentTarget.style.transform = "translateY(-2px)")}
             onMouseOut={e => (e.currentTarget.style.transform = "translateY(0)")}>
             ✨ AI Asistan <span style={{ opacity:0.8, fontWeight:400 }}>7/24 Yanınızda</span>
-          </button>
+          </a>
         </section>
 
         {/* ════ PROMO BANNER ════ */}
@@ -638,11 +638,12 @@ export default function YourPoodleHomePage() {
 
         {/* ════ PRODUCTS ════ */}
         <section id="products" style={{ padding:"24px 16px 28px" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:6 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
             <h2 style={{ fontSize:18, fontWeight:800, color:TEXT, margin:0 }}>Sizin İçin Seçtiklerimiz</h2>
-            <a href="/yourpoodle/magaza" style={{ fontSize:13, color:P, fontWeight:600,
-                                                   textDecoration:"none", display:"flex",
-                                                   alignItems:"center", gap:2 }}>
+            <a href="/yourpoodle/magaza"
+              style={{ fontSize:13, color:P, fontWeight:600, textDecoration:"none",
+                       display:"flex", alignItems:"center", gap:2,
+                       minHeight:44, padding:"0 4px" }}>
               Tümünü Gör <ChevronRightIcon />
             </a>
           </div>
@@ -669,57 +670,71 @@ export default function YourPoodleHomePage() {
         <section id="guides" style={{ padding:"0 16px 28px" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
             <h2 style={{ fontSize:18, fontWeight:800, color:TEXT, margin:0 }}>Poodle Rehberinden</h2>
-            <a href="/yourpoodle/rehber" style={{ fontSize:13, color:P, fontWeight:600,
-                                                   textDecoration:"none", display:"flex",
-                                                   alignItems:"center", gap:2 }}>
+            <a href="/yourpoodle/rehber"
+              style={{ fontSize:13, color:P, fontWeight:600, textDecoration:"none",
+                       display:"flex", alignItems:"center", gap:2,
+                       minHeight:44, padding:"0 4px" }}>
               Tüm Rehberi Keşfet <ChevronRightIcon />
             </a>
           </div>
 
-          {articles.length === 0 ? (
-            /* ── placeholder if no articles in DB yet ── */
-            <div style={{ background:"#F9F8FF", borderRadius:14, padding:"24px 20px",
-                          textAlign:"center", color:MUTED, fontSize:13 }}>
-              Rehber yazıları yakında burada!
-            </div>
-          ) : (
-            <div style={{ display:"flex", gap:12 }}>
-              {/* Featured image */}
-              <div style={{ flex:"0 0 140px", height:200, borderRadius:14,
-                             overflow:"hidden", background:PL, cursor:"pointer" }}
-                   onClick={() => featuredArticle && nav(`/yourpoodle/rehber/${featuredArticle.id}`)}>
-                <img src="/images/poodle-avatar-1.jpg" alt={featuredArticle?.title || "Rehber"}
-                  style={{ width:"100%", height:"100%", objectFit:"cover" }}
-                  onError={e => { (e.target as HTMLImageElement).src="/images/poodle-avatar-2.jpg"; }} />
-              </div>
-              {/* Article list */}
-              <div style={{ flex:1, display:"flex", flexDirection:"column", gap:0 }}>
-                {(listArticles.length > 0 ? listArticles : articles.slice(0, 3)).map((g, i, arr) => (
-                  <div key={g.id}
-                    onClick={() => nav(`/yourpoodle/rehber/${g.id}`)}
-                    style={{ display:"flex", gap:10, alignItems:"center",
-                               padding:"11px 0", cursor:"pointer",
-                               borderBottom: i < arr.length - 1 ? `1px solid ${BORDER}` : "none" }}>
-                    <img src={`/images/poodle-avatar-${(i % 3) + 2}.jpg`} alt={g.title}
-                      style={{ width:48, height:48, borderRadius:10, objectFit:"cover",
-                               background:PL, flexShrink:0 }}
-                      onError={e => { (e.target as HTMLImageElement).src="/images/poodle-avatar-1.jpg"; }} />
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:12, fontWeight:700, color:TEXT, lineHeight:1.35,
-                                     display:"-webkit-box", WebkitLineClamp:2,
-                                     WebkitBoxOrient:"vertical" as any, overflow:"hidden" }}>
-                        {g.emoji ? `${g.emoji} ` : ""}{g.title}
+          {(() => {
+            /* Use DB articles if available, else show hardcoded fallback cards */
+            const FALLBACK = [
+              { id: "tuvalet-egitimi",    title: "Tuvalet Eğitimi Nasıl Verilir?",       min_read: 5, emoji: "🐾", img: "/images/poodle-avatar-2.jpg" },
+              { id: "mama-secim-rehberi", title: "Toy Poodle Mama Seçim Rehberi",        min_read: 7, emoji: "🍗", img: "/images/poodle-avatar-3.jpg" },
+              { id: "tuy-bakimi",         title: "Tüy Bakımı: Tarak ve Şampuan",         min_read: 4, emoji: "✂️", img: "/images/poodle-avatar-4.jpg" },
+            ];
+            const useDB     = articles.length > 0;
+            const featured  = useDB ? (featuredArticle || articles[0]) : null;
+            const listItems = useDB
+              ? (listArticles.length > 0 ? listArticles : articles.slice(0, 3))
+              : FALLBACK;
+            const goArticle = (id: string | number) =>
+              useDB ? nav(`/yourpoodle/rehber/${id}`) : nav("/yourpoodle/rehber");
+
+            return (
+              <div style={{ display:"flex", gap:12 }}>
+                {/* Featured image */}
+                <a href={useDB && featured ? `/yourpoodle/rehber/${featured.id}` : "/yourpoodle/rehber"}
+                  style={{ flex:"0 0 130px", height:196, borderRadius:14,
+                           overflow:"hidden", background:PL, cursor:"pointer",
+                           textDecoration:"none", display:"block" }}>
+                  <img src="/images/poodle-avatar-1.jpg"
+                    alt={featured?.title || "Poodle Rehberi"}
+                    style={{ width:"100%", height:"100%", objectFit:"cover" }}
+                    onError={e => { (e.target as HTMLImageElement).src="/images/poodle-hero.jpg"; }} />
+                </a>
+                {/* Article list */}
+                <div style={{ flex:1, display:"flex", flexDirection:"column", gap:0 }}>
+                  {listItems.map((g: any, i: number, arr: any[]) => (
+                    <a key={g.id}
+                      href={useDB ? `/yourpoodle/rehber/${g.id}` : "/yourpoodle/rehber"}
+                      style={{ display:"flex", gap:10, alignItems:"center",
+                               padding:"11px 0", cursor:"pointer", textDecoration:"none",
+                               borderBottom: i < arr.length - 1 ? `1px solid ${BORDER}` : "none",
+                               minHeight:44 }}>
+                      <img src={g.img || `/images/poodle-avatar-${(i % 3) + 2}.jpg`} alt={g.title}
+                        style={{ width:46, height:46, borderRadius:10, objectFit:"cover",
+                                 background:PL, flexShrink:0 }}
+                        onError={e => { (e.target as HTMLImageElement).src="/images/poodle-avatar-1.jpg"; }} />
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:12, fontWeight:700, color:TEXT, lineHeight:1.35,
+                                       display:"-webkit-box", WebkitLineClamp:2,
+                                       WebkitBoxOrient:"vertical" as any, overflow:"hidden" }}>
+                          {g.emoji ? `${g.emoji} ` : ""}{g.title}
+                        </div>
+                        <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:4 }}>
+                          <ClockIcon />
+                          <span style={{ fontSize:11, color:MUTED }}>{g.min_read || 5} dk okuma</span>
+                        </div>
                       </div>
-                      <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:4 }}>
-                        <ClockIcon />
-                        <span style={{ fontSize:11, color:MUTED }}>{g.min_read || 5} dk okuma</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                    </a>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </section>
 
         {/* ════ AI BANNER ════ */}

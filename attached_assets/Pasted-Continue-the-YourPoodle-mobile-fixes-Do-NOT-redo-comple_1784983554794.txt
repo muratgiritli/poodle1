@@ -1,0 +1,59 @@
+Continue the YourPoodle mobile fixes. Do NOT redo completed work (footer links, hero/nav route wiring, aria-labels on header icons, legal/support pages, hash-link cleanup). Focus ONLY on the remaining gaps below.
+
+## Remaining work
+
+### 1) Unify the mobile shell (highest priority)
+There are still TWO different bottom navs:
+
+- Homepage `/` bottom nav: Ana Sayfa · Mama Bul · Sepet · Rehber · Profil
+- App routes `/yourpoodle/*` bottom nav: Ana Sayfa · Club · Sepetim · Mağaza · AI
+
+Fix this so the entire product uses ONE consistent mobile navigation shell across homepage and all `/yourpoodle/*` pages (same items, same labels, same order, same behavior).
+
+Requirements:
+- Pick one final mobile bottom nav and apply it everywhere.
+- Preferred final set (unless existing product logic strongly requires otherwise):
+  Ana Sayfa · Mama Bul · Sepet · Rehber · Club
+  OR keep the app shell (Ana Sayfa · Club · Sepet · Mağaza · AI) and use that same shell on the homepage too.
+- Do not leave two conflicting shells.
+- Add proper bottom safe-area / padding so content is never hidden under bottom nav or floating cart FAB.
+- Sticky header + promo banner must not cover CTAs or intercept taps.
+
+### 2) Restore homepage guide cards (do not leave the stub)
+On homepage “Poodle Rehberinden”, content was replaced with:
+“Rehber yazıları yakında burada!”
+
+Restore real guide cards and wire each card to a real guide route/article.
+- At minimum restore the previous cards (e.g. Tuvalet Eğitimi, Mama Seçim Rehberi, Tüy Bakımı) as clickable items.
+- “Tüm Rehberi Keşfet” should remain linked to `/yourpoodle/rehber`.
+- Cards must be real links/buttons with working navigation (not pointer-only divs).
+
+### 3) Fix remaining mobile UI polish
+1. Top nav “Club” is still edge-clipped around 390px width. Ensure all labels fully fit, or provide intentional horizontal scroll with clear affordance. No clipped text.
+2. Convert floating hero AI chip/button (`✨ AI Asistan 7/24`) into a real link/route to `/yourpoodle/ai-asistan` (same destination as other AI CTAs).
+3. Increase tap target for “Tümünü Gör” (and similar text links) to at least 44px height hit area without breaking layout.
+
+### 4) Verify destinations still work after shell unification
+After changes, verify these still open correctly on mobile (390x844):
+- `/`
+- `/yourpoodle/mama-bul`
+- `/yourpoodle/rehber`
+- `/yourpoodle/ai-asistan`
+- `/yourpoodle/club`
+- `/yourpoodle/magaza`
+- `/yourpoodle/sss`
+
+## Acceptance criteria
+- Homepage and `/yourpoodle/*` share the same bottom nav shell
+- Homepage guide section shows real clickable guide cards again (no “yakında burada” placeholder)
+- No clipped top-nav labels at 390px
+- AI floating CTA navigates to `/yourpoodle/ai-asistan`
+- “Tümünü Gör” has usable ≥44px tap target
+- Bottom nav/FAB never covers primary content
+- No regressions to already-fixed footer/legal/nav links
+
+## Working rules
+- Inspect existing components/routes first; reuse them.
+- Keep Turkish UI copy.
+- Make the smallest complete fix set.
+- When done, report exactly what changed and any pages that still lack real content.

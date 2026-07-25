@@ -7,6 +7,7 @@ import {
   PawPrint, Search, Heart, ShoppingCart, ChevronDown, X, Users,
 } from "lucide-react";
 import YPFooter from "./YPFooter";
+import YPBottomNav from "@/components/YPBottomNav";
 
 /**
  * Route prefix: "" on yourpoodle.com (canonical routes at /magaza etc.),
@@ -439,87 +440,8 @@ export default function YPLayout({
         <YPFooter />
       </div>
 
-      {/* ════════════ MOBILE BOTTOM NAV ════════════ */}
-      {!authMode && (
-        <div className="yp-btm-nav">
-          <nav style={{
-            position: "fixed", bottom: 0, left: 0, right: 0,
-            background: "#fff", borderTop: "1px solid #f0f0f0",
-            boxShadow: "0 -4px 20px rgba(0,0,0,0.08)",
-            height: 72, display: "flex", alignItems: "center", zIndex: 200,
-            padding: "0 4px", paddingBottom: "env(safe-area-inset-bottom,0px)",
-          }}>
-            {/* Sol 2 tab */}
-            {[
-              { label: "Ana Sayfa", href: BASE || "/",          Icon: PawPrint },
-              { label: "Club",      href: `${BASE}/club`,       Icon: Users    },
-            ].map(({ label, href, Icon }) => {
-              const active = isActive(effectiveBottomLink, href);
-              return (
-                <button key={href} onClick={() => navigate(href)}
-                  style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, background: "none", border: "none", cursor: "pointer", flex: 1, color: active ? "#7C3AED" : "#aaa", transition: "color 0.15s", padding: "4px 2px" }}>
-                  <Icon size={20} strokeWidth={active ? 2.5 : 2} />
-                  <span style={{ fontSize: 9, fontWeight: active ? 800 : 600, fontFamily: "inherit", whiteSpace: "nowrap" }}>{label}</span>
-                  {active && <div style={{ width: 14, height: 2.5, borderRadius: 2, background: "#7C3AED", marginTop: -1 }} />}
-                </button>
-              );
-            })}
-
-            {/* Merkez — Sepet butonu */}
-            {(() => {
-              const normLink = normalizePath(effectiveBottomLink);
-              const cartActive = normLink.startsWith("/sepet") || normLink.startsWith("/odeme");
-              return (
-                <button onClick={() => navigate(`${BASE}/sepet`)}
-                  aria-label="Sepetim"
-                  style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", flex: "0 0 auto", padding: 0 }}>
-                  <div style={{
-                    width: 52, height: 52, borderRadius: "50%",
-                    background: cartActive
-                      ? "linear-gradient(135deg,#5B21B6,#7C3AED)"
-                      : "linear-gradient(135deg,#7C3AED,#A855F7)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    boxShadow: "0 4px 16px rgba(124,58,237,0.4)",
-                    marginTop: -22,
-                    border: "3px solid #fff",
-                    position: "relative",
-                  }}>
-                    <ShoppingCart size={22} color="#fff" strokeWidth={2.2} />
-                    {cartCount > 0 && (
-                      <span style={{
-                        position: "absolute", top: -2, right: -2,
-                        minWidth: 18, height: 18, borderRadius: 9,
-                        background: "#EF4444", color: "#fff",
-                        fontSize: 9, fontWeight: 900,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        padding: "0 4px", border: "2px solid #fff",
-                        fontFamily: "inherit", boxSizing: "border-box",
-                      }}>{cartCount > 99 ? "99+" : cartCount}</span>
-                    )}
-                  </div>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: cartActive ? "#7C3AED" : "#555", fontFamily: "inherit" }}>Sepetim</span>
-                </button>
-              );
-            })()}
-
-            {/* Sağ 2 tab */}
-            {[
-              { label: "Mağaza", href: `${BASE}/magaza`,     Icon: ShoppingBag },
-              { label: "AI",     href: `${BASE}/ai-asistan`, Icon: Bot         },
-            ].map(({ label, href, Icon }) => {
-              const active = isActive(effectiveBottomLink, href);
-              return (
-                <button key={href} onClick={() => navigate(href)}
-                  style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, background: "none", border: "none", cursor: "pointer", flex: 1, color: active ? "#7C3AED" : "#aaa", transition: "color 0.15s", padding: "4px 2px" }}>
-                  <Icon size={20} strokeWidth={active ? 2.5 : 2} />
-                  <span style={{ fontSize: 9, fontWeight: active ? 800 : 600, fontFamily: "inherit", whiteSpace: "nowrap" }}>{label}</span>
-                  {active && <div style={{ width: 14, height: 2.5, borderRadius: 2, background: "#7C3AED", marginTop: -1 }} />}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-      )}
+      {/* ════════════ UNIFIED MOBILE BOTTOM NAV ════════════ */}
+      {!authMode && <YPBottomNav />}
     </div>
   );
 }
