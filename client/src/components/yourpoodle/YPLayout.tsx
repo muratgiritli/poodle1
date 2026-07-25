@@ -368,23 +368,11 @@ export default function YPLayout({
           </Link>
         ) : (
           <div style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            {/* Left: hamburger (drawer access) + logo */}
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <button onClick={() => setDrawerOpen(true)} aria-label="Menü"
-                style={{ width: 40, height: 40, background: "none", border: "none", cursor: "pointer",
-                         display: "flex", alignItems: "center", justifyContent: "center",
-                         borderRadius: 8, color: "#374151", flexShrink: 0 }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <line x1="3" y1="6"  x2="21" y2="6"/>
-                  <line x1="3" y1="12" x2="21" y2="12"/>
-                  <line x1="3" y1="18" x2="21" y2="18"/>
-                </svg>
-              </button>
-              <Link href={BASE || "/"}>
-                <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle"
-                  style={{ height: 34, width: "auto", objectFit: "contain", cursor: "pointer" }} />
-              </Link>
-            </div>
+            {/* Left: logo only — same as homepage */}
+            <Link href={BASE || "/"}>
+              <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle"
+                style={{ height: 34, width: "auto", objectFit: "contain", cursor: "pointer" }} />
+            </Link>
 
             {/* Right: search · account · cart — same icon cluster as homepage */}
             <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
@@ -438,6 +426,38 @@ export default function YPLayout({
           </div>
         )}
       </header>
+
+      {/* ════════════ MOBILE CATEGORY TABS (same as homepage) ════════════ */}
+      {!authMode && (
+        <nav className="yp-mobile-hdr" aria-label="Kategori menüsü" style={{
+          background: "#fff", borderBottom: "1px solid #F3F4F6",
+          overflowX: "auto", display: "flex", padding: "0 4px",
+          scrollbarWidth: "none", position: "sticky", top: 60, zIndex: 99,
+        }}>
+          {([
+            { label: "Mağaza",     href: `${BASE}/magaza` },
+            { label: "Mama Bul",   href: `${BASE}/mama-bul` },
+            { label: "Rehber",     href: `${BASE}/rehber` },
+            { label: "AI Asistan", href: `${BASE}/ai-asistan` },
+            { label: "Club",       href: `${BASE}/club` },
+          ] as const).map(({ label, href }) => {
+            const active = isActive(effectiveBottomLink, href);
+            return (
+              <button key={href} onClick={() => navigate(href)}
+                style={{
+                  flex: "none", padding: "12px 10px", fontSize: 14, fontWeight: active ? 700 : 500,
+                  color: active ? "#7C3AED" : "#111827", background: "none", border: "none",
+                  borderBottom: `2.5px solid ${active ? "#7C3AED" : "transparent"}`,
+                  cursor: "pointer", whiteSpace: "nowrap", minHeight: 44,
+                  display: "flex", alignItems: "center", fontFamily: "inherit",
+                  transition: "color 0.15s, border-color 0.15s",
+                }}>
+                {label}
+              </button>
+            );
+          })}
+        </nav>
+      )}
 
       {/* ════════════ PAGE CONTENT ════════════ */}
       <div className="yp-page-body">
