@@ -1,0 +1,97 @@
+Takip ettiğimiz **Mama Bul / Rehber / AI Asistan** eksikleri kapanmış durumda. Kalan mantıklı iş: henüz aynı derinlikte bakılmayan **Club** + site genelinde stub taraması. Replit prompt:
+
+```text
+You are doing a ONE-PASS QA + fix pass for YourPoodle Club and any remaining dead stubs across /yourpoodle app pages.
+
+Mobile target: 390×844.
+No stubs. No alert(). No “yakında / coming soon” toasts for core actions.
+Do not stop until every acceptance check is green.
+
+==================================================
+CONTEXT (already fixed — DO NOT regress)
+==================================================
+These are DONE. Preserve them:
+- /yourpoodle/mama-bul wizard + results
+- /yourpoodle/rehber topics → real articles; Favorile/Paylaş working
+- /yourpoodle/ai-asistan: app shell, hideFooter, composer above bottom nav, document.title, mic stub removed, /api/yp-chat working
+
+Shared shell standard (keep consistent):
+- Header Option A: logo + search/account/cart + tabs
+  Mağaza · Mama Bul · Rehber · AI Asistan · Club
+- Bottom nav: Ana Sayfa · Mama Bul · Sepet · Rehber · Club
+- Header icons 44×44 with aria-labels
+- No overlapping fixed bars vs bottom nav (use safe-area)
+
+==================================================
+A) PRIMARY SCOPE — CLUB
+==================================================
+URL: /yourpoodle/club (and related club routes used from this page)
+
+Audit and fix ALL interactions on Club:
+1) Tabs / filters / “Tümünü Gör” / post cards / profile chips / CTAs
+2) Create post / like / comment / share / follow — if shown, they must work or be removed (no fake UI)
+3) Deep links from homepage Club cards must land on real content
+4) document.title must be Club-specific (not homepage title)
+5) No giant footer collision with bottom nav on mobile (hideFooter or equivalent if chat/feed style)
+6) No clipping at 390×844 (especially horizontal carousels / tab labels)
+7) Empty / loading / error states must be real UI (no alert)
+
+If a feature cannot be completed in this pass, remove the control entirely rather than leaving a stub.
+
+==================================================
+B) SITEWIDE STUB SWEEP (same pass)
+==================================================
+Search the YourPoodle frontend for:
+- alert(
+- “yakında”
+- “coming soon”
+- onClick handlers that only toast placeholder text
+
+Fix or remove on these routes if present:
+- /yourpoodle
+- /yourpoodle/club*
+- /yourpoodle/magaza*
+- /yourpoodle/araclar*
+- /yourpoodle/bildirimler*
+- shared YPLayout / YPBottomNav
+
+Do NOT reintroduce stubs on Mama Bul / Rehber / AI Asistan.
+
+==================================================
+C) SMALL SHELL POLISH (if still wrong)
+==================================================
+1) Cart button aria-label consistent: prefer “Sepetim” (or one label everywhere)
+2) No leftover off-screen hamburger/drawer DOM on app pages
+3) On AI Asistan desktop/mobile: keep one coherent shell; do not show a second conflicting marketing header on mobile 390
+
+==================================================
+D) MANDATORY SELF-QA (390×844)
+==================================================
+Club:
+1. Open /yourpoodle/club — title correct, shell correct, Club tab active in header
+2. Switch every visible tab — content changes, no alert/yakında
+3. Tap 3 posts/cards/CTAs — real navigation or real inline action
+4. Bottom nav works; no overlap/clipping
+5. Refresh deep link if any hash/query tabs exist — still correct
+
+Regression:
+6. /yourpoodle/mama-bul still works
+7. /yourpoodle/rehber → open one article → Favorile toggles
+8. /yourpoodle/ai-asistan → send one chat message → AI replies; no mic stub; composer clear of bottom nav
+
+Stub scan:
+9. Zero alert() on Club + touched shared layout files
+10. No “yakında” toasts for primary actions
+
+==================================================
+E) DONE CRITERIA
+==================================================
+- Club fully interactive or honestly reduced (no fake buttons)
+- No new/left stubs on scanned routes
+- No regressions on Mama Bul / Rehber / AI Asistan
+- Mobile QA all green
+
+Deploy when done. If any check fails, fix and re-test before finishing.
+```
+
+Özet: Ana üç sayfa tamam; bu prompt sıradaki boşluğu (Club + kalan stub’lar) kapatmak için.
