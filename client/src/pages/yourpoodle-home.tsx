@@ -553,7 +553,7 @@ export default function YourPoodleHomePage() {
                    scrollbarWidth:"none", WebkitOverflowScrolling:"touch" as any }}>
           {navItems.map(n => (
             <a key={n.label} href={n.href}
-              style={{ flex:"none", padding:"12px 14px", fontSize:14, fontWeight:500,
+              style={{ flex:"none", padding:"12px 10px", fontSize:14, fontWeight:500,
                        color:TEXT, textDecoration:"none", whiteSpace:"nowrap",
                        minHeight:44, display:"flex", alignItems:"center",
                        borderBottom:"2.5px solid transparent",
@@ -680,18 +680,20 @@ export default function YourPoodleHomePage() {
 
           {(() => {
             /* Use DB articles if available, else show hardcoded fallback cards */
+            /* Fallback cards → specific deep-link destinations:
+               - Tuvalet Eğitimi  → /yourpoodle/rehber#section-egitim  (Eğitim section, first item)
+               - Mama Seçim       → /yourpoodle/mama-bul                (dedicated tool)
+               - Tüy Bakımı       → /yourpoodle/rehber#section-bakim    (Bakım section, first item) */
             const FALLBACK = [
-              { id: "tuvalet-egitimi",    title: "Tuvalet Eğitimi Nasıl Verilir?",       min_read: 5, emoji: "🐾", img: "/images/poodle-avatar-2.jpg" },
-              { id: "mama-secim-rehberi", title: "Toy Poodle Mama Seçim Rehberi",        min_read: 7, emoji: "🍗", img: "/images/poodle-avatar-3.jpg" },
-              { id: "tuy-bakimi",         title: "Tüy Bakımı: Tarak ve Şampuan",         min_read: 4, emoji: "✂️", img: "/images/poodle-avatar-4.jpg" },
+              { id: "tuvalet-egitimi",    title: "Tuvalet Eğitimi Nasıl Verilir?",  min_read: 5, emoji: "🐾", img: "/images/poodle-avatar-2.jpg", href: "/yourpoodle/rehber#section-egitim" },
+              { id: "mama-secim-rehberi", title: "Toy Poodle Mama Seçim Rehberi",   min_read: 7, emoji: "🍗", img: "/images/poodle-avatar-3.jpg", href: "/yourpoodle/mama-bul" },
+              { id: "tuy-bakimi",         title: "Tüy Bakımı: Tarak ve Şampuan",    min_read: 4, emoji: "✂️", img: "/images/poodle-avatar-4.jpg", href: "/yourpoodle/rehber#section-bakim" },
             ];
             const useDB     = articles.length > 0;
             const featured  = useDB ? (featuredArticle || articles[0]) : null;
             const listItems = useDB
               ? (listArticles.length > 0 ? listArticles : articles.slice(0, 3))
               : FALLBACK;
-            const goArticle = (id: string | number) =>
-              useDB ? nav(`/yourpoodle/rehber/${id}`) : nav("/yourpoodle/rehber");
 
             return (
               <div style={{ display:"flex", gap:12 }}>
@@ -709,7 +711,7 @@ export default function YourPoodleHomePage() {
                 <div style={{ flex:1, display:"flex", flexDirection:"column", gap:0 }}>
                   {listItems.map((g: any, i: number, arr: any[]) => (
                     <a key={g.id}
-                      href={useDB ? `/yourpoodle/rehber/${g.id}` : "/yourpoodle/rehber"}
+                      href={useDB ? `/yourpoodle/rehber/${g.id}` : (g.href || "/yourpoodle/rehber")}
                       style={{ display:"flex", gap:10, alignItems:"center",
                                padding:"11px 0", cursor:"pointer", textDecoration:"none",
                                borderBottom: i < arr.length - 1 ? `1px solid ${BORDER}` : "none",

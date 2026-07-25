@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronRight, Search, SlidersHorizontal, Heart, Brush, GraduationCap, Calculator } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 
@@ -112,6 +112,18 @@ function SectionCard({ section }: { section: GuideSection }) {
 export default function YPRehberPage({ routeSlug: _routeSlug }: { routeSlug?: string }) {
   const [search, setSearch] = useState("");
   const [showToast, setShowToast] = useState<string|null>(null);
+
+  /* Scroll to hash anchor when navigating from homepage guide cards */
+  useEffect(() => {
+    const hash = window.location.hash; // e.g. "#section-egitim"
+    if (!hash) return;
+    // Wait for render then scroll
+    const timer = setTimeout(() => {
+      const el = document.querySelector(hash);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   const filtered = search.trim() === ""
     ? SECTIONS

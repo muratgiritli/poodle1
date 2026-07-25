@@ -358,79 +358,86 @@ export default function YPLayout({
         borderBottom: "1px solid #F3F4F6",
         alignItems: "center",
         justifyContent: authMode ? "center" : "space-between",
-        padding: "8px 12px",
-        height: 58,
+        padding: "0 12px",
+        height: 60,
+        boxSizing: "border-box",
       }}>
         {authMode ? (
           <Link href={BASE || "/"}>
             <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 34, width: "auto", objectFit: "contain", cursor: "pointer" }} />
           </Link>
         ) : (
-          <div style={{
-            width: "100%", display: "flex", alignItems: "center",
-            justifyContent: "space-between",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <button onClick={() => setDrawerOpen(true)}
-                style={{ background: "#F3F4F6", border: "none", cursor: "pointer", padding: "6px 9px", fontSize: 18, color: "#374151", borderRadius: 10, lineHeight: 1 }}>
-                ☰
+          <div style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            {/* Left: hamburger (drawer access) + logo */}
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <button onClick={() => setDrawerOpen(true)} aria-label="Menü"
+                style={{ width: 40, height: 40, background: "none", border: "none", cursor: "pointer",
+                         display: "flex", alignItems: "center", justifyContent: "center",
+                         borderRadius: 8, color: "#374151", flexShrink: 0 }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <line x1="3" y1="6"  x2="21" y2="6"/>
+                  <line x1="3" y1="12" x2="21" y2="12"/>
+                  <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
               </button>
               <Link href={BASE || "/"}>
-                <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 34, width: "auto", objectFit: "contain", cursor: "pointer" }} />
+                <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle"
+                  style={{ height: 34, width: "auto", objectFit: "contain", cursor: "pointer" }} />
               </Link>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <button onClick={() => navigate(`${BASE}/sepet`)}
-                style={{ position: "relative", width: 38, height: 38, borderRadius: "50%", border: "1.5px solid #E5E7EB", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-                <ShoppingCart size={18} color="#7022C4" strokeWidth={2} />
+
+            {/* Right: search · account · cart — same icon cluster as homepage */}
+            <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+              {/* Search */}
+              <button onClick={() => navigate(`${BASE}/ara`)} aria-label="Ürün ara"
+                style={{ width: 44, height: 44, background: "none", border: "none", cursor: "pointer",
+                         display: "flex", alignItems: "center", justifyContent: "center",
+                         borderRadius: 8, color: "#374151" }}>
+                <Search size={20} strokeWidth={2} />
+              </button>
+              {/* Account */}
+              <button onClick={() => navigate(isLoggedIn ? "/hesabim" : `${BASE}/giris`)}
+                aria-label={isLoggedIn ? "Profilim" : "Giriş yap"}
+                style={{ width: 44, height: 44, background: "none", border: "none", cursor: "pointer",
+                         display: "flex", alignItems: "center", justifyContent: "center",
+                         borderRadius: 8, color: isLoggedIn ? "#7C3AED" : "#374151",
+                         gap: 4 }}>
+                {isLoggedIn ? (
+                  <div style={{ width: 26, height: 26, borderRadius: "50%",
+                                background: "linear-gradient(135deg,#7022C4,#A855F7)",
+                                display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: "#fff" }}>
+                      {initials || "🐾"}
+                    </span>
+                  </div>
+                ) : (
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                )}
+              </button>
+              {/* Cart */}
+              <button onClick={() => navigate(`${BASE}/sepet`)} aria-label="Sepetim"
+                style={{ width: 44, height: 44, background: "none", border: "none", cursor: "pointer",
+                         display: "flex", alignItems: "center", justifyContent: "center",
+                         borderRadius: 8, color: "#374151", position: "relative" }}>
+                <ShoppingCart size={20} strokeWidth={2} />
                 {cartCount > 0 && (
-                  <span style={{ position: "absolute", top: -3, right: -3, background: "#7022C4", color: "#fff", fontSize: 9, fontWeight: 800, width: 17, height: 17, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #fff" }}>
+                  <span style={{ position: "absolute", top: 6, right: 6,
+                                 background: "#7C3AED", color: "#fff",
+                                 fontSize: 9, fontWeight: 900,
+                                 width: 16, height: 16, borderRadius: "50%",
+                                 display: "flex", alignItems: "center", justifyContent: "center",
+                                 border: "1.5px solid #fff" }}>
                     {cartCount > 9 ? "9+" : cartCount}
                   </span>
                 )}
-              </button>
-              <button onClick={() => navigate(isLoggedIn ? "/hesabim" : `${BASE}/giris`)}
-                style={{ padding: "7px 14px", borderRadius: 20, border: "none", background: "#7022C4", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
-                {isLoggedIn ? "Hesabım" : "Giriş"}
               </button>
             </div>
           </div>
         )}
       </header>
-
-      {/* ════════════ MOBILE CATEGORY STRIP ════════════ */}
-      {!authMode && (
-        <div className="yp-mobile-cat-strip" style={{
-          display: "flex", gap: 6,
-          padding: "7px 10px", background: "#fff",
-          borderBottom: "1px solid #F3F4F6",
-          position: "sticky", top: 58, zIndex: 99,
-        }}>
-          {([
-            { label: "Mağaza",     href: `${BASE}/magaza`,      emoji: "🛍️" },
-            { label: "Club",       href: `${BASE}/club`,         emoji: "🐾" },
-            { label: "AI Asistan", href: `${BASE}/ai-asistan`,   emoji: "🤖" },
-            { label: "Rehber",     href: `${BASE}/rehber`,       emoji: "📖" },
-          ] as const).map(({ label, href, emoji }) => {
-            const active = isActive(effectiveBottomLink, href);
-            return (
-              <button key={href} onClick={() => navigate(href)}
-                style={{
-                  flex: 1, minWidth: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
-                  padding: "5px 4px", borderRadius: 18, border: "1.5px solid",
-                  borderColor: active ? "#7C3AED" : "#E5E7EB",
-                  background: active ? "#7C3AED" : "#fff",
-                  color: active ? "#fff" : "#555",
-                  fontSize: 11.5, fontWeight: 700, cursor: "pointer",
-                  fontFamily: "inherit", whiteSpace: "nowrap", overflow: "hidden",
-                }}>
-                <span style={{ fontSize: 13, flexShrink: 0 }}>{emoji}</span>
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
 
       {/* ════════════ PAGE CONTENT ════════════ */}
       <div className="yp-page-body">

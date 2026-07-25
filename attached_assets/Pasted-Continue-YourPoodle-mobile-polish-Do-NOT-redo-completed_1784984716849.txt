@@ -1,0 +1,59 @@
+Continue YourPoodle mobile polish. Do NOT redo completed work:
+- unified bottom nav (Ana Sayfa · Mama Bul · Sepet · Rehber · Club)
+- restored homepage guide cards
+- AI 7/24 CTA linked to /yourpoodle/ai-asistan
+- Tümünü Gör 44px tap target
+- footer/legal/nav route wiring
+
+Focus ONLY on the remaining weak points below.
+
+## Remaining work
+
+### 1) Unify the HEADER / top shell (highest priority)
+Bottom nav is now consistent, but the top shell is still split:
+
+- Homepage `/`: search / account / cart icons + category tabs
+- App routes `/yourpoodle/*`: hamburger + “Giriş” + chip nav (Mağaza / Club / AI Asistan / Rehber)
+
+Fix this so homepage and app pages share ONE consistent mobile top shell as well (same header pattern, same controls, same visual language).
+
+Requirements:
+- One mobile header system across `/` and `/yourpoodle/*`
+- Avoid duplicate competing nav patterns (do not keep both homepage icon-header and old app hamburger/chip header unless intentionally complementary and clear)
+- Keep sticky header from covering CTAs
+- Preserve already-working bottom nav exactly as-is
+
+### 2) Deep-link homepage guide cards
+Homepage guide cards are restored and clickable, but all three currently go to the same route:
+`/yourpoodle/rehber`
+
+Wire each card to a specific guide destination when possible:
+- Tuvalet Eğitimi Nasıl Verilir?
+- Toy Poodle Mama Seçim Rehberi
+- Tüy Bakımı: Tarak ve Şampuan
+
+Rules:
+- If dedicated article routes/slugs already exist, use them.
+- If not, create/use the closest real section deep-link on the rehber page (hash/query/category) so each card opens the relevant content, not just the generic index.
+- Keep “Tüm Rehberi Keşfet” pointing to `/yourpoodle/rehber`.
+
+### 3) Fix top-nav “Club” edge clipping
+At ~390px width, “Club” still slightly overflows (`right ≈ 395`).
+Ensure all top-nav labels fully fit with no clipping.
+Acceptable solutions:
+- slightly tighter spacing
+- slightly smaller label padding
+- wrap/scroll with clear affordance
+But no cut-off text.
+
+## Acceptance criteria (390x844)
+- Homepage and `/yourpoodle/*` use the same mobile header/top shell pattern
+- Homepage guide cards open distinct relevant destinations (not all generic `/yourpoodle/rehber` unless no better route exists; if fallback is required, document why)
+- Top nav labels including “Club” are fully visible at 390px
+- No regressions to bottom nav, footer links, AI CTA, or legal pages
+
+## Working rules
+- Inspect existing header/layout components first and reuse them
+- Keep Turkish UI copy
+- Smallest complete fix set
+- When done, report exactly what changed and which guide-card destinations were used
