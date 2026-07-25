@@ -1,23 +1,93 @@
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRoute, useLocation } from "wouter";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { ChevronRight, Clock, Eye, Heart, Share2 } from "lucide-react";
 import { getArticle, MOCK_ARTICLES } from "@/data/articles";
 import { MOCK_SEARCH_PRODUCTS } from "@/data/searchResults";
 import { IS_YP } from "@/lib/store";
+import { useToast } from "@/hooks/use-toast";
 
 const P = "#7022C4";
 const BASE = IS_YP ? "" : "/yourpoodle";
+const FAV_KEY = "yp_rehber_favorites";
+
+function getFavorites(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(FAV_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
+function setFavorites(favs: string[]) {
+  localStorage.setItem(FAV_KEY, JSON.stringify(favs));
+}
 
 export default function YPRehberMakalePage() {
   const [, paramsA] = useRoute("/rehber/:category/:slug");
   const [, paramsB] = useRoute("/yourpoodle/rehber/:category/:slug");
   const [, navigate] = useLocation();
+  const { toast } = useToast();
   const params = paramsA ?? paramsB;
   const slug = params?.slug ?? "toy-poodle-tuvalet-egitimi";
   const article = getArticle(slug) ?? MOCK_ARTICLES[0];
 
-  useEffect(() => { document.title = `${article.title} | YourPoodle Rehber`; }, [article.title]);
+  const [isFavorited, setIsFavorited] = useState<boolean>(() =>
+    getFavorites().includes(slug)
+  );
+
+  // Sync favorited state when slug changes (navigation between articles)
+  useEffect(() => {
+    setIsFavorited(getFavorites().includes(slug));
+  }, [slug]);
+
+  useEffect(() => {
+    document.title = `${article.title} | YourPoodle Rehber`;
+  }, [article.title]);
+
+  const handleFavorile = useCallback(() => {
+    const favs = getFavorites();
+    let next: string[];
+    let nowFav: boolean;
+    if (favs.includes(slug)) {
+      next = favs.filter((s) => s !== slug);
+      nowFav = false;
+    } else {
+      next = [...favs, slug];
+      nowFav = true;
+    }
+    setFavorites(next);
+    setIsFavorited(nowFav);
+    toast({
+      title: nowFav ? "Favorilere eklendi ❤️" : "Favorilerden çıkarıldı",
+      duration: 2000,
+    });
+  }, [slug, toast]);
+
+  const handlePaylas = useCallback(async () => {
+    const url = window.location.href;
+    const shareData = {
+      title: article.title,
+      text: article.title,
+      url,
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err: any) {
+        // User cancelled — fail silently
+        if (err?.name === "AbortError") return;
+        // Unexpected error — fall through to clipboard
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        toast({ title: "Link kopyalandı", duration: 2000 });
+      } catch {
+        // Clipboard denied — best-effort silent fail
+      }
+    }
+  }, [article.title, toast]);
 
   return (
     <YPLayout activeLink={`${BASE}/rehber`} constrain={false}>
@@ -109,13 +179,72 @@ export default function YPRehberMakalePage() {
           </div>
         </div>
 
-        {/* Mobile sticky bar */}
-        <div style={{ position: "fixed", bottom: 64, left: 0, right: 0, background: "#fff", borderTop: "1px solid #F3F4F6", padding: "12px 20px", display: "flex", gap: 10, zIndex: 40 }}
-          className="lg:hidden">
-          <button style={{ flex: 1, height: 44, borderRadius: 12, border: "1.5px solid #E5E7EB", background: "#fff", color: "#374151", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-            <Heart size={16} /> Favorile
+        {/* Mobile sticky bar — sits above bottom nav (60 px) + safe-area */}
+        <div
+          style={{
+            position: "fixed",
+            bottom: "calc(60px + env(safe-area-inset-bottom, 0px))",
+            left: 0,
+            right: 0,
+            background: "#fff",
+            borderTop: "1px solid #F3F4F6",
+            padding: "12px 20px",
+            display: "flex",
+            gap: 10,
+            zIndex: 210,
+          }}
+          className="lg:hidden"
+        >
+          {/* Favorile */}
+          <button
+            aria-pressed={isFavorited}
+            onClick={handleFavorile}
+            style={{
+              flex: 1,
+              height: 44,
+              borderRadius: 12,
+              border: isFavorited ? `1.5px solid ${P}` : "1.5px solid #E5E7EB",
+              background: isFavorited ? "#F5F0FF" : "#fff",
+              color: isFavorited ? P : "#374151",
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "inherit",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+              transition: "background 0.15s, border-color 0.15s, color 0.15s",
+            }}
+          >
+            <Heart
+              size={16}
+              fill={isFavorited ? P : "none"}
+              color={isFavorited ? P : "#374151"}
+            />
+            {isFavorited ? "Favorilerde" : "Favorile"}
           </button>
-          <button style={{ flex: 1, height: 44, borderRadius: 12, border: "none", background: P, color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+
+          {/* Paylaş */}
+          <button
+            onClick={handlePaylas}
+            style={{
+              flex: 1,
+              height: 44,
+              borderRadius: 12,
+              border: "none",
+              background: P,
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "inherit",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+            }}
+          >
             <Share2 size={16} /> Paylaş
           </button>
         </div>

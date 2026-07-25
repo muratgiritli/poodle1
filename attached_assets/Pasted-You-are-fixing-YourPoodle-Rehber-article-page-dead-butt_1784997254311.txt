@@ -1,0 +1,60 @@
+You are fixing YourPoodle Rehber article page dead buttons. Do this in ONE pass. No stubs, no alert(), no “coming soon”. Do not stop until every acceptance check below passes on mobile 390×844.
+
+## Scope (ONLY these)
+Article page: `/yourpoodle/rehber/:category/:slug`
+(example: `/yourpoodle/rehber/saglik/asi-takvimi`)
+
+Fixed bottom bar buttons (mobile):
+1) Favorile
+2) Paylaş
+
+Do NOT redesign the Rehber list page. Do NOT change article body content. Do NOT reintroduce Filtre stubs.
+
+## Current bug
+Favorile and Paylaş render but have NO onClick handlers. They must work.
+
+## Required behavior
+
+### 1) Favorile
+- On click: toggle favorite state for the current article (slug as id).
+- Persist in localStorage key: `yp_rehber_favorites` (JSON array of slug strings).
+- Visual feedback:
+  - Not favorited: outline heart + “Favorile”
+  - Favorited: filled heart + “Favorilerde” (or keep label “Favorile” but filled/active style)
+- Toast or brief inline confirmation is OK (no alert).
+- If a favorites system already exists in the app, reuse it instead of inventing a second store.
+- Button must be keyboard accessible (real <button>, aria-pressed reflecting state).
+
+### 2) Paylaş
+- On click:
+  1. If `navigator.share` is available, call it with:
+     - title = article title
+     - text = short description or title
+     - url = current absolute URL
+  2. Else fallback: copy current URL to clipboard, then show a non-blocking toast: “Link kopyalandı”.
+- Never use alert().
+- If share is cancelled by user, fail silently (no error toast).
+
+## Constraints
+- Keep existing layout, colors, bottom bar position (above bottom nav, not covered by it).
+- Safe-area aware: do not collide with bottom nav.
+- Works on iOS Safari + Chrome Android patterns (share / clipboard).
+- No TypeScript/build errors.
+- No dead onClick-less buttons left on this bar.
+
+## Mandatory self-QA (390×844) — do not end if any fail
+1. Open `/yourpoodle/rehber/saglik/asi-takvimi`
+2. Tap Favorile → state becomes favorited (visual change) and survives page refresh
+3. Tap Favorile again → unfavorites
+4. Tap Paylaş → native share sheet OR “Link kopyalandı” toast with URL in clipboard
+5. Confirm no alert() anywhere
+6. Confirm bottom bar still sits above bottom nav and does not cover content CTAs awkwardly
+7. Repeat on one more article: `/yourpoodle/rehber/egitim/toy-poodle-tuvalet-egitimi`
+
+## Done criteria
+- Favorile persists + toggles
+- Paylaş shares or copies
+- Zero alert stubs
+- Mobile QA checklist all green
+
+Deploy when done.
