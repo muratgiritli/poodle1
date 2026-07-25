@@ -370,7 +370,12 @@ function Router() {
         <Route path="/club/gonderi/:postId"  component={YPGonderiDetayPage} />
         <Route path="/club/profil/:username" component={YPProfilPage} />
         <Route path="/club/hakkimizda"       component={YPClubHakkimizdaPage} />
+        <Route path="/club/mesajlar"         component={YPClubMesajlarPage} />
+        <Route path="/club/kesfet"           component={YPClubKesfetPage} />
+        <Route path="/club/kopekler"         component={YPClubKopeklerPage} />
         <Route path="/club"                  component={YPClubPage} />
+        {/* Bildirimler */}
+        <Route path="/bildirimler"           component={YPBildirimlerPage} />
         {/* Rehber */}
         <Route path="/rehber/:category/:slug" component={YPRehberMakalePage} />
         <Route path="/rehber/:slug">

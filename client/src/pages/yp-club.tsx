@@ -15,13 +15,13 @@ const GB = "#E5E7EB";
 
 /* ── Stories data ── */
 const LOCAL = "/images/yp-poodle-hero.png";
-interface Story { id: number; name: string; img: string; filter: string; isMe: boolean; }
+interface Story { id: number; name: string; img: string; filter: string; isMe: boolean; genitive: string; }
 const STORIES: Story[] = [
-  { id: 1, name: "Mia",    img: LOCAL, filter: "none",                              isMe: true  },
-  { id: 2, name: "Tarçın", img: LOCAL, filter: "hue-rotate(20deg) saturate(1.2)",  isMe: false },
-  { id: 3, name: "Loki",   img: LOCAL, filter: "grayscale(0.85) brightness(0.65)", isMe: false },
-  { id: 4, name: "Luna",   img: LOCAL, filter: "brightness(1.5) saturate(0.3)",    isMe: false },
-  { id: 5, name: "Badem",  img: LOCAL, filter: "sepia(0.5) hue-rotate(-10deg)",    isMe: false },
+  { id: 1, name: "Mia",    img: LOCAL, filter: "none",                              isMe: true,  genitive: "Mia'nın"    },
+  { id: 2, name: "Tarçın", img: LOCAL, filter: "hue-rotate(20deg) saturate(1.2)",  isMe: false, genitive: "Tarçın'ın"  },
+  { id: 3, name: "Loki",   img: LOCAL, filter: "grayscale(0.85) brightness(0.65)", isMe: false, genitive: "Loki'nin"   },
+  { id: 4, name: "Luna",   img: LOCAL, filter: "brightness(1.5) saturate(0.3)",    isMe: false, genitive: "Luna'nın"   },
+  { id: 5, name: "Badem",  img: LOCAL, filter: "sepia(0.5) hue-rotate(-10deg)",    isMe: false, genitive: "Badem'in"   },
 ];
 
 const STORY_DURATION = 5000; // ms per story
@@ -83,7 +83,7 @@ function StoryViewer({
   return (
     <div
       role="dialog"
-      aria-label={`${story.name}'ın hikayesi`}
+      aria-label={story.isMe ? "Kendi hikayen" : `${story.genitive} hikayesi`}
       style={{
         position: "fixed", inset: 0, zIndex: 2000,
         background: "#000", display: "flex", flexDirection: "column",
@@ -620,7 +620,7 @@ export default function YPClubPage() {
             <div key={story.id}
               role="button"
               tabIndex={0}
-              aria-label={story.isMe ? "Kendi hikayen" : `${story.name}'ın hikayesi`}
+              aria-label={story.isMe ? "Kendi hikayen" : `${story.genitive} hikayesi`}
               style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer", flexShrink: 0, minWidth: 62 }}
               onClick={() => setStoryIdx(i)}
               onKeyDown={e => e.key === "Enter" && setStoryIdx(i)}>

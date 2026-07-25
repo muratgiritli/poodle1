@@ -11,7 +11,7 @@ export default function YPClubMesajlarPage() {
   useEffect(() => { document.title = "Mesajlar | YourPoodle Club"; }, []);
 
   return (
-    <YPLayout activeLink={`${BASE}/club`} constrain={false}>
+    <YPLayout activeLink={`${BASE}/club`} constrain={false} hideFooter>
       <div style={{ maxWidth: 600, margin: "0 auto", minHeight: "100vh", background: "#FAFAFA", fontFamily: "Inter,sans-serif" }}>
 
         {/* Header */}
@@ -23,13 +23,13 @@ export default function YPClubMesajlarPage() {
           <button
             aria-label="Geri"
             onClick={() => navigate(`${BASE}/club`)}
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#6200EE", display: "flex" }}>
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#6200EE", display: "flex", minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}>
             <ChevronLeft size={22} />
           </button>
           <h1 style={{ fontSize: 17, fontWeight: 900, color: "#1a1a1a", margin: 0, flex: 1 }}>Mesajlar</h1>
         </div>
 
-        {/* Empty state — messaging backend not yet live */}
+        {/* Empty state */}
         <div style={{
           display: "flex", flexDirection: "column", alignItems: "center",
           justifyContent: "center", padding: "80px 32px", textAlign: "center",
@@ -46,7 +46,7 @@ export default function YPClubMesajlarPage() {
             Henüz mesaj yok
           </div>
           <p style={{ fontSize: 14, color: "#9CA3AF", lineHeight: 1.6, maxWidth: 260, margin: "0 auto 28px" }}>
-            Takip ettiğiniz Poodle sahipleriyle mesajlaşma özelliği yakında aktif olacak.
+            Takip ettiğiniz Poodle sahiplerini Keşfet sekmesinde bulabilir ve sohbet başlatabilirsiniz.
           </p>
           <button
             onClick={() => navigate(`${BASE}/club`)}

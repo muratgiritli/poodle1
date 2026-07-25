@@ -1,0 +1,113 @@
+```text
+You are doing a FINAL ONE-PASS hardening of YourPoodle Club so this page has ZERO broken actions, ZERO 404s, ZERO stubs, ZERO “yakında” placeholders for primary UI.
+
+Primary URL: https://www.yourpoodle.com/yourpoodle/club
+Mobile QA: 390×844
+
+Do not stop until every acceptance check is green.
+Do NOT regress Mama Bul / Rehber / AI Asistan.
+
+==================================================
+A) CURRENT VERIFIED STATE
+==================================================
+ALREADY WORKING (preserve):
+- App shell + Club active tab
+- document.title = "Club | YourPoodle"
+- hideFooter on feed
+- Story fullscreen viewer (progress, prev/next, close) — NO toast stub
+- Yakınımdakiler nearby filter works
+- ⋯ menu: Takibi Bırak / Bağlantıyı Kopyala / Şikayet Et / İptal
+- Like / Save / Share(copy) / Follow / comment input
+
+STILL BROKEN (must fix):
+1) CRITICAL PATH BUG — Mesajlar button navigates to:
+   https://www.yourpoodle.com/club/mesajlar  → 404
+   Correct page EXISTS at:
+   https://www.yourpoodle.com/yourpoodle/club/mesajlar
+   Root cause: base helper like `const C = flag ? "" : "/yourpoodle"` drops `/yourpoodle` while the live app is under `/yourpoodle`.
+2) Same base-path risk on Bildirimler / Benim Poodle’ım / Club’a Dön / any Club-internal links — audit ALL navigations from Club.
+3) Mesajlar empty copy still says “yakında aktif olacak” — not allowed for this pass. Use honest empty state only: “Henüz mesaj yok” + short helper text WITHOUT “yakında/coming soon”.
+4) Polish: story aria labels like “Loki'ın” → correct Turkish (“Loki'nin”) if easy.
+
+==================================================
+B) MANDATORY FIXES
+==================================================
+
+### 1) Fix ALL YourPoodle base paths (CRITICAL)
+Create / reuse ONE path helper used everywhere in Club + Mesajlar:
+- Always produce absolute app paths under `/yourpoodle/...` on production yourpoodle.com
+- Never navigate to bare `/club/...`, `/bildirimler`, `/benim-poodleim` without the correct prefix when the SPA is mounted at `/yourpoodle`
+- Verify by clicking (not only by route registration):
+  - Mesajlar → `/yourpoodle/club/mesajlar` (200, real page, NOT 404)
+  - Bildirimler → real notifications page (NOT 404)
+  - Benim Poodle’ım → real profile page (NOT 404)
+  - Club’a Dön from Mesajlar → `/yourpoodle/club`
+  - Keşfet / any secondary Club routes → no 404
+
+Also register BOTH path variants OR force all links through the helper — but end result must be: zero 404 from Club header icons.
+
+### 2) Mesajlar page complete
+`/yourpoodle/club/mesajlar` must:
+- Set `document.title = "Mesajlar | YourPoodle Club"` (already OK if present)
+- Use same app shell (header + bottom nav), Club highlighted
+- Show real inbox empty state:
+  Title: “Henüz mesaj yok”
+  Body: clear honest text WITHOUT “yakında / coming soon”
+  CTA: “Club’a Dön” → `/yourpoodle/club`
+- Prefer hideFooter on this page too (no giant marketing footer under empty inbox)
+- Composer/content clear of bottom nav (safe-area)
+
+If you keep sample conversations for demo, they must open a real thread UI (not toast). Otherwise keep empty state only.
+
+### 3) Club feed completeness checklist
+Ensure every visible control works:
+- Stories: viewer works; “Hikayen / +” either opens create/story flow OR viewer for own story — never toast-only
+- Tabs:
+  - Keşfet → all posts
+  - Takip Ettiklerim → following only (empty state if none)
+  - Yakınımdakiler → nearby only (empty state if none)
+- Post actions: Like, Comment focus, Share(copy), Save
+- Follow toggle on card
+- ⋯ menu all 4 actions work
+- No dead buttons, no alert(), no “yakında” toasts
+
+### 4) Accessibility / mobile
+- 44×44 tap targets for header icons
+- aria-labels on story buttons, Mesajlar, Bildirimler, menu actions
+- No overlap of bottom sheets / story viewer with bottom nav
+- No horizontal clipping at 390×844
+
+==================================================
+C) OUT OF SCOPE
+==================================================
+- Do not rebuild the whole social backend
+- Do not change Mama Bul / Rehber / AI Asistan behavior
+- Do not leave temporary stubs “for later”
+
+==================================================
+D) MANDATORY SELF-QA (390×844) — FAIL = NOT DONE
+==================================================
+1. Open `/yourpoodle/club`
+2. Tap Mesajlar → URL must be `/yourpoodle/club/mesajlar` → page loads, NOT 404
+3. From Mesajlar tap Club’a Dön → back to Club feed
+4. Tap Bildirimler → not 404
+5. Tap Benim Poodle’ım → not 404
+6. Open a story → viewer → next/prev → close
+7. Switch Keşfet / Takip / Yakınımdakiler → content differs correctly
+8. Open ⋯ → all actions work (unfollow/copy/report/cancel)
+9. Like + Save still toggle
+10. Page source/bundle: zero `alert(`, zero primary-action “yakında” toasts
+11. Hard refresh `/yourpoodle/club/mesajlar` directly → still works
+12. Regression: `/yourpoodle/ai-asistan` and `/yourpoodle/rehber` still load
+
+==================================================
+E) DONE CRITERIA
+==================================================
+- Zero 404 from Club header icons
+- Mesajlar path always includes correct `/yourpoodle` base
+- No stubs / no yakında placeholders on Club primary UI
+- All visible Club controls functional
+- Mobile QA checklist 100% green
+
+Deploy only after all checks pass. If any check fails, fix and re-test before finishing.
+```
