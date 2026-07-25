@@ -1,0 +1,110 @@
+```text
+You are fixing YourPoodle login page end-to-end in ONE pass.
+URL: https://www.yourpoodle.com/yourpoodle/giris
+Mobile: 390×844
+
+No stubs. No alert(). No “yakında / coming soon”.
+Do not stop until every acceptance check is green.
+Do NOT break the working SMS OTP flow (`POST /api/otp/send` + OTP verify + trusted device if present).
+
+==================================================
+A) VERIFIED CURRENT STATE
+==================================================
+KEEP WORKING:
+- Passwordless SMS login UI: phone input + “SMS Kodu Gönder”
+- OTP step (“Doğrula ve Devam Et”, resend timer)
+- API `/api/otp/send`
+- authMode layout intent
+- Terms / KVKK / Privacy text present
+
+BUGS TO FIX:
+1) document.title NOT set on client → stays homepage title
+   (“Toy Poodle Rehberi, Bakımı ve Mama Seçimi | YourPoodle”)
+   SSR title is “Giriş Yap | YourPoodle” — client must match.
+2) Giant marketing footer still shows on auth page (authMode does not hide it).
+3) Top promo banner (“Yeni üyelere 100 TL…”) still shows — clutter on auth.
+4) Terms / marketing checkboxes appear `readonly` in accessibility tree — must be real toggles.
+5) Legal link navigations use bare paths:
+   `/kullanim-sartlari`, `/gizlilik-politikasi`
+   Must use correct YourPoodle base paths (same helper pattern as Club dual-routes OR always `/yourpoodle/...`).
+6) “Destek Al” must go to a real support destination (e.g. `/yourpoodle/sss` or `/yourpoodle/iletisim` or existing help route) — never dead / 404 / alert.
+
+==================================================
+B) REQUIRED FIXES
+==================================================
+
+### 1) Title + SEO
+On mount:
+`document.title = "Giriş Yap | YourPoodle"`
+Keep/ensure meta description matches login purpose.
+
+### 2) Auth shell cleanup (CRITICAL)
+On `/yourpoodle/giris` (and preferably `/yourpoodle/uye-ol` if same component):
+- `hideFooter: true` (or authMode must hide marketing footer completely)
+- Hide top promo/welcome bonus banner
+- Prefer minimal auth chrome: logo + form card only (no store category noise)
+- No bottom-nav collision with CTA (if bottom nav remains, ensure padding; preferred: hide bottom nav on auth screens)
+- Safe-area aware on iOS
+
+### 3) Checkboxes must be real controls
+- Terms checkbox: required, toggleable (not readonly), keyboard accessible
+- Optional marketing SMS checkbox: toggleable
+- “SMS Kodu Gönder” must be disabled until:
+  - valid TR mobile phone entered
+  - required terms checkbox checked
+- Show clear inline validation (no alert)
+
+### 4) Legal links
+Inline links for:
+- Üyelik Sözleşmesi
+- KVKK Aydınlatma Metni
+- Gizlilik Politikası
+Must navigate to real pages under correct base, e.g.:
+- `/yourpoodle/kullanim-sartlari`
+- `/yourpoodle/gizlilik-politikasi`
+(and KVKK page if separate)
+Open in same app router (or new tab if product prefers) — never 404.
+
+### 5) Destek Al
+Wire to a real route that exists (pick one that already works in the app):
+- Prefer `/yourpoodle/sss` or `/yourpoodle/iletisim` or hesabim yardım
+Confirm no 404.
+
+### 6) Path consistency
+All navigations from this page (legal, destek, post-login redirect to profil) must not 404.
+Register dual routes if needed (`/giris` + `/yourpoodle/giris`) but canonical UX should stay under `/yourpoodle/giris`.
+
+==================================================
+C) OUT OF SCOPE
+==================================================
+- Do not redesign OTP backend
+- Do not add Google/Apple social unless already partially implemented
+- Do not regress Club / Rehber / AI / Mama Bul
+
+==================================================
+D) MANDATORY SELF-QA (390×844)
+==================================================
+1. Open `/yourpoodle/giris`
+2. document.title is “Giriş Yap | YourPoodle”
+3. No marketing footer, no promo banner
+4. Phone empty + terms unchecked → SMS button disabled
+5. Enter invalid phone → validation message, no alert
+6. Check terms (checkbox toggles) + valid phone → SMS button enabled
+7. Tap Üyelik Sözleşmesi / Gizlilik → real pages (not 404)
+8. Tap Destek Al → real page (not 404)
+9. OTP API still reachable (empty body still returns expected validation error, not crash)
+10. No alert() / no “yakında” in giris bundle
+11. Hard refresh page still clean
+
+==================================================
+E) DONE CRITERIA
+==================================================
+- Correct title
+- Clean auth shell (no footer/banner clutter)
+- Real checkbox UX + gated SMS CTA
+- Legal + Destek links work
+- OTP flow intact
+- Mobile QA all green
+
+Deploy only after all checks pass. If any fail, fix and re-test before finishing.
+```

@@ -2,10 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useCustomer } from "@/contexts/CustomerContext";
 import { apiRequest } from "@/lib/queryClient";
+import { IS_YP } from "@/lib/store";
 import {
   ShieldCheck, MessageSquare, Lock, CheckCircle, Zap, Key,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+
+const BASE = IS_YP ? "" : "/yourpoodle";
 
 /* ── Design tokens ── */
 const P      = "#4B2BD6";
@@ -27,6 +30,11 @@ function maskPhone(raw: string) {
   const d = raw.replace(/\D/g, "");
   if (d.length < 2) return "+90 " + d;
   return `+90 ${d.slice(0,3)} *** ** ${d.slice(-2)}`;
+}
+
+function validPhone(raw: string) {
+  const d = raw.replace(/\D/g, "");
+  return d.startsWith("5") && d.length === 10;
 }
 
 /* ── Toast ── */
@@ -57,14 +65,18 @@ export default function YPGirisPage() {
   const [marketingAccepted, setMarketingAccepted] = useState(false);
   const [loading,           setLoading]           = useState(false);
   const [toast,             setToast]             = useState({ message:"", visible:false });
-  const otpRefs = useRef<(HTMLInputElement|null)[]>([]);
+  const [phoneError,        setPhoneError]        = useState("");
+  const otpRefs   = useRef<(HTMLInputElement|null)[]>([]);
   const verifying = useRef(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout>|null>(null);
+
+  /* Page title */
+  useEffect(() => { document.title = "Giriş Yap | YourPoodle"; }, []);
 
   /* Redirect if already logged in */
   const [returnTo] = useState(() => {
     const p = new URLSearchParams(window.location.search);
-    return p.get("returnTo") || "/yourpoodle/profil";
+    return p.get("returnTo") || `${BASE}/benim-poodleim`;
   });
   useEffect(() => { if (isLoggedIn) navigate(returnTo); }, [isLoggedIn]);
 
@@ -81,19 +93,27 @@ export default function YPGirisPage() {
     toastTimer.current = setTimeout(() => setToast(t => ({ ...t, visible:false })), 3000);
   };
 
-  const fmtCountdown = (s: number) => `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
+  const fmtCountdown = (s: number) =>
+    `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
+
+  /* Computed: can send SMS */
+  const canSend = validPhone(phone) && termsAccepted;
 
   /* Send SMS */
   const sendSMS = async () => {
-    const digits = phone.replace(/\D/g, "");
-    if (!digits.startsWith("5") || digits.length < 10) {
-      showToast("Geçerli bir cep telefonu numarası girin"); return;
+    /* Inline validation instead of alert() */
+    if (!validPhone(phone)) {
+      setPhoneError("Geçerli bir cep telefonu numarası girin (5XX XXX XX XX)");
+      return;
     }
+    setPhoneError("");
     if (!termsAccepted) {
-      showToast("Lütfen sözleşmeleri kabul edin"); return;
+      showToast("Lütfen sözleşmeleri kabul edin");
+      return;
     }
     setLoading(true);
     try {
+      const digits = phone.replace(/\D/g, "");
       let deviceToken: string|undefined;
       try { const t = JSON.parse(localStorage.getItem("jetgo_trusted_devices")||"{}"); deviceToken = t[digits]; } catch {}
       const res  = await apiRequest("POST", "/api/otp/send", { phone: digits, deviceToken });
@@ -170,10 +190,10 @@ export default function YPGirisPage() {
   };
 
   return (
-    <YPLayout activeLink="/yourpoodle/giris" constrain={true} authMode={true}>
+    <YPLayout activeLink={`${BASE}/giris`} constrain={true} authMode={true} hideFooter={true}>
       <Toast message={toast.message} visible={toast.visible} />
 
-      <main style={{ padding:"20px 16px 32px" }}>
+      <main style={{ padding:"20px 16px calc(env(safe-area-inset-bottom,0px) + 32px)" }}>
 
         {/* Auth card */}
         <div style={{ background:"#fff", borderRadius:20, border:`1px solid #F3F4F6`,
@@ -211,7 +231,11 @@ export default function YPGirisPage() {
               <span style={{ fontSize:14, fontWeight:600, color:"#111827" }}>Cep Telefonu Numaranız</span>
             </div>
 
-            <div style={{ display:"flex", border:`1px solid ${GB}`, borderRadius:12, overflow:"hidden", background:"#fff" }}>
+            <div style={{
+              display:"flex", border:`1.5px solid ${phoneError ? "#EF4444" : GB}`,
+              borderRadius:12, overflow:"hidden", background:"#fff",
+              transition:"border-color 0.15s",
+            }}>
               <div style={{ display:"flex", alignItems:"center", gap:6, padding:"0 12px",
                             background:"#F9FAFB", borderRight:`1px solid ${GB}`, flexShrink:0,
                             fontSize:13, fontWeight:600, color:"#374151" }}>
@@ -220,29 +244,57 @@ export default function YPGirisPage() {
               </div>
               <input type="tel" inputMode="numeric" placeholder="5XX XXX XX XX"
                 value={phone}
-                onChange={e => setPhone(fmtPhone(e.target.value))}
+                onChange={e => { setPhone(fmtPhone(e.target.value)); setPhoneError(""); }}
                 onKeyDown={e => { if(e.key==="Enter") { e.preventDefault(); sendSMS(); } }}
                 disabled={step === "otp"}
+                aria-label="Cep telefonu numarası"
+                aria-invalid={!!phoneError}
                 style={{ flex:1, border:"none", outline:"none", padding:"14px 12px",
                          fontSize:15, fontFamily:"inherit", color:"#111827",
                          background: step==="otp" ? "#F9FAFB" : "#fff" }} />
             </div>
-            <p style={{ fontSize:11, color:"#9CA3AF", margin:"6px 0 0", paddingLeft:2 }}>
-              Doğrulama kodu bu numaraya gönderilecektir.
-            </p>
+
+            {/* Inline phone error */}
+            {phoneError && (
+              <p role="alert" style={{ fontSize:12, color:"#EF4444", margin:"5px 0 0", paddingLeft:2, fontWeight:500 }}>
+                {phoneError}
+              </p>
+            )}
+            {!phoneError && (
+              <p style={{ fontSize:11, color:"#9CA3AF", margin:"6px 0 0", paddingLeft:2 }}>
+                Doğrulama kodu bu numaraya gönderilecektir.
+              </p>
+            )}
 
             {step === "phone" && (
-              <button onClick={sendSMS} disabled={loading}
-                style={{ width:"100%", marginTop:14, background:loading?"#7B6BB3":P,
-                         color:"#fff", border:"none", borderRadius:12, padding:"14px 0",
-                         fontSize:15, fontWeight:600, cursor:loading?"not-allowed":"pointer",
-                         display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-                         fontFamily:"inherit", transition:"background 0.15s", opacity:loading?0.75:1 }}
-                onMouseEnter={e=>{ if(!loading) e.currentTarget.style.background=PD; }}
-                onMouseLeave={e=>{ if(!loading) e.currentTarget.style.background=P; }}>
+              <button
+                onClick={sendSMS}
+                disabled={loading || !canSend}
+                aria-disabled={loading || !canSend}
+                style={{
+                  width:"100%", marginTop:14,
+                  background: (loading || !canSend) ? "#C4B5FD" : P,
+                  color:"#fff", border:"none", borderRadius:12, padding:"14px 0",
+                  fontSize:15, fontWeight:600,
+                  cursor: (loading || !canSend) ? "not-allowed" : "pointer",
+                  display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+                  fontFamily:"inherit", transition:"background 0.15s",
+                  opacity: (loading || !canSend) ? 0.75 : 1,
+                }}
+                onMouseEnter={e=>{ if(!loading && canSend) e.currentTarget.style.background=PD; }}
+                onMouseLeave={e=>{ if(!loading && canSend) e.currentTarget.style.background=P; }}>
                 <MessageSquare size={18} />
                 {loading ? "Gönderiliyor..." : "SMS Kodu Gönder"}
               </button>
+            )}
+
+            {/* Hint: why button is disabled */}
+            {step === "phone" && !canSend && !loading && (
+              <p style={{ fontSize:11, color:"#9CA3AF", textAlign:"center", margin:"8px 0 0" }}>
+                {!validPhone(phone)
+                  ? "Geçerli bir 10 haneli telefon numarası girin"
+                  : "Sözleşmeleri kabul etmeniz gerekiyor"}
+              </p>
             )}
 
             {step === "phone" && (
@@ -281,6 +333,7 @@ export default function YPGirisPage() {
                     ref={el => { otpRefs.current[i] = el; }}
                     type="tel" inputMode="numeric" maxLength={1} value={d}
                     autoComplete={i===0?"one-time-code":"off"}
+                    aria-label={`OTP hanesi ${i+1}`}
                     onChange={e => handleOtpChange(i, e.target.value)}
                     onKeyDown={e => {
                       if(e.key==="Backspace" && !otp[i] && i>0) otpRefs.current[i-1]?.focus();
@@ -330,32 +383,56 @@ export default function YPGirisPage() {
 
           {/* Consent Checkboxes */}
           <div style={{ marginTop:20, display:"flex", flexDirection:"column", gap:12 }}>
+            {/* Terms checkbox — required, real toggle */}
             <label style={{ display:"flex", alignItems:"flex-start", gap:10, cursor:"pointer" }}>
-              <input type="checkbox" checked={termsAccepted}
+              <input
+                type="checkbox"
+                checked={termsAccepted}
                 onChange={e => setTermsAccepted(e.target.checked)}
-                style={{ marginTop:2, flexShrink:0, accentColor:P, width:16, height:16 }} />
+                aria-required="true"
+                aria-label="Üyelik Sözleşmesi, KVKK Aydınlatma Metni ve Gizlilik Politikasını kabul ediyorum"
+                style={{ marginTop:2, flexShrink:0, accentColor:P, width:16, height:16, cursor:"pointer" }}
+              />
               <span style={{ fontSize:12, color:"#4B5563", lineHeight:1.6 }}>
-                <span onClick={e => { e.preventDefault(); navigate("/kullanim-sartlari"); }}
-                  style={{ color:P, fontWeight:600, cursor:"pointer", textDecoration:"underline" }}>
+                <button
+                  type="button"
+                  onClick={e => { e.stopPropagation(); navigate(`${BASE}/kullanim-sartlari`); }}
+                  style={{ background:"none", border:"none", padding:0, color:P, fontWeight:600,
+                           cursor:"pointer", fontSize:"inherit", fontFamily:"inherit",
+                           textDecoration:"underline" }}>
                   Üyelik Sözleşmesi
-                </span>
+                </button>
                 {", "}
-                <span onClick={e => { e.preventDefault(); navigate("/gizlilik-politikasi"); }}
-                  style={{ color:P, fontWeight:600, cursor:"pointer", textDecoration:"underline" }}>
+                <button
+                  type="button"
+                  onClick={e => { e.stopPropagation(); navigate(`${BASE}/gizlilik-politikasi`); }}
+                  style={{ background:"none", border:"none", padding:0, color:P, fontWeight:600,
+                           cursor:"pointer", fontSize:"inherit", fontFamily:"inherit",
+                           textDecoration:"underline" }}>
                   KVKK Aydınlatma Metni
-                </span>
+                </button>
                 {" ve "}
-                <span onClick={e => { e.preventDefault(); navigate("/gizlilik-politikasi"); }}
-                  style={{ color:P, fontWeight:600, cursor:"pointer", textDecoration:"underline" }}>
+                <button
+                  type="button"
+                  onClick={e => { e.stopPropagation(); navigate(`${BASE}/gizlilik-politikasi`); }}
+                  style={{ background:"none", border:"none", padding:0, color:P, fontWeight:600,
+                           cursor:"pointer", fontSize:"inherit", fontFamily:"inherit",
+                           textDecoration:"underline" }}>
                   Gizlilik Politikası
-                </span>
+                </button>
                 {"'nı okudum, kabul ediyorum."}
               </span>
             </label>
+
+            {/* Marketing checkbox — optional, real toggle */}
             <label style={{ display:"flex", alignItems:"flex-start", gap:10, cursor:"pointer" }}>
-              <input type="checkbox" checked={marketingAccepted}
+              <input
+                type="checkbox"
+                checked={marketingAccepted}
                 onChange={e => setMarketingAccepted(e.target.checked)}
-                style={{ marginTop:2, flexShrink:0, accentColor:P, width:16, height:16 }} />
+                aria-label="Kampanya, indirim ve yenilikler hakkında SMS almayı kabul ediyorum"
+                style={{ marginTop:2, flexShrink:0, accentColor:P, width:16, height:16, cursor:"pointer" }}
+              />
               <span style={{ fontSize:12, color:"#4B5563", lineHeight:1.6 }}>
                 Kampanya, indirim ve yenilikler hakkında SMS almak istiyorum. (İsteğe bağlı)
               </span>
@@ -378,14 +455,17 @@ export default function YPGirisPage() {
             </div>
           </div>
 
-          {/* Support link */}
+          {/* Support link — real page, no mailto dead end */}
           <div style={{ marginTop:16, marginBottom:4, textAlign:"center" }}>
             <span style={{ fontSize:12, color:"#6B7280" }}>
               Kod gelmedi mi? Destek ekibimizden yardım alın.{" "}
             </span>
-            <button onClick={() => { window.location.href = "mailto:destek@yourpoodle.com"; }}
+            <button
+              type="button"
+              onClick={() => navigate(`${BASE}/iletisim`)}
               style={{ background:"none", border:"none", cursor:"pointer", fontSize:12,
-                       fontWeight:700, color:P, fontFamily:"inherit", padding:0, textDecoration:"underline" }}>
+                       fontWeight:700, color:P, fontFamily:"inherit", padding:0,
+                       textDecoration:"underline" }}>
               Destek Al
             </button>
           </div>

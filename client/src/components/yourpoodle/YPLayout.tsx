@@ -181,10 +181,12 @@ export default function YPLayout({
       {/* ════════════ DESKTOP HEADER ════════════ */}
       <div className="yp-desktop-hdr" style={{ position: "sticky", top: 0, zIndex: 200 }}>
 
-        {/* ── Duyuru çubuğu ── */}
-        <div style={{ background: "#7022C4", color: "#fff", textAlign: "center", padding: "9px 20px", fontSize: 13.5, fontWeight: 500 }}>
-          🎁 Yeni üyelere 100 TL hoş geldin bonusu
-        </div>
+        {/* ── Duyuru çubuğu — auth sayfalarında gösterilmez ── */}
+        {!authMode && (
+          <div style={{ background: "#7022C4", color: "#fff", textAlign: "center", padding: "9px 20px", fontSize: 13.5, fontWeight: 500 }}>
+            🎁 Yeni üyelere 100 TL hoş geldin bonusu
+          </div>
+        )}
 
         {/* ── Ana satır (logo + nav + search + auth) ── */}
         <div style={{ background: "#fff", borderBottom: "1px solid #F3F4F6", padding: "0 40px" }}>
@@ -469,7 +471,7 @@ export default function YPLayout({
         <div className={constrain ? "yp-constrain" : ""}>
           {children}
         </div>
-        {!hideFooter && <YPFooter />}
+        {!hideFooter && !authMode && <YPFooter />}
       </div>
 
       {/* ════════════ UNIFIED MOBILE BOTTOM NAV ════════════ */}
