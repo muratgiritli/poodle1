@@ -1,0 +1,60 @@
+Finish the Mama Bul wizard page completely in ONE pass.
+URL: https://www.yourpoodle.com/yourpoodle/mama-bul
+
+Do not stop early. Do not mark done until ALL acceptance checks pass on mobile 390x844.
+No partial fixes.
+
+## Already fixed — do not break
+- Page title is correct: "Poodle Mama Bul | Kişisel Mama Önerisi | YourPoodle"
+- Giant e-commerce footer is removed/hidden during wizard
+- Dead off-screen drawer leftovers removed
+- Unified mobile shell still works (header tabs + bottom nav)
+- Step 1 → Step 2 transition works
+- “Geri dön” exists
+
+## Remaining critical bug (must fix)
+On mobile, the primary CTA “Devam Et →” is covered / intercepted by the fixed bottom nav.
+Observed failure: click on “Devam Et” is intercepted by bottom navigation around y≈797.
+
+Fix this properly:
+1. Add enough bottom padding/safe-area so “Devam Et” and “Geri dön” are fully above the bottom nav
+2. Ensure the wizard action area is never under the fixed bottom bar
+3. Verify on 390x844 that “Devam Et” is tappable without interception
+4. Keep bottom nav visible and usable
+
+Also check the same for later steps and the final results screen CTAs.
+
+## Mandatory full end-to-end wizard QA
+After the CTA overlap fix, complete the FULL 11-step flow yourself on mobile 390x844.
+
+Verify:
+1. Step indicator updates correctly: Adım 1/11 → … → Adım 11/11
+2. Selecting an option enables “Devam Et”
+3. “Devam Et” is always clickable (never blocked by bottom nav)
+4. “Geri dön” returns to previous step and preserves answers
+5. No blank/broken/duplicated steps
+6. Final recommendation/results screen appears after step 11
+7. Results show personalized mama recommendations (expected up to 3)
+8. Result CTAs work (product/store/cart) — no dead `#` links
+9. Add or verify “Yeniden Başla” / restart control
+10. Header + bottom nav remain consistent; “Mama Bul” stays active
+11. No horizontal overflow
+12. No giant footer during wizard
+13. No dead off-screen drawer nodes in accessibility tree
+
+## Acceptance criteria (ALL must pass)
+1. “Devam Et” is fully visible and tappable above bottom nav on 390x844
+2. Full 11-step flow completes without blocked CTA clicks
+3. Final recommendation screen appears with working CTAs
+4. Back navigation preserves previous answers
+5. No regressions to title/footer/drawer/shell fixes already done
+
+## Output when done
+Report:
+- Exact files changed
+- How you fixed the bottom-nav CTA overlap
+- Short list of all 11 step questions
+- What the final results screen shows
+- Confirmation that the full mobile E2E checklist passed
+
+If any check fails, keep working. Do not end the task.
