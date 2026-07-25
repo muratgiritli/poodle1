@@ -3,7 +3,7 @@ import YPLayout from "@/components/yourpoodle/YPLayout";
 import {
   MessageCircle, ShieldCheck, ShieldAlert,
   UtensilsCrossed, HeartPulse, Bath, Brush, GraduationCap, Syringe,
-  ThumbsUp, ThumbsDown, Copy, Plus, Mic, Send,
+  ThumbsUp, ThumbsDown, Copy, Plus, Send,
 } from "lucide-react";
 
 /* ─────────────────────── DESIGN TOKENS ───────────────────────── */
@@ -50,8 +50,6 @@ function calcFood(weightKg: number, kcalPer100g: number) {
 const INITIAL_AI_TEXT =
   "3 aylık bir Toy Poodle yavrusu için günlük mama miktarı; kilosuna, mamanın kalori değerine ve aktivitesine göre değişir. Kilosunu ve kullandığınız mamanın adını yazarsanız birlikte hesaplayabiliriz.";
 
-// Removed: getMock — now using real /api/yp-chat endpoint
-
 const QUICK_ACTIONS = [
   { id:"food",     label:"Mama önerisi",      Icon:UtensilsCrossed, color:"purple",  bg:"#F3EEFF", border:"#DDD6FE", icon:P,         prompt:"Toy Poodle'uma hangi mamayı önerirsiniz?" },
   { id:"health",   label:"Sağlık sorusu",     Icon:HeartPulse,      color:"pink",    bg:"#FDF2F8", border:"#FBCFE8", icon:"#EC4899", prompt:"Toy Poodle'umun sağlığı hakkında bir sorum var." },
@@ -62,19 +60,6 @@ const QUICK_ACTIONS = [
 ];
 
 /* ─────────────────────── SUBCOMPONENTS ───────────────────────── */
-
-function Toast({ msg, visible }: { msg: string; visible: boolean }) {
-  return (
-    <div style={{ position:"fixed", bottom:100, left:"50%", transform:"translateX(-50%)",
-                  zIndex:9999, pointerEvents:"none", opacity:visible?1:0, transition:"opacity 0.3s" }}>
-      <div style={{ background:"#1F2937", color:"#fff", padding:"10px 20px",
-                    borderRadius:999, fontSize:13, fontWeight:500, whiteSpace:"nowrap",
-                    boxShadow:"0 4px 16px rgba(0,0,0,0.25)" }}>
-        {msg}
-      </div>
-    </div>
-  );
-}
 
 function FoodCalc() {
   const [weight, setWeight] = useState("");
@@ -170,39 +155,33 @@ export default function YPAiAsistanPage() {
     { id:"m0", role:"user", text:"3 aylık Toy Poodle yavrum ne kadar mama yemeli?", ts:new Date() },
     { id:"m1", role:"ai",   text:INITIAL_AI_TEXT, showCalculator:true,              ts:new Date() },
   ];
-  const [msgs,     setMsgs]     = useState<Msg[]>(initMsgs);
-  const [input,    setInput]    = useState("");
-  const [loading,  setLoading]  = useState(false);
-  const [toast,    setToast]    = useState("");
-  const [toastVis, setToastVis] = useState(false);
+  const [msgs,    setMsgs]    = useState<Msg[]>(initMsgs);
+  const [input,   setInput]   = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const bottomRef   = useRef<HTMLDivElement>(null);
-  const inputRef    = useRef<HTMLInputElement>(null);
-  const isFirst     = useRef(true);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef  = useRef<HTMLInputElement>(null);
+  const isFirst   = useRef(true);
 
+  /* page title */
+  useEffect(() => {
+    document.title = "AI Poodle Asistanı: Anlık Poodle Uzman Desteği | YourPoodle";
+  }, []);
+
+  /* auto-scroll on new messages */
   useEffect(() => {
     if (isFirst.current) { isFirst.current = false; return; }
     bottomRef.current?.scrollIntoView({ behavior:"smooth" });
   }, [msgs, loading]);
 
-  const showToast = (msg: string) => {
-    setToast(msg); setToastVis(true);
-    setTimeout(() => setToastVis(false), 1800);
-  };
-
   const sendMessage = useCallback(async (text: string) => {
     const t = text.trim();
     if (!t || loading) return;
     const userMsg: Msg = { id:String(Date.now()), role:"user", text:t, ts:new Date() };
-    setMsgs(prev => {
-      const next = [...prev, userMsg];
-      // kick off the API call after state update
-      return next;
-    });
+    setMsgs(prev => [...prev, userMsg]);
     setInput("");
     setLoading(true);
     try {
-      // Build message history for context (last 10 msgs + new user msg)
       const allMsgs = [...msgs, userMsg];
       const chatHistory = allMsgs.slice(-10).map(m => ({
         role: m.role === "ai" ? "assistant" : "user",
@@ -230,7 +209,7 @@ export default function YPAiAsistanPage() {
   };
 
   return (
-    <YPLayout activeLink="/yourpoodle/ai-asistan" constrain={false}>
+    <YPLayout activeLink="/yourpoodle/ai-asistan" constrain={false} hideFooter>
       <style>{`
         .yp-ai-scroll::-webkit-scrollbar { width: 3px; }
         .yp-ai-scroll::-webkit-scrollbar-thumb { background: #DDD6FE; border-radius: 3px; }
@@ -243,9 +222,14 @@ export default function YPAiAsistanPage() {
         .yp-dot:nth-child(3){ animation-delay:.4s; }
       `}</style>
 
-      {/* ══ SCROLLABLE MAIN ═════════════════════════════════════ */}
+      {/* ══ SCROLLABLE CONTENT ══════════════════════════════════ */}
+      {/*
+        Fixed composer (~80px) sits above fixed bottom nav (60px).
+        Total reserved = ~140px. Add extra bottom padding so the last
+        chat bubble is not hidden behind the fixed bars.
+      */}
       <div className="yp-ai-scroll yp-ai-center"
-        style={{ flex:1, overflowY:"auto", paddingBottom:8 }}>
+        style={{ paddingBottom: 160 }}>
 
         {/* ── AI HERO BANNER ──────────────────────────────────── */}
         <div style={{ margin:"16px 16px 0", borderRadius:18, overflow:"hidden",
@@ -401,73 +385,89 @@ export default function YPAiAsistanPage() {
           </p>
         </div>
 
-      </div>
+      </div>{/* end scrollable */}
 
-      {/* ══ STICKY INPUT BAR ════════════════════════════════════ */}
-      <div className="yp-ai-sticky-bar" style={{ position:"sticky", bottom:72, background:"#fff",
-                    borderTop:"1px solid #F3F4F6",
-                    padding:"12px 16px 16px", flexShrink:0, zIndex:30 }}>
+      {/* ══ FIXED COMPOSER BAR ══════════════════════════════════
+          Sits above the bottom nav (60px) + safe-area.
+          zIndex 210 clears both YPBottomNav (z-200) and sticky headers.
+      */}
+      <div
+        className="yp-ai-sticky-bar"
+        style={{
+          position: "fixed",
+          bottom: "calc(60px + env(safe-area-inset-bottom, 0px))",
+          left: 0,
+          right: 0,
+          background: "#fff",
+          borderTop: "1px solid #F3F4F6",
+          padding: "12px 16px 16px",
+          zIndex: 210,
+        }}
+      >
         <div className="yp-ai-center">
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            {/* Inline calculator trigger */}
+            <button
+              aria-label="Mama hesapla"
+              onClick={() => {
+                const calcMsg: Msg = {
+                  id: String(Date.now()),
+                  role: "ai",
+                  text: "Mama hesaplayıcıyı kullanabilirsiniz:",
+                  showCalculator: true,
+                  ts: new Date(),
+                };
+                setMsgs(prev => [...prev, calcMsg]);
+              }}
+              style={{ width:44, height:44, borderRadius:"50%", border:"none",
+                       background:"none", display:"flex", alignItems:"center",
+                       justifyContent:"center", cursor:"pointer", flexShrink:0,
+                       color:"#6B7280", transition:"background 0.15s" }}
+              onMouseEnter={e=>(e.currentTarget.style.background="#F3F4F6")}
+              onMouseLeave={e=>(e.currentTarget.style.background="none")}>
+              <Plus size={20} />
+            </button>
 
-        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <button aria-label="Mama Hesapla"
-            onClick={() => { const calcMsg: Msg = { id:String(Date.now()), role:"ai", text:"Mama hesaplayıcıyı kullanabilirsiniz:", showCalculator:true, ts:new Date() }; setMsgs(prev => [...prev, calcMsg]); }}
-            style={{ width:44, height:44, borderRadius:"50%", border:"none",
-                     background:"none", display:"flex", alignItems:"center",
-                     justifyContent:"center", cursor:"pointer", flexShrink:0,
-                     color:"#6B7280", transition:"background 0.15s" }}
-            onMouseEnter={e=>(e.currentTarget.style.background="#F3F4F6")}
-            onMouseLeave={e=>(e.currentTarget.style.background="none")}>
-            <Plus size={20} />
-          </button>
+            {/* Text input */}
+            <div style={{ flex:1, display:"flex", alignItems:"center",
+                          background:"#F9FAFB", border:"1px solid #E5E7EB",
+                          borderRadius:999, padding:"0 14px 0 16px" }}>
+              <input
+                ref={inputRef}
+                aria-label="Poodle'ınızla ilgili sorunuzu yazın"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Poodle'ınızla ilgili bir şey sorun..."
+                style={{ flex:1, background:"transparent", border:"none", outline:"none",
+                         fontSize:14, color:"#111827", padding:"11px 0",
+                         fontFamily:"inherit", minWidth:0 }}
+              />
+            </div>
 
-          <div style={{ flex:1, display:"flex", alignItems:"center",
-                        background:"#F9FAFB", border:"1px solid #E5E7EB",
-                        borderRadius:999, padding:"0 14px 0 16px" }}>
-            <input
-              ref={inputRef}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Poodle'ınızla ilgili bir şey sorun..."
-              style={{ flex:1, background:"transparent", border:"none", outline:"none",
-                       fontSize:14, color:"#111827", padding:"11px 0",
-                       fontFamily:"inherit", minWidth:0 }}
-            />
-            <button aria-label="Sesli mesaj"
-              onClick={() => showToast("Sesli mesaj yakında!")}
-              style={{ background:"none", border:"none", cursor:"pointer",
-                       display:"flex", alignItems:"center", justifyContent:"center",
-                       padding:4, flexShrink:0, color:"#9CA3AF",
-                       transition:"color 0.15s" }}
-              onMouseEnter={e=>(e.currentTarget.style.color=P)}
-              onMouseLeave={e=>(e.currentTarget.style.color="#9CA3AF")}>
-              <Mic size={18} />
+            {/* Send */}
+            <button
+              aria-label="Gönder"
+              onClick={() => sendMessage(input)}
+              disabled={!input.trim() || loading}
+              style={{ width:44, height:44, borderRadius:"50%",
+                       background: (!input.trim() || loading) ? "#D1D5DB" : P,
+                       border:"none", display:"flex", alignItems:"center",
+                       justifyContent:"center",
+                       cursor: (!input.trim() || loading) ? "default" : "pointer",
+                       flexShrink:0, transition:"background 0.15s",
+                       opacity: (!input.trim() || loading) ? 0.55 : 1 }}
+              onMouseEnter={e=>{ if(input.trim()&&!loading) e.currentTarget.style.background=PD; }}
+              onMouseLeave={e=>{ if(input.trim()&&!loading) e.currentTarget.style.background=P; }}>
+              <Send size={18} color="#fff" />
             </button>
           </div>
 
-          <button aria-label="Gönder"
-            onClick={() => sendMessage(input)}
-            disabled={!input.trim() || loading}
-            style={{ width:44, height:44, borderRadius:"50%",
-                     background: (!input.trim() || loading) ? "#D1D5DB" : P,
-                     border:"none", display:"flex", alignItems:"center",
-                     justifyContent:"center", cursor: (!input.trim() || loading) ? "default" : "pointer",
-                     flexShrink:0, transition:"background 0.15s",
-                     opacity: (!input.trim() || loading) ? 0.55 : 1 }}
-            onMouseEnter={e=>{ if(input.trim()&&!loading) e.currentTarget.style.background=PD; }}
-            onMouseLeave={e=>{ if(input.trim()&&!loading) e.currentTarget.style.background=P; }}>
-            <Send size={18} color="#fff" />
-          </button>
+          <p style={{ marginTop:8, textAlign:"center", fontSize:11, color:"#9CA3AF" }}>
+            AI yanıtları hata içerebilir. Önemli bilgileri doğrulayın.
+          </p>
         </div>
-
-        <p style={{ marginTop:8, textAlign:"center", fontSize:11, color:"#9CA3AF" }}>
-          AI yanıtları hata içerebilir. Önemli bilgileri doğrulayın.
-        </p>
-        </div>{/* end yp-ai-center */}
       </div>
-
-      <Toast msg={toast} visible={toastVis} />
     </YPLayout>
   );
 }

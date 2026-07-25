@@ -1,0 +1,116 @@
+```text
+You are fixing YourPoodle AI Assistant page end-to-end in ONE pass.
+URL: https://www.yourpoodle.com/yourpoodle/ai-asistan
+Mobile target: 390×844.
+
+No stubs. No alert(). No “yakında / coming soon” toasts. No partial wiring.
+Do not stop until every acceptance check below is green.
+
+==================================================
+A) CURRENT BUGS (verified on live)
+==================================================
+1) Voice mic button is a stub: onClick shows toast "Sesli mesaj yakında!".
+2) Client never sets document.title — stays homepage title
+   ("Toy Poodle Rehberi, Bakımı ve Mama Seçimi | YourPoodle").
+3) Shell is inconsistent with Mama Bul / Rehber app pages:
+   - store-style top header (Mağaza / Hizmetler / Rehber / Topluluk…)
+   - huge marketing footer under the chat
+   - bottom nav present but AI has no active tab
+4) Composer bar collides with bottom nav (input overlaps Club / nav icons).
+5) Bottom nav is Ana Sayfa · Mama Bul · Sepet · Rehber · Club — AI Asistan is missing as an active destination even though this IS the AI page.
+
+KEEP what already works:
+- Suggestion chips
+- Chat input + send
+- Real API: POST /api/yp-chat (do not break)
+- Inline Hesapla calculator card
+- Like / dislike / copy
+- Medical disclaimer banners
+
+==================================================
+B) REQUIRED FIXES
+==================================================
+
+### 1) App shell parity (CRITICAL)
+Use the same YourPoodle app shell as `/yourpoodle/mama-bul` and `/yourpoodle/rehber`:
+- Option A header: logo + search / account / cart + category tabs
+  (Mağaza · Mama Bul · Rehber · AI Asistan · Club)
+- Highlight **AI Asistan** as active in header tabs
+- Unified bottom nav (must match Mama Bul / Rehber):
+  Ana Sayfa · Mama Bul · Sepet · Rehber · Club
+  OR if product decision is to include AI in bottom nav, use one consistent 5-tab set across ALL app pages — pick ONE and apply everywhere. Prefer keeping current 5 tabs and ensuring header AI tab is clearly active on this page.
+- Hide / remove the giant marketing footer on this chat page (same approach as Mama Bul wizard: hide or drastically reduce while chat is open). Chat pages should feel like an app screen, not a long landing page.
+- No duplicate headers / drawers / off-screen menus.
+
+### 2) Composer vs bottom nav (CRITICAL)
+- Fixed composer must sit ABOVE bottom nav with safe-area:
+  bottom: calc(60px + env(safe-area-inset-bottom))
+- Page content padding-bottom must clear composer + bottom nav (e.g. ~140px+).
+- No overlap with Club icon / Sepet badge / nav labels at 390×844.
+- Composer remains usable with keyboard open (iOS-friendly).
+
+### 3) document.title + SEO
+On mount set:
+`document.title = "AI Poodle Asistanı: Anlık Poodle Uzman Desteği | YourPoodle"`
+Keep existing meta/description if present; do not regress SSR title if already correct in HTML.
+
+### 4) Sesli mesaj — NO STUB
+Choose ONE and implement fully:
+**Preferred:** Remove the mic button entirely until voice is real.
+**OR** implement real browser speech-to-text:
+- Use Web Speech API where available (`SpeechRecognition` / `webkitSpeechRecognition`)
+- On result: put transcript into the input (user can edit before send)
+- On unsupported browsers: hide the mic button (do NOT show “yakında”)
+- Never toast “Sesli mesaj yakında!”
+- Never alert()
+
+### 5) Chat must keep working
+- Sending a message must still call `/api/yp-chat` and append AI reply
+- Loading state while waiting
+- Error message in chat bubble if API fails (no alert)
+- Suggestion chips still prefill / send as they do now
+- Hesapla card still computes daily food amount
+- Mama Hesapla action must navigate to a real route (prefer `/yourpoodle/mama-hesaplama` or `/yourpoodle/mama-bul` — whichever already exists; no dead click)
+
+### 6) Accessibility
+- Composer input has a clear label / aria-label
+- Send / mic (if kept) have aria-labels
+- Header icon buttons 44×44 with aria-labels
+- Focus states visible
+
+==================================================
+C) OUT OF SCOPE
+==================================================
+- Do not redesign the AI personality / prompt backend unless needed for regressions
+- Do not change Rehber / Mama Bul logic except shared shell/nav consistency if required
+- Do not add new alert() stubs anywhere
+
+==================================================
+D) MANDATORY SELF-QA (390×844) — DO NOT END IF ANY FAIL
+==================================================
+1. Open `/yourpoodle/ai-asistan`
+2. Confirm header is app shell (not store marketing header) and AI Asistan is active
+3. Confirm no giant footer pushing chat into a landing-page scroll (or footer hidden)
+4. Confirm composer does NOT overlap bottom nav
+5. Type a question → Send → receive real AI reply from `/api/yp-chat`
+6. Tap a suggestion chip → message flow works
+7. Use Hesapla with kilo + mama → shows daily grams result
+8. Tap mic:
+   - either button is gone, OR speech-to-text works / hidden on unsupported
+   - NEVER shows “Sesli mesaj yakında!”
+9. Confirm document.title is the AI page title (not homepage title)
+10. Confirm zero alert() in this page’s bundle
+11. Navigate Mama Bul → AI Asistan → Rehber and confirm shell/nav consistency (no different bottom nav sets)
+
+==================================================
+E) DONE CRITERIA
+==================================================
+- App shell parity with Mama Bul / Rehber
+- Composer clear of bottom nav + safe-area
+- Correct document.title
+- No voice stub / no “yakında”
+- Chat API + Hesapla still working
+- Mobile QA checklist all green
+
+Deploy when done. If any QA step fails, fix and re-test before finishing.
+```
