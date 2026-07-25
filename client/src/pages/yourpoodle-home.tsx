@@ -501,11 +501,9 @@ export default function YourPoodleHomePage() {
                          borderBottom:`1px solid ${BORDER}`,
                          padding:"0 16px", height:60,
                          display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-          <span style={{ fontFamily:"'Pacifico',cursive", fontSize:26, color:P,
-                         lineHeight:1, cursor:"pointer" }}
-                onClick={() => window.scrollTo({ top:0, behavior:"smooth" })}>
-            YourPoodle
-          </span>
+          <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle"
+            onClick={() => window.scrollTo({ top:0, behavior:"smooth" })}
+            style={{ height:36, width:"auto", objectFit:"contain", cursor:"pointer" }} />
           <div style={{ display:"flex", alignItems:"center", gap:4 }}>
             <button onClick={() => setShowSearch(true)}
               style={{ background:"none", border:"none", cursor:"pointer", color:TEXT, padding:8, borderRadius:8, display:"flex" }}>
@@ -825,7 +823,7 @@ export default function YourPoodleHomePage() {
         {/* ════ FOOTER ════ */}
         <footer style={{ background:"#fff", borderTop:`1px solid ${BORDER}`, padding:"28px 20px 80px" }}>
           <div style={{ marginBottom:20 }}>
-            <span style={{ fontFamily:"'Pacifico',cursive", fontSize:22, color:P }}>YourPoodle</span>
+            <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height:32, width:"auto", objectFit:"contain" }} />
             <p style={{ fontSize:12, color:MUTED, margin:"6px 0 12px", lineHeight:1.5 }}>
               Toy Poodle'ınızın mutlu ve sağlıklı yaşamı için alışveriş, bilgi ve topluluk platformu.
             </p>
