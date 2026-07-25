@@ -525,7 +525,7 @@ export default function YPClubPage() {
   const menuPost = menuPostId !== null ? posts.find(p => p.id === menuPostId) : null;
 
   return (
-    <YPLayout activeLink={`${BASE}/club`} constrain={false} hideFooter>
+    <YPLayout activeLink={`${BASE}/club`} constrain={false}>
       <style>{`button { font-family: inherit; }`}</style>
       <Toast message={toast.message} visible={toast.visible} />
 

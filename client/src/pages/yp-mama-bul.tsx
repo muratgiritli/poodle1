@@ -620,8 +620,8 @@ export default function YPMamaBulPage() {
       boxShadow: "0 2px 20px rgba(0,0,0,0.07)", overflow: "hidden", marginBottom: 14,
     };
     return (
-      <YPLayout activeLink="/yourpoodle/mama-bul" hideFooter>
-        <div style={{ ...pageStyle, padding: "24px 16px 100px" }}>
+      <YPLayout activeLink="/yourpoodle/mama-bul">
+        <div style={{ ...pageStyle, padding: "24px 16px 32px" }}>
           <div style={{ ...cardStyle, padding: 0 }}>
             {/* Header */}
             <div style={{

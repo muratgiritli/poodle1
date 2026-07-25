@@ -11,7 +11,7 @@ export default function YPClubMesajlarPage() {
   useEffect(() => { document.title = "Mesajlar | YourPoodle Club"; }, []);
 
   return (
-    <YPLayout activeLink={`${BASE}/club`} constrain={false} hideFooter>
+    <YPLayout activeLink={`${BASE}/club`} constrain={false}>
       <div style={{ maxWidth: 600, margin: "0 auto", minHeight: "100vh", background: "#FAFAFA", fontFamily: "Inter,sans-serif" }}>
 
         {/* Header */}
