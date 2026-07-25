@@ -542,6 +542,16 @@ export default function YPMamaBulPage() {
     else navigate("/yourpoodle");
   };
 
+  // Correct page-specific document title — overrides static index.html title
+  useEffect(() => {
+    if (done) {
+      document.title = "Mama Önerileri | Poodle'ınıza Özel | YourPoodle";
+    } else {
+      document.title = "Poodle Mama Bul | Kişisel Mama Önerisi | YourPoodle";
+    }
+    return () => { document.title = "YourPoodle"; };
+  }, [done]);
+
   const buildPrefill = (): Answers => {
     if (!poodle) return {};
     const prefill: Answers = {};
@@ -610,9 +620,8 @@ export default function YPMamaBulPage() {
       boxShadow: "0 2px 20px rgba(0,0,0,0.07)", overflow: "hidden", marginBottom: 14,
     };
     return (
-      <YPLayout activeLink="/yourpoodle/mama-bul">
-        <title>Mama Önerileri | YourPoodle</title>
-        <div style={{ ...pageStyle, padding: "24px 16px 60px" }}>
+      <YPLayout activeLink="/yourpoodle/mama-bul" hideFooter>
+        <div style={{ ...pageStyle, padding: "24px 16px 100px" }}>
           <div style={{ ...cardStyle, padding: 0 }}>
             {/* Header */}
             <div style={{
@@ -762,12 +771,7 @@ export default function YPMamaBulPage() {
   const hasHero = currentStep.hasHero !== false;
 
   return (
-    <YPLayout activeLink="/yourpoodle/mama-bul">
-      <title>Poodle Mama Bul | Kişiselleştirilmiş Mama Öneri Sihirbazı | YourPoodle</title>
-      <meta name="description" content="Poodle'ınıza özel mama önerisi. Yaş, kilo, sağlık durumu ve bütçenize göre en uygun mama markasını bulun." />
-      <meta property="og:title" content="Poodle Mama Bul | YourPoodle" />
-      <meta property="og:type" content="website" />
-      <meta name="robots" content="index, follow" />
+    <YPLayout activeLink="/yourpoodle/mama-bul" hideFooter>
 
       <style>{`
         @keyframes yp-slide-in {

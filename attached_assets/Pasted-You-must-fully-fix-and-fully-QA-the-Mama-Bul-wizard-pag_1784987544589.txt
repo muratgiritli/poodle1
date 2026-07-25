@@ -1,0 +1,93 @@
+You must fully fix and fully QA the Mama Bul wizard page in ONE pass:
+https://www.yourpoodle.com/yourpoodle/mama-bul
+
+Do not stop early. Do not mark done until ALL acceptance checks pass on mobile 390x844.
+No partial fixes. No placeholders.
+
+## Page purpose
+11-step personalized food recommendation wizard for Toy/Miniature Poodle owners.
+User answers questions → gets 3 recommended food brands/products.
+
+## Issues to fix (required)
+
+### 1) Document title / SEO
+Current browser `<title>` is wrong/generic:
+"Toy Poodle Rehberi, Bakımı ve Mama Seçimi | YourPoodle"
+
+Set a correct page-specific title for `/yourpoodle/mama-bul`, aligned with the existing SEO H1:
+"Poodle İçin Doğru Mamayı Bul — Kişisel Öneri"
+Example:
+"Poodle Mama Bul | Kişisel Mama Önerisi | YourPoodle"
+
+Also ensure meta description matches this page (wizard / personalized recommendation), not the generic homepage copy.
+
+### 2) Remove / drastically reduce the huge footer during wizard flow
+On this page, the full e-commerce footer is ~1200px+ with dozens of links and interrupts the wizard when scrolling.
+For the active wizard experience:
+- Hide the large marketing/e-commerce footer while the wizard is in progress
+- OR replace it with a minimal compact footer (copyright + 1–2 legal links max)
+Do not leave the giant store footer under step cards.
+
+### 3) Remove dead off-screen drawer leftovers
+Old drawer/menu nodes are still in the DOM off-screen (e.g. “Ücretsiz Başla”, old nav items at negative left positions).
+Remove them from this layout so they are not in the accessibility tree.
+
+### 4) Full wizard product QA (mandatory end-to-end)
+You must actually complete the FULL 11-step flow and verify the result screen.
+
+Verify all of this:
+1. Step indicator updates correctly: Adım 1/11 → … → Adım 11/11
+2. Selecting an option enables “Devam Et”
+3. “Geri dön” returns to previous step and preserves prior answers
+4. Progress bar reflects real progress
+5. No step is blank / broken / duplicated
+6. Final result screen appears after step 11
+7. Final screen shows personalized recommendations (expected: up to 3 mama suggestions)
+8. Result cards have working CTAs (view product / add to cart / go to store) — no dead `#` links
+9. User can restart / retake the wizard if that control exists; if missing, add a clear “Yeniden Başla”
+10. Bottom nav and header remain usable and do not cover primary CTA
+11. Primary CTA is never hidden under bottom nav (safe-area / padding)
+
+### 5) Mobile UX polish for wizard
+- Keep focus on the question card; avoid clutter
+- Large enough tap targets (>=44px)
+- Selected state clearly visible
+- Disabled “Devam Et” state clear before selection
+- No horizontal overflow at 390px
+- Shell consistency remains: same header tabs + bottom nav as the rest of the site
+- “Mama Bul” tab/bottom item stays active on this route
+
+## Do not break
+- Unified mobile shell (header tabs + bottom nav Ana Sayfa · Mama Bul · Sepet · Rehber · Club)
+- Existing homepage guide deep-link to `/yourpoodle/mama-bul`
+- Already-working age → weight step transition
+
+## Mandatory self-QA checklist before finishing
+On mobile 390x844, personally run through:
+1. Open `/yourpoodle/mama-bul`
+2. Confirm correct `<title>`
+3. Confirm no giant footer under wizard steps
+4. Complete ALL 11 steps with real selections
+5. Reach recommendation/results screen
+6. Click at least one result CTA
+7. Use “Geri dön” at least once mid-flow and confirm state restore
+8. Confirm no off-screen dead menu nodes in accessibility tree
+9. Also spot-check `/` and `/yourpoodle/rehber` still load with unified shell
+
+## Acceptance criteria (ALL must pass)
+1. `/yourpoodle/mama-bul` has a correct page-specific document title (not homepage title)
+2. Wizard flow is not interrupted by the giant e-commerce footer
+3. Full 11-step flow completes and shows real recommendation results with working CTAs
+4. Back navigation works and preserves answers
+5. No dead off-screen drawer/menu leftovers
+6. No regressions to global mobile shell
+
+## Output when done
+Report:
+- Exact files changed
+- What each of the 11 steps asks (short list)
+- What the final recommendation screen shows
+- Confirmation that title/footer/drawer/end-to-end checks passed
+- Anything still blocked (must be empty unless truly impossible)
+
+If any acceptance check fails, keep working. Do not end the task.

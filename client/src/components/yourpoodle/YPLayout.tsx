@@ -51,10 +51,11 @@ interface Props {
   bottomNavActive?: string;
   constrain?: boolean;
   authMode?: boolean;
+  hideFooter?: boolean;
 }
 
 export default function YPLayout({
-  children, activeLink = "", bottomNavActive, constrain = true, authMode = false,
+  children, activeLink = "", bottomNavActive, constrain = true, authMode = false, hideFooter = false,
 }: Props) {
   const effectiveBottomLink = bottomNavActive ?? activeLink;
   const [drawerOpen, setDrawerOpen]   = useState(false);
@@ -317,11 +318,15 @@ export default function YPLayout({
         <div onClick={() => setDrawerOpen(false)}
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 299, backdropFilter: "blur(2px)" }} />
       )}
-      <nav style={{
-        position: "fixed", top: 0, left: 0, height: "100%", width: 280, background: "#fff", zIndex: 300,
-        transform: drawerOpen ? "translateX(0)" : "translateX(-100%)", transition: "transform 0.24s ease",
-        boxShadow: "4px 0 28px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column",
-      }}>
+      <nav
+        aria-hidden={!drawerOpen}
+        style={{
+          position: "fixed", top: 0, left: 0, height: "100%", width: 280, background: "#fff", zIndex: 300,
+          transform: drawerOpen ? "translateX(0)" : "translateX(-100%)",
+          transition: "transform 0.24s ease, visibility 0s linear " + (drawerOpen ? "0s" : "0.24s"),
+          visibility: drawerOpen ? "visible" : "hidden",
+          boxShadow: "4px 0 28px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column",
+        }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 18px 14px", borderBottom: "1px solid #f2f2f2" }}>
           <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 30, width: "auto", objectFit: "contain" }} />
           <button onClick={() => setDrawerOpen(false)}
@@ -464,7 +469,7 @@ export default function YPLayout({
         <div className={constrain ? "yp-constrain" : ""}>
           {children}
         </div>
-        <YPFooter />
+        {!hideFooter && <YPFooter />}
       </div>
 
       {/* ════════════ UNIFIED MOBILE BOTTOM NAV ════════════ */}
