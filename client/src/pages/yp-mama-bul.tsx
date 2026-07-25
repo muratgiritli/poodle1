@@ -779,22 +779,28 @@ export default function YPMamaBulPage() {
           to   { opacity: 1; transform: translateX(0); }
         }
         .yp-wizard-slide { animation: yp-slide-in 0.22s cubic-bezier(.4,0,.2,1) both; }
-        @media (max-width: 767px) {
+        @media (max-width: 899px) {
           .yp-hero-row { flex-direction: column !important; }
           .yp-hero-img { display: none !important; }
           .yp-options-grid { grid-template-columns: 1fr !important; }
           .yp-card-pad { padding: 20px 16px !important; }
           .yp-card-header { padding: 16px 16px 0 !important; }
-          .yp-footer { padding: 16px 16px 20px !important; }
+          /* Hide in-card footer on mobile — replaced by fixed action bar */
+          .yp-footer { display: none !important; }
           .yp-progress-tracker { display: none !important; }
           .yp-mobile-progress { display: block !important; }
+          /* Fixed action bar visible only on mobile */
+          .yp-wizard-cta-bar { display: flex !important; flex-direction: column; }
+          /* Extra bottom pad so last option isn't hidden under the fixed bar */
+          .yp-wizard-page-wrap { padding-bottom: 140px !important; }
         }
-        @media (min-width: 768px) {
+        @media (min-width: 900px) {
           .yp-mobile-progress { display: none !important; }
+          .yp-wizard-cta-bar { display: none !important; }
         }
       `}</style>
 
-      <div style={pageStyle}>
+      <div style={pageStyle} className="yp-wizard-page-wrap">
         {/* Page top padding */}
         <div style={{ height: 20 }} />
 
@@ -905,7 +911,7 @@ export default function YPMamaBulPage() {
               )}
             </div>
 
-            {/* Footer */}
+            {/* Footer — desktop only (hidden on mobile via CSS) */}
             <div className="yp-footer" style={{ padding: "0 36px 32px" }}>
               <button
                 disabled={!hasSelection}
@@ -944,6 +950,57 @@ export default function YPMamaBulPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ── Mobile fixed CTA bar — sits above bottom nav, never covered ── */}
+      <div
+        className="yp-wizard-cta-bar"
+        style={{
+          display: "none", /* shown via CSS on mobile */
+          position: "fixed",
+          bottom: "calc(60px + env(safe-area-inset-bottom, 0px))",
+          left: 0, right: 0,
+          background: "#fff",
+          borderTop: "1.5px solid #EDE9FE",
+          boxShadow: "0 -4px 24px rgba(123,63,228,0.12)",
+          padding: "12px 16px",
+          zIndex: 150,
+        }}
+      >
+        <button
+          disabled={!hasSelection}
+          onClick={handleNext}
+          style={{
+            width: "100%", height: 52, borderRadius: 9999,
+            background: hasSelection
+              ? "linear-gradient(135deg, #7B3FE4 0%, #A855F7 100%)"
+              : "#E2E2F0",
+            border: "none", fontSize: 16, fontWeight: 800,
+            color: hasSelection ? "#fff" : "#9CA3AF",
+            cursor: hasSelection ? "pointer" : "not-allowed",
+            fontFamily: "inherit",
+            boxShadow: hasSelection ? "0 6px 24px rgba(123,63,228,0.28)" : "none",
+            transition: "all 0.2s",
+            letterSpacing: "-0.2px",
+          }}
+        >
+          {isLastStep ? "Sonuçları Gör →" : "Devam Et →"}
+        </button>
+
+        {step > 0 && (
+          <button
+            onClick={handleBack}
+            style={{
+              width: "100%", marginTop: 8, padding: "10px 0",
+              background: "none", border: "none", cursor: "pointer",
+              fontSize: 14, color: "#9CA3AF", fontFamily: "inherit",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              gap: 6, fontWeight: 500, minHeight: 44,
+            }}
+          >
+            <ArrowLeft size={14} /> Geri dön
+          </button>
+        )}
       </div>
     </YPLayout>
   );
