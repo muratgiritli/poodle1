@@ -756,7 +756,7 @@ export default function YPMamaBulPage() {
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 }}
               >
-                <RotateCcw size={16} /> Yeniden Ara
+                <RotateCcw size={16} /> Yeniden Başla
               </button>
             </div>
           </div>
@@ -964,7 +964,7 @@ export default function YPMamaBulPage() {
           borderTop: "1.5px solid #EDE9FE",
           boxShadow: "0 -4px 24px rgba(123,63,228,0.12)",
           padding: "12px 16px",
-          zIndex: 150,
+          zIndex: 210,
         }}
       >
         <button

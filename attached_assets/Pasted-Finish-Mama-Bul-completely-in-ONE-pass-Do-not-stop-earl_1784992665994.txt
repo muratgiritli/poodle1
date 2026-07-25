@@ -1,0 +1,70 @@
+Finish Mama Bul completely in ONE pass. Do not stop early.
+URL: https://www.yourpoodle.com/yourpoodle/mama-bul
+Mobile viewport required: 390x844
+
+## Already done — do not break
+- Page-specific title/meta for mama-bul
+- Giant e-commerce footer hidden/reduced during wizard
+- Dead off-screen drawer leftovers removed
+- Unified mobile shell (header tabs + bottom nav)
+- Deployed safe-area CTA positioning exists in code:
+  bottom: calc(130px + env(safe-area-inset-bottom))
+  bottom: calc(60px + env(safe-area-inset-bottom))
+
+## Remaining work (must verify + finish)
+
+### 1) Prove the CTA overlap fix actually works
+Previous bug: “Devam Et →” was covered/intercepted by the fixed bottom nav.
+Even if padding code exists, YOU MUST personally verify on 390x844:
+- “Devam Et” is fully visible above bottom nav
+- Click is NOT intercepted by bottom nav
+- Same for “Geri dön”
+- Same for final-results CTAs
+
+If still blocked, fix it for real (more bottom padding / sticky action bar above nav / safe-area), then re-verify.
+
+### 2) Full 11-step end-to-end run (mandatory)
+Complete the entire wizard yourself:
+
+1. Open /yourpoodle/mama-bul
+2. Go through ALL steps Adım 1/11 → Adım 11/11
+3. Reach the recommendation/results screen
+4. Confirm up to 3 mama recommendations appear
+5. Click at least one result CTA (product/store/cart) and confirm it works (no `#`)
+6. Use “Geri dön” at least once mid-flow and confirm prior answers are preserved
+7. Confirm step titles are never blank/broken/duplicated
+8. Confirm no horizontal overflow
+9. Confirm Mama Bul tab/bottom item stays active
+
+### 3) Add restart control if missing
+Main bundle currently shows no clear “Yeniden Başla”.
+On the results screen, ensure there is a clear restart action:
+- Label: “Yeniden Başla”
+- Resets wizard to Adım 1/11
+- Clears previous answers
+
+### 4) Final self-QA checklist (all must pass)
+- Devam Et tappable above bottom nav on 390x844
+- Full 11-step flow completes
+- Results screen shows real recommendations with working CTAs
+- Yeniden Başla works
+- No footer clutter during wizard
+- No dead drawer nodes
+- No shell regressions on `/` and `/yourpoodle/rehber`
+
+## Acceptance criteria
+1. “Devam Et” never blocked by bottom nav
+2. Full wizard completes to results
+3. Result CTAs work
+4. Yeniden Başla exists and resets the flow
+5. No regressions to previous title/footer/shell fixes
+
+## Output when done
+Report:
+- Files changed
+- Exact CTA overlap fix (if any extra change needed)
+- Short list of all 11 questions
+- What results screen shows
+- Confirmation that mobile E2E checklist passed
+
+If any check fails, keep working. Do not end the task.
