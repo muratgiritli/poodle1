@@ -6,7 +6,7 @@ import {
   Package as PackageIcon, Heart as HeartIcon, MapPin as MapPinIcon,
   Ticket, Camera, Bookmark, Bell as BellIcon, Settings,
   ChevronRight, User, Smartphone, Mail, Lock, HelpCircle,
-  Syringe, Shield, Scissors,
+  Syringe, Shield, Scissors, LogOut,
 } from "lucide-react";
 
 import { useCustomer } from "@/contexts/CustomerContext";
@@ -647,14 +647,28 @@ function AccountSettingsList({ onLogout }: { onLogout: () => void }) {
         })}
       </div>
 
-      {/* Logout */}
+      {/* Logout — belirgin kırmızı buton */}
       <button onClick={onLogout}
-        style={{ width: "100%", marginTop: 12, padding: "13px 0",
-                 background: "#fff", border: "none", borderRadius: 14,
-                 fontSize: 14, fontWeight: 600, color: "#EF4444",
-                 cursor: "pointer", fontFamily: "inherit" }}
-        onMouseEnter={e => { e.currentTarget.style.background = "#FEF2F2"; }}
-        onMouseLeave={e => { e.currentTarget.style.background = "#fff"; }}>
+        style={{
+          width: "100%", marginTop: 16,
+          padding: "15px 20px",
+          background: "#FEF2F2",
+          border: "1.5px solid #FECACA",
+          borderRadius: 14,
+          fontSize: 15, fontWeight: 700, color: "#DC2626",
+          cursor: "pointer", fontFamily: "inherit",
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          transition: "background 0.15s, border-color 0.15s",
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = "#FEE2E2";
+          e.currentTarget.style.borderColor = "#FCA5A5";
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = "#FEF2F2";
+          e.currentTarget.style.borderColor = "#FECACA";
+        }}>
+        <LogOut size={18} strokeWidth={2.2} />
         Çıkış Yap
       </button>
     </div>
