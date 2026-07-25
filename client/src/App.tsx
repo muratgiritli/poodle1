@@ -136,6 +136,7 @@ const YPDogProfilePage    = lazy(() => import("@/pages/yp-dog-profile"));
 const YPDogEditPage       = lazy(() => import("@/pages/yp-dog-edit"));
 const YPClubKesfetPage    = lazy(() => import("@/pages/yp-club-kesfet"));
 const YPClubKopeklerPage  = lazy(() => import("@/pages/yp-club-kopekler"));
+const YPClubMesajlarPage  = lazy(() => import("@/pages/yp-club-mesajlar"));
 const YPOdemePage         = lazy(() => import("@/pages/yp-odeme"));
 const YPTesekkurlerPage   = lazy(() => import("@/pages/yp-tesekkurler"));
 const YPSiparislerimPage  = lazy(() => import("@/pages/yp-siparislerim"));
@@ -286,6 +287,7 @@ function Router() {
         </Route>
         <Route path="/yourpoodle/rehber"         component={YPRehberPage} />
         <Route path="/yourpoodle/club/hakkimizda" component={YPClubHakkimizdaPage} />
+        <Route path="/yourpoodle/club/mesajlar"  component={YPClubMesajlarPage} />
         <Route path="/yourpoodle/club/kesfet"    component={YPClubKesfetPage} />
         <Route path="/yourpoodle/club/kopekler"  component={YPClubKopeklerPage} />
         <Route path="/yourpoodle/club"           component={YPClubPage} />

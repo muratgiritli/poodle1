@@ -1,0 +1,97 @@
+You are fixing YourPoodle Club remaining bugs in ONE pass.
+URL: https://www.yourpoodle.com/yourpoodle/club
+Mobile: 390×844.
+
+No stubs. No alert(). No toast-only fake features.
+Do not stop until every acceptance check is green.
+Do NOT regress Mama Bul / Rehber / AI Asistan / existing Club shell (title, hideFooter, bottom nav, like/save/share/follow).
+
+==================================================
+A) VERIFIED BUGS (fix these)
+==================================================
+
+### 1) Stories are stubs (CRITICAL)
+Story row onClick currently only shows toast:
+`"${name}'ın hikayesi açıldı"`
+That is fake. Choose ONE:
+**Preferred:** Implement a real fullscreen story viewer
+- Open on story avatar tap
+- Show image + name + progress bar
+- Tap/swipe next/prev, close (X or swipe down)
+- “Hikayen” (+) can open create flow OR navigate to existing create/post route if one exists
+**OR** remove the entire stories row until real stories exist.
+Never leave toast-only “story opened”.
+
+### 2) Mesajlar button is broken (CRITICAL)
+Current: `onClick → ${base}/club/kesfet` and on live this navigates to `/club/kesfet` → **404**.
+Fix:
+- Path must always resolve under the correct YourPoodle base (`/yourpoodle/...` when that is the app base). Never navigate to `/club/...` bare path that 404s.
+- Mesajlar must go to a REAL messages page (create `/yourpoodle/club/mesajlar` or reuse an existing messages route if present).
+- Page must show a usable inbox UI (list + empty state). If messaging backend is not ready, show honest empty state: “Henüz mesaj yok” — still a real page, not 404, not redirect to Keşfet.
+- Badge/count OK to keep if data exists; otherwise hide badge.
+
+### 3) Yakınımdakiler tab filter is broken (CRITICAL)
+Current filter logic is effectively:
+`posts.filter(p => tab === "takip" ? p.following : true)`
+So **Keşfet** and **Yakınımdakiler** show the SAME feed.
+Fix:
+- Add a real nearby field on posts (e.g. `nearby: true/false` or distance/city match).
+- Keşfet → all posts
+- Takip Ettiklerim → `following === true` (keep)
+- Yakınımdakiler → only nearby posts
+- If no nearby posts → show existing empty state:
+  “Yakınında paylaşım yok” + CTA back to Keşfet
+- Switching tabs must visibly change content at 390×844.
+
+### 4) “Daha fazla seçenek” (⋯) is dead
+Button has no onClick.
+Implement a real action menu (sheet/popover) with working actions, e.g.:
+- Şikayet et (toast confirmation OK)
+- Takibi bırak / Takip et (reuse follow toggle)
+- Bağlantıyı kopyala
+- İptal
+No empty button. No alert().
+
+==================================================
+B) PATH / BASE RULES
+==================================================
+- All Club navigations must use the same base helper as other YP pages.
+- Never produce 404 for header icons: Bildirimler, Mesajlar, Benim Poodle’ım.
+- Verify:
+  - `/yourpoodle/bildirimler`
+  - `/yourpoodle/club/mesajlar` (or final messages route)
+  - `/yourpoodle/benim-poodleim`
+  - `/yourpoodle/club/kesfet` only if that route is intentionally registered; otherwise remove dead links to it.
+
+==================================================
+C) KEEP WORKING
+==================================================
+- document.title = "Club | YourPoodle"
+- YPLayout shell, Club tab active, hideFooter
+- Like / Save / Share(copy) / Follow toggles
+- Comment focus + input
+- Bottom nav: Ana Sayfa · Mama Bul · Sepet · Rehber · Club
+- Composer/feed padding clear of bottom nav
+
+==================================================
+D) MANDATORY SELF-QA (390×844) — DO NOT END IF ANY FAIL
+==================================================
+1. Open `/yourpoodle/club` — Club active, title correct, no footer collision
+2. Tap a story → real viewer OR stories row removed (NO “hikayesi açıldı” toast stub)
+3. Tap Mesajlar → real messages page (NOT 404, NOT Keşfet redirect)
+4. Keşfet / Takip Ettiklerim / Yakınımdakiler → three distinct results (or correct empty states)
+5. Tap ⋯ on a post → menu opens; at least one action works
+6. Like / Kaydet / Paylaş / Takip still work
+7. Zero alert() in Club bundle
+8. Quick regression: `/yourpoodle/ai-asistan` and `/yourpoodle/rehber` still load
+
+==================================================
+E) DONE CRITERIA
+==================================================
+- No story toast stubs
+- Mesajlar never 404s
+- Yakınımdakiler actually filters
+- ⋯ menu works
+- Mobile QA all green
+
+Deploy when done. If any check fails, fix and re-test before finishing.
