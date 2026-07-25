@@ -1,0 +1,84 @@
+Replit’e yapıştır:
+
+```text
+You are doing a ONE-PASS polish fix for YourPoodle Magaza only.
+URL: https://www.yourpoodle.com/yourpoodle/magaza
+Mobile: 390×844
+
+No stubs. No alert(). No redesign. No feature rewrite.
+Do not stop until every acceptance check is green.
+Do NOT regress Mama Bul / Rehber / AI Asistan / Club / Giriş / Magaza store content.
+
+==================================================
+A) ALREADY DONE — DO NOT TOUCH / DO NOT REBUILD
+==================================================
+Magaza is already a real store page. KEEP all of this:
+- document.title client set:
+  "Poodle Ürünleri: Mama, Aksesuar ve Oyuncaklar | YourPoodle"
+- App shell with hideFooter
+- Bottom nav: Ana Sayfa · Mama Bul · Sepet · Rehber · Club
+- Search box → /ara?q=...
+- Öne Çıkan Ürünler + Çok Satanlar product rows
+- Sepete Ekle working
+- Product tap → real PDP (/urun/{id}/{slug})
+- Category taps working (kuru-mama + /kategori/{slug})
+- Campaign banner working
+- No alert() / no “yakında”
+
+==================================================
+B) ONLY REMAINING GAPS TO FIX
+==================================================
+
+### 1) Bottom nav overlaps last category row (MUST FIX)
+On mobile 390×844, fixed bottom nav covers the last row of “Tüm Kategoriler”.
+QA evidence: tapping a bottom category can be intercepted by the “Sepet” bottom-nav button.
+
+Fix:
+- Add enough bottom padding / safe-area to Magaza scroll content so the FULL category grid (including last row) sits ABOVE the bottom nav
+- Use: bottom nav height + env(safe-area-inset-bottom) + small extra gap
+- Last category tiles must be fully visible and fully tappable
+- Do not hide bottom nav
+- Do not shrink category tiles into unusable size
+- Prefer fixing in Magaza page content padding / AppShell content bottom inset consistently used by other /yourpoodle pages
+
+### 2) Initial HTML <title> mismatch (SHOULD FIX if easy)
+Initial HTML for /yourpoodle/magaza still serves homepage title
+("Toy Poodle Rehberi, Bakımı ve Mama Seçimi | YourPoodle")
+before client hydration updates it.
+
+Fix if SSR/meta route title exists:
+- Serve Magaza title in the real HTML <title> for /yourpoodle/magaza
+- Keep the same final title string already used by document.title
+If SSR title system is shared/hard, at least ensure client title remains correct and does not flash forever.
+
+### 3) Mobile QA pass on Magaza only
+Verify on 390×844:
+- Scroll to bottom of Magaza
+- Last category row fully visible above bottom nav
+- Tap last-row category successfully (not intercepted by bottom nav)
+- Search / products / Sepete Ekle still work
+- No horizontal overflow
+- No regression to other pages
+
+==================================================
+C) ACCEPTANCE CHECKS (ALL MUST PASS)
+==================================================
+1) On /yourpoodle/magaza at 390×844, last “Tüm Kategoriler” row is fully visible above bottom nav
+2) Tapping a last-row category opens the correct category page (no bottom-nav intercept)
+3) Bottom content padding includes safe-area
+4) Title ends as:
+   "Poodle Ürünleri: Mama, Aksesuar ve Oyuncaklar | YourPoodle"
+5) Search, Öne Çıkan, Çok Satanlar, Sepete Ekle, product PDP, category navigation still work
+6) No alert() / no “yakında”
+7) No regression on Mama Bul / Rehber / AI Asistan / Club / Giriş
+
+==================================================
+D) OUT OF SCOPE
+==================================================
+- Do not rebuild Magaza from scratch
+- Do not add new store sections unless needed for spacing
+- Do not change product/category business logic
+- Do not redesign header/bottom nav labels/order
+
+Finish only when A stays intact and B1 is fully fixed.
+```

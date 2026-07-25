@@ -268,10 +268,15 @@ export default function YPMagazaPage() {
           100% { opacity:1; }
         }
         .yp-mag-scroll::-webkit-scrollbar { display:none; }
+        /* Bottom padding that clears the fixed nav (60px) + home-bar inset + gap */
+        .yp-mag-main {
+          padding: 16px 16px 104px;
+          padding-bottom: max(120px, calc(68px + env(safe-area-inset-bottom, 0px) + 16px));
+        }
       `}</style>
       <Toast message={toast.message} visible={toast.visible} />
 
-      <main className="yp-pw" style={{ padding:"16px 16px 104px" }}>
+      <main className="yp-pw yp-mag-main">
 
         {/* ── Search bar ── */}
         <form onSubmit={handleSearch} style={{ position:"relative", marginBottom:20 }}>
