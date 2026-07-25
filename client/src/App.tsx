@@ -280,6 +280,7 @@ function Router() {
         <Route path="/yourpoodle/demo2"          component={YourPoodleDemo2Page} />
         <Route path="/yourpoodle/demo3"          component={YourPoodleDemo3Page} />
         <Route path="/yourpoodle"                component={YourPoodleHomePage} />
+        <Route path="/yourpoodle/rehber/:category/:slug" component={YPRehberMakalePage} />
         <Route path="/yourpoodle/rehber/:slug">
           {(params) => <YPRehberPage routeSlug={params?.slug} />}
         </Route>

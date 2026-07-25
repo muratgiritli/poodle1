@@ -1,10 +1,67 @@
 import React, { useState, useEffect } from "react";
-import { ChevronRight, Search, SlidersHorizontal, Heart, Brush, GraduationCap, Calculator } from "lucide-react";
+import { ChevronRight, Search, Heart, Brush, GraduationCap, Calculator } from "lucide-react";
+import { useLocation, useSearch } from "wouter";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 
 /* ── Design tokens ── */
 const P  = "#6200EE";
 const GB = "#E5E7EB";
+
+/* ── Slug maps: item label → { category, slug } or { externalPath } ── */
+const SLUG_MAP: Record<string, { cat: string; slug: string } | { path: string }> = {
+  /* Sağlık */
+  "Aşı Takvimi":                  { cat: "saglik",  slug: "asi-takvimi" },
+  "İç ve Dış Parazit":            { cat: "saglik",  slug: "ic-dis-parazit" },
+  "Toy Poodle Hastalıkları":      { cat: "saglik",  slug: "toy-poodle-hastaliklari" },
+  "Alerji Belirtileri":           { cat: "saglik",  slug: "alerji-belirtileri" },
+  "Sindirim ve İshal":            { cat: "saglik",  slug: "sindirim-ishal" },
+  "Göz Sağlığı":                  { cat: "saglik",  slug: "goz-sagligi" },
+  "Kulak Sağlığı":                { cat: "saglik",  slug: "kulak-sagligi" },
+  "Ağız ve Diş Sağlığı":          { cat: "saglik",  slug: "agiz-dis-sagligi" },
+  "Eklem ve Diz Kapağı":          { cat: "saglik",  slug: "eklem-diz-kapagi" },
+  "Acil Durumlarda İlk Yardım":   { cat: "saglik",  slug: "acil-ilk-yardim" },
+  /* Bakım */
+  "Tüy Bakımı ve Tarama":         { cat: "bakim",   slug: "tuy-bakimi-tarama" },
+  "Banyo Sıklığı":                { cat: "bakim",   slug: "banyo-sikligi" },
+  "Doğru Şampuan Seçimi":         { cat: "bakim",   slug: "sampuan-secimi" },
+  "Tıraş Modelleri":              { cat: "bakim",   slug: "tiras-modelleri" },
+  "Göz Yaşı Lekesi Bakımı":       { cat: "bakim",   slug: "goz-yasi-lekesi" },
+  "Kulak Temizliği":              { cat: "bakim",   slug: "kulak-temizligi" },
+  "Tırnak Kesimi":                { cat: "bakim",   slug: "tirnak-kesimi" },
+  "Diş Temizliği":                { cat: "bakim",   slug: "dis-temizligi" },
+  "Pati ve Burun Bakımı":         { cat: "bakim",   slug: "pati-burun-bakimi" },
+  "Yaz ve Kış Bakımı":            { cat: "bakim",   slug: "yaz-kis-bakimi" },
+  /* Eğitim */
+  "Tuvalet Eğitimi":              { cat: "egitim",  slug: "toy-poodle-tuvalet-egitimi" },
+  "İsmini Öğretme":               { cat: "egitim",  slug: "isim-ogretme" },
+  "Temel Komutlar":               { cat: "egitim",  slug: "temel-komutlar" },
+  "Isırmayı Bırakma":             { cat: "egitim",  slug: "isirmayi-birakma" },
+  "Havlama Kontrolü":             { cat: "egitim",  slug: "havlama-kontrolu" },
+  "Tasma ile Yürüme":             { cat: "egitim",  slug: "tasma-yurume" },
+  "Sosyalleşme Eğitimi":          { cat: "egitim",  slug: "sosyallesme-egitimi" },
+  "Yalnız Kalma Eğitimi":         { cat: "egitim",  slug: "yalniz-kalma-egitimi" },
+  "Ödülle Eğitim":                { cat: "egitim",  slug: "odulle-egitim" },
+  "Seyahat ve Araba Eğitimi":     { cat: "egitim",  slug: "seyahat-araba-egitimi" },
+  /* Araçlar — tools with dedicated pages navigate there directly */
+  "Günlük Mama Hesaplayıcı":      { path: "/yourpoodle/mama-hesaplama" },
+  "Su İhtiyacı Hesaplayıcı":      { cat: "araclar", slug: "su-ihtiyaci-hesaplama" },
+  "İdeal Kilo Takibi":            { cat: "araclar", slug: "ideal-kilo-takibi" },
+  "Köpek Yaşı Hesaplayıcı":       { path: "/yourpoodle/yas-hesaplama" },
+  "Aşı Takvimi Oluştur":          { cat: "saglik",  slug: "asi-takvimi" },
+  "Parazit Hatırlatıcısı":        { cat: "araclar", slug: "parazit-hatirlatici" },
+  "Bakım Takvimi":                { cat: "araclar", slug: "bakim-takvimi" },
+  "Mama Karşılaştırma":           { path: "/yourpoodle/mama-bul" },
+  "Belirli Rehberi":              { cat: "araclar", slug: "beslenme-rehberi" },
+  "Seyahat Kontrol Listesi":      { cat: "araclar", slug: "seyahat-kontrol-listesi" },
+};
+
+/* "Tümünü Gör" targets */
+const CATEGORY_FULL_PATH: Record<string, string> = {
+  saglik:  "/yourpoodle/saglik",
+  bakim:   "/yourpoodle/bakim",
+  egitim:  "/yourpoodle/egitim",
+  araclar: "/yourpoodle/rehber?cat=araclar",
+};
 
 /* ── Section definitions ── */
 interface GuideSection {
@@ -59,7 +116,7 @@ function QuickPill({ section, onClick }: { section: GuideSection; onClick: () =>
   );
 }
 
-function SectionCard({ section }: { section: GuideSection }) {
+function SectionCard({ section, onNavigate }: { section: GuideSection; onNavigate: (item: string) => void }) {
   return (
     <div style={{ borderRadius:16, border:`1px solid ${section.headerBorder}`, overflow:"hidden", marginBottom:16 }}>
       <div style={{ background:section.headerBg, padding:"14px 16px",
@@ -82,7 +139,7 @@ function SectionCard({ section }: { section: GuideSection }) {
                      cursor:"pointer", fontFamily:"inherit", textAlign:"left", transition:"background 0.12s" }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#F9FAFB"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "none"; }}
-            onClick={() => alert(`Konu: ${item}`)}>
+            onClick={() => onNavigate(item)}>
             <div style={{ display:"flex", alignItems:"center", gap:12 }}>
               <span style={{ width:22, height:22, borderRadius:"50%", background:section.numberBg, color:"#fff",
                              fontSize:11, fontWeight:700,
@@ -100,7 +157,7 @@ function SectionCard({ section }: { section: GuideSection }) {
                          color:section.badgeColor, fontFamily:"inherit", display:"flex", alignItems:"center", gap:4 }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.textDecoration = "underline"; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.textDecoration = "none"; }}
-          onClick={() => alert(`${section.name} — tümünü gör`)}>
+          data-section-id={section.id}>
           Tümünü Gör
           <ChevronRight size={14} />
         </button>
@@ -111,13 +168,16 @@ function SectionCard({ section }: { section: GuideSection }) {
 
 export default function YPRehberPage({ routeSlug: _routeSlug }: { routeSlug?: string }) {
   const [search, setSearch] = useState("");
-  const [showToast, setShowToast] = useState<string|null>(null);
+  const [, navigate] = useLocation();
+  const qs = useSearch();
+
+  /* Pre-filter by ?cat= query param (used by "Tümünü Gör" for araclar) */
+  const catParam = new URLSearchParams(qs).get("cat") ?? "";
 
   /* Scroll to hash anchor when navigating from homepage guide cards */
   useEffect(() => {
-    const hash = window.location.hash; // e.g. "#section-egitim"
+    const hash = window.location.hash;
     if (!hash) return;
-    // Wait for render then scroll
     const timer = setTimeout(() => {
       const el = document.querySelector(hash);
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -125,24 +185,55 @@ export default function YPRehberPage({ routeSlug: _routeSlug }: { routeSlug?: st
     return () => clearTimeout(timer);
   }, []);
 
+  /* Page title */
+  useEffect(() => {
+    document.title = "Toy Poodle Bakım, Eğitim ve Sağlık Rehberleri | YourPoodle";
+  }, []);
+
+  /* Navigate a topic row click */
+  const handleTopicClick = (item: string) => {
+    const entry = SLUG_MAP[item];
+    if (!entry) return;
+    if ("path" in entry) {
+      navigate(entry.path);
+    } else {
+      navigate(`/yourpoodle/rehber/${entry.cat}/${entry.slug}`);
+    }
+  };
+
+  /* "Tümünü Gör" per category */
+  const handleSeeAll = (sectionId: string) => {
+    const path = CATEGORY_FULL_PATH[sectionId];
+    if (path) navigate(path);
+  };
+
+  const baseFiltered = catParam
+    ? SECTIONS.filter(s => s.id === catParam)
+    : SECTIONS;
+
   const filtered = search.trim() === ""
-    ? SECTIONS
-    : SECTIONS.map(s => ({
+    ? baseFiltered
+    : baseFiltered.map(s => ({
         ...s,
         items: s.items.filter(item => item.toLowerCase().includes(search.toLowerCase())),
       })).filter(s => s.items.length > 0 || s.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <YPLayout activeLink="/yourpoodle/rehber" constrain={false}>
-      {showToast && (
-        <div style={{ position:"fixed", bottom:88, left:"50%", transform:"translateX(-50%)", zIndex:999, pointerEvents:"none" }}>
-          <div style={{ background:"#1A0052", color:"#fff", padding:"12px 24px", borderRadius:999, fontSize:14, fontWeight:500, whiteSpace:"nowrap" }}>
-            {showToast}
-          </div>
-        </div>
-      )}
 
       <main className="yp-pw" style={{ padding:"20px 16px 16px", paddingBottom:96 }}>
+
+        {/* Back pill when filtered by category param */}
+        {catParam && (
+          <button
+            onClick={() => navigate("/yourpoodle/rehber")}
+            style={{ display:"flex", alignItems:"center", gap:6, marginBottom:14,
+                     background:"none", border:"none", cursor:"pointer", fontFamily:"inherit",
+                     fontSize:13, color:P, fontWeight:600, padding:0 }}>
+            ← Tüm Kategoriler
+          </button>
+        )}
+
         {/* Search bar */}
         <div style={{ display:"flex", alignItems:"center", gap:0, border:`1px solid ${GB}`,
                       borderRadius:12, background:"#F9FAFB", marginBottom:20, overflow:"hidden" }}>
@@ -153,23 +244,20 @@ export default function YPRehberPage({ routeSlug: _routeSlug }: { routeSlug?: st
             placeholder="Poodle rehberinde ara..."
             style={{ flex:1, background:"none", border:"none", outline:"none",
                      fontSize:14, color:"#111827", padding:"12px 0", fontFamily:"inherit" }} />
-          <button onClick={() => alert("Filtre seçenekleri yakında!")}
-            style={{ background:"none", border:"none", cursor:"pointer", padding:"0 14px",
-                     display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <SlidersHorizontal size={18} color="#6B7280" />
-          </button>
         </div>
 
         {/* Quick category pills */}
-        <div className="yp-pill-row" style={{ display:"flex", gap:10, marginBottom:24 }}>
-          {SECTIONS.map(s => (
-            <QuickPill key={s.id} section={s}
-              onClick={() => {
-                const el = document.getElementById(`section-${s.id}`);
-                if (el) el.scrollIntoView({ behavior:"smooth", block:"start" });
-              }} />
-          ))}
-        </div>
+        {!catParam && (
+          <div className="yp-pill-row" style={{ display:"flex", gap:10, marginBottom:24 }}>
+            {SECTIONS.map(s => (
+              <QuickPill key={s.id} section={s}
+                onClick={() => {
+                  const el = document.getElementById(`section-${s.id}`);
+                  if (el) el.scrollIntoView({ behavior:"smooth", block:"start" });
+                }} />
+            ))}
+          </div>
+        )}
 
         {/* Section cards */}
         {filtered.length === 0 ? (
@@ -184,7 +272,13 @@ export default function YPRehberPage({ routeSlug: _routeSlug }: { routeSlug?: st
           <div className="yp-section-grid">
             {filtered.map(s => (
               <div id={`section-${s.id}`} key={s.id}>
-                <SectionCard section={s} />
+                {/* Wrap card so we can intercept the "Tümünü Gör" click */}
+                <div onClick={e => {
+                  const btn = (e.target as HTMLElement).closest("button[data-section-id]");
+                  if (btn) { handleSeeAll((btn as HTMLElement).dataset.sectionId!); }
+                }}>
+                  <SectionCard section={s} onNavigate={handleTopicClick} />
+                </div>
               </div>
             ))}
           </div>

@@ -1,0 +1,81 @@
+Finish the Rehber page completely in ONE pass.
+URL: https://www.yourpoodle.com/yourpoodle/rehber
+Mobile viewport: 390x844
+
+Do not stop early. No partial fixes. No alert() stubs left behind.
+
+## Already working — do not break
+- Page-specific title/meta: “Toy Poodle Bakım, Eğitim ve Sağlık Rehberleri | YourPoodle”
+- Category sections: Sağlık, Bakım, Eğitim, Araçlar (10 topics each)
+- Search filters topics client-side
+- Category pills scroll to sections
+- Section IDs exist as: section-saglik, section-bakim, section-egitim, section-araclar
+- Homepage deep-links to #section-egitim / #section-bakim must keep working
+- Unified mobile shell (header tabs + bottom nav) must remain intact
+
+## Critical bugs to fix
+Current code uses placeholder alerts instead of real navigation:
+
+1. Topic row click → `alert('Konu: …')`
+2. “Tümünü Gör” → `alert('… — tümünü gör')`
+3. Filter button → `alert('Filtre seçenekleri yakında!')`
+
+There is already a `yp-rehber-makale` chunk/route capability, but the list is not wired to real articles.
+
+## Required implementation
+
+### 1) Wire every topic to a real article page
+- Remove ALL alert() stubs from the rehber list
+- Each topic row must navigate to a real rehber article route
+- Prefer existing article routes/components (yp-rehber-makale) if present
+- If an article page/slug is missing, create a proper article page with real Turkish content for that topic (not lorem ipsum, not “yakında”)
+- “Tümünü Gör” must open the full category view or category-filtered rehber list (real navigation, not alert)
+
+### 2) Fix / complete filter
+Either:
+- Implement working filter UI for the rehber list, OR
+- Hide/remove the filter button until it is real
+Do not leave “yakında” alerts.
+
+### 3) Content quality minimum
+For each opened article ensure:
+- Correct title
+- Readable Turkish guide content
+- Back navigation to `/yourpoodle/rehber` (and preserve category/hash when possible)
+- Mobile layout not broken under bottom nav
+- No horizontal overflow at 390px
+
+### 4) Keep deep-links working
+Verify these still scroll to the right sections:
+- `/yourpoodle/rehber#section-egitim`
+- `/yourpoodle/rehber#section-bakim`
+- `/yourpoodle/rehber#section-saglik`
+- `/yourpoodle/rehber#section-araclar`
+
+## Mandatory self-QA (390x844)
+1. Open `/yourpoodle/rehber`
+2. Tap at least 1 topic in each category (Sağlık, Bakım, Eğitim, Araçlar) → must open article pages
+3. Tap “Tümünü Gör” for at least 2 categories → must navigate, no alert
+4. Tap filter control → no alert (works or hidden)
+5. Use search and open a filtered topic
+6. Verify homepage guide deep-links still land on correct sections
+7. Confirm shell/header/bottom nav unchanged
+8. Confirm zero `alert(` remaining in rehber list code
+
+## Acceptance criteria (ALL must pass)
+1. No alert() stubs on rehber list interactions
+2. Every visible topic opens a real article page
+3. “Tümünü Gör” navigates for real
+4. Filter either works or is removed/hidden
+5. Deep-link section hashes still work
+6. No regressions to mobile shell / SEO title
+
+## Output when done
+Report:
+- Files changed
+- Article route pattern used (example URLs)
+- How many topics are now linked
+- What you did with filter
+- Confirmation that mobile QA checklist passed
+
+If any check fails, keep working. Do not end the task.
