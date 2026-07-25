@@ -1,0 +1,60 @@
+You are working on the YourPoodle web app (https://www.yourpoodle.com/). Fix the incomplete mobile work based on this QA report. Do not redesign the brand; keep the existing purple theme and layout language. Focus on wiring, mobile layout bugs, and unifying the mobile shell.
+
+## Context
+There are currently TWO different mobile UIs:
+1) Homepage `/` — marketing landing (horizontal tabs, search/profile/cart icons, NO bottom nav)
+2) App routes `/yourpoodle/*` — older app shell (hamburger, chip nav, bottom nav: Home / Club / Cart / Store / AI)
+
+This split is the main incomplete work. Homepage CTAs and footer links are mostly placeholders (`href="#"`), while SEO sitemap already has real routes like `/yourpoodle/rehber`, `/yourpoodle/mama-bul`, `/yourpoodle/ai-asistan`, `/yourpoodle/club`, `/yourpoodle/magaza`.
+
+## Priority 1 — Wire dead links (must fix)
+On the homepage:
+1. Replace every footer `href="#"` with real routes/pages:
+   - Explore: Magaza, Mama Bul, Rehber, Club, AI Asistan
+   - Support: Order tracking, Returns, FAQ, Contact
+   - Company: About, KVKK, Careers, Privacy, Terms, Cookies
+   - Social: Instagram, TikTok, YouTube, Pinterest (use real URLs if available; if not, hide icons instead of `#`)
+2. Fix “Tümünü Gör” and “Tüm Rehberi Keşfet” — they currently go to `#`.
+3. Make homepage guide cards clickable and navigate to real guide articles/routes (they currently have pointer cursor but no navigation).
+4. Fix top nav anchors:
+   - Magaza should go to products/store route (not only `#products` if a real store page exists)
+   - Mama Bul should go to `/yourpoodle/mama-bul` (currently wrongly points near `#hero`)
+   - Rehber → `/yourpoodle/rehber`
+   - AI Asistan → `/yourpoodle/ai-asistan`
+   - Club → `/yourpoodle/club`
+5. Wire hero CTAs (“Mama Bul”, “Rehbere Git”, “AI Asistan”) to the same real routes.
+
+## Priority 2 — Unify mobile shell
+1. Use ONE consistent mobile navigation system across homepage and `/yourpoodle/*` pages.
+2. Prefer keeping the existing app bottom nav on mobile for all main flows, OR bring homepage header/nav into the app shell — but do not leave two conflicting shells.
+3. Ensure sticky header + promo banner do not cover CTAs or intercept taps.
+4. Add enough top padding under sticky header/promo so hero buttons remain tappable.
+5. On app pages, add bottom safe-area / padding so content is not hidden under bottom nav + floating cart FAB.
+
+## Priority 3 — Mobile UI bugs
+1. Top nav overflow: “Club” is cut off at ~390px width. Fix by wrapping, reducing items, or adding a clear horizontal-scroll affordance. No clipped labels.
+2. AI promo card on homepage: button text truncates (“AI Asist…”). Make layout stack cleanly on narrow screens.
+3. Membership/promo banner leaves clipped remnants while scrolling (“Kazan”). Fix sticky/scroll behavior.
+4. Touch targets: make icon buttons (search, account, cart, close, favorites, social) at least 44x44px.
+5. Accessibility: add `aria-label` to icon-only header buttons (search, account, cart).
+
+## Priority 4 — Reliability / assets
+1. Investigate 429 responses on lazy chunks (`FreeShippingBanner`, `favorites`, `heart`, `SEO`, lucide icon chunks). Fix rate limiting / CDN / chunk loading so favorites and banner pieces don’t fail on mobile.
+2. Replace low-res product images (e.g. 100x100) with proper product images where available.
+
+## Acceptance criteria (mobile 390x844)
+- No important homepage/footer link points to `#`
+- Homepage CTAs open real Mama Bul / Rehber / AI / Club flows
+- Guide cards navigate to real content
+- One consistent mobile nav experience across landing + app routes
+- Sticky header never blocks primary CTAs
+- Bottom nav/FAB never covers post text or primary buttons
+- “Club” and other nav labels fully visible (or intentionally scrollable with clear UX)
+- Icon buttons have aria-labels and usable tap size
+- No obvious truncated CTA text on the AI promo card
+
+## Working rules
+- Inspect existing routes/components first; reuse current pages instead of inventing duplicates.
+- Keep Turkish UI copy unless a string is clearly broken.
+- Make the smallest complete fix set that satisfies the acceptance criteria.
+- After changes, verify on mobile viewport and list what you fixed + what still needs content/pages if any legal pages don’t exist yet.

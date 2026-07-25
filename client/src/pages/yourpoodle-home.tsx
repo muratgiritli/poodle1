@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useCustomer } from "@/contexts/CustomerContext";
 import { useLocation } from "wouter";
+import YPBottomNav from "@/components/YPBottomNav";
 
 /* ─── TOKENS ─── */
 const P  = "#7C3AED";
@@ -460,7 +461,7 @@ export default function YourPoodleHomePage() {
   };
 
   const navItems = [
-    { label:"Mağaza",     href:"/yourpoodle" },
+    { label:"Mağaza",     href:"/yourpoodle/magaza" },
     { label:"Mama Bul",   href:"/yourpoodle/mama-bul" },
     { label:"Rehber",     href:"/yourpoodle/rehber" },
     { label:"AI Asistan", href:"/yourpoodle/ai-asistan" },
@@ -504,15 +505,19 @@ export default function YourPoodleHomePage() {
           <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle"
             onClick={() => window.scrollTo({ top:0, behavior:"smooth" })}
             style={{ height:36, width:"auto", objectFit:"contain", cursor:"pointer" }} />
-          <div style={{ display:"flex", alignItems:"center", gap:4 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:2 }}>
             <button onClick={() => setShowSearch(true)}
-              style={{ background:"none", border:"none", cursor:"pointer", color:TEXT, padding:8, borderRadius:8, display:"flex" }}>
+              aria-label="Ürün ara"
+              style={{ background:"none", border:"none", cursor:"pointer", color:TEXT,
+                       minWidth:44, minHeight:44, borderRadius:8,
+                       display:"flex", alignItems:"center", justifyContent:"center" }}>
               <SearchIcon />
             </button>
-            {/* Account button — goes to profile or login */}
             <button onClick={() => nav(isLoggedIn ? "/yourpoodle/profil" : "/yourpoodle/giris")}
-              style={{ background:"none", border:"none", cursor:"pointer", padding:8, borderRadius:8,
-                       display:"flex", alignItems:"center", gap:6,
+              aria-label={isLoggedIn ? "Profilim" : "Giriş yap"}
+              style={{ background:"none", border:"none", cursor:"pointer",
+                       minWidth:44, minHeight:44, borderRadius:8,
+                       display:"flex", alignItems:"center", justifyContent:"center", gap:6,
                        color: isLoggedIn ? P : TEXT }}>
               <UserIcon />
               {isLoggedIn && customer?.name && (
@@ -523,11 +528,14 @@ export default function YourPoodleHomePage() {
               )}
             </button>
             <button onClick={() => setShowCart(true)}
+              aria-label="Sepeti aç"
               style={{ background:"none", border:"none", cursor:"pointer", color:TEXT,
-                       padding:8, borderRadius:8, display:"flex", position:"relative" }}>
+                       minWidth:44, minHeight:44, borderRadius:8,
+                       display:"flex", alignItems:"center", justifyContent:"center",
+                       position:"relative" }}>
               <CartIconSvg />
               {cartCount > 0 && (
-                <span style={{ position:"absolute", top:2, right:2,
+                <span style={{ position:"absolute", top:4, right:4,
                                background:P, color:"#fff", borderRadius:"50%",
                                width:18, height:18, fontSize:10, fontWeight:800,
                                display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -539,17 +547,19 @@ export default function YourPoodleHomePage() {
         </header>
 
         {/* ════ NAV ════ */}
-        <nav style={{ background:"#fff", borderBottom:`1px solid ${BORDER}`,
-                      overflowX:"auto", display:"flex", padding:"0 4px",
-                      scrollbarWidth:"none" }}>
+        <nav aria-label="Kategori menüsü"
+          style={{ background:"#fff", borderBottom:`1px solid ${BORDER}`,
+                   overflowX:"auto", display:"flex", padding:"0 4px",
+                   scrollbarWidth:"none", WebkitOverflowScrolling:"touch" as any }}>
           {navItems.map(n => (
             <a key={n.label} href={n.href}
-              style={{ flex:"none", padding:"12px 16px", fontSize:14, fontWeight:500,
+              style={{ flex:"none", padding:"12px 14px", fontSize:14, fontWeight:500,
                        color:TEXT, textDecoration:"none", whiteSpace:"nowrap",
-                       borderBottom: n.href === "/yourpoodle" ? `2.5px solid ${P}` : "2.5px solid transparent",
+                       minHeight:44, display:"flex", alignItems:"center",
+                       borderBottom:"2.5px solid transparent",
                        transition:"color 0.15s, border-color 0.15s" }}
-              onMouseOver={e => (e.currentTarget.style.color = P)}
-              onMouseOut={e => (e.currentTarget.style.color = TEXT)}>
+              onMouseOver={e => { e.currentTarget.style.color = P; e.currentTarget.style.borderBottomColor = P; }}
+              onMouseOut={e => { e.currentTarget.style.color = TEXT; e.currentTarget.style.borderBottomColor = "transparent"; }}>
               {n.label}
             </a>
           ))}
@@ -715,22 +725,25 @@ export default function YourPoodleHomePage() {
         {/* ════ AI BANNER ════ */}
         <section id="ai" style={{ margin:"0 16px 28px" }}>
           <div style={{ background:`linear-gradient(135deg, #F3E8FF, #EDE4FF)`,
-                        borderRadius:16, padding:"20px",
-                        display:"flex", alignItems:"center", gap:14 }}>
-            <div style={{ width:48, height:48,
-                          background:`linear-gradient(135deg, ${P}, #8B5CF6)`,
-                          borderRadius:14, display:"flex", alignItems:"center",
-                          justifyContent:"center", fontSize:22, flexShrink:0 }}>✨</div>
-            <div style={{ flex:1 }}>
-              <div style={{ fontSize:14, fontWeight:700, color:TEXT, marginBottom:3 }}>Cevabını hemen bul</div>
-              <div style={{ fontSize:12, color:MUTED }}>Poodle'ınızla merak ettiğiniz her şeyi sorun.</div>
+                        borderRadius:16, padding:"16px",
+                        display:"flex", flexWrap:"wrap", alignItems:"center", gap:12 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:12, flex:"1 1 180px", minWidth:0 }}>
+              <div style={{ width:44, height:44,
+                            background:`linear-gradient(135deg, ${P}, #8B5CF6)`,
+                            borderRadius:12, display:"flex", alignItems:"center",
+                            justifyContent:"center", fontSize:20, flexShrink:0 }}>✨</div>
+              <div style={{ minWidth:0 }}>
+                <div style={{ fontSize:14, fontWeight:700, color:TEXT, marginBottom:2 }}>Cevabını hemen bul</div>
+                <div style={{ fontSize:12, color:MUTED, lineHeight:1.4 }}>Poodle'ınızla ilgili her şeyi sorun.</div>
+              </div>
             </div>
-            <button onClick={() => setShowAi(true)}
-              style={{ background:P, color:"#fff", border:"none", borderRadius:10,
-                       padding:"10px 14px", fontSize:12, fontWeight:700,
-                       cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap" }}>
+            <a href="/yourpoodle/ai-asistan"
+              style={{ background:P, color:"#fff", borderRadius:10,
+                       padding:"11px 16px", fontSize:13, fontWeight:700,
+                       cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap",
+                       textDecoration:"none", display:"inline-block", flexShrink:0 }}>
               AI Asistan'a Sor
-            </button>
+            </a>
           </div>
         </section>
 
@@ -821,7 +834,7 @@ export default function YourPoodleHomePage() {
         </section>
 
         {/* ════ FOOTER ════ */}
-        <footer style={{ background:"#fff", borderTop:`1px solid ${BORDER}`, padding:"28px 20px 80px" }}>
+        <footer style={{ background:"#fff", borderTop:`1px solid ${BORDER}`, padding:"28px 20px 100px" }}>
           <div style={{ marginBottom:20 }}>
             <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height:32, width:"auto", objectFit:"contain" }} />
             <p style={{ fontSize:12, color:MUTED, margin:"6px 0 12px", lineHeight:1.5 }}>
@@ -845,9 +858,9 @@ export default function YourPoodleHomePage() {
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16, marginBottom:24 }}>
             {[
-              { title:"Keşfet",    links:[["Mağaza","/yourpoodle"],["Mama Bul","/yourpoodle/mama-bul"],["Rehber","/yourpoodle/rehber"],["Club","/yourpoodle/club"],["AI Asistan","/yourpoodle/ai-asistan"]] },
-              { title:"Destek",   links:[["Sipariş Takibi","#"],["İade & Değişim","#"],["SSS","#"],["İletişim","#"]] },
-              { title:"Kurumsal", links:[["Hakkımızda","#"],["KVKK","#"],["Kariyer","#"],["Gizlilik Politikası","#"],["Kullanım Koşulları","#"]] },
+              { title:"Keşfet",    links:[["Mağaza","/yourpoodle/magaza"],["Mama Bul","/yourpoodle/mama-bul"],["Rehber","/yourpoodle/rehber"],["Club","/yourpoodle/club"],["AI Asistan","/yourpoodle/ai-asistan"]] },
+              { title:"Destek",   links:[["Sipariş Takibi","/yourpoodle/siparis-takip"],["İade & Değişim","/yourpoodle/iade"],["SSS","/yourpoodle/sss"],["İletişim","/iletisim"]] },
+              { title:"Kurumsal", links:[["Hakkımızda","/hakkimizda"],["KVKK","/kvkk"],["Kariyer","/yourpoodle/kariyer"],["Gizlilik","/yourpoodle/gizlilik-politikasi"],["Kullanım Şartları","/yourpoodle/kullanim-sartlari"]] },
             ].map(col => (
               <div key={col.title}>
                 <div style={{ fontSize:12, fontWeight:700, color:TEXT, marginBottom:10 }}>{col.title}</div>
@@ -881,9 +894,9 @@ export default function YourPoodleHomePage() {
           <div style={{ fontSize:11, color:"#9CA3AF", textAlign:"center",
                          paddingTop:12, borderTop:`1px solid ${BORDER}` }}>
             © 2026 YourPoodle. Tüm hakları saklıdır. &nbsp;·&nbsp;
-            <a href="#" style={{ color:"#9CA3AF", textDecoration:"none" }}>Gizlilik</a> &nbsp;·&nbsp;
-            <a href="#" style={{ color:"#9CA3AF", textDecoration:"none" }}>Çerezler</a> &nbsp;·&nbsp;
-            <a href="#" style={{ color:"#9CA3AF", textDecoration:"none" }}>KVKK</a>
+            <a href="/yourpoodle/gizlilik-politikasi" style={{ color:"#9CA3AF", textDecoration:"none" }}>Gizlilik</a> &nbsp;·&nbsp;
+            <a href="/yourpoodle/cerez-politikasi" style={{ color:"#9CA3AF", textDecoration:"none" }}>Çerezler</a> &nbsp;·&nbsp;
+            <a href="/kvkk" style={{ color:"#9CA3AF", textDecoration:"none" }}>KVKK</a>
           </div>
         </footer>
       </div>
@@ -893,6 +906,9 @@ export default function YourPoodleHomePage() {
       {showCart   && <CartDrawer cart={cart} setCart={setCart} onClose={() => setShowCart(false)} />}
       {showAi     && <AiModal onClose={() => setShowAi(false)} />}
       {toast      && <Toast msg={toast} onDone={() => setToast("")} />}
+
+      {/* ════ BOTTOM NAV (same as all YP pages) ════ */}
+      <YPBottomNav />
     </div>
   );
 }
