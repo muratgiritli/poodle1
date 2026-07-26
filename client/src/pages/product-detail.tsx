@@ -1223,10 +1223,10 @@ export default function ProductDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {product.stock > 0 && (
+      {product.stock > 0 && !IS_YP && (
         <div
-          className={`fixed left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 py-3 shadow-[0_-2px_12px_rgba(0,0,0,0.08)] ${jetgoBottomNav && !IS_YP ? "hidden md:block" : ""}`}
-          style={{ bottom: IS_YP ? 60 : 0 }}
+          className={`fixed left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 py-3 shadow-[0_-2px_12px_rgba(0,0,0,0.08)] ${jetgoBottomNav ? "hidden md:block" : ""}`}
+          style={{ bottom: 0 }}
           data-testid="bar-buy"
         >
           <div className="max-w-2xl md:max-w-5xl mx-auto flex items-center gap-3">
