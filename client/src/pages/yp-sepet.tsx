@@ -194,7 +194,7 @@ export default function YPSepetPage() {
   };
 
   const proceedToPayment = () => {
-    if (!isLoggedIn) { navigate(`${BASE}/giris`); return; }
+    if (!isLoggedIn) { navigate(`${BASE}/giris?returnTo=${encodeURIComponent(`${BASE}/sepet`)}`); return; }
     if(!address){ showToast("Lütfen teslimat adresi seçin"); setShowAddrModal(true); return; }
     navigate("/odeme");
   };
