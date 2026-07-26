@@ -235,19 +235,6 @@ export default function YPLayout({
             {/* Spacer */}
             <div style={{ flex: 1 }} />
 
-            {/* Arama */}
-            {!authMode && (
-              <form onSubmit={handleSearch} style={{ position: "relative", width: 220 }}>
-                <Search size={15} color="#9CA3AF" style={{ position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
-                <input
-                  className="yp-search-inp"
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder="Ne arıyorsunuz?"
-                  style={{ width: "100%", height: 40, borderRadius: 9999, border: "1.5px solid #E5E7EB", background: "#fff", paddingLeft: 38, paddingRight: 16, fontSize: 13, color: "#374151", fontFamily: "inherit", outline: "none", boxSizing: "border-box" }}
-                />
-              </form>
-            )}
 
             {/* Sağ aksiyonlar */}
             {!authMode && (
@@ -383,13 +370,6 @@ export default function YPLayout({
 
             {/* Right: search · account · cart — same icon cluster as homepage */}
             <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
-              {/* Search */}
-              <button onClick={() => navigate(`${BASE}/ara`)} aria-label="Ürün ara"
-                style={{ width: 44, height: 44, background: "none", border: "none", cursor: "pointer",
-                         display: "flex", alignItems: "center", justifyContent: "center",
-                         borderRadius: 8, color: "#374151" }}>
-                <Search size={20} strokeWidth={2} />
-              </button>
               {/* Account */}
               <button onClick={() => navigate(isLoggedIn ? "/hesabim" : `${BASE}/giris`)}
                 aria-label={isLoggedIn ? "Profilim" : "Giriş yap"}
