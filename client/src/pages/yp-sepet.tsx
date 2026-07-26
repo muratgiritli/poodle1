@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import {
-  ChevronLeft, CheckCircle, X, Trash2, Heart,
+  ChevronLeft, CheckCircle, X, Trash2,
   CreditCard, Truck, MapPin, ChevronRight, Tag,
   Lock, ShieldCheck, Plus, Minus, ShoppingCart,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { useCustomer } from "@/contexts/CustomerContext";
 import { IS_YP } from "@/lib/store";
+import { useCart } from "@/contexts/CartContext";
+import { useQuery } from "@tanstack/react-query";
 
 const BASE = IS_YP ? "" : "/yourpoodle";
 
@@ -19,37 +21,12 @@ const PBD = "#DDD6FE";
 const GB  = "#E5E7EB";
 
 /* ─── Types ────────────────────────────── */
-interface CartItemData {
-  id: string; brand: string; name: string; weight: string;
-  barcode: string; expiryDate: string;
-  originalPrice: number; salePrice: number; quantity: number;
-  inStock: boolean; tags: { label: string; bg: string; text: string }[];
-}
 interface DeliveryOption { id: string; title: string; price: number; subtitle: string; }
 
 const DELIVERY_OPTIONS: DeliveryOption[] = [
-  { id:"standard", title:"Standart Teslimat — Ücretsiz", price:0,  subtitle:"Tahmini teslimat: 25–26 Temmuz" },
-  { id:"express",  title:"Hızlı Teslimat — 79 TL",       price:79, subtitle:"Yarın kapınızda" },
+  { id:"standard", title:"Standart Teslimat — Ücretsiz", price:0,  subtitle:"Aynı gün / Ertesi gün teslimat" },
+  { id:"express",  title:"Hızlı Teslimat — 79 TL",       price:79, subtitle:"Öncelikli teslimat" },
 ];
-
-// Coupon validation is server-side via /api/coupons/validate
-
-const RECS = [
-  { id:"rec-1", name:"Buharlı Masaj Tarağı",   price:399, emoji:"🪮" },
-  { id:"rec-2", name:"Göz Yaşı Bakım Losyonu", price:289, emoji:"💧" },
-];
-
-const DEFAULT_ITEM: CartItemData = {
-  id:"cart-1", brand:"PRO PLAN",
-  name:"Pro Plan Small Adult Sensitive Somonlu Yetişkin Köpek Maması",
-  weight:"3 kg", barcode:"7613035123456", expiryDate:"18.07.2027",
-  originalPrice:1599, salePrice:1349, quantity:1, inStock:true,
-  tags:[
-    { label:"Yetişkin +1", bg:"#FEE2E2", text:"#991B1B" },
-    { label:"Sensitive",   bg:"#EDE9FE", text:"#5B21B6" },
-    { label:"Somonlu",     bg:"#EDE9FE", text:"#5B21B6" },
-  ],
-};
 
 function fmt(n: number) { return n.toLocaleString("tr-TR"); }
 
@@ -140,8 +117,24 @@ function Toast({ msg, onHide }: { msg:string; onHide:()=>void }) {
 export default function YPSepetPage() {
   const [, navigate] = useLocation();
   const { isLoggedIn } = useCustomer();
+  const { basket, updateQty: cartUpdate } = useCart();
 
-  const [items, setItems]               = useState<CartItemData[]>([DEFAULT_ITEM]);
+  /* Fetch product catalog to resolve basket IDs → product details */
+  const { data: allProducts = [] } = useQuery<any[]>({
+    queryKey: ["/api/products"],
+    staleTime: 60_000,
+  });
+
+  /* Build cart items from basket + product data */
+  const items = Object.entries(basket)
+    .filter(([, qty]) => (qty as number) > 0)
+    .map(([pid, qty]) => {
+      const p = allProducts.find((x: any) => String(x.id) === pid);
+      if (!p) return null;
+      return { id: pid, product: p, quantity: qty as number };
+    })
+    .filter(Boolean) as { id: string; product: any; quantity: number }[];
+
   const [showBanner, setShowBanner]     = useState(true);
   const [deliveryId, setDeliveryId]     = useState("standard");
   const [address, setAddress]           = useState<string|null>(null);
@@ -149,28 +142,32 @@ export default function YPSepetPage() {
   const [couponInput, setCouponInput]   = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{discount:number;label:string}|null>(null);
   const [toastMsg, setToastMsg]         = useState<string|null>(null);
-  const [recAdded, setRecAdded]         = useState<Set<string>>(new Set());
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(()=>setToastMsg(null), 2500);
   };
 
-  const delivery       = DELIVERY_OPTIONS.find(d=>d.id===deliveryId)!;
-  const originalSubtotal = items.reduce((s,i)=>s+i.originalPrice*i.quantity, 0);
-  const saleSubtotal     = items.reduce((s,i)=>s+i.salePrice*i.quantity, 0);
-  const productDiscount  = originalSubtotal - saleSubtotal;
-  const shippingCost     = delivery.price===0 ? 0 : (saleSubtotal>=500 ? 0 : delivery.price);
+  const delivery      = DELIVERY_OPTIONS.find(d=>d.id===deliveryId)!;
+  const saleSubtotal  = items.reduce((s, i) => s + i.product.price * i.quantity, 0);
+  const origSubtotal  = items.reduce((s, i) => s + (i.product.originalPrice ?? i.product.price) * i.quantity, 0);
+  const productDiscount  = Math.max(0, origSubtotal - saleSubtotal);
+  const shippingCost  = delivery.price === 0 ? 0 : (saleSubtotal >= 500 ? 0 : delivery.price);
   const couponDiscount   = appliedCoupon?.discount ?? 0;
-  const total            = saleSubtotal + shippingCost - couponDiscount;
-  const installAmt       = (total/3).toFixed(2).replace(".",",");
-  const freeShipPct      = Math.min((saleSubtotal/500)*100, 100);
-  const itemCount        = items.reduce((s,i)=>s+i.quantity, 0);
+  const total         = saleSubtotal + shippingCost - couponDiscount;
+  const installAmt    = (total / 3).toFixed(2).replace(".", ",");
+  const freeShipPct   = Math.min((saleSubtotal / 500) * 100, 100);
+  const itemCount     = items.reduce((s, i) => s + i.quantity, 0);
 
-  const updateQty  = (id:string, delta:number) =>
-    setItems(prev=>prev.map(i=>i.id===id?{...i,quantity:Math.max(1,Math.min(10,i.quantity+delta))}:i));
-  const removeItem = (id:string) => setItems(prev=>prev.filter(i=>i.id!==id));
-  const clearCart  = () => { if(window.confirm("Sepeti temizlemek istediğinizden emin misiniz?")) setItems([]); };
+  const handleQty = (id: string, delta: number) => cartUpdate(id, delta);
+  const removeItem = (id: string) => {
+    const cur = basket[id] || 0;
+    if (cur > 0) cartUpdate(id, -cur);
+  };
+  const clearCart = () => {
+    if (window.confirm("Sepeti temizlemek istediğinizden emin misiniz?"))
+      items.forEach(i => cartUpdate(i.id, -(i.quantity)));
+  };
 
   const applyCoupon = async (code: string) => {
     const upper = code.trim().toUpperCase();
@@ -277,88 +274,71 @@ export default function YPSepetPage() {
         </div>
 
         {/* ══ CART ITEM CARD ═══════════════════════════════ */}
-        {items.map(item=>(
-          <div key={item.id}
+        {items.map(({id, product: p, quantity})=>(
+          <div key={id}
             style={{ margin:"0 16px 12px",background:"#fff",borderRadius:14,
                      border:`1px solid ${GB}`,padding:14,
                      boxShadow:"0 1px 4px rgba(0,0,0,0.05)" }}>
             <div style={{ display:"flex",gap:12 }}>
               {/* Image */}
-              <div style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:6,flexShrink:0 }}>
-                <div style={{ width:80,height:108,borderRadius:10,
-                              background:"linear-gradient(135deg,#EEF2FF,#E0E7FF)",
-                              display:"flex",flexDirection:"column",alignItems:"center",
-                              justifyContent:"center",overflow:"hidden",position:"relative" }}>
-                  <span style={{ fontSize:11,fontWeight:800,color:"#003087",letterSpacing:"0.5px" }}>PRO PLAN</span>
-                  <span style={{ fontSize:32,marginTop:4 }}>🦮</span>
-                </div>
-                <button onClick={()=>showToast("Daha sonra al listesine eklendi")}
-                  style={{ background:"none",border:"none",cursor:"pointer",
-                           fontSize:11,fontWeight:600,color:PB,fontFamily:"inherit",
-                           textDecoration:"underline",whiteSpace:"nowrap" }}>
-                  Daha Sonra Al
-                </button>
+              <div style={{ width:80,height:80,borderRadius:10,flexShrink:0,
+                            background:"#F9FAFB",overflow:"hidden",display:"flex",
+                            alignItems:"center",justifyContent:"center" }}>
+                {p.img
+                  ? <img src={p.img} alt={p.name} style={{ width:"100%",height:"100%",objectFit:"contain",padding:4 }} />
+                  : <ShoppingCart size={28} color="#D1D5DB" />}
               </div>
               {/* Details */}
               <div style={{ flex:1,minWidth:0 }}>
-                <div style={{ display:"flex",justifyContent:"flex-end",gap:10,marginBottom:6 }}>
-                  <button onClick={()=>removeItem(item.id)} aria-label="Sil"
+                <div style={{ display:"flex",justifyContent:"flex-end",marginBottom:4 }}>
+                  <button onClick={()=>removeItem(id)} aria-label="Sil"
                     style={{ background:"none",border:"none",cursor:"pointer",display:"flex",padding:2 }}>
                     <Trash2 size={16} color="#9CA3AF" />
                   </button>
-                  <button aria-label="Favorile"
-                    style={{ background:"none",border:"none",cursor:"pointer",display:"flex",padding:2 }}>
-                    <Heart size={16} color="#9CA3AF" />
-                  </button>
                 </div>
-                <p style={{ fontSize:10,fontWeight:800,color:P,letterSpacing:"0.6px",
-                            textTransform:"uppercase",marginBottom:3 }}>{item.brand}</p>
+                {p.brand && (
+                  <p style={{ fontSize:10,fontWeight:800,color:P,letterSpacing:"0.6px",
+                              textTransform:"uppercase",marginBottom:3 }}>{p.brand}</p>
+                )}
                 <p style={{ fontSize:12,fontWeight:700,color:"#111827",lineHeight:1.35,
-                            marginBottom:5,display:"-webkit-box",WebkitLineClamp:2,
-                            WebkitBoxOrient:"vertical",overflow:"hidden" }}>{item.name}</p>
-                <p style={{ fontSize:10,color:"#6B7280",lineHeight:1.7 }}>
-                  {item.weight}<br />Barkod: {item.barcode}<br />SKT: {item.expiryDate}
-                </p>
-                <div style={{ display:"flex",alignItems:"center",gap:5,marginTop:4,marginBottom:6 }}>
+                            marginBottom:6,display:"-webkit-box",WebkitLineClamp:2,
+                            WebkitBoxOrient:"vertical",overflow:"hidden" }}>{p.name}</p>
+                <div style={{ display:"flex",alignItems:"center",gap:5,marginBottom:8 }}>
                   <span style={{ width:7,height:7,borderRadius:"50%",background:"#22C55E",display:"inline-block" }} />
                   <span style={{ fontSize:10,color:"#16A34A",fontWeight:500 }}>Stokta</span>
                 </div>
-                <div style={{ display:"flex",flexWrap:"wrap",gap:4,marginBottom:8 }}>
-                  {item.tags.map(t=>(
-                    <span key={t.label} style={{ background:t.bg,color:t.text,fontSize:10,fontWeight:600,padding:"3px 8px",borderRadius:999 }}>{t.label}</span>
-                  ))}
-                </div>
                 <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-end" }}>
                   <div>
-                    <p style={{ fontSize:11,color:"#9CA3AF",textDecoration:"line-through",marginBottom:1 }}>
-                      {fmt(item.originalPrice*item.quantity)} TL
-                    </p>
+                    {p.originalPrice && p.originalPrice > p.price && (
+                      <p style={{ fontSize:11,color:"#9CA3AF",textDecoration:"line-through",marginBottom:1 }}>
+                        {fmt(p.originalPrice*quantity)} TL
+                      </p>
+                    )}
                     <p style={{ fontSize:17,fontWeight:800,color:PB,lineHeight:1,marginBottom:2 }}>
-                      {fmt(item.salePrice*item.quantity)} TL
+                      {fmt(p.price*quantity)} TL
                     </p>
-                    <p style={{ fontSize:10,fontWeight:600,color:"#16A34A" }}>
-                      {fmt((item.originalPrice-item.salePrice)*item.quantity)} TL kazanç
-                    </p>
+                    {p.originalPrice && p.originalPrice > p.price && (
+                      <p style={{ fontSize:10,fontWeight:600,color:"#16A34A" }}>
+                        {fmt((p.originalPrice-p.price)*quantity)} TL kazanç
+                      </p>
+                    )}
                   </div>
                   <div style={{ display:"flex",alignItems:"center",border:`1.5px solid ${PBD}`,borderRadius:10,overflow:"hidden" }}>
-                    <button onClick={()=>updateQty(item.id,-1)} aria-label="Azalt"
-                      disabled={item.quantity===1}
+                    <button onClick={()=>handleQty(id,-1)} aria-label="Azalt"
+                      disabled={quantity<=1}
                       style={{ padding:"7px 10px",background:"none",border:"none",
-                               cursor:item.quantity===1?"not-allowed":"pointer",
-                               color:item.quantity===1?"#D1D5DB":"#374151",
+                               cursor:quantity<=1?"not-allowed":"pointer",
+                               color:quantity<=1?"#D1D5DB":"#374151",
                                display:"flex",alignItems:"center" }}>
                       <Minus size={13} />
                     </button>
                     <span style={{ padding:"7px 12px",fontSize:13,fontWeight:700,color:"#111827",
                                    minWidth:30,textAlign:"center" }}>
-                      {item.quantity}
+                      {quantity}
                     </span>
-                    <button onClick={()=>updateQty(item.id,1)} aria-label="Artır"
-                      disabled={item.quantity===10}
-                      style={{ padding:"7px 10px",background:"none",border:"none",
-                               cursor:item.quantity===10?"not-allowed":"pointer",
-                               color:item.quantity===10?"#D1D5DB":"#374151",
-                               display:"flex",alignItems:"center" }}>
+                    <button onClick={()=>handleQty(id,1)} aria-label="Artır"
+                      style={{ padding:"7px 10px",background:"none",border:"none",cursor:"pointer",
+                               color:"#374151",display:"flex",alignItems:"center" }}>
                       <Plus size={13} />
                     </button>
                   </div>
@@ -468,7 +448,7 @@ export default function YPSepetPage() {
           <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
             <div style={{ display:"flex",justifyContent:"space-between" }}>
               <span style={{ fontSize:13,color:"#374151" }}>Ürünler ({itemCount})</span>
-              <span style={{ fontSize:13,color:"#374151" }}>{fmt(originalSubtotal)} TL</span>
+              <span style={{ fontSize:13,color:"#374151" }}>{fmt(origSubtotal)} TL</span>
             </div>
             <div style={{ display:"flex",justifyContent:"space-between" }}>
               <span style={{ fontSize:13,color:"#374151" }}>Ürün İndirimi</span>
@@ -522,35 +502,6 @@ export default function YPSepetPage() {
                      padding:"13px 0",fontSize:14,fontWeight:700,color:P,cursor:"pointer",fontFamily:"inherit" }}>
             Alışverişe Devam Et
           </button>
-        </div>
-
-        {/* ══ RECOMMENDATIONS ══════════════════════════════ */}
-        <div style={{ padding:"0 16px" }}>
-          <p style={{ fontSize:13,fontWeight:700,color:"#111827",marginBottom:12 }}>Bunları da sevebilirsiniz</p>
-          <div className="rec-scroll" style={{ display:"flex",gap:12,overflowX:"auto" }}>
-            {RECS.map(rec=>(
-              <div key={rec.id} style={{ minWidth:140,background:"#fff",border:`1px solid ${GB}`,
-                                         borderRadius:14,padding:"10px 10px 12px",flexShrink:0 }}>
-                <div style={{ width:"100%",height:76,borderRadius:10,background:"#F9FAFB",
-                              display:"flex",alignItems:"center",justifyContent:"center",
-                              fontSize:36,marginBottom:8 }}>
-                  {rec.emoji}
-                </div>
-                <p style={{ fontSize:11,fontWeight:600,color:"#374151",lineHeight:1.4,marginBottom:5,
-                            display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden" }}>
-                  {rec.name}
-                </p>
-                <p style={{ fontSize:14,fontWeight:800,color:PB,marginBottom:8 }}>{fmt(rec.price)} TL</p>
-                <button onClick={()=>{ setRecAdded(prev=>new Set(prev).add(rec.id)); showToast(`${rec.name} sepete eklendi`); }}
-                  style={{ width:"100%",background:recAdded.has(rec.id)?"#16A34A":"none",
-                           border:`1.5px solid ${recAdded.has(rec.id)?"#16A34A":P}`,borderRadius:8,
-                           padding:"7px 0",fontSize:11,fontWeight:700,
-                           color:recAdded.has(rec.id)?"#fff":P,cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s" }}>
-                  {recAdded.has(rec.id)?"✓ Eklendi":"+ Ekle"}
-                </button>
-              </div>
-            ))}
-          </div>
         </div>
 
       </div>
