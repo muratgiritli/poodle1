@@ -231,45 +231,6 @@ export default function YPAiAsistanPage() {
       <div className="yp-ai-scroll yp-ai-center"
         style={{ paddingBottom: 160 }}>
 
-        {/* ── AI HERO BANNER ──────────────────────────────────── */}
-        <div style={{ margin:"16px 16px 0", borderRadius:18, overflow:"hidden",
-                      background:"linear-gradient(135deg, #6324D6 0%, #8B5CF6 100%)",
-                      minHeight:180, padding:20, position:"relative" }}>
-          <div style={{ position:"relative", zIndex:2, maxWidth:"58%" }}>
-            <MessageCircle size={20} color="rgba(255,255,255,0.8)" />
-            <div style={{ display:"inline-block", marginTop:8, background:"rgba(255,255,255,0.20)",
-                          color:"#fff", fontSize:12, fontWeight:500,
-                          padding:"4px 12px", borderRadius:999 }}>
-              7/24 Yanınızda
-            </div>
-            <h1 style={{ color:"#fff", fontSize:20, fontWeight:700,
-                         lineHeight:1.25, marginTop:10, marginBottom:8 }}>
-              Merhaba! Ben Poodle AI 🐾
-            </h1>
-            <p style={{ color:"rgba(255,255,255,0.85)", fontSize:13,
-                        lineHeight:1.55, marginBottom:12 }}>
-              Poodle'ınızla ilgili merak ettiğiniz her şeyi bana sorabilirsiniz.
-            </p>
-            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-              <ShieldCheck size={14} color="rgba(255,255,255,0.7)" />
-              <span style={{ color:"rgba(255,255,255,0.7)", fontSize:12 }}>
-                Uzman kaynaklarla desteklenen bilgiler
-              </span>
-            </div>
-          </div>
-          <div style={{ position:"absolute", right:0, bottom:0, width:128, height:148 }}>
-            <img src="/images/yp-poodle-hero.png" alt="Poodle AI" loading="lazy"
-              style={{ width:"100%", height:"100%", objectFit:"cover",
-                       objectPosition:"center top" }} />
-            <div style={{ position:"absolute", bottom:8, right:8,
-                          width:28, height:28, borderRadius:"50%",
-                          background:"#fff", border:"2px solid #C4B5FD",
-                          display:"flex", alignItems:"center", justifyContent:"center",
-                          fontSize:9, fontWeight:700, color:P }}>
-              AI
-            </div>
-          </div>
-        </div>
 
         {/* ── QUICK ACTIONS ───────────────────────────────────── */}
         <div style={{ padding:"20px 16px 0" }}>
