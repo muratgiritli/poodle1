@@ -1,13 +1,20 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 
-const LS_CART = "yp_cart_items";
 const P = "#7C3AED";
 
+/* CartContext stores basket as Record<string, number> under "jet55_cart" */
 function readCartCount(): number {
   try {
-    const items = JSON.parse(localStorage.getItem(LS_CART) || "[]");
-    return Array.isArray(items) ? items.reduce((s: number, i: any) => s + (i.qty || 0), 0) : 0;
+    const raw = localStorage.getItem("jet55_cart");
+    if (!raw) return 0;
+    const basket = JSON.parse(raw);
+    if (basket && typeof basket === "object" && !Array.isArray(basket)) {
+      return Object.values(basket as Record<string, number>).reduce(
+        (s: number, qty) => s + (Number(qty) || 0), 0
+      );
+    }
+    return 0;
   } catch { return 0; }
 }
 
