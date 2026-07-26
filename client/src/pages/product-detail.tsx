@@ -979,32 +979,55 @@ export default function ProductDetailPage() {
                       }}
                     />
                   </div>
-                  <Button
-                    className="w-full h-12 font-bold text-base"
-                    style={{ backgroundColor: "#e65100", color: "#fff" }}
-                    onClick={() => {
-                      if (hasVariants && !selectedVariant) {
-                        toast({ title: "Lütfen önce bir seçenek belirleyin", variant: "destructive" });
-                        return;
-                      }
-                      if (quantity === 0) {
+                  <div className="flex gap-2">
+                    {/* Sepete Ekle */}
+                    <Button
+                      className="flex-1 h-12 font-bold text-base"
+                      style={{ backgroundColor: "#7C3AED", color: "#fff" }}
+                      onClick={() => {
+                        if (hasVariants && !selectedVariant) {
+                          toast({ title: "Lütfen önce bir seçenek belirleyin", variant: "destructive" });
+                          return;
+                        }
                         const blocked = updateQty(pid, 1, isCampaignMode, selectedVariant ?? undefined);
                         if (blocked) {
                           toast({ title: "Stok kalmadı!", variant: "destructive" });
+                        } else {
+                          toast({ title: "✓ Sepete eklendi" });
+                        }
+                      }}
+                      data-testid="button-add-to-cart"
+                    >
+                      <ShoppingCart className="w-4 h-4 mr-1.5" />
+                      Sepete Ekle
+                    </Button>
+                    {/* Hemen Al */}
+                    <Button
+                      className="flex-1 h-12 font-bold text-base"
+                      style={{ backgroundColor: "#e65100", color: "#fff" }}
+                      onClick={() => {
+                        if (hasVariants && !selectedVariant) {
+                          toast({ title: "Lütfen önce bir seçenek belirleyin", variant: "destructive" });
                           return;
                         }
-                      }
-                      if (isLoggedIn || guestCheckoutEnabled) {
-                        setLocation("/odeme");
-                      } else {
-                        setConfirmDialogOpen(true);
-                      }
-                    }}
-                    data-testid="button-order-now"
-                  >
-                    <ShoppingCart className="w-5 h-5 mr-2" />
-                    HEMEN SİPARİŞ VER
-                  </Button>
+                        if (quantity === 0) {
+                          const blocked = updateQty(pid, 1, isCampaignMode, selectedVariant ?? undefined);
+                          if (blocked) {
+                            toast({ title: "Stok kalmadı!", variant: "destructive" });
+                            return;
+                          }
+                        }
+                        if (isLoggedIn || guestCheckoutEnabled) {
+                          setLocation("/odeme");
+                        } else {
+                          setConfirmDialogOpen(true);
+                        }
+                      }}
+                      data-testid="button-order-now"
+                    >
+                      Hemen Al
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -1045,45 +1068,6 @@ export default function ProductDetailPage() {
           </div>
         )}
 
-        {!isCampaignMode && breedStats && breedStats.length > 0 && (
-          <div
-            className="mt-8"
-            data-testid="section-breed-stats"
-          >
-            <Card>
-              <CardContent className="p-5">
-                <h3 className="text-base font-bold text-center mb-1" data-testid="text-breed-stats-title">
-                  Bu ürünü hangi ırk (cins) {category?.animal === "kopek" ? "köpekler" : "kediler"} tüketiyor?
-                </h3>
-                <p className="text-xs text-muted-foreground text-center mb-4" data-testid="text-breed-stats-subtitle">
-                  {product.name}
-                </p>
-                <div className="space-y-3">
-                  {breedStats.map((stat, i) => (
-                    <div key={stat.id} className="flex items-center gap-3" data-testid={`row-breed-stat-${stat.id}`}>
-                      <span className="text-sm font-medium w-28 text-right shrink-0" data-testid={`text-breed-name-${stat.id}`}>
-                        {stat.breedName}
-                      </span>
-                      <div className="flex-1 h-5 bg-muted/40 rounded-full overflow-hidden relative">
-                        <motion.div
-                          className="h-full rounded-full"
-                          style={{ backgroundColor: stat.color }}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${stat.percentage}%` }}
-                          transition={{ duration: 0.6, delay: 0.1 * i, ease: "easeOut" }}
-                          data-testid={`bar-breed-stat-${stat.id}`}
-                        />
-                      </div>
-                      <span className="text-sm font-bold w-10 text-right shrink-0" data-testid={`text-breed-pct-${stat.id}`}>
-                        {stat.percentage}%
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
 
         {!isCampaignMode && (product as any).longDescription && (product as any).longDescription.trim() && (
           useModernLayout ? (
