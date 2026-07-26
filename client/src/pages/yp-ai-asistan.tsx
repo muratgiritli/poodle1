@@ -209,7 +209,7 @@ export default function YPAiAsistanPage() {
   };
 
   return (
-    <YPLayout activeLink="/yourpoodle/ai-asistan" constrain={false}>
+    <YPLayout activeLink="/yourpoodle/ai-asistan" constrain={false} hideHeader hideFooter>
       <style>{`
         .yp-ai-scroll::-webkit-scrollbar { width: 3px; }
         .yp-ai-scroll::-webkit-scrollbar-thumb { background: #DDD6FE; border-radius: 3px; }

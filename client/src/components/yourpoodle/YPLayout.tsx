@@ -52,10 +52,11 @@ interface Props {
   constrain?: boolean;
   authMode?: boolean;
   hideFooter?: boolean;
+  hideHeader?: boolean;
 }
 
 export default function YPLayout({
-  children, activeLink = "", bottomNavActive, constrain = true, authMode = false, hideFooter = false,
+  children, activeLink = "", bottomNavActive, constrain = true, authMode = false, hideFooter = false, hideHeader = false,
 }: Props) {
   const effectiveBottomLink = bottomNavActive ?? activeLink;
   const [drawerOpen, setDrawerOpen]   = useState(false);
@@ -179,7 +180,7 @@ export default function YPLayout({
       `}</style>
 
       {/* ════════════ DESKTOP HEADER ════════════ */}
-      <div className="yp-desktop-hdr" style={{ position: "sticky", top: 0, zIndex: 200 }}>
+      {!hideHeader && <div className="yp-desktop-hdr" style={{ position: "sticky", top: 0, zIndex: 200 }}>
 
         {/* ── Duyuru çubuğu — auth sayfalarında gösterilmez ── */}
         {!authMode && (
@@ -300,7 +301,7 @@ export default function YPLayout({
             )}
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* ════════════ MOBILE DRAWER ════════════ */}
       {drawerOpen && (
@@ -346,7 +347,7 @@ export default function YPLayout({
       </nav>
 
       {/* ════════════ MOBILE HEADER ════════════ */}
-      <header className="yp-mobile-hdr" style={{
+      {!hideHeader && <header className="yp-mobile-hdr" style={{
         position: "sticky", top: 0, zIndex: 100,
         background: "#fff",
         borderBottom: "1px solid #F3F4F6",
@@ -412,10 +413,10 @@ export default function YPLayout({
             </div>
           </div>
         )}
-      </header>
+      </header>}
 
       {/* ════════════ MOBILE CATEGORY TABS (same as homepage) ════════════ */}
-      {!authMode && (
+      {!hideHeader && !authMode && (
         <nav className="yp-mobile-hdr" aria-label="Kategori menüsü" style={{
           background: "#fff", borderBottom: "1px solid #F3F4F6",
           overflowX: "auto", display: "flex", padding: "0 4px",
@@ -451,7 +452,7 @@ export default function YPLayout({
         <div className={constrain ? "yp-constrain" : ""}>
           {children}
         </div>
-        {!hideFooter && !authMode && <YPFooter />}
+        {!hideFooter && !hideHeader && !authMode && <YPFooter />}
       </div>
 
       {/* ════════════ UNIFIED MOBILE BOTTOM NAV ════════════ */}
