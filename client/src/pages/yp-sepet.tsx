@@ -6,6 +6,10 @@ import {
   Lock, ShieldCheck, Plus, Minus, ShoppingCart,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import { useCustomer } from "@/contexts/CustomerContext";
+import { IS_YP } from "@/lib/store";
+
+const BASE = IS_YP ? "" : "/yourpoodle";
 
 /* ─── Palette ──────────────────────────── */
 const P   = "#4A2ED1";
@@ -135,6 +139,7 @@ function Toast({ msg, onHide }: { msg:string; onHide:()=>void }) {
 /* ═══════════════════════════════════════════════════════ */
 export default function YPSepetPage() {
   const [, navigate] = useLocation();
+  const { isLoggedIn } = useCustomer();
 
   const [items, setItems]               = useState<CartItemData[]>([DEFAULT_ITEM]);
   const [showBanner, setShowBanner]     = useState(true);
@@ -189,6 +194,7 @@ export default function YPSepetPage() {
   };
 
   const proceedToPayment = () => {
+    if (!isLoggedIn) { navigate(`${BASE}/giris`); return; }
     if(!address){ showToast("Lütfen teslimat adresi seçin"); setShowAddrModal(true); return; }
     navigate("/odeme");
   };
