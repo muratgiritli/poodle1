@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useState } from "react";
-import { brandify, useStore } from "@/lib/store";
+import { brandify, useStore, IS_YP } from "@/lib/store";
 import { FreeShippingBanner } from "@/components/FreeShippingBanner";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -1225,11 +1225,12 @@ export default function ProductDetailPage() {
 
       {product.stock > 0 && (
         <div
-          className={`fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 py-3 shadow-[0_-2px_12px_rgba(0,0,0,0.08)] ${jetgoBottomNav ? "hidden md:block" : ""}`}
+          className={`fixed left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 py-3 shadow-[0_-2px_12px_rgba(0,0,0,0.08)] ${jetgoBottomNav && !IS_YP ? "hidden md:block" : ""}`}
+          style={{ bottom: IS_YP ? 60 : 0 }}
           data-testid="bar-buy"
         >
           <div className="max-w-2xl md:max-w-5xl mx-auto flex items-center gap-3">
-            {useModernLayout && (
+            {useModernLayout && !IS_YP && (
               <div className="flex items-center gap-2 min-w-0 max-w-[45%]">
                 <div className="w-10 h-10 rounded-md overflow-hidden bg-muted/30 shrink-0">
                   <ProductImage src={product.img} alt={modernName} className="w-full h-full object-contain" />
@@ -1243,16 +1244,22 @@ export default function ProductDetailPage() {
                   {displayOriginalPrice.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
                 </span>
               )}
-              <span className="text-xl font-extrabold text-primary" data-testid="text-buy-bar-price">
+              <span className="text-xl font-extrabold" style={{ color: IS_YP ? "#6B21A8" : undefined }} data-testid="text-buy-bar-price">
                 {displayPrice.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
               </span>
+              {IS_YP && quantity > 0 && (
+                <span className="text-xs font-semibold" style={{ color: "#16A34A" }}>
+                  {quantity} adet sepette
+                </span>
+              )}
             </div>
-            <div className="ml-auto">
-              {quantity === 0 ? (
+            {IS_YP ? (
+              /* YP: Sepete Ekle + Hemen Al yan yana */
+              <div className="ml-auto flex gap-2">
                 <Button
                   size="lg"
-                  className="font-bold px-8 h-12 text-base"
-                  style={{ backgroundColor: "#e65100", color: "#fff" }}
+                  className="font-bold h-12 text-sm px-4"
+                  style={{ backgroundColor: "#7C3AED", color: "#fff" }}
                   onClick={() => {
                     if (hasVariants && !selectedVariant) {
                       toast({ title: "Lütfen önce bir seçenek belirleyin", variant: "destructive" });
@@ -1261,32 +1268,90 @@ export default function ProductDetailPage() {
                     const blocked = updateQty(pid, 1, isCampaignMode, selectedVariant ?? undefined);
                     if (blocked) {
                       toast({ title: "Stok kalmadı!", variant: "destructive" });
+                    } else {
+                      toast({ title: "✓ Sepete eklendi" });
                     }
                   }}
-                  data-testid="button-add-to-cart"
+                  data-testid="button-add-to-cart-bar"
                 >
-                  <ShoppingCart className="w-5 h-5 mr-2" />
+                  <ShoppingCart className="w-4 h-4 mr-1.5" />
                   Sepete Ekle
+                  {quantity > 0 && (
+                    <span className="ml-1.5 bg-white text-purple-700 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {quantity}
+                    </span>
+                  )}
                 </Button>
-              ) : (
                 <Button
                   size="lg"
-                  className="font-bold px-8 h-12 text-base"
+                  className="font-bold h-12 text-sm px-4"
                   style={{ backgroundColor: "#e65100", color: "#fff" }}
                   onClick={() => {
+                    if (hasVariants && !selectedVariant) {
+                      toast({ title: "Lütfen önce bir seçenek belirleyin", variant: "destructive" });
+                      return;
+                    }
+                    if (quantity === 0) {
+                      const blocked = updateQty(pid, 1, isCampaignMode, selectedVariant ?? undefined);
+                      if (blocked) {
+                        toast({ title: "Stok kalmadı!", variant: "destructive" });
+                        return;
+                      }
+                    }
                     if (isLoggedIn || guestCheckoutEnabled) {
                       setLocation("/odeme");
                     } else {
                       setConfirmDialogOpen(true);
                     }
                   }}
-                  data-testid="button-confirm-cart"
+                  data-testid="button-order-now-bar"
                 >
-                  <ShoppingCart className="w-5 h-5 mr-2" />
-                  Sepeti Onayla
+                  Hemen Al
                 </Button>
-              )}
-            </div>
+              </div>
+            ) : (
+              /* Non-YP: existing single button */
+              <div className="ml-auto">
+                {quantity === 0 ? (
+                  <Button
+                    size="lg"
+                    className="font-bold px-8 h-12 text-base"
+                    style={{ backgroundColor: "#e65100", color: "#fff" }}
+                    onClick={() => {
+                      if (hasVariants && !selectedVariant) {
+                        toast({ title: "Lütfen önce bir seçenek belirleyin", variant: "destructive" });
+                        return;
+                      }
+                      const blocked = updateQty(pid, 1, isCampaignMode, selectedVariant ?? undefined);
+                      if (blocked) {
+                        toast({ title: "Stok kalmadı!", variant: "destructive" });
+                      }
+                    }}
+                    data-testid="button-add-to-cart"
+                  >
+                    <ShoppingCart className="w-5 h-5 mr-2" />
+                    Sepete Ekle
+                  </Button>
+                ) : (
+                  <Button
+                    size="lg"
+                    className="font-bold px-8 h-12 text-base"
+                    style={{ backgroundColor: "#e65100", color: "#fff" }}
+                    onClick={() => {
+                      if (isLoggedIn || guestCheckoutEnabled) {
+                        setLocation("/odeme");
+                      } else {
+                        setConfirmDialogOpen(true);
+                      }
+                    }}
+                    data-testid="button-confirm-cart"
+                  >
+                    <ShoppingCart className="w-5 h-5 mr-2" />
+                    Sepeti Onayla
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
