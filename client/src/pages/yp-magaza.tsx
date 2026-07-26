@@ -277,26 +277,6 @@ export default function YPMagazaPage() {
 
       <main className="yp-pw yp-mag-main">
 
-        {/* ── Search bar ── */}
-        <form onSubmit={handleSearch} style={{ position:"relative", marginBottom:20 }}>
-          <Search size={16} color="#9CA3AF"
-            style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} />
-          <input
-            type="search"
-            value={searchQ}
-            onChange={e => setSearchQ(e.target.value)}
-            placeholder="Ürün veya marka ara..."
-            aria-label="Mağazada ara"
-            style={{ width:"100%", height:46, borderRadius:12, border:`1.5px solid ${GB}`,
-                     background:"#fff", paddingLeft:40, paddingRight:16,
-                     fontSize:14, color:"#374151", fontFamily:"inherit",
-                     outline:"none", boxSizing:"border-box",
-                     boxShadow:"0 1px 4px rgba(0,0,0,0.05)" }}
-            onFocus={e => (e.target.style.borderColor = P)}
-            onBlur={e  => (e.target.style.borderColor = GB)}
-          />
-        </form>
-
         {/* ── Campaign banner ── */}
         <button
           onClick={() => navigate(`${BASE}/kuru-mama`)}
@@ -318,69 +298,6 @@ export default function YPMagazaPage() {
           </div>
           <div style={{ fontSize:48, lineHeight:1, flexShrink:0, marginLeft:12 }}>🐾</div>
         </button>
-
-        {/* ── Öne Çıkanlar ── */}
-        <section style={{ marginBottom:28 }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
-            <h2 style={{ fontSize:17, fontWeight:800, color:"#111827", margin:0 }}>Öne Çıkan Ürünler</h2>
-            <button
-              onClick={() => navigate(`${BASE}/magaza/kategori/kuru-mama`)}
-              style={{ background:"none", border:"none", cursor:"pointer", fontSize:13,
-                       fontWeight:600, color:P, fontFamily:"inherit", padding:0, display:"flex", alignItems:"center", gap:3 }}>
-              Tümü <ChevronRight size={14} />
-            </button>
-          </div>
-
-          {isError ? (
-            <div style={{ padding:"28px 16px", textAlign:"center", background:"#FEF2F2",
-                          borderRadius:12, border:"1px solid #FECACA" }}>
-              <AlertCircle size={28} color="#EF4444" style={{ marginBottom:8 }} />
-              <p style={{ fontSize:13, color:"#991B1B", margin:"0 0 12px", fontWeight:500 }}>Ürünler yüklenemedi.</p>
-              <button onClick={() => refetch()}
-                style={{ padding:"8px 20px", borderRadius:8, border:"none", background:"#EF4444",
-                         color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
-                Tekrar Dene
-              </button>
-            </div>
-          ) : (
-            <div className="yp-mag-scroll"
-              style={{ display:"flex", gap:12, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
-              {isLoading
-                ? Array.from({ length: 4 }).map((_, i) => <ProductSkeleton key={i} />)
-                : featured.length === 0
-                  ? (
-                    <div style={{ padding:"24px", textAlign:"center", width:"100%", color:"#9CA3AF", fontSize:13 }}>
-                      Henüz ürün bulunmuyor.
-                    </div>
-                  )
-                  : featured.map((p: any) => (
-                    <ProductCard key={p.id} product={p} onNavigate={goProduct} />
-                  ))
-              }
-            </div>
-          )}
-        </section>
-
-        {/* ── Çok Satanlar ── */}
-        {!isLoading && !isError && bestsellers.length > 0 && (
-          <section style={{ marginBottom:28 }}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
-              <h2 style={{ fontSize:17, fontWeight:800, color:"#111827", margin:0 }}>Çok Satanlar</h2>
-              <button
-                onClick={() => navigate(`${BASE}/ara`)}
-                style={{ background:"none", border:"none", cursor:"pointer", fontSize:13,
-                         fontWeight:600, color:P, fontFamily:"inherit", padding:0, display:"flex", alignItems:"center", gap:3 }}>
-                Tümü <ChevronRight size={14} />
-              </button>
-            </div>
-            <div className="yp-mag-scroll"
-              style={{ display:"flex", gap:12, overflowX:"auto", scrollbarWidth:"none", paddingBottom:4 }}>
-              {bestsellers.map((p: any) => (
-                <ProductCard key={p.id} product={p} onNavigate={goProduct} />
-              ))}
-            </div>
-          </section>
-        )}
 
         {/* ── Category divider ── */}
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
