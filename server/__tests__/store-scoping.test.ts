@@ -3751,3 +3751,59 @@ test("GET /sitemap-yp.xml: seeded yp_events row appears as a /yourpoodle/etkinli
     `sitemap-yp.xml must contain the seeded yp_events <loc>:\n  expected: <loc>${expectedLoc}</loc>\n  (this means the DB-driven event query is broken or the id-based URL pattern changed)`,
   );
 });
+
+// ── Main sitemap index regression guard ───────────────────────────────────────
+//
+// GETs /sitemap.xml with the jetgomarket.com host header and asserts:
+//   (a) HTTP 200 with Content-Type: application/xml
+//   (b) The envelope is a valid <sitemapindex>
+//   (c) Every expected child sitemap <loc> is present
+//
+// A broken template, a missing sub-sitemap reference, or a DB error in the
+// route would silently drop sitemaps from Google's view. This test catches
+// that regression before it reaches production.
+//
+test("GET /sitemap.xml: returns valid sitemapindex with all expected child sitemaps", async () => {
+  const res = await fetch(`${baseUrl}/sitemap.xml`, {
+    headers: { "X-Forwarded-Host": JETGO_HOST },
+  });
+
+  // (a) HTTP 200 + correct content type
+  assert.equal(
+    res.status,
+    200,
+    `Expected HTTP 200 from /sitemap.xml; got ${res.status}`,
+  );
+  const ct = res.headers.get("content-type") ?? "";
+  assert.ok(
+    ct.includes("application/xml"),
+    `Expected Content-Type: application/xml; got "${ct}"`,
+  );
+
+  const xml = await res.text();
+
+  // (b) Well-formed sitemapindex envelope
+  assert.ok(
+    xml.includes("<sitemapindex"),
+    "/sitemap.xml body must contain a <sitemapindex> opening tag",
+  );
+  assert.ok(
+    xml.includes("</sitemapindex>"),
+    "/sitemap.xml body must contain a </sitemapindex> closing tag",
+  );
+
+  // (c) Every expected child sitemap must appear as a <loc>
+  const expectedSubSitemaps = [
+    "sitemap-products.xml",
+    "sitemap-seo.xml",
+    "sitemap-yp.xml",
+  ];
+  const missingSubs = expectedSubSitemaps.filter(
+    (name) => !xml.includes(`/${name}</loc>`),
+  );
+  assert.equal(
+    missingSubs.length,
+    0,
+    `/sitemap.xml is missing <loc> references for: ${missingSubs.join(", ")}`,
+  );
+});
