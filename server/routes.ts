@@ -1027,8 +1027,10 @@ export async function registerRoutes(
         xml += `  </url>\n`;
       }
 
-      // Article pages
+      // Article pages — track emitted slugs to prevent duplicates with DB-driven rows
+      const emittedArticleSlugs = new Set<string>();
       for (const slug of articleSlugs) {
+        emittedArticleSlugs.add(slug);
         xml += `  <url>\n`;
         xml += `    <loc>${SITE}/yourpoodle/rehber/${slug}</loc>\n`;
         xml += `    <lastmod>${today}</lastmod>\n`;
@@ -1053,9 +1055,11 @@ export async function registerRoutes(
       }
 
       // Dynamic article pages from yp_articles: /yourpoodle/rehber/:slug
+      // Skip any slug already emitted from the hardcoded list to prevent duplicate <loc> entries.
       for (const a of articleRows) {
         const slug = toSlug(a.title);
-        if (!slug) continue;
+        if (!slug || emittedArticleSlugs.has(slug)) continue;
+        emittedArticleSlugs.add(slug);
         xml += `  <url>\n`;
         xml += `    <loc>${SITE}/yourpoodle/rehber/${slug}</loc>\n`;
         xml += `    <lastmod>${today}</lastmod>\n`;
