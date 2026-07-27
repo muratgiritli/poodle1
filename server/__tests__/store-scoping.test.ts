@@ -3727,18 +3727,29 @@ test("GET /sitemap-yp.xml: seeded yp_articles row appears as a /yourpoodle/rehbe
 // ── DB-driven yp_events sitemap regression guard ──────────────────────────────
 //
 // Verifies that an event seeded in yp_events actually appears in the sitemap
-// as a /yourpoodle/etkinlikler/:id <loc>. A missing CREATE TABLE IF NOT EXISTS,
-// a renamed column, or a broken query would silently drop all event pages.
+// as a /yourpoodle/etkinlikler/:slug <loc> (slug = slugified title).
+// A missing CREATE TABLE IF NOT EXISTS, a renamed column, or a broken query
+// would silently drop all event pages.
 //
-test("GET /sitemap-yp.xml: seeded yp_events row appears as a /yourpoodle/etkinlikler/<id> <loc>", async () => {
+test("GET /sitemap-yp.xml: seeded yp_events row appears as a /yourpoodle/etkinlikler/<slug> <loc>", async () => {
   // ids.ypEvents[0] is set by the seeder in before(); skip if the table couldn't
   // be created (extremely unlikely in a working dev DB).
   assert.ok(
     ids.ypEvents.length > 0,
     "yp_events seed row was not created in before() — cannot assert sitemap entry",
   );
-  const eventId = ids.ypEvents[0];
-  const expectedLoc = `${YP_SITE_BASE}/yourpoodle/etkinlikler/${eventId}`;
+
+  // The sitemap slugifies the event title exactly like the shared toSlug helper.
+  const toSlug = (name: string) =>
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9ğüşıöç]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+
+  // Seed title is "${MARK} Sitemap Event Test" → "scope-test-sitemap-event-test"
+  const eventSlug = toSlug(`${MARK} Sitemap Event Test`);
+  const expectedLoc = `${YP_SITE_BASE}/yourpoodle/etkinlikler/${eventSlug}`;
 
   const res = await fetch(`${baseUrl}/sitemap-yp.xml`, {
     headers: { "X-Forwarded-Host": YP_SITEMAP_HOST },
@@ -3748,7 +3759,7 @@ test("GET /sitemap-yp.xml: seeded yp_events row appears as a /yourpoodle/etkinli
 
   assert.ok(
     xml.includes(`<loc>${expectedLoc}</loc>`),
-    `sitemap-yp.xml must contain the seeded yp_events <loc>:\n  expected: <loc>${expectedLoc}</loc>\n  (this means the DB-driven event query is broken or the id-based URL pattern changed)`,
+    `sitemap-yp.xml must contain the seeded yp_events <loc>:\n  expected: <loc>${expectedLoc}</loc>\n  (this means the DB-driven event query is broken or the slug-based URL pattern changed)`,
   );
 });
 

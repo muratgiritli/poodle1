@@ -995,8 +995,8 @@ export async function registerRoutes(
         // Non-fatal: fall back to hardcoded slugs only
       }
 
-      // Dynamic: fetch active events from yp_events for /yourpoodle/etkinlikler/:id
-      let eventRows: Array<{ id: number }> = [];
+      // Dynamic: fetch active events from yp_events for /yourpoodle/etkinlikler/:slug
+      let eventRows: Array<{ id: number; title: string }> = [];
       try {
         await sharedPool.query(`
           CREATE TABLE IF NOT EXISTS yp_events (
@@ -1005,8 +1005,8 @@ export async function registerRoutes(
             type TEXT DEFAULT 'Etkinlik', free BOOLEAN DEFAULT true,
             color TEXT DEFAULT '#7C3AFF', sort_order INT DEFAULT 0, is_active BOOLEAN DEFAULT true
           )`);
-        const result = await sharedPool.query<{ id: number }>(
-          `SELECT id FROM yp_events WHERE is_active = true ORDER BY sort_order ASC, id ASC`
+        const result = await sharedPool.query<{ id: number; title: string }>(
+          `SELECT id, title FROM yp_events WHERE is_active = true ORDER BY sort_order ASC, id ASC`
         );
         eventRows = result.rows;
       } catch (_dbErr) {
@@ -1070,14 +1070,16 @@ export async function registerRoutes(
         xml += `  </url>\n`;
       }
 
-      // Dynamic event pages from yp_events: /yourpoodle/etkinlikler/:id
+      // Dynamic event pages from yp_events: /yourpoodle/etkinlikler/:slug
       for (const e of eventRows) {
+        const evSlug = toSlug(e.title);
+        if (!evSlug) continue;
         xml += `  <url>\n`;
-        xml += `    <loc>${SITE}/yourpoodle/etkinlikler/${e.id}</loc>\n`;
+        xml += `    <loc>${SITE}/yourpoodle/etkinlikler/${evSlug}</loc>\n`;
         xml += `    <lastmod>${today}</lastmod>\n`;
         xml += `    <changefreq>weekly</changefreq>\n`;
         xml += `    <priority>0.7</priority>\n`;
-        xml += `    <xhtml:link rel="alternate" hreflang="tr" href="${SITE}/yourpoodle/etkinlikler/${e.id}" />\n`;
+        xml += `    <xhtml:link rel="alternate" hreflang="tr" href="${SITE}/yourpoodle/etkinlikler/${evSlug}" />\n`;
         xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}/" />\n`;
         xml += `  </url>\n`;
       }
@@ -8467,6 +8469,24 @@ Kurallar:
 
   // ─── YourPoodle Events API ────────────────────────────────────────────────
   // Public: list all events (sorted by date)
+  // Public: fetch single event by slug (slugified title match)
+  app.get("/api/yp-events/by-slug/:slug", async (req, res) => {
+    const slug = req.params.slug;
+    const toSlug = (s: string) =>
+      s.toLowerCase().replace(/[^a-z0-9ğüşıöç]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+    try {
+      const result = await sharedPool.query(
+        `SELECT id, title, description, location, event_date, day, month, year, type, free, color
+         FROM yp_events WHERE is_active = true`
+      );
+      const row = result.rows.find((r: any) => toSlug(r.title) === slug);
+      if (!row) return res.status(404).json({ message: "Etkinlik bulunamadı" });
+      res.json(row);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
   app.get("/api/yp-events", async (_req, res) => {
     try {
       await sharedPool.query(`
