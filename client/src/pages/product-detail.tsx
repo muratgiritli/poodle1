@@ -613,6 +613,10 @@ export default function ProductDetailPage() {
   const useModernLayout = detailStore.id === "jetgo" && !!detailStore.commerce.modernCatalogUI && !isCampaignMode;
   const jetgoBottomNav = detailStore.id === "jetgo" && !!detailStore.commerce.modernCatalogUI;
   const guestCheckoutEnabled = !!detailStore.commerce.guestCheckout;
+  // YP (id==="jetgo") uses /yourpoodle/* routes; fall back to legacy paths for any future store.
+  const isYPStore = detailStore.id === "jetgo";
+  const cartPath  = isYPStore ? "/yourpoodle/sepet" : "/odeme";
+  const loginPath = isYPStore ? "/yourpoodle/giris" : "/giris";
   const modernName = cleanName(product.name);
   const modernSubtitle = useModernLayout ? deriveSubtitle(product.name) : null;
   const modernSizeLabel = useModernLayout ? sizeBadgeLabel(product.name) : null;
@@ -907,7 +911,7 @@ export default function ProductDetailPage() {
                             return;
                           }
                           const blocked = updateQty(pid, 1, isCampaignMode, selectedVariant ?? undefined);
-                          if (!blocked) setLocation(`/odeme?preorder=1`);
+                          if (!blocked) setLocation(cartPath);
                         }}
                         data-testid="btn-preorder-add"
                       >
@@ -918,7 +922,7 @@ export default function ProductDetailPage() {
                       <Button
                         className="w-full"
                         style={{ backgroundColor: "#2e7d32" }}
-                        onClick={() => setLocation(`/odeme?preorder=1`)}
+                        onClick={() => setLocation(cartPath)}
                         data-testid="btn-preorder-go-cart"
                       >
                         <ShoppingCart className="w-4 h-4" />
@@ -1018,7 +1022,7 @@ export default function ProductDetailPage() {
                           }
                         }
                         if (isLoggedIn || guestCheckoutEnabled) {
-                          setLocation("/odeme");
+                          setLocation(cartPath);
                         } else {
                           setConfirmDialogOpen(true);
                         }
@@ -1299,7 +1303,7 @@ export default function ProductDetailPage() {
                       }
                     }
                     if (isLoggedIn || guestCheckoutEnabled) {
-                      setLocation("/odeme");
+                      setLocation(cartPath);
                     } else {
                       setConfirmDialogOpen(true);
                     }
@@ -1339,7 +1343,7 @@ export default function ProductDetailPage() {
                     style={{ backgroundColor: "#e65100", color: "#fff" }}
                     onClick={() => {
                       if (isLoggedIn || guestCheckoutEnabled) {
-                        setLocation("/odeme");
+                        setLocation(cartPath);
                       } else {
                         setConfirmDialogOpen(true);
                       }
@@ -1370,7 +1374,7 @@ export default function ProductDetailPage() {
               style={{ backgroundColor: "#e65100", color: "#fff" }}
               onClick={() => {
                 setConfirmDialogOpen(false);
-                setLocation("/giris");
+                setLocation(loginPath);
               }}
               data-testid="button-go-login"
             >
@@ -1381,7 +1385,7 @@ export default function ProductDetailPage() {
               style={{ backgroundColor: "#2e7d32", color: "#fff" }}
               onClick={() => {
                 setConfirmDialogOpen(false);
-                setLocation("/giris?tab=register");
+                setLocation(`${loginPath}?tab=register`);
               }}
               data-testid="button-go-register"
             >
@@ -1392,7 +1396,7 @@ export default function ProductDetailPage() {
               className="w-full h-12 font-bold"
               onClick={() => {
                 setConfirmDialogOpen(false);
-                setLocation("/odeme");
+                setLocation(cartPath);
               }}
               data-testid="button-guest-checkout"
             >
