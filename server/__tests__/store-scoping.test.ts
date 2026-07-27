@@ -4128,3 +4128,80 @@ test("GET /sitemap-seo.xml: returns 200 application/xml with minimum SEO corpus 
       `found ${locMatches.length}`,
   );
 });
+
+// ── /google-merchant.xml DB-driven regression guard ───────────────────────────
+//
+// GETs /google-merchant.xml with the jetgomarket.com host header and asserts:
+//   (a) HTTP 200 with Content-Type: application/xml
+//   (b) The envelope is a valid <rss> document
+//   (c) The seeded product's <g:id> and <g:link> appear in the feed
+//
+// The feed silently skips products that have no image; the product seeded here
+// includes a placeholder img URL so it passes that filter. A broken DB query,
+// renamed column, or filter regression would silently drop all products from
+// Google Shopping campaigns. This test catches that before it reaches production.
+//
+test("GET /google-merchant.xml: returns 200 application/xml with seeded product <g:id> and <g:link>", async () => {
+  // Seed a brand_category + product with a valid img so the merchant feed
+  // does not skip it (the route skips rows where img IS NULL).
+  const bcRes = await pool.query(
+    "INSERT INTO brand_categories (brand_name, brand_slug, animal, subcategory) VALUES ($1, $2, 'kopek', 'mama') RETURNING id",
+    [`${MARK}_MERCHANT_BRAND`, `${MARK}-merchant-brand`]
+  );
+  const merchantBcId: number = bcRes.rows[0].id;
+
+  const prodRes = await pool.query(
+    "INSERT INTO products (name, price, brand_category_id, is_active, stock, img) VALUES ($1, 150, $2, true, 10, $3) RETURNING id",
+    [`${MARK}_MERCHANT_PRODUCT`, merchantBcId, "https://example.com/test-img.jpg"]
+  );
+  const merchantProductId: number = prodRes.rows[0].id;
+
+  try {
+    const res = await fetch(`${baseUrl}/google-merchant.xml`, {
+      headers: { "X-Forwarded-Host": JETGO_HOST },
+    });
+
+    // (a) HTTP 200 + correct Content-Type
+    assert.equal(
+      res.status,
+      200,
+      `Expected HTTP 200 from /google-merchant.xml; got ${res.status}`,
+    );
+    const ct = res.headers.get("content-type") ?? "";
+    assert.ok(
+      ct.includes("application/xml"),
+      `Expected Content-Type: application/xml from /google-merchant.xml; got "${ct}"`,
+    );
+
+    const xml = await res.text();
+
+    // (b) Well-formed <rss> envelope
+    assert.ok(
+      xml.includes("<rss"),
+      "/google-merchant.xml body must contain an opening <rss tag",
+    );
+    assert.ok(
+      xml.includes("</rss>"),
+      "/google-merchant.xml body must contain a closing </rss> tag",
+    );
+
+    // (c) Seeded product must appear as a <g:id> / <g:link> pair
+    // The route emits: <g:id>${r.id}</g:id> and <g:link>${SITE}/urun/${r.id}</g:link>
+    // JETGO_HOST resolves to DEFAULT_STORE (jetgo) whose canonical domain is
+    // "https://www.yourpoodle.com" (same behaviour observed in the sitemap test).
+    assert.ok(
+      xml.includes(`<g:id>${merchantProductId}</g:id>`),
+      `/google-merchant.xml must contain <g:id>${merchantProductId}</g:id> for the seeded product\n` +
+        `(this means the DB-driven product query is broken or the g:id field is missing)`,
+    );
+    assert.ok(
+      xml.includes(`<g:link>`) && xml.includes(`/urun/${merchantProductId}</g:link>`),
+      `/google-merchant.xml must contain a <g:link> ending with /urun/${merchantProductId}</g:link> for the seeded product\n` +
+        `(this means the product URL pattern changed or the feed query is broken)`,
+    );
+  } finally {
+    // Clean up seeded rows (product first due to FK on brand_category)
+    await pool.query("DELETE FROM products WHERE id = $1", [merchantProductId]);
+    await pool.query("DELETE FROM brand_categories WHERE id = $1", [merchantBcId]);
+  }
+});
