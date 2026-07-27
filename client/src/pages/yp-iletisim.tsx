@@ -48,7 +48,7 @@ export default function YPIletisimPage() {
     { Icon: Mail, label: "E-posta", value: "info@yourpoodle.com", href: "mailto:info@yourpoodle.com" },
     { Icon: Phone, label: "Telefon", value: "0362 000 12 34", href: "tel:+903620001234" },
     { Icon: MessageCircle, label: "WhatsApp", value: "+90 532 000 00 00", href: "https://wa.me/905320000000" },
-    { Icon: MapPin, label: "Adres", value: "Atakum, Samsun", href: undefined },
+    { Icon: MapPin, label: "Adres", value: "Türkiye genelinde hizmet", href: undefined },
   ];
 
   return (

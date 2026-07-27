@@ -1,0 +1,80 @@
+You are repositioning YourPoodle from a Samsun/Atakum local “same-day door delivery” pet shop into a TURKEY-WIDE e-commerce brand that ships to ALL 81 provinces.
+
+Business rule (non-negotiable):
+- NO Samsun-only / Atakum-only / local courier positioning in shop UX
+- Site sells nationwide: every city/province in Turkey
+- Shipping via national carriers (Yurtiçi / MNG etc.), not “1 hour Atakum kapıda”
+
+Do NOT rebuild working Magaza/Mama PLP features.
+Preserve `/yourpoodle/kuru-mama` PLP (search, filters, real products, cart) and Magaza → `/yourpoodle/kuru-mama` routing.
+
+No stubs. No alert(). No “yakında”.
+Do not stop until every acceptance check is green.
+
+==================================================
+A) REMOVE ALL LOCAL SAMSUN POSITIONING
+==================================================
+Hard-delete / rewrite anywhere these appear in shop, SEO category pages, footer, meta, schema, sitemap blurbs, contact blocks used by store:
+
+FORBIDDEN copy/concepts:
+- Samsun, Atakum, İlkadım, Canik, Tekkeköy, Denizevleri, Atakent, Mimar Sinan, Bafra
+- “Samsun’a Aynı Gün Kapıda”
+- “Atakum içinde ortalama 1 saatte”
+- “Kapıda nakit / POS / QR ile öde, kurye getirsin”
+- “WhatsApp ile sipariş onayla” as primary checkout
+- Local pet-shop essay pages pretending to be category PLPs
+
+Especially fix:
+1) `/kuru-mama` SEO page (currently worst offender)
+2) Any other `/{category-slug}` SEO landing pages with Samsun copy
+3) Titles / meta / OG / JSON-LD that say Samsun
+4) Contact/address blocks that present YourPoodle as Samsun-only delivery
+
+Keep a physical warehouse/office address if needed for legal/invoice,
+but NEVER frame the product as “Samsun local delivery only”.
+
+==================================================
+B) NATIONWIDE TURKEY POSITIONING (required)
+==================================================
+All shop surfaces must communicate:
+
+Primary promise:
+- “Türkiye’nin 81 iline kargo”
+- “Türkiye geneline gönderim”
+- Free shipping threshold if already used (align with live rules; currently kargo page: 299 TL+ free, else 49 TL — keep consistent OR update everywhere together)
+
+Delivery messaging (use this model, adjust only if product already has different official numbers):
+- İstanbul: 1 business day
+- Ankara / İzmir: 1–2 business days
+- Other provinces: 2–3 business days
+- Remote areas: 3–4 business days
+- Same-day HANDOVER to cargo (sipariş 14:00’e kadar) is OK
+- Do NOT promise same-day door delivery nationwide
+
+Trust / footer language examples to use:
+- “Türkiye geneline hızlı kargo”
+- “81 ile gönderim”
+- “Ücretsiz kargo [threshold]+”
+Remove “aynı gün kapınızda” unless it means cargo pickup only and is clearly worded.
+
+==================================================
+C) ROUTE / PAGE RULES
+==================================================
+1) Shop CTAs (Magaza category/campaign/footer Mamalar) stay on:
+   `/yourpoodle/kuru-mama` PLP
+2) If `/kuru-mama` remains for SEO:
+   - Rewrite to nationwide Turkey positioning
+   - Add clear CTA to `/yourpoodle/kuru-mama` product listing
+   - Remove local Samsun essay + WhatsApp-first ordering
+3) `/yourpoodle/kargo` must remain the source of truth for Turkey-wide shipping table
+   - Ensure footer “Kargo ve Teslimat” opens a working page (no 404 flash)
+   - Content must list nationwide timelines, carriers, fees — no Samsun districts
+
+==================================================
+D) CHECKOUT / ORDER UX ALIGNMENT
+==================================================
+Checkout and cart messaging must match nationwide model:
+- Online checkout + national shipping address (city/district of ANY Turkish province)
+- Do not force WhatsApp/phone confirmation as the only path
+- Shipping options/fees must match `/yourpoodle/kargo`
+- Address form must support all Turkey cities (existing turkeyLocations if present — use it)

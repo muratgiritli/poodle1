@@ -43,7 +43,7 @@ interface FormState {
 const COLORS = ["Krem", "Beyaz", "Siyah", "Kahverengi", "Gri", "Kırmızı", "Apricot", "Çikolata"];
 const FOOD_PREFS = ["Sensitive • Somonlu", "Tavuklu", "Kuzulu", "Balıklı", "Tahılsız", "Diğer"];
 const ACTIVITY_LEVELS = ["Düşük", "Orta", "Yüksek", "Çok Yüksek"];
-const CITIES = ["Samsun", "İstanbul", "Ankara", "İzmir", "Bursa", "Antalya", "Adana", "Diğer"];
+const CITIES = ["İstanbul", "Ankara", "İzmir", "Bursa", "Antalya", "Adana", "Samsun", "Konya", "Gaziantep", "Mersin", "Kocaeli", "Trabzon", "Diğer"];
 
 const INITIAL: FormState = {
   name: "Tarçın",
@@ -61,8 +61,8 @@ const INITIAL: FormState = {
   vetNotes: "",
   careNotify: true,
   clubVisible: true,
-  bio: "Samsun'da yaşayan, oyun oynamayı ve parkta koşmayı seven neşeli bir Toy Poodle 🐾",
-  city: "Samsun",
+  bio: "Oyun oynamayı ve parkta koşmayı seven neşeli bir Toy Poodle 🐾",
+  city: "İstanbul",
   privacy: "public",
 };
 

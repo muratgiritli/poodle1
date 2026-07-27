@@ -51,9 +51,9 @@ export default function YPHakkindaPage() {
         "@type": "Organization",
         "name": "YourPoodle",
         "url": "https://www.yourpoodle.com",
-        "description": "Toy Poodle sahipleri için dünya genelinde kargo yapan dijital platform ve e-ticaret mağazası",
+        "description": "Toy Poodle sahipleri için Türkiye'nin 81 iline hızlı kargo yapan uzman e-ticaret ve topluluk platformu.",
         "email": "info@yourpoodle.com",
-        "areaServed": "Worldwide",
+        "areaServed": "TR",
         "address": { "@type": "PostalAddress", "streetAddress": "Yenimahalle Atatürk 3. Kısım Blv. No:113/A", "addressLocality": "Samsun", "postalCode": "55200", "addressCountry": "TR" }
       }) }} />
     <div style={{ fontFamily: "'Inter', -apple-system, sans-serif", background: "#FAFAF9" }}>

@@ -80,8 +80,10 @@ const orgSchema = {
     "@type": "PostalAddress",
     "streetAddress": "Yenimahalle Atatürk 3. Kısım Blv. No:113/A",
     "addressLocality": "Samsun",
+    "addressRegion": "Samsun",
     "addressCountry": "TR",
   },
+  "description": "Türkiye'nin 81 iline hızlı kargo ile ulaşan Toy Poodle uzman e-ticaret ve topluluk platformu.",
   "areaServed": "TR",
   "sameAs": [
     "https://instagram.com/yourpoodle",

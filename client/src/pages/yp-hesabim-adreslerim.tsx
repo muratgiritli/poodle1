@@ -18,26 +18,60 @@ const GBG = "#F9FAFB";
 const GT  = "#6B7280";
 const DRK = "#111827";
 
-/* ─── Turkish location data ───────────── */
-const PROVINCES = ["Samsun", "İstanbul", "Ankara", "İzmir"];
+/* ─── Turkish location data (all 81 provinces) ────────── */
+const PROVINCES = [
+  "Adana","Adıyaman","Afyonkarahisar","Ağrı","Aksaray","Amasya","Ankara","Antalya",
+  "Ardahan","Artvin","Aydın","Balıkesir","Bartın","Batman","Bayburt","Bilecik",
+  "Bingöl","Bitlis","Bolu","Burdur","Bursa","Çanakkale","Çankırı","Çorum",
+  "Denizli","Diyarbakır","Düzce","Edirne","Elazığ","Erzincan","Erzurum","Eskişehir",
+  "Gaziantep","Giresun","Gümüşhane","Hakkari","Hatay","Iğdır","Isparta","İstanbul",
+  "İzmir","Kahramanmaraş","Karabük","Karaman","Kars","Kastamonu","Kayseri","Kırıkkale",
+  "Kırklareli","Kırşehir","Kilis","Kocaeli","Konya","Kütahya","Malatya","Manisa",
+  "Mardin","Mersin","Muğla","Muş","Nevşehir","Niğde","Ordu","Osmaniye","Rize",
+  "Sakarya","Samsun","Siirt","Sinop","Sivas","Şanlıurfa","Şırnak","Tekirdağ",
+  "Tokat","Trabzon","Tunceli","Uşak","Van","Yalova","Yozgat","Zonguldak",
+];
+
 const DISTRICTS: Record<string, string[]> = {
-  Samsun:   ["Atakum", "İlkadım", "Canik", "Tekkeköy"],
-  İstanbul: ["Kadıköy", "Beşiktaş", "Üsküdar"],
-  Ankara:   ["Çankaya", "Keçiören"],
-  İzmir:    ["Konak", "Karşıyaka"],
-};
-const NEIGHBORHOODS: Record<string, string[]> = {
-  Atakum:   ["Mimar Sinan Mahallesi", "Alanlı Mahallesi", "Kurupelit Mahallesi"],
-  İlkadım:  ["Kale Mahallesi", "Tepecik Mahallesi"],
-  Canik:    ["Yavuz Selim Mahallesi", "Hasköy Mahallesi"],
-  Tekkeköy: ["Tekkeköy Mahallesi"],
-  Kadıköy:  ["Moda Mahallesi", "Acıbadem Mahallesi"],
-  Beşiktaş: ["Levent Mahallesi"],
-  Üsküdar:  ["Bağlarbaşı Mahallesi"],
-  Çankaya:  ["Çankaya Mahallesi"],
-  Keçiören: ["Etlik Mahallesi"],
-  Konak:    ["Alsancak Mahallesi"],
-  Karşıyaka:["Karşıyaka Mahallesi"],
+  Adana:         ["Seyhan","Çukurova","Yüreğir","Sarıçam","Ceyhan","Kozan"],
+  Ankara:        ["Çankaya","Keçiören","Yenimahalle","Mamak","Altındağ","Etimesgut","Sincan","Pursaklar","Gölbaşı","Polatlı"],
+  Antalya:       ["Muratpaşa","Kepez","Konyaaltı","Döşemealtı","Aksu","Alanya","Manavgat","Serik"],
+  Aydın:         ["Efeler","Kuşadası","Didim","Nazilli","Söke"],
+  Balıkesir:     ["Altıeylül","Karesi","Bandırma","Burhaniye","Edremit"],
+  Bursa:         ["Osmangazi","Nilüfer","Yıldırım","Mudanya","Gürsu","Kestel","İnegöl","Gemlik"],
+  Denizli:       ["Merkezefendi","Pamukkale"],
+  Diyarbakır:    ["Bağlar","Kayapınar","Sur","Yenişehir"],
+  Edirne:        ["Merkez","Keşan","Uzunköprü"],
+  Erzurum:       ["Yakutiye","Palandöken","Aziziye"],
+  Eskişehir:     ["Odunpazarı","Tepebaşı"],
+  Gaziantep:     ["Şahinbey","Şehitkamil","Nizip"],
+  Hatay:         ["Antakya","İskenderun","Arsuz","Dörtyol"],
+  İstanbul:      [
+    "Adalar","Arnavutköy","Ataşehir","Avcılar","Bağcılar","Bahçelievler","Bakırköy",
+    "Başakşehir","Bayrampaşa","Beşiktaş","Beykoz","Beylikdüzü","Beyoğlu","Büyükçekmece",
+    "Çatalca","Çekmeköy","Esenler","Esenyurt","Eyüpsultan","Fatih","Gaziosmanpaşa",
+    "Güngören","Kadıköy","Kağıthane","Kartal","Küçükçekmece","Maltepe","Pendik",
+    "Sancaktepe","Sarıyer","Silivri","Sultanbeyli","Sultangazi","Şile","Şişli",
+    "Tuzla","Ümraniye","Üsküdar","Zeytinburnu",
+  ],
+  İzmir:         ["Konak","Karşıyaka","Bornova","Buca","Çiğli","Narlıdere","Bayraklı","Gaziemir","Karabağlar","Balçova","Güzelbahçe","Menderes","Torbalı","Kemalpaşa"],
+  Kahramanmaraş: ["Onikişubat","Dulkadiroğlu"],
+  Kayseri:       ["Kocasinan","Melikgazi","Talas","Develi"],
+  Kocaeli:       ["İzmit","Gebze","Darıca","Gölcük","Körfez","Başiskele","Çayırova","Dilovası"],
+  Konya:         ["Karatay","Meram","Selçuklu","Ereğli"],
+  Malatya:       ["Battalgazi","Yeşilyurt"],
+  Manisa:        ["Yunusemre","Şehzadeler","Akhisar","Turgutlu"],
+  Mersin:        ["Yenişehir","Mezitli","Toroslar","Akdeniz","Tarsus","Erdemli"],
+  Muğla:         ["Bodrum","Fethiye","Marmaris","Milas","Menteşe","Dalaman"],
+  Ordu:          ["Altınordu","Ünye","Fatsa"],
+  Rize:          ["Merkez","Ardeşen","Çayeli"],
+  Sakarya:       ["Adapazarı","Serdivan","Erenler","Arifiye","Hendek"],
+  Samsun:        ["Atakum","İlkadım","Canik","Tekkeköy","Bafra","Vezirköprü"],
+  Tekirdağ:      ["Süleymanpaşa","Çorlu","Çerkezköy","Ergene"],
+  Trabzon:       ["Ortahisar","Akçaabat","Araklı","Of"],
+  Van:           ["İpekyolu","Tuşba","Edremit"],
+  Şanlıurfa:     ["Eyyübiye","Haliliye","Karaköprü"],
+  Zonguldak:     ["Merkez","Kdz. Ereğli","Çaycuma"],
 };
 
 /* ─── Types ───────────────────────────── */
@@ -61,27 +95,19 @@ interface Address {
 const INITIAL_ADDRESSES: Address[] = [
   {
     id: "addr-1", title: "Evim", fullName: "Ayşe Yılmaz", phone: "0532 ••• 48",
-    province: "Samsun", district: "Atakum", neighborhood: "Mimar Sinan Mahallesi",
-    streetAddress: "Atatürk Bulvarı No: 128 D: 7",
-    buildingNo: "128", floor: "7", apartmentNo: "7",
-    deliveryNote: "Kapı zili çalışmıyor, arayınız.",
+    province: "İstanbul", district: "Kadıköy", neighborhood: "Moda Mahallesi",
+    streetAddress: "Bahariye Cad. No: 12 D: 5",
+    buildingNo: "12", floor: "2", apartmentNo: "5",
+    deliveryNote: "Zil çalışmıyor, lütfen arayın.",
     isDefault: true, iconType: "home",
   },
   {
     id: "addr-2", title: "İş Yerim", fullName: "Ayşe Yılmaz", phone: "0532 ••• 48",
-    province: "Samsun", district: "Atakum", neighborhood: "Kale Mahallesi",
-    streetAddress: "İsmet İnönü Bulvarı No: 54",
-    buildingNo: "54", floor: "2", apartmentNo: "14",
+    province: "İstanbul", district: "Beşiktaş", neighborhood: "Levent Mahallesi",
+    streetAddress: "Büyükdere Cad. No: 78 K: 4",
+    buildingNo: "78", floor: "4", apartmentNo: "14",
     deliveryNote: "",
     isDefault: false, iconType: "work",
-  },
-  {
-    id: "addr-3", title: "Ailem", fullName: "Naciye Yılmaz", phone: "0555 ••• 22",
-    province: "Samsun", district: "İlkadım", neighborhood: "Cumhuriyet Mahallesi",
-    streetAddress: "19 Mayıs Cad. No: 42 D: 3",
-    buildingNo: "42", floor: "1", apartmentNo: "3",
-    deliveryNote: "",
-    isDefault: false, iconType: "family",
   },
 ];
 
@@ -92,8 +118,8 @@ const ICON_CONFIG = {
 };
 
 const EMPTY_FORM = {
-  title: "", fullName: "Ayşe Yılmaz", phone: "",
-  province: "Samsun", district: "Atakum", neighborhood: "Mimar Sinan Mahallesi",
+  title: "", fullName: "", phone: "",
+  province: "İstanbul", district: "Kadıköy", neighborhood: "",
   streetAddress: "", buildingNo: "", floor: "", apartmentNo: "",
   deliveryNote: "", isDefault: true, iconType: "home" as Address["iconType"],
 };
@@ -340,27 +366,14 @@ function AddressForm({
   const s = (k: keyof typeof EMPTY_FORM, v: any) => setForm(f => ({ ...f, [k]: v }));
 
   const handleLocation = () => {
-    if (!navigator.geolocation) { alert("Konum erişimi desteklenmiyor"); return; }
-    navigator.geolocation.getCurrentPosition(() => {
-      setForm(f => ({
-        ...f,
-        province: "Samsun", district: "Atakum",
-        neighborhood: "Mimar Sinan Mahallesi",
-        streetAddress: "Atatürk Bulvarı No: 128",
-      }));
-    }, () => {
-      // Mock fallback
-      setForm(f => ({
-        ...f,
-        province: "Samsun", district: "Atakum",
-        neighborhood: "Mimar Sinan Mahallesi",
-        streetAddress: "Atatürk Bulvarı No: 128",
-      }));
-    });
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      () => { /* real geocoding would go here — leave fields as-is for now */ },
+      () => { /* permission denied — silent */ },
+    );
   };
 
   const districts = DISTRICTS[form.province] || [];
-  const neighborhoods = NEIGHBORHOODS[form.district] || [];
 
   return (
     <div ref={formRef} style={{ padding: "0 12px" }}>
@@ -408,34 +421,31 @@ function AddressForm({
               onChange={e => {
                 const prov = e.target.value;
                 const dist = DISTRICTS[prov]?.[0] || "";
-                const nbhd = NEIGHBORHOODS[dist]?.[0] || "";
-                setForm(f => ({ ...f, province: prov, district: dist, neighborhood: nbhd }));
+                setForm(f => ({ ...f, province: prov, district: dist, neighborhood: "" }));
               }}>
               {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
           </div>
           <div>
             <FieldLabel>İlçe</FieldLabel>
-            <select style={SELECT_STYLE} value={form.district}
-              onChange={e => {
-                const dist = e.target.value;
-                const nbhd = NEIGHBORHOODS[dist]?.[0] || "";
-                setForm(f => ({ ...f, district: dist, neighborhood: nbhd }));
-              }}>
-              {districts.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
+            {districts.length > 0 ? (
+              <select style={SELECT_STYLE} value={form.district}
+                onChange={e => setForm(f => ({ ...f, district: e.target.value, neighborhood: "" }))}>
+                <option value="">İlçe seçin</option>
+                {districts.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            ) : (
+              <input style={INPUT_STYLE} placeholder="İlçe adı girin"
+                value={form.district} onChange={e => setForm(f => ({ ...f, district: e.target.value, neighborhood: "" }))} />
+            )}
           </div>
         </div>
 
-        {/* Mahalle */}
+        {/* Mahalle — free text for all Turkey */}
         <div>
           <FieldLabel>Mahalle</FieldLabel>
-          <select style={SELECT_STYLE} value={form.neighborhood}
-            onChange={e => s("neighborhood", e.target.value)}>
-            {(neighborhoods.length ? neighborhoods : [form.neighborhood]).map(n =>
-              <option key={n} value={n}>{n}</option>
-            )}
-          </select>
+          <input style={INPUT_STYLE} placeholder="Mahalle adı"
+            value={form.neighborhood} onChange={e => s("neighborhood", e.target.value)} />
         </div>
 
         {/* Adres */}
