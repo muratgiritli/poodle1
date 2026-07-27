@@ -1,0 +1,204 @@
+```text
+You are implementing the YourPoodle TAŞIMA ÇANTALARI (dog carriers) category PLP in ONE PASS so it matches the attached mockup and is fully shoppable.
+
+Do not stop until every acceptance check is green AND you have self-verified.
+No stubs. No alert(). No “yakında / coming soon”.
+Do NOT redesign the whole site.
+Do NOT regress:
+- Magaza hub
+- `/yourpoodle/kuru-mama`
+- `/yourpoodle/kategori/tuvalet`
+- `/yourpoodle/kategori/yas-mama`
+- Mama Bul / Rehber / AI / Club
+- Turkey-wide shipping cleanup (no Samsun/Atakum)
+
+Reference UI: attached mockup “Köpek Taşıma Çantaları”.
+
+==================================================
+0) BUSINESS CONTEXT
+==================================================
+YourPoodle is Turkey-wide e-commerce (ships to all 81 provinces).
+Forbidden:
+- Samsun / Atakum / local kapıda delivery claims
+- Placeholder products (“Premium Ürün…”)
+- Emoji / grey-box / SVG wireframe product images
+- Dead Magaza links
+
+Primary route:
+- `/yourpoodle/kategori/tasima-cantalari`
+
+Magaza wiring:
+- Magaza hub category “Taşıma Çantaları” → `/yourpoodle/kategori/tasima-cantalari`
+
+==================================================
+1) CRITICAL LESSONS FROM TUVALET + YAŞ MAMA (DO NOT REPEAT)
+==================================================
+Those PLPs shipped with correct titles/names/prices but FAILED on:
+1) Product images = grey placeholder boxes (NOT acceptable)
+2) Cart badge mismatch (header badge ≠ bottom-nav badge)
+
+For Taşıma Çantaları you MUST:
+1) Use REAL carrier product photos (backpack / cabin / wheeled / mesh bags as in mockup)
+2) Keep header cart badge and bottom-nav cart badge ALWAYS in sync
+3) Use real catalog data (no fake mock-only inventory unless API has no items — then empty state)
+
+==================================================
+2) TARGET PAGE (MATCH MOCKUP STRUCTURE)
+==================================================
+URL: `/yourpoodle/kategori/tasima-cantalari`
+
+A) TITLE / H1
+- H1: “Köpek Taşıma Çantaları”
+- document.title: “Köpek Taşıma Çantaları | YourPoodle”
+
+B) HEADER
+- Left: YourPoodle script logo
+- Right: Cart icon with live badge (search icon optional if shell already has it)
+- Keep existing shared shell patterns
+
+C) MAIN
+- Title under header
+- Optional search:
+  placeholder “Taşıma çantası ara...”
+  client filter by name
+  empty state: “Sonuç bulunamadı”
+- Product grid: **2 columns**
+- Consistent gaps/padding (~12–16px)
+
+D) PRODUCT CARD (exact hierarchy from mockup)
+Top → bottom:
+1. REAL product image (carrier photo; poodle-in-bag lifestyle OK if real asset)
+2. Product title (real name), e.g.
+   - “Şeffaf Pencereli Taşıma Çantası”
+   - cabin / mesh / foldable / front-facing / wheeled variants
+3. Price row:
+   - old price struck-through grey (if discount)
+   - current price bold purple
+4. Full-width purple button: “Sepete Ekle”
+
+(No barcode/SKT required on this mockup unless catalog has them — if present, show under title in small grey text.)
+
+E) ADD TO CART
+- Adds to real cart store
+- Updates BOTH header badge and bottom-nav badge to the SAME count
+- Toast OK: “Sepete eklendi”
+- Optional pressed state: “Eklendi”
+- Out of stock: disabled + “Tükendi”
+
+F) PRODUCT TAP
+- Image/title opens existing PDP (`/yourpoodle/urun/...` or current path)
+
+G) BOTTOM NAV
+Keep existing site-wide bottom nav:
+Ana Sayfa · Mama Bul · Sepet · Rehber · Club
+Do not invent a separate 4-tab shell for this page.
+Add bottom padding so last cards/CTAs are not hidden under nav.
+
+H) FOOTER
+hideFooter / compact store footer on this PLP.
+
+==================================================
+3) DATA / CATALOG
+==================================================
+- Use real products API/catalog already used by Magaza / other PLPs
+- Filter by carrier category slug: `tasima-cantalari`
+- Required: id, name, imageUrl, price, salePrice?, stock
+- DELETE placeholder/mock generators for this category
+- Image rules (CRITICAL):
+  - must render real `<img>` product photos
+  - src must be real product image URLs (or CDN), naturalWidth > 0 after load
+  - on error: branded photo fallback (NOT grey wireframe box)
+  - NEVER emoji-only / SVG-box-only cards
+- If no products: empty state + CTA back to Magaza
+
+==================================================
+4) ROUTING
+==================================================
+1) Magaza “Taşıma Çantaları” → `/yourpoodle/kategori/tasima-cantalari`
+2) Keep `/yourpoodle` prefix
+3) If SEO `/tasima-cantalari` exists, Magaza must still open the PLP
+4) Do not break Tuvalet / Yaş Mama / Kuru Mama routes
+
+==================================================
+5) VISUAL SPEC
+==================================================
+- Brand purple ≈ `#6200EE` / existing token
+- White cards, thin border, radius ~12px
+- 2-column grid
+- Price: strike grey + bold purple current
+- CTA: solid purple, white text, full width
+- Mobile 390×844 first; no horizontal overflow
+- Mockup is source of truth for card hierarchy and photography style
+
+==================================================
+6) COPY / POSITIONING
+==================================================
+Turkey-wide only.
+Forbidden: Samsun|Atakum|İlkadım|Canik|Tekkeköy|Kapıda nakit|Aynı Gün Kapıda
+If shipping mentioned, align with `/yourpoodle/kargo`.
+
+==================================================
+7) IMPLEMENTATION NOTES
+==================================================
+- Reuse Magaza/cart/layout primitives
+- Prefer dedicated component OR specialize shared category page for `tasima-cantalari`
+- Accessibility: Sepete Ekle aria-label includes product name
+- Fix cart badge sync globally if needed (header + bottom nav read same cart count selector/store)
+
+==================================================
+8) SELF-QA (MANDATORY BEFORE STOP)
+==================================================
+A) Magaza path
+1. Open `/yourpoodle/magaza`
+2. Tap “Taşıma Çantaları”
+3. URL = `/yourpoodle/kategori/tasima-cantalari`
+4. H1 = “Köpek Taşıma Çantaları”
+
+B) PLP quality
+5. 2-column cards on 390×844
+6. REAL carrier photos visible (inspect `<img>` naturalWidth > 0) — FAIL if grey boxes
+7. Real names + TL prices
+8. No “Premium Ürün…” / emoji / grey placeholders
+9. Sepete Ekle works + toast
+10. Header cart badge == bottom-nav cart badge after add
+11. No Samsun/Atakum text
+12. Last row not under bottom nav
+
+C) Regression
+13. Magaza → Yaş Mama still works with its PLP
+14. Magaza → Tuvalet still works
+15. Magaza → Kuru Mama still opens `/yourpoodle/kuru-mama`
+16. No alert()/yakında
+
+If any fails: fix and re-run full checklist.
+
+==================================================
+9) ACCEPTANCE CHECKLIST (ALL GREEN)
+==================================================
+[ ] Route live: `/yourpoodle/kategori/tasima-cantalari`
+[ ] Magaza “Taşıma Çantaları” wired correctly
+[ ] Title/H1 correct
+[ ] Mockup-like 2-column cards
+[ ] REAL product images (CRITICAL — no grey boxes)
+[ ] Real product names/prices
+[ ] Sepete Ekle works
+[ ] Cart badges synced (header + bottom)
+[ ] PDP tap works
+[ ] Mobile layout clean
+[ ] Turkey-wide copy only
+[ ] No regression on Yaş Mama / Tuvalet / Kuru Mama
+[ ] No alert()/yakında
+
+==================================================
+10) FINAL REPORT
+==================================================
+Report:
+1) Files/routes changed
+2) Magaza → Taşıma Çantaları wiring
+3) How product images are sourced (prove real URLs)
+4) Cart badge sync approach
+5) Self-QA PASS/FAIL for each acceptance item
+
+Start now. Complete Taşıma Çantaları PLP + wiring + self-QA in one pass.
+Follow the mockup closely — especially real carrier photography.
+```

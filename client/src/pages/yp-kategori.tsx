@@ -35,7 +35,7 @@ const SLUG_TO_TITLE: Record<string, string> = {
   "tuvalet":           "Köpek Tuvalet Malzemeleri",
   "yas-mama":          "Köpek Yaş Mamaları",
   "odul-cesitleri":    "Ödül ve Atıştırmalıklar",
-  "tasima-cantalari":  "Taşıma Çantaları",
+  "tasima-cantalari":  "Köpek Taşıma Çantaları",
   "kulubeler":         "Kulübeler ve Taşıma Araçları",
   "oyuncaklar":        "Köpek Oyuncakları",
   "mama-su-kaplari":   "Mama ve Su Kapları",

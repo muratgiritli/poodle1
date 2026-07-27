@@ -67,12 +67,18 @@ export default function YPLayout({
   const { isLoggedIn, customer }      = useCustomer();
   const profileRef = useRef<HTMLDivElement>(null);
 
-  /* cart badge — reads YP localStorage cart (yp_cart_items) */
+  /* cart badge — reads jet55_cart (same key as CartContext + YPBottomNav) */
   useEffect(() => {
     const read = () => {
       try {
-        const c = JSON.parse(localStorage.getItem("yp_cart_items") || "[]");
-        setCartCount(Array.isArray(c) ? c.reduce((s: number, i: any) => s + (i.qty || 0), 0) : 0);
+        const raw = localStorage.getItem("jet55_cart");
+        if (!raw) { setCartCount(0); return; }
+        const b = JSON.parse(raw);
+        setCartCount(
+          b && typeof b === "object" && !Array.isArray(b)
+            ? Object.values(b as Record<string, number>).reduce((s: number, q) => s + (Number(q) || 0), 0)
+            : 0
+        );
       } catch { setCartCount(0); }
     };
     read();

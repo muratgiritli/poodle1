@@ -1,6 +1,7 @@
 import { db, pool } from "./storage";
 import { brandCategories, products, breedStats, crossSellSections, crossSellItems, subcategories, deliveryNeighborhoods } from "@shared/schema";
 import { eq, and, sql } from "drizzle-orm";
+import { downloadAndSaveImage, hasProductImage } from "./image-service";
 import brandDataJson from "./brand_data.json";
 
 interface BrandProductData {
@@ -501,6 +502,62 @@ async function seedDeliveryNeighborhoods() {
   console.log(`Seeded ${NEIGHBORHOODS.length} delivery neighborhoods.`);
 }
 
+/* ─── YourPoodle Taşıma Çantaları seed ─────────────────────────────────── */
+async function seedTasimaProducts(): Promise<void> {
+  try {
+    let [bc] = await db.select().from(brandCategories).where(
+      and(
+        eq(brandCategories.animal, "kopek"),
+        eq(brandCategories.subcategory, "tasima-kulube"),
+        eq(brandCategories.brandSlug, "yourpoodle-tasima")
+      )
+    );
+    if (!bc) {
+      [bc] = await db.insert(brandCategories).values({
+        brandName: "YourPoodle Taşıma",
+        brandSlug: "yourpoodle-tasima",
+        animal: "kopek",
+        subcategory: "tasima-kulube",
+      }).returning();
+    }
+
+    const TASIMA = [
+      { barcode:"8681234567301", name:"Şeffaf Pencereli Taşıma Çantası",    price:1199, originalPrice:1499, stock:20, imgUrl:"https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?auto=format&fit=crop&w=600&q=80" },
+      { barcode:"8681234567302", name:"Fileli Köpek Taşıma Çantası",         price:999,  originalPrice:1299, stock:25, imgUrl:"https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=600&q=80" },
+      { barcode:"8681234567303", name:"Uçak Kabin Taşıma Çantası",           price:1549, originalPrice:1899, stock:15, imgUrl:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=600&q=80" },
+      { barcode:"8681234567304", name:"Katlanabilir Seyahat Çantası",         price:1299, originalPrice:1599, stock:18, imgUrl:"https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=600&q=80" },
+      { barcode:"8681234567305", name:"Önden Askılı Köpek Çantası",           price:849,  originalPrice:1099, stock:30, imgUrl:"https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=600&q=80" },
+      { barcode:"8681234567306", name:"Tekerlekli Köpek Taşıma Çantası",      price:2199, originalPrice:2699, stock:10, imgUrl:"https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=600&q=80" },
+    ];
+
+    for (const p of TASIMA) {
+      const exists = await pool.query(`SELECT id FROM products WHERE barcode = $1 LIMIT 1`, [p.barcode]);
+      if (exists.rows.length > 0) {
+        const [row] = await pool.query(`SELECT id FROM products WHERE barcode = $1`, [p.barcode]).then(r => r.rows);
+        if (row && !(await hasProductImage(row.id))) {
+          const localPath = await downloadAndSaveImage(p.imgUrl, row.id);
+          if (localPath) await pool.query(`UPDATE products SET img = $1 WHERE id = $2`, [localPath, row.id]);
+        }
+        continue;
+      }
+      const [inserted] = await db.insert(products).values({
+        name: p.name, price: p.price, originalPrice: p.originalPrice,
+        stock: p.stock, barcode: p.barcode, brandCategoryId: bc.id,
+        img: p.imgUrl,
+      }).returning();
+
+      const localPath = await downloadAndSaveImage(p.imgUrl, inserted.id);
+      if (localPath) {
+        await pool.query(`UPDATE products SET img = $1 WHERE id = $2`, [localPath, inserted.id]);
+        console.log(`[tasima] Downloaded image for ${inserted.id} ${p.name}`);
+      }
+    }
+    console.log("YourPoodle taşıma çantaları products seeded.");
+  } catch (e: any) {
+    console.error("[seedTasimaProducts]", e?.message);
+  }
+}
+
 /* ─── YourPoodle Yaş Mama seed ─────────────────────────────────────────── */
 async function seedYasMamaProducts(): Promise<void> {
   try {
@@ -614,6 +671,7 @@ export async function seedDatabase() {
   await seedDeliveryNeighborhoods();
   await seedTuvaletProducts();
   await seedYasMamaProducts();
+  await seedTasimaProducts();
   console.log("Checking database for missing brand data...");
 
   for (const brand of ALL_BRAND_DATA) {
