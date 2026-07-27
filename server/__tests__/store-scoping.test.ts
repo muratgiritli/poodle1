@@ -3902,3 +3902,62 @@ test("GET /sitemap-main.xml: returns 200 application/xml with all known static <
     `/sitemap-main.xml is missing <loc> entries for:\n${missingLocs.map((l) => `  ${l}`).join("\n")}`,
   );
 });
+
+// ── /sitemap-products.xml DB-driven regression guard ─────────────────────────
+//
+// GETs /sitemap-products.xml with the jetgomarket.com host header and asserts:
+//   (a) HTTP 200 with Content-Type: application/xml
+//   (b) The envelope is a valid <urlset>
+//   (c) The seeded active product's /urun/<id>/<slug> URL appears as a <loc>
+//
+// A broken DB query, renamed column, or filter regression would silently drop
+// all product pages from Google's index. This test catches that before it
+// reaches production.
+//
+test("GET /sitemap-products.xml: returns 200 application/xml with seeded product <loc>", async () => {
+  const res = await fetch(`${baseUrl}/sitemap-products.xml`, {
+    headers: { "X-Forwarded-Host": JETGO_HOST },
+  });
+
+  // (a) HTTP 200 + correct Content-Type
+  assert.equal(
+    res.status,
+    200,
+    `Expected HTTP 200 from /sitemap-products.xml; got ${res.status}`,
+  );
+  const ct = res.headers.get("content-type") ?? "";
+  assert.ok(
+    ct.includes("application/xml"),
+    `Expected Content-Type: application/xml from /sitemap-products.xml; got "${ct}"`,
+  );
+
+  const xml = await res.text();
+
+  // (b) Well-formed urlset envelope
+  assert.ok(
+    xml.includes("<urlset"),
+    "/sitemap-products.xml body must contain a <urlset> opening tag",
+  );
+  assert.ok(
+    xml.includes("</urlset>"),
+    "/sitemap-products.xml body must contain a </urlset> closing tag",
+  );
+
+  // (c) Seeded product must appear as a <loc>
+  // The seeded product name is "__SCOPE_TEST___PRODUCT"; the route slugifies it
+  // with: lower → replace non-[a-z0-9ğüşıöç]+ → "-" → collapse → strip edges
+  // → "scope-test-product"
+  const slug = "__SCOPE_TEST___PRODUCT"
+    .toLowerCase()
+    .replace(/[^a-z0-9ğüşıöç]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  // The JETGO_HOST ("www.jetgomarket.com") is not listed in the jetgo store's
+  // hostnames array, so getStoreByHost falls back to DEFAULT_STORE (the jetgo
+  // store), whose canonical domain is "https://www.yourpoodle.com".
+  const expectedLoc = `https://www.yourpoodle.com/urun/${orderProductId}/${slug}`;
+  assert.ok(
+    xml.includes(`<loc>${expectedLoc}</loc>`),
+    `/sitemap-products.xml must contain the seeded product <loc>:\n  expected: <loc>${expectedLoc}</loc>\n  (this means the DB-driven product query is broken or the slug/URL pattern changed)`,
+  );
+});
