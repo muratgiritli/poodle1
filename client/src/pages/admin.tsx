@@ -7456,6 +7456,11 @@ function YPEventsCard() {
               </div>
             </div>
             <div className="flex gap-1 flex-shrink-0">
+              {ev.slug && (
+                <a href={`/yourpoodle/etkinlikler/${ev.slug}`} target="_blank" rel="noopener noreferrer">
+                  <Button size="sm" variant="outline" className="h-6 text-[10px] px-2">Görüntüle</Button>
+                </a>
+              )}
               <Button size="sm" variant="outline" className="h-6 text-[10px] px-2" onClick={() => openEdit(ev)}>Düzenle</Button>
               <Button size="sm" variant="destructive" className="h-6 text-[10px] px-2" onClick={() => { if (confirm("Etkinliği sil?")) deleteMutation.mutate(ev.id); }}>Sil</Button>
             </div>
