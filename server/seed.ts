@@ -664,6 +664,54 @@ async function seedTuvaletProducts(): Promise<void> {
   }
 }
 
+async function seedMamaSuKabiProducts(): Promise<void> {
+  try {
+    let [bc] = await db.select().from(brandCategories).where(
+      and(
+        eq(brandCategories.animal, "kopek"),
+        eq(brandCategories.subcategory, "mama-su-kabi"),
+        eq(brandCategories.brandSlug, "mama-su-kabi")
+      )
+    );
+    if (!bc) {
+      [bc] = await db.insert(brandCategories).values({
+        brandName: "Mama Su Kapları",
+        brandSlug: "mama-su-kabi",
+        animal: "kopek",
+        subcategory: "mama-su-kabi",
+      }).returning();
+    }
+
+    const existing = await pool.query(
+      `SELECT id FROM products WHERE brand_category_id = $1 LIMIT 1`,
+      [bc.id]
+    );
+    if (existing.rows.length > 0) {
+      console.log("Mama Su Kabı products already seeded, skipping...");
+      return;
+    }
+
+    const ITEMS = [
+      { name: "Çift Bölmeli Paslanmaz Çelik Mama Kabı",            price: 349, originalPrice: 449, stock: 40, barcode: "8681234568101" },
+      { name: "Yavaş Yeme Mama Kabı (Anti-Boğulma)",               price: 289, originalPrice: 379, stock: 55, barcode: "8681234568102" },
+      { name: "Otomatik Su Sebili 2 L",                             price: 599, originalPrice: 749, stock: 25, barcode: "8681234568103" },
+      { name: "Melamin Mama ve Su Kabı Seti (Stand ile)",           price: 479, originalPrice: 599, stock: 30, barcode: "8681234568104" },
+      { name: "Seyahat Katlanabilir Silikon Mama Kabı",             price: 199, originalPrice: 269, stock: 80, barcode: "8681234568105" },
+      { name: "Çelik Mama Kabı Standı (Yükseklik Ayarlı)",         price: 799, originalPrice: 999, stock: 20, barcode: "8681234568106" },
+    ];
+
+    for (const p of ITEMS) {
+      await db.insert(products).values({
+        name: p.name, price: p.price, originalPrice: p.originalPrice,
+        stock: p.stock, barcode: p.barcode, brandCategoryId: bc.id,
+      });
+    }
+    console.log(`Seeded ${ITEMS.length} mama-su-kabi products.`);
+  } catch (e: any) {
+    console.error("[seedMamaSuKabiProducts]", e?.message);
+  }
+}
+
 export async function seedDatabase() {
   await seedSubcategories();
   await seedDefaultBrandCategoriesForSubcategories();
@@ -672,6 +720,7 @@ export async function seedDatabase() {
   await seedTuvaletProducts();
   await seedYasMamaProducts();
   await seedTasimaProducts();
+  await seedMamaSuKabiProducts();
   console.log("Checking database for missing brand data...");
 
   for (const brand of ALL_BRAND_DATA) {

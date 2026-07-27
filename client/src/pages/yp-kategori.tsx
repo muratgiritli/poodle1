@@ -12,42 +12,57 @@ const PD   = "#4C1DAA";
 
 /* ── Route slug → DB subcategory mapping ─────────────────────────── */
 const SLUG_TO_SUBCAT: Record<string, string> = {
-  "tuvalet":           "tuvalet-malzemeleri",
-  "yas-mama":          "yas-mama",
-  "odul-cesitleri":    "odul-kemik",
-  "tasima-cantalari":  "tasima-kulube",
-  "kulubeler":         "tasima-kulube",
-  "oyuncaklar":        "oyuncak",
-  "mama-su-kaplari":   "mama-su-kabi",
+  "tuvalet":             "tuvalet-malzemeleri",
+  "yas-mama":            "yas-mama",
+  "odul-cesitleri":      "odul-kemik",
+  "tasima-cantalari":    "tasima-kulube",
+  "kulubeler":           "tasima-kulube",
+  "oyuncaklar":          "oyuncak",
+  "mama-su-kaplari":     "mama-su-kabi",
   "bel-boyun-tasmalari": "bel-boyun-tasma",
-  "bakim-saglik":      "bakim-saglik",
-  "makas-taraklar":    "tras-ekipmanlari",
-  "sampuan-parfum":    "sampuan-banyo",
-  "agiz-dis-bakimi":   "agiz-dis-bakim",
-  "sut-tozu-biberon":  "sut-tozu-biberon",
-  "bit-pire-parazit":  "bit-pire-parazit",
-  "goz-kulak-bakimi":  "goz-kulak-bakim",
-  "tiras-ekipmanlari": "tras-ekipmanlari",
+  "bakim-saglik":        "bakim-saglik",
+  "makas-taraklar":      "tras-ekipmanlari",
+  "sampuan-parfum":      "sampuan-banyo",
+  "agiz-dis-bakimi":     "agiz-dis-bakim",
+  "sut-tozu-biberon":    "sut-tozu-biberon",
+  "bit-pire-parazit":    "bit-pire-parazit",
+  "goz-kulak-bakimi":    "goz-kulak-bakim",
+  "tiras-ekipmanlari":   "tras-ekipmanlari",
 };
 
 /* ── Page title / H1 mapping ──────────────────────────────────────── */
 const SLUG_TO_TITLE: Record<string, string> = {
-  "tuvalet":           "Köpek Tuvalet Malzemeleri",
-  "yas-mama":          "Köpek Yaş Mamaları",
-  "odul-cesitleri":    "Ödül ve Atıştırmalıklar",
-  "tasima-cantalari":  "Köpek Taşıma Çantaları",
-  "kulubeler":         "Kulübeler ve Taşıma Araçları",
-  "oyuncaklar":        "Köpek Oyuncakları",
-  "mama-su-kaplari":   "Mama ve Su Kapları",
+  "tuvalet":             "Köpek Tuvalet Malzemeleri",
+  "yas-mama":            "Köpek Yaş Mamaları",
+  "odul-cesitleri":      "Ödül ve Atıştırmalıklar",
+  "tasima-cantalari":    "Köpek Taşıma Çantaları",
+  "kulubeler":           "Köpek Kulübeleri",
+  "oyuncaklar":          "Köpek Oyuncakları",
+  "mama-su-kaplari":     "Mama ve Su Kapları",
   "bel-boyun-tasmalari": "Bel ve Boyun Tasmaları",
-  "bakim-saglik":      "Bakım ve Sağlık",
-  "makas-taraklar":    "Makas ve Taraklar",
-  "sampuan-parfum":    "Şampuan ve Parfüm",
-  "agiz-dis-bakimi":   "Ağız ve Diş Bakımı",
-  "sut-tozu-biberon":  "Süt Tozu ve Biberon",
-  "bit-pire-parazit":  "Bit, Pire ve Parazit",
-  "goz-kulak-bakimi":  "Göz ve Kulak Bakımı",
-  "tiras-ekipmanlari": "Tıraş Ekipmanları",
+  "bakim-saglik":        "Bakım ve Sağlık",
+  "makas-taraklar":      "Makas ve Taraklar",
+  "sampuan-parfum":      "Şampuan ve Parfüm",
+  "agiz-dis-bakimi":     "Ağız ve Diş Bakımı",
+  "sut-tozu-biberon":    "Süt Tozu ve Biberon",
+  "bit-pire-parazit":    "Bit, Pire ve Parazit",
+  "goz-kulak-bakimi":    "Göz ve Kulak Bakımı",
+  "tiras-ekipmanlari":   "Tıraş Ekipmanları",
+};
+
+/**
+ * Variant A = false (no SKT row ever shown)
+ * Variant B = true  (SKT row shown when data is present)
+ * Perishable / health categories are Variant B.
+ */
+const SLUG_TO_SHOW_SKT: Record<string, boolean> = {
+  "yas-mama":            true,
+  "bakim-saglik":        true,
+  "sampuan-parfum":      true,
+  "agiz-dis-bakimi":     true,
+  "sut-tozu-biberon":    true,
+  "bit-pire-parazit":    true,
+  "goz-kulak-bakimi":    true,
 };
 
 /* ── helpers ─────────────────────────────────────────────────────── */
@@ -84,10 +99,12 @@ function ProductCard({
   product,
   onNavigate,
   onAddToCart,
+  showSKT = false,
 }: {
   product: any;
   onNavigate: (id: number, name: string) => void;
   onAddToCart: (product: any) => void;
+  showSKT?: boolean;
 }) {
   const { basket } = useCart();
   const sid = String(product.id);
@@ -168,14 +185,14 @@ function ProductCard({
           {product.name}
         </p>
 
-        {(product.barcode || product.skt) && (
+        {(product.barcode || (showSKT && product.skt)) && (
           <div style={{ margin:"0 0 6px" }}>
             {product.barcode && (
               <p style={{ fontSize:10, color:"#9CA3AF", margin:0, lineHeight:1.5 }}>
                 Barkod: {product.barcode}
               </p>
             )}
-            {product.skt && (
+            {showSKT && product.skt && (
               <p style={{ fontSize:10, color:"#9CA3AF", margin:0, lineHeight:1.5 }}>
                 SKT: {product.skt}
               </p>
@@ -247,9 +264,10 @@ export default function YPKategoriPage({ routeSlug }: YPKategoriPageProps) {
   const toastTimer = useRef<ReturnType<typeof setTimeout>|null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const slug  = routeSlug || "tuvalet";
-  const subcat = SLUG_TO_SUBCAT[slug] || slug;
-  const title  = SLUG_TO_TITLE[slug] || "Kategori";
+  const slug    = routeSlug || "tuvalet";
+  const subcat  = SLUG_TO_SUBCAT[slug] || slug;
+  const title   = SLUG_TO_TITLE[slug] || "Kategori";
+  const showSKT = !!SLUG_TO_SHOW_SKT[slug];
 
   useEffect(() => { document.title = `${title} | YourPoodle`; }, [title]);
 
@@ -404,6 +422,7 @@ export default function YPKategoriPage({ routeSlug }: YPKategoriPageProps) {
                 product={product}
                 onNavigate={goProduct}
                 onAddToCart={handleAddToCart}
+                showSKT={showSKT}
               />
             ))}
           </div>

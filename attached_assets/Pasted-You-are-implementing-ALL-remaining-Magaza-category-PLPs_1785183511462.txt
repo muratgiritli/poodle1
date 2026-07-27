@@ -1,0 +1,164 @@
+You are implementing ALL remaining Magaza category PLPs for YourPoodle in ONE PASS.
+
+CRITICAL TEMPLATE RULE:
+Use the EXISTING pages below as the EXACT visual/UX/code pattern for every new category page:
+
+1) `/yourpoodle/kategori/tuvalet`
+2) `/yourpoodle/kategori/yas-mama`
+
+Do NOT invent a new layout.
+Do NOT redesign cards, spacing, typography, search, grid, buttons, or footer.
+Clone the Tuvalet / Yaş Mama PLP kalıp (template) and only change:
+- route/slug
+- H1 / document.title
+- Magaza label mapping
+- product filter/category data
+- whether SKT row is shown (Variant A vs B)
+
+Do not stop until every acceptance check is green AND you self-verified every category.
+No stubs. No alert(). No “yakında / coming soon”.
+Do NOT regress already-working pages:
+- `/yourpoodle/magaza`
+- `/yourpoodle/kuru-mama`
+- `/yourpoodle/kategori/tuvalet`
+- `/yourpoodle/kategori/yas-mama`
+- `/yourpoodle/kategori/tasima-cantalari`
+- Mama Bul / Rehber / AI / Club
+- Turkey-wide shipping (NO Samsun/Atakum)
+
+Mobile first: 390×844
+
+==================================================
+0) TEMPLATE SOURCE OF TRUTH
+==================================================
+Open and inspect Tuvalet + Yaş Mama first.
+
+Reuse their exact pattern for:
+- page shell / header / back link “← Mağaza”
+- H1 style
+- search input + “N ürün bulundu”
+- 2-column product grid
+- product card structure (image area, title, meta rows, prices, CTA)
+- purple brand button “Sepete Ekle”
+- toast “Sepete eklendi”
+- hideFooter / compact store footer
+- bottom nav: Ana Sayfa · Mama Bul · Sepet · Rehber · Club
+- cart add flow + badge sync behavior
+- product data loading from the same catalog/API approach
+
+Preferred implementation:
+- Extract/reuse the shared CategoryPLP component already used by Tuvalet/Yaş Mama
+- Drive new pages via config map (slug, h1, showSKT, etc.)
+- Do NOT copy-paste 12 divergent UIs
+
+==================================================
+1) CRITICAL FIXES TO CARRY FROM TEMPLATE (IMPROVE IF NEEDED)
+==================================================
+Tuvalet/Yaş Mama are the layout reference, BUT you must not ship grey placeholder images.
+
+For EVERY category (including existing Tuvalet/Yaş Mama if still broken):
+1) Real product photos via real `<img>` (`/api/product-image/...` or catalog URL), naturalWidth > 0
+2) Header cart badge AND bottom-nav cart badge always synced from same cart store
+3) Real catalog products only (no “Premium Ürün 1”, no emoji cards)
+
+If Tuvalet/Yaş Mama still have grey SVG boxes, fix them first, then reuse that fixed template for all other categories.
+
+Reference for good images: `/yourpoodle/kategori/tasima-cantalari` (real `/api/product-image/...`).
+
+==================================================
+2) CATEGORIES + ROUTES + CARD VARIANTS
+==================================================
+
+### VARIANT A — NO SKT (same card as Tuvalet/Yaş Mama style, without SKT row)
+Card fields (exact order):
+1. Ürün adı
+2. Fotoğraf
+3. Barkod (only if available)
+4. Fiyat (old / strikethrough if discount)
+5. Son fiyat (current bold purple)
+6. Sepete Ekle
+
+Categories:
+1. Kulübeler → `/yourpoodle/kategori/kulubeler` → “Köpek Kulübeleri”
+2. Oyuncaklar → `/yourpoodle/kategori/oyuncaklar` → “Köpek Oyuncakları”
+3. Mama ve Su Kapları → `/yourpoodle/kategori/mama-su-kaplari` → “Mama ve Su Kapları”
+4. Bel ve Boyun Tasmaları → `/yourpoodle/kategori/bel-boyun-tasmalari` → “Bel ve Boyun Tasmaları”
+5. Makas ve Taraklar → `/yourpoodle/kategori/makas-taraklar` → “Makas ve Taraklar”
+6. Tıraş Ekipmanları → `/yourpoodle/kategori/tiras-ekipmanlari` → “Tıraş Ekipmanları”
+
+### VARIANT B — WITH SKT (same card kalıp + SKT row like Yaş Mama / perishable style)
+Card fields (exact order):
+1. Ürün adı
+2. Fotoğraf
+3. Barkod (only if available)
+4. SKT (only if available; do not invent fake expiry)
+5. Fiyat (old / strikethrough if discount)
+6. Son fiyat (current bold purple)
+7. Sepete Ekle
+
+Categories:
+7. Bakım ve Sağlık → `/yourpoodle/kategori/bakim-saglik` → “Bakım ve Sağlık”
+8. Şampuan ve Parfüm → `/yourpoodle/kategori/sampuan-parfum` → “Şampuan ve Parfüm”
+9. Ağız ve Diş Bakımı → `/yourpoodle/kategori/agiz-dis-bakimi` → “Ağız ve Diş Bakımı”
+10. Süt Tozu ve Biberon → `/yourpoodle/kategori/sut-tozu-biberon` → “Süt Tozu ve Biberon”
+11. Bit, Pire ve Parazit → `/yourpoodle/kategori/bit-pire-parazit` → “Bit, Pire ve Parazit”
+12. Göz ve Kulak Bakımı → `/yourpoodle/kategori/goz-kulak-bakimi` → “Göz ve Kulak Bakımı”
+
+document.title for each: `{H1} | YourPoodle`
+
+==================================================
+3) SHARED PAGE UX (MUST MATCH TUVALET / YAŞ MAMA)
+==================================================
+Each PLP must include the same UX as Tuvalet/Yaş Mama:
+- Back link: “← Mağaza”
+- Correct H1
+- Search input with category-specific Turkish placeholder (“... ara...”)
+- Client-side filter by name/brand
+- Empty state: “Sonuç bulunamadı”
+- “N ürün bulundu”
+- 2-column product grid on mobile
+- Same card look/spacing/button style
+- Same toast + cart behavior
+- Same footer/nav treatment
+- Enough bottom padding so last CTA is not hidden under nav
+
+==================================================
+4) PRODUCT CARD RULES
+==================================================
+Keep Tuvalet/Yaş Mama card styling:
+- White card, thin border, radius ~12px
+- Brand purple ≈ #6200EE / existing token
+- Old price grey strikethrough
+- Current price bold purple
+- Full-width purple “Sepete Ekle”
+
+Data rules:
+- Variant A: never show SKT row
+- Variant B: show SKT when available; hide if missing
+- Barkod: show only when available; never invent fake barcodes
+- Out of stock: disabled button + “Tükendi”
+- Image/title tap → existing PDP route
+- Sepete Ekle → real cart + toast “Sepete eklendi”
+- Cart badges (header + bottom) must match after every add
+
+==================================================
+5) MAGAZA WIRING (REQUIRED)
+==================================================
+From `/yourpoodle/magaza`, each category card must navigate to its `/yourpoodle/kategori/{slug}` PLP.
+Keep `/yourpoodle` prefix.
+Do not send shoppers to SEO essay pages.
+
+==================================================
+6) IMPLEMENTATION APPROACH
+==================================================
+1) Use Tuvalet/Yaş Mama as the shared PLP template
+2) Config map:
+```js
+{
+  slug,
+  h1,
+  title,
+  searchPlaceholder,
+  showSKT: true|false,
+  magazaLabel
+}
