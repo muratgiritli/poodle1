@@ -501,11 +501,68 @@ async function seedDeliveryNeighborhoods() {
   console.log(`Seeded ${NEIGHBORHOODS.length} delivery neighborhoods.`);
 }
 
+/* ─── YourPoodle Tuvalet Malzemeleri seed ──────────────────────────────── */
+async function seedTuvaletProducts(): Promise<void> {
+  try {
+    // Ensure the tuvalet-malzemeleri brand_category exists and get its ID
+    let [bc] = await db.select().from(brandCategories).where(
+      and(
+        eq(brandCategories.animal, "kopek"),
+        eq(brandCategories.subcategory, "tuvalet-malzemeleri"),
+        eq(brandCategories.brandSlug, "tuvalet-malzemeleri")
+      )
+    );
+    if (!bc) {
+      [bc] = await db.insert(brandCategories).values({
+        brandName: "Tuvalet Malzemeleri",
+        brandSlug: "tuvalet-malzemeleri",
+        animal: "kopek",
+        subcategory: "tuvalet-malzemeleri",
+      }).returning();
+      console.log("Created brand_category for tuvalet-malzemeleri");
+    }
+
+    // Check if products already seeded (by barcode guard)
+    const existing = await pool.query(
+      `SELECT id FROM products WHERE brand_category_id = $1 LIMIT 1`,
+      [bc.id]
+    );
+    if (existing.rows.length > 0) {
+      console.log("Tuvalet products already seeded, skipping...");
+      return;
+    }
+
+    const TUVALET_PRODUCTS = [
+      { name: "Yıkanabilir Köpek Çiş Pedi", price: 399, originalPrice: 499, stock: 50, barcode: "8681234567101" },
+      { name: "Köpek Çiş Eğitim Pedi 60×90 cm (30'lu)", price: 449, originalPrice: 549, stock: 80, barcode: "8681234567102" },
+      { name: "Tuvalet Eğitim Spreyi 100 ml", price: 239, originalPrice: 299, stock: 100, barcode: "8681234567103" },
+      { name: "Köpek Tuvalet Tepsisi", price: 649, originalPrice: 799, stock: 30, barcode: "8681234567104" },
+      { name: "Dişi Köpek Adet Bezi 12'li", price: 279, originalPrice: 349, stock: 60, barcode: "8681234567105" },
+      { name: "Kaka Poşeti 8 Rulo", price: 189, originalPrice: 249, stock: 200, barcode: "8681234567106" },
+    ];
+
+    for (const p of TUVALET_PRODUCTS) {
+      await db.insert(products).values({
+        name: p.name,
+        price: p.price,
+        originalPrice: p.originalPrice,
+        stock: p.stock,
+        barcode: p.barcode,
+        brandCategoryId: bc.id,
+      });
+    }
+    console.log(`Seeded ${TUVALET_PRODUCTS.length} tuvalet products.`);
+  } catch (e: any) {
+    console.error("[seedTuvaletProducts]", e?.message);
+  }
+}
+
 export async function seedDatabase() {
   await seedSubcategories();
   await seedDefaultBrandCategoriesForSubcategories();
   await cleanupOrphanBrandCategories();
   await seedDeliveryNeighborhoods();
+  await seedTuvaletProducts();
   console.log("Checking database for missing brand data...");
 
   for (const brand of ALL_BRAND_DATA) {

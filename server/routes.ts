@@ -2144,19 +2144,22 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   // YourPoodle storefront: products joined with brand_categories for animal + subcategory
   app.get("/api/yp-products", async (req, res) => {
     try {
-      const result = await sharedPool.query(`
-        SELECT p.id, p.name, p.price, p.original_price AS "originalPrice",
-               p.img, p.stock, p.is_active AS "isActive", p.mama_type AS "mamaType",
-               p.barcode, p.skt,
-               p.preorder_enabled AS "preorderEnabled",
-               p.long_description AS "longDescription",
-               p.mama_metadata AS "mamaMetadata",
-               bc.animal, bc.subcategory, bc.brand_name AS "brandName", bc.brand_slug AS "brandSlug"
-        FROM products p
-        LEFT JOIN brand_categories bc ON p.brand_category_id = bc.id
-        WHERE p.is_active = true AND bc.animal = 'kopek'
-        ORDER BY p.id DESC
-      `);
+      const subcategory = typeof req.query.subcategory === "string" ? req.query.subcategory : null;
+      const result = await sharedPool.query(
+        `SELECT p.id, p.name, p.price, p.original_price AS "originalPrice",
+                p.img, p.stock, p.is_active AS "isActive", p.mama_type AS "mamaType",
+                p.barcode, p.skt,
+                p.preorder_enabled AS "preorderEnabled",
+                p.long_description AS "longDescription",
+                p.mama_metadata AS "mamaMetadata",
+                bc.animal, bc.subcategory, bc.brand_name AS "brandName", bc.brand_slug AS "brandSlug"
+         FROM products p
+         LEFT JOIN brand_categories bc ON p.brand_category_id = bc.id
+         WHERE p.is_active = true AND bc.animal = 'kopek'
+         ${subcategory ? "AND bc.subcategory = $1" : ""}
+         ORDER BY p.id DESC`,
+        subcategory ? [subcategory] : []
+      );
       res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
       res.json(result.rows);
     } catch (e: any) {
