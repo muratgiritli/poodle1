@@ -2147,7 +2147,8 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       const result = await sharedPool.query(`
         SELECT p.id, p.name, p.price, p.original_price AS "originalPrice",
                p.img, p.stock, p.is_active AS "isActive", p.mama_type AS "mamaType",
-               p.barcode, p.preorder_enabled AS "preorderEnabled",
+               p.barcode, p.skt,
+               p.preorder_enabled AS "preorderEnabled",
                p.long_description AS "longDescription",
                p.mama_metadata AS "mamaMetadata",
                bc.animal, bc.subcategory, bc.brand_name AS "brandName", bc.brand_slug AS "brandSlug"

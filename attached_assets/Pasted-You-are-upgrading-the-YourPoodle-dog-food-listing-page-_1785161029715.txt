@@ -1,0 +1,113 @@
+You are upgrading the YourPoodle dog-food listing page so it matches the attached mobile mockup and becomes a real shoppable PLP (not SEO text, not placeholder products).
+
+Primary URL to implement / fix:
+- `/yourpoodle/kategori/kuru-mama`  (preferred product listing route)
+ALSO fix navigation so Magaza “Kuru Mama” + campaign banner go HERE, NOT to `/kuru-mama` SEO page.
+
+Mobile first: 390×844
+No stubs. No alert(). No “yakında / coming soon”.
+Do not stop until every acceptance check is green.
+Do NOT regress Mama Bul / Rehber / AI Asistan / Club / Magaza hub shell.
+
+Reference UI: the attached mockup “Köpek Mamaları”.
+
+==================================================
+A) CURRENT BROKEN STATE (must fix)
+==================================================
+1) Magaza hub campaign + “Kuru Mama” navigate to `/kuru-mama` — that is an SEO content page with NO product grid.
+2) Category PLPs show fake products: “Premium Ürün 1”, emoji instead of images.
+3) Magaza hub has no search / featured products.
+4) Footer `?kategori=mama` does nothing.
+
+==================================================
+B) TARGET PAGE UX (match mockup)
+==================================================
+Page: Köpek Mamaları (Dry / dog food listing)
+
+HEADER
+- YourPoodle script logo (left)
+- Search icon + Cart icon with badge (right)
+- Keep existing app shell consistency where possible, but this PLP must feel like the mockup
+
+TITLE
+- H1: “Köpek Mamaları”
+
+SEARCH
+- Full-width search input
+- Placeholder: “Mama ara...”
+- Filters products client-side by name/brand as user types (debounced)
+- Submitting / clear must work; empty state: “Sonuç bulunamadı”
+
+FILTER CHIPS (horizontal scroll)
+Four chips with icon + label + chevron:
+1) Marka
+2) Yaş
+3) Kg
+4) Fiyat
+Each opens a bottom sheet / dropdown with real options derived from product data.
+Active filters show selected state; “Temizle” resets.
+
+PRODUCT GRID
+- 2-column card grid
+- Each card:
+  - Real product image (NOT emoji, NOT grey placeholder)
+  - Title (real name, e.g. “Toy Poodle Puppy Kuzu Etli Mama”)
+  - Meta line: Barkod · SKT · weight (e.g. 2 KG) when available
+  - Old price struck through (if discount) + current price in brand purple
+  - Full-width purple button: “Sepete Ekle”
+- Cards must use REAL catalog data (name, image URL, price, stock, brand, age stage, weight kg)
+- If a field is missing, hide that meta piece — never show “Premium Ürün 1”
+
+ADD TO CART
+- Sepete Ekle must add to real cart store and update badge
+- Toast feedback OK (“Sepete eklendi”)
+- Out-of-stock: disabled button + “Tükendi”
+
+BOTTOM NAV
+Keep site-wide bottom nav consistency (do not invent a 4th incompatible shell).
+If Magaza is active on this PLP, highlight Magaza / store entry correctly.
+Do not leave desktop-only marketing footer covering the grid on mobile; use compact store footer or hideFooter on this PLP.
+
+==================================================
+C) DATA REQUIREMENTS
+==================================================
+- Wire to the real products API / catalog already used by Magaza / homepage
+- Filter products to dog food / kuru mama category
+- Each product needs at minimum: id, name, image, price, salePrice?, brand, weightKg?, ageStage?, barcode?, expiry?, stock
+- Replace ALL placeholder/mock product generators
+- If image URL fails, show branded fallback image — never emoji-only cards
+
+==================================================
+D) ROUTING / NAV FIXES (required)
+==================================================
+1) Magaza hub category “Kuru Mama” → `/yourpoodle/kategori/kuru-mama` (this PLP)
+2) Magaza campaign banner “Poodle Kuru Mama” → same PLP
+3) Keep `/kuru-mama` SEO page if needed for SEO, but shop CTAs must not dump users there without products
+4) Footer “Mamalar” → this PLP (or Magaza filtered to mama). `?kategori=mama` must either redirect to this PLP or actually filter.
+
+==================================================
+E) VISUAL SPEC
+==================================================
+- Brand purple ≈ #6A38C2 / existing YourPoodle purple token
+- White cards, soft border, radius ~12px
+- Search + chips + grid padding ~16px
+- Price: strikethrough grey + bold purple current price
+- CTA: solid purple, white text, full card width
+- Match mockup density: image left/top, info, then Sepete Ekle
+
+==================================================
+F) ACCEPTANCE CHECKS (all must pass)
+==================================================
+[ ] Open `/yourpoodle/magaza` → tap Kuru Mama → lands on product PLP with grid (NOT SEO essay page)
+[ ] Campaign banner same destination
+[ ] Title “Köpek Mamaları” + search “Mama ara...” visible
+[ ] Marka / Yaş / Kg / Fiyat chips open and filter the grid
+[ ] At least several REAL products with real names + real images + TL prices
+[ ] No “Premium Ürün 1/2”, no emoji product images
+[ ] Sepete Ekle updates cart badge
+[ ] Search “royal” / brand keyword filters results; nonsense query shows empty state
+[ ] Mobile 390×844: no horizontal overflow; CTA not hidden under bottom nav
+[ ] document.title set (e.g. “Köpek Mamaları | YourPoodle”)
+[ ] No alert() / yakında stubs
+
+Deliver working UI + routing fixes in one pass.
