@@ -1032,7 +1032,7 @@ export async function registerRoutes(
           )`);
         await sharedPool.query(`ALTER TABLE yp_events ADD COLUMN IF NOT EXISTS slug TEXT`);
         await sharedPool.query(`
-          UPDATE yp_events SET slug = lower(regexp_replace(regexp_replace(title, '[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ]+', '-', 'g'), '-+', '-', 'g'))
+          UPDATE yp_events SET slug = trim(both '-' from lower(regexp_replace(regexp_replace(title, '[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ]+', '-', 'g'), '-+', '-', 'g')))
           WHERE slug IS NULL OR slug = ''`);
         const result = await sharedPool.query<{ id: number; title: string; slug: string }>(
           `SELECT id, title, slug FROM yp_events WHERE is_active = true ORDER BY sort_order ASC, id ASC`
@@ -8527,7 +8527,7 @@ Kurallar:
         )`);
       await sharedPool.query(`ALTER TABLE yp_events ADD COLUMN IF NOT EXISTS slug TEXT`);
       await sharedPool.query(`
-        UPDATE yp_events SET slug = lower(regexp_replace(regexp_replace(title, '[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ]+', '-', 'g'), '-+', '-', 'g'))
+        UPDATE yp_events SET slug = trim(both '-' from lower(regexp_replace(regexp_replace(title, '[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ]+', '-', 'g'), '-+', '-', 'g')))
         WHERE slug IS NULL OR slug = ''`);
       const result = await sharedPool.query(
         `SELECT id, title, description, location, event_date, day, month, year, type, free, color, slug

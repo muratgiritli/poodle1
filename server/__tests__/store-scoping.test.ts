@@ -4067,3 +4067,64 @@ test("GET /sitemap-products.xml: returns 200 application/xml with seeded product
     `/sitemap-products.xml must contain the seeded product <loc>:\n  expected: <loc>${expectedLoc}</loc>\n  (this means the DB-driven product query is broken or the slug/URL pattern changed)`,
   );
 });
+
+// ── /sitemap-seo.xml keyword-corpus regression guard ─────────────────────────
+//
+// GETs /sitemap-seo.xml with the jetgomarket.com host header and asserts:
+//   (a) HTTP 200 with Content-Type: application/xml
+//   (b) The envelope is a valid <urlset>
+//   (c) A minimum number of <loc> entries are present (SEO corpus floor)
+//
+// A broken getSitemapPagesForStore call, a commerce-model filter regression,
+// or a template error in the route would silently drop hundreds of keyword
+// pages from Google's index. This test catches that before it reaches
+// production.
+//
+// Floor = getSitemapPagesForStore(jetgoStore).length (pure corpus slice) +
+//         4 standalone blog entries (all included for local/non-cargo stores).
+//
+const _jetgoStoreForSeoTest = getStoreByHost(JETGO_HOST); // resolves to DEFAULT_STORE (jetgo)
+const SEO_SITEMAP_CORPUS_FLOOR = getSitemapPagesForStore(_jetgoStoreForSeoTest).length;
+// The route includes 4 standalone blog entries for local stores and 3 for cargo
+// stores (the samsun-specific entry is dropped when cargo === true).
+const SEO_SITEMAP_BLOG_ENTRIES = isCargoStore(_jetgoStoreForSeoTest) ? 3 : 4;
+const SEO_SITEMAP_MIN_LOCS = SEO_SITEMAP_CORPUS_FLOOR + SEO_SITEMAP_BLOG_ENTRIES;
+
+test("GET /sitemap-seo.xml: returns 200 application/xml with minimum SEO corpus <loc> entries", async () => {
+  const res = await fetch(`${baseUrl}/sitemap-seo.xml`, {
+    headers: { "X-Forwarded-Host": JETGO_HOST },
+  });
+
+  // (a) HTTP status and Content-Type
+  assert.equal(
+    res.status,
+    200,
+    `Expected HTTP 200 from /sitemap-seo.xml; got ${res.status}`,
+  );
+  const ct = res.headers.get("content-type") ?? "";
+  assert.ok(
+    ct.includes("application/xml"),
+    `Expected Content-Type: application/xml from /sitemap-seo.xml; got "${ct}"`,
+  );
+
+  const xml = await res.text();
+
+  // (b) Well-formed urlset envelope
+  assert.ok(
+    xml.includes("<urlset"),
+    "/sitemap-seo.xml body must contain a <urlset> opening tag",
+  );
+  assert.ok(
+    xml.includes("</urlset>"),
+    "/sitemap-seo.xml body must contain a </urlset> closing tag",
+  );
+
+  // (c) Minimum <loc> count (corpus slice + blog entries)
+  const locMatches = xml.match(/<loc>/g) ?? [];
+  assert.ok(
+    locMatches.length >= SEO_SITEMAP_MIN_LOCS,
+    `/sitemap-seo.xml must contain at least ${SEO_SITEMAP_MIN_LOCS} <loc> entries ` +
+      `(${SEO_SITEMAP_CORPUS_FLOOR} corpus + ${SEO_SITEMAP_BLOG_ENTRIES} blog); ` +
+      `found ${locMatches.length}`,
+  );
+});
