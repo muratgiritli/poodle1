@@ -1093,6 +1093,7 @@ const KEYWORD_PAGES: SeoPageData[] = [
   {
     slug: "jetgo-petshop",
     type: "keyword",
+    storeId: "jetgo",
     title: "JETGO Petshop",
     metaTitle: "JETGO Petshop Samsun Atakum | Hızlı Teslimat Kapıda Ödeme | jetgomarket.com",
     metaDescription: "JETGO petshop Samsun ve Atakum. Kedi maması, köpek maması, kedi kumu 1 saatte kapıya teslim. 900+ ürün, premium markalar. jetgomarket.com online sipariş.",
@@ -4236,9 +4237,10 @@ export function getSeoPagesForStore(store: StoreConfig): SeoPageData[] {
   return SEO_PAGES.filter((p) => {
     const a = p.availability ?? "all";
     const fitsModel = a === "all" || (cargo ? a === "cargoOnly" : a === "localOnly");
-    // Store-EXCLUSIVE pages: served only on their own store (and only if the
-    // page still fits this store's commerce model).
-    if (p.storeId) return p.storeId === store.id && fitsModel;
+    // Store-EXCLUSIVE pages: served only on their own store. Availability is
+    // irrelevant here — a store's own pages are always served (commercifyFor
+    // cleans them at render time), so they must appear in the sitemap too.
+    if (p.storeId) return p.storeId === store.id;
     // Shared page replaced by this store's own override at the same slug.
     if (overrides?.has(p.slug)) return false;
     return fitsModel;

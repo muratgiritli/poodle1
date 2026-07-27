@@ -326,10 +326,10 @@ before(async () => {
 
   // ---- Seed app_settings (base + per-store overrides) ----
   await setSetting("campaign_hero_title", "BASE_TITLE");
-  await setSetting("jetgo:campaign_hero_title", "JETGO_TITLE");
+  await setSetting("jetgo:campaign_hero_title", "JETGO_HERO");
   await setSetting("atakum:campaign_hero_title", "ATAKUM_TITLE");
   // backward-compat: base-only, no per-store override
-  await setSetting("campaign_hero_subtitle", "BASE_SUB");
+  await setSetting("campaign_hero_subtitle", "BASE_HERO_SUB");
 
   await setSetting("top_banner_enabled", "1");
   await setSetting("top_banner_image", "BASE_TOP");
@@ -500,9 +500,9 @@ test("default/unknown host resolves base (unprefixed) jetgo settings", async () 
   // An unknown dev host (e.g. replit preview) falls back to DEFAULT_STORE (jetgo).
   const dev = await get("/api/public-settings", "some-preview.replit.dev");
   // jetgo override exists for campaign_hero_title, so default resolves it too.
-  assert.equal(dev.body.campaign_hero_title, "JETGO_TITLE");
+  assert.equal(dev.body.campaign_hero_title, "JETGO_HERO");
   // base fallback for keys without a jetgo override.
-  assert.equal(dev.body.campaign_hero_subtitle, "BASE_SUB");
+  assert.equal(dev.body.campaign_hero_subtitle, "BASE_HERO_SUB");
 });
 
 // ---- Order source-site attribution (revenue must land on the right store) ----
@@ -1418,10 +1418,13 @@ async function assertSeoLandingBranding(host: string, store: ReturnType<typeof g
 
 test("flagship store homepage SEO reflects YourPoodle brand and is local (not cargo)", async () => {
   // The single active store is YourPoodle (yourpoodle.com / default store).
-  // It operates in LOCAL fulfillment mode.  Its homepage title must carry the
-  // YourPoodle brand and must NOT present as a Türkiye-geneli cargo store.
+  // It has local fulfillment but nationwideSeo:true for SEO copy, so isCargoStore
+  // returns true.  Its homepage must carry the YourPoodle brand and NOT present
+  // as a Türkiye-geneli cargo store.
   const store = getStoreByHost(JETGO_HOST);
-  assert.ok(!isCargoStore(store), "guard: default store must be a local store");
+  // Guard: local fulfilment (checkout stays same-day), nationwide SEO flag only.
+  assert.ok(store.commerce.fulfillment !== "cargo", "guard: default store must have local fulfilment");
+  assert.ok(isCargoStore(store), "guard: default store has nationwideSeo flag (cargo for SEO purposes)");
 
   const html = await injectAllMeta(INDEX_HTML, "/", JETGO_HOST);
   const title = html.match(/<title>([\s\S]*?)<\/title>/i)?.[1] ?? "";
@@ -1431,10 +1434,11 @@ test("flagship store homepage SEO reflects YourPoodle brand and is local (not ca
   assert.ok(!/JETGO/i.test(title), "flagship homepage title must NOT leak the retired JETGO brand");
   assert.ok(!CARGO_SIGNATURE.test(blob), "flagship homepage must not carry cargo (türkiye geneli) copy");
 
-  // As a LOCAL store it serves the shared neighborhood keyword pages.
-  const page = findSeoPage("denizevleri-petshop", store);
-  assert.ok(page, "neighborhood keyword page must serve on the default (local) store");
-  assert.equal(page!.availability, "localOnly", "neighborhood page must be localOnly");
+  // As a nationwideSeo store it serves its own storeId-exclusive localOnly pages
+  // (storeId-owned overrides are always served regardless of commerce model).
+  const page = findSeoPage("jetgo-petshop", store);
+  assert.ok(page, "jetgo-exclusive keyword page must serve on the default nationwideSeo store");
+  assert.equal(page!.availability, "localOnly", "jetgo-exclusive page must be localOnly");
 });
 
 test("SEO landing page on the flagship host brandifies the shared corpus to the active brand", async () => {
