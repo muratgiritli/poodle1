@@ -3311,6 +3311,158 @@ test("YP Tosla callback (failed/broken): order stays pending when the callback h
     "source_site='jetgo' must be preserved even when the callback is rejected");
 });
 
+// ── YP sitemap page-count regression guards ───────────────────────────────────
+//
+// The availability-filter-before-storeId regression silently dropped hundreds of
+// JETGO exclusive keyword pages from the sitemap without any test catching it.
+// YourPoodle (yourpoodle.com) resolves to the same store id "jetgo", so its
+// exclusive corpus is JETGO_EXCLUSIVE_PAGES. The tests below lock the floor so
+// the same class of bug — applying the availability filter before the storeId
+// ownership check — is caught immediately:
+//   (1) getSitemapPagesForStore(YP_STORE) must include every YP-exclusive page.
+//   (2) storeId-owned localOnly pages must survive even when the store is forced
+//       into a cargo/nationwideSeo commerce model (the original regression surface).
+//   (3) The filter-order invariant is proven directly: a synthetic storeId-owned
+//       localOnly page set survives the correct order but is dropped by the buggy
+//       order, showing the regression class would be caught by tests (1) and (2).
+
+const YP_STORE = getStoreByHost("yourpoodle.com");
+
+test("YP sitemap floor: yourpoodle.com resolves to jetgo store and getSitemapPagesForStore meets the exclusive corpus minimum", () => {
+  assert.equal(YP_STORE.id, "jetgo",
+    "yourpoodle.com must resolve to the store with id 'jetgo' (YP is the flagship store)");
+
+  const sitemapPages = getSitemapPagesForStore(YP_STORE);
+  const floor = JETGO_EXCLUSIVE_PAGES.length;
+
+  assert.ok(
+    sitemapPages.length >= floor,
+    `getSitemapPagesForStore(YP/jetgo) returned ${sitemapPages.length} pages; expected at least ${floor} (the YP-exclusive corpus)`,
+  );
+
+  // Every individual YP-exclusive page must appear in the sitemap output.
+  const sitemapSlugs = new Set(sitemapPages.map((p) => p.slug));
+  const missing = JETGO_EXCLUSIVE_PAGES.filter((p) => !sitemapSlugs.has(p.slug));
+  assert.equal(
+    missing.length,
+    0,
+    `${missing.length} YP-exclusive pages missing from getSitemapPagesForStore(YP): ${missing.slice(0, 5).map((p) => p.slug).join(", ")}`,
+  );
+});
+
+test("YP sitemap regression guard: storeId-owned localOnly pages survive cargo/nationwideSeo model in both getSeoPagesForStore and getSitemapPagesForStore", () => {
+  // This is the exact regression scenario: the availability filter running BEFORE
+  // the storeId check would silently drop every localOnly YP-exclusive page when
+  // the store is classified as cargo/nationwide (nationwideSeo:true triggers
+  // isCargoStore). Both helper functions must preserve these pages.
+  const cargoYP: typeof YP_STORE = {
+    ...YP_STORE,
+    commerce: {
+      ...YP_STORE.commerce,
+      fulfillment: "cargo" as const,
+      nationwideSeo: true,
+      onlinePaymentOnly: true,
+      shippingLabel: "Kargo Ücreti",
+      preorderEnabled: false,
+    },
+  };
+  assert.ok(isCargoStore(cargoYP),
+    "guard: synthetic cargo-model YP store must be classified as cargo by isCargoStore");
+
+  // --- getSeoPagesForStore ---
+  const eligiblePages = getSeoPagesForStore(cargoYP);
+  const eligibleSlugs = new Set(eligiblePages.map((p) => p.slug));
+  const missingEligible = JETGO_EXCLUSIVE_PAGES.filter((p) => !eligibleSlugs.has(p.slug));
+  assert.equal(
+    missingEligible.length,
+    0,
+    `getSeoPagesForStore: ${missingEligible.length} YP-exclusive localOnly pages dropped under cargo model: ${missingEligible.slice(0, 5).map((p) => p.slug).join(", ")}`,
+  );
+
+  // --- getSitemapPagesForStore ---
+  const sitemapPages = getSitemapPagesForStore(cargoYP);
+  const sitemapSlugs = new Set(sitemapPages.map((p) => p.slug));
+  const missingSitemap = JETGO_EXCLUSIVE_PAGES.filter((p) => !sitemapSlugs.has(p.slug));
+  assert.equal(
+    missingSitemap.length,
+    0,
+    `getSitemapPagesForStore: ${missingSitemap.length} YP-exclusive localOnly pages dropped under cargo model: ${missingSitemap.slice(0, 5).map((p) => p.slug).join(", ")}`,
+  );
+
+  // Count floor on both outputs.
+  assert.ok(
+    eligiblePages.length >= JETGO_EXCLUSIVE_PAGES.length,
+    `cargo-model YP getSeoPagesForStore returned only ${eligiblePages.length} pages; expected at least ${JETGO_EXCLUSIVE_PAGES.length}`,
+  );
+  assert.ok(
+    sitemapPages.length >= JETGO_EXCLUSIVE_PAGES.length,
+    `cargo-model YP getSitemapPagesForStore returned only ${sitemapPages.length} pages; expected at least ${JETGO_EXCLUSIVE_PAGES.length}`,
+  );
+});
+
+test("YP sitemap regression guard: filter-order invariant — storeId ownership check runs before the availability filter", () => {
+  // Directly proves the bug class by applying the filter in both orders on a
+  // synthetic page set (storeId:"jetgo" + availability:"localOnly") and confirming
+  // that only the CORRECT order (storeId-first) preserves all YP-exclusive pages.
+  // The real getSeoPagesForStore is then checked to match the correct order.
+  type PageLike = { slug: string; storeId?: string; availability?: string };
+  const syntheticPages: PageLike[] = [
+    { slug: "yp-exclusive-a", storeId: "jetgo", availability: "localOnly" },
+    { slug: "yp-exclusive-b", storeId: "jetgo", availability: "localOnly" },
+    { slug: "yp-exclusive-c", storeId: "jetgo", availability: "localOnly" },
+    { slug: "shared-local-only", availability: "localOnly" },
+    { slug: "shared-all" },
+  ];
+  const storeId = "jetgo";
+  const cargoModel = true; // simulates nationwideSeo/cargo classification
+
+  // CORRECT: storeId ownership checked first → localOnly storeId pages always kept.
+  const correctFilter = (p: PageLike): boolean => {
+    if (p.storeId) return p.storeId === storeId;
+    const a = p.availability ?? "all";
+    return cargoModel ? a !== "localOnly" : a !== "cargoOnly";
+  };
+  const correctSlugs = syntheticPages.filter(correctFilter).map((p) => p.slug);
+
+  // BUGGY: availability checked first → drops all localOnly storeId pages on cargo.
+  const buggyFilter = (p: PageLike): boolean => {
+    const a = p.availability ?? "all";
+    if (cargoModel && a === "localOnly") return false; // ← silently drops yp-exclusive-*
+    if (p.storeId) return p.storeId === storeId;
+    return true;
+  };
+  const buggySlugs = syntheticPages.filter(buggyFilter).map((p) => p.slug);
+
+  // The correct order preserves all three storeId-owned localOnly pages.
+  assert.ok(correctSlugs.includes("yp-exclusive-a") && correctSlugs.includes("yp-exclusive-b") && correctSlugs.includes("yp-exclusive-c"),
+    "correct filter order must preserve all storeId-owned localOnly pages");
+
+  // The buggy order silently drops them — this is the regression we guard against.
+  assert.ok(!buggySlugs.includes("yp-exclusive-a"),
+    "buggy filter order drops storeId-owned localOnly pages (this documents the regression class)");
+
+  // Confirm the REAL getSeoPagesForStore uses the correct order on the actual corpus.
+  const cargoYP: typeof YP_STORE = {
+    ...YP_STORE,
+    commerce: {
+      ...YP_STORE.commerce,
+      fulfillment: "cargo" as const,
+      nationwideSeo: true,
+      onlinePaymentOnly: true,
+      shippingLabel: "Kargo Ücreti",
+      preorderEnabled: false,
+    },
+  };
+  const realPages = getSeoPagesForStore(cargoYP);
+  const realSlugs = new Set(realPages.map((p) => p.slug));
+  const missingFromReal = JETGO_EXCLUSIVE_PAGES.filter((p) => !realSlugs.has(p.slug));
+  assert.equal(
+    missingFromReal.length,
+    0,
+    `real getSeoPagesForStore appears to use the buggy filter order — ${missingFromReal.length} YP-exclusive localOnly pages are missing: ${missingFromReal.slice(0, 3).map((p) => p.slug).join(", ")}`,
+  );
+});
+
 // ── Stock-guard: real-time out-of-stock rejection ─────────────────────────────
 //
 // The checkout page (yp-odeme.tsx) validates stock on mount, but the result is
