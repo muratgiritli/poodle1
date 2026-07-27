@@ -3522,3 +3522,133 @@ test("POST /api/orders: out-of-stock product is rejected with 400 and a product-
     `error message must identify the out-of-stock product by name; got: "${res.body.message}"`
   );
 });
+
+// ── /sitemap-yp.xml HTTP-level regression guard ───────────────────────────────
+//
+// This test issues a real HTTP GET against the running server to verify that
+// the /sitemap-yp.xml route (a) returns valid XML with status 200, (b) contains
+// at least the 29 hardcoded static YP pages PLUS the 15 hardcoded article slugs
+// (44 total guaranteed entries, independent of the DB), and (c) every known
+// static YP URL actually appears as a <loc> in the output.
+//
+// A regression (broken DB query, deleted articleSlugs entry, bad XML template
+// change) would shrink or break the sitemap Google relies on for YP indexing.
+// This test catches it before it reaches production.
+
+const YP_SITEMAP_HOST = "www.yourpoodle.com";
+const YP_SITE_BASE = "https://www.yourpoodle.com";
+
+// The 29 hardcoded static pages from the /sitemap-yp.xml handler (ypPages array).
+const EXPECTED_YP_STATIC_LOCS = [
+  `${YP_SITE_BASE}/yourpoodle`,
+  `${YP_SITE_BASE}/yourpoodle/rehber`,
+  `${YP_SITE_BASE}/yourpoodle/mama`,
+  `${YP_SITE_BASE}/yourpoodle/mama-bul`,
+  `${YP_SITE_BASE}/yourpoodle/egitim`,
+  `${YP_SITE_BASE}/yourpoodle/saglik`,
+  `${YP_SITE_BASE}/yourpoodle/bakim`,
+  `${YP_SITE_BASE}/yourpoodle/bilgi`,
+  `${YP_SITE_BASE}/yourpoodle/ai-asistan`,
+  `${YP_SITE_BASE}/yourpoodle/magaza`,
+  `${YP_SITE_BASE}/yourpoodle/club`,
+  `${YP_SITE_BASE}/yourpoodle/club/hakkimizda`,
+  `${YP_SITE_BASE}/yourpoodle/topluluk`,
+  `${YP_SITE_BASE}/yourpoodle/etkinlikler`,
+  `${YP_SITE_BASE}/yourpoodle/hakkinda`,
+  `${YP_SITE_BASE}/yourpoodle/profil`,
+  `${YP_SITE_BASE}/yourpoodle/kullanim-sartlari`,
+  `${YP_SITE_BASE}/yourpoodle/gizlilik-politikasi`,
+  `${YP_SITE_BASE}/yourpoodle/cerez-politikasi`,
+  `${YP_SITE_BASE}/yourpoodle/sss`,
+  `${YP_SITE_BASE}/yourpoodle/kargo`,
+  `${YP_SITE_BASE}/yourpoodle/uluslararasi-kargo`,
+  `${YP_SITE_BASE}/yourpoodle/iade`,
+  `${YP_SITE_BASE}/yourpoodle/guvenli-alisveris`,
+  `${YP_SITE_BASE}/yourpoodle/mesafeli-satis`,
+  `${YP_SITE_BASE}/yourpoodle/kariyer`,
+  `${YP_SITE_BASE}/yourpoodle/bayi-basvurusu`,
+  `${YP_SITE_BASE}/yourpoodle/fotograf-yarismasi`,
+  `${YP_SITE_BASE}/yourpoodle/ozel-tasarim`,
+];
+
+// The 15 hardcoded article slugs from the /sitemap-yp.xml handler (articleSlugs array).
+const EXPECTED_YP_ARTICLE_LOCS = [
+  "toy-poodle-en-iyi-mama-markalari-2026",
+  "evde-poodle-tirasi-adim-adim-rehber",
+  "poodle-saglik-sorunlari",
+  "temel-komut-egitimi",
+  "poodle-anksiyetesi",
+  "poodle-kalca-displazisi-erken-teshis",
+  "poodle-tuy-bakimi-haftalik-rutin",
+  "yavru-poodle-beslenmesi-ilk-12-ay",
+  "clicker-egitimi",
+  "poodle-kizginlik-ciftlestirme",
+  "poodle-yavrulara-ilk-gunlerde-bakim",
+  "tuvalet-egitimi",
+  "poodle-goz-yasi-lekesi-temizleme",
+  "poodle-beslenme-alerjisi",
+  "poodle-dis-bakim-rehberi",
+].map((slug) => `${YP_SITE_BASE}/yourpoodle/rehber/${slug}`);
+
+// Combined minimum: all static pages + all article pages (both are hardcoded
+// constants in routes.ts, so this floor is unconditional — it does NOT depend
+// on the DB having any products).
+const YP_SITEMAP_MIN_URLS =
+  EXPECTED_YP_STATIC_LOCS.length + EXPECTED_YP_ARTICLE_LOCS.length; // 44
+
+test("GET /sitemap-yp.xml: returns 200 application/xml with all known static and article <loc> entries", async () => {
+  const res = await fetch(`${baseUrl}/sitemap-yp.xml`, {
+    headers: { "X-Forwarded-Host": YP_SITEMAP_HOST },
+  });
+
+  // (a) HTTP status and Content-Type
+  assert.equal(
+    res.status,
+    200,
+    `Expected HTTP 200 from /sitemap-yp.xml; got ${res.status}`,
+  );
+  const ct = res.headers.get("content-type") ?? "";
+  assert.ok(
+    ct.includes("application/xml"),
+    `Expected Content-Type: application/xml; got "${ct}"`,
+  );
+
+  const xml = await res.text();
+
+  // (b) Well-formed XML envelope: must open and close <urlset>
+  assert.ok(
+    xml.includes("<urlset"),
+    "sitemap-yp.xml body must contain a <urlset> opening tag",
+  );
+  assert.ok(
+    xml.includes("</urlset>"),
+    "sitemap-yp.xml body must contain a </urlset> closing tag",
+  );
+
+  // (c) Minimum <url> count — count <loc> occurrences as a proxy for <url> count.
+  const locMatches = xml.match(/<loc>/g) ?? [];
+  assert.ok(
+    locMatches.length >= YP_SITEMAP_MIN_URLS,
+    `sitemap-yp.xml contains ${locMatches.length} <loc> entries; expected at least ${YP_SITEMAP_MIN_URLS} (${EXPECTED_YP_STATIC_LOCS.length} static + ${EXPECTED_YP_ARTICLE_LOCS.length} articles)`,
+  );
+
+  // (d) Every hardcoded static page must appear as a <loc>.
+  const missingStatic = EXPECTED_YP_STATIC_LOCS.filter(
+    (loc) => !xml.includes(`<loc>${loc}</loc>`),
+  );
+  assert.equal(
+    missingStatic.length,
+    0,
+    `sitemap-yp.xml is missing ${missingStatic.length} expected static <loc> entries: ${missingStatic.join(", ")}`,
+  );
+
+  // (e) Every hardcoded article page must appear as a <loc>.
+  const missingArticles = EXPECTED_YP_ARTICLE_LOCS.filter(
+    (loc) => !xml.includes(`<loc>${loc}</loc>`),
+  );
+  assert.equal(
+    missingArticles.length,
+    0,
+    `sitemap-yp.xml is missing ${missingArticles.length} expected article <loc> entries: ${missingArticles.join(", ")}`,
+  );
+});
