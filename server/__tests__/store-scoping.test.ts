@@ -3818,3 +3818,87 @@ test("GET /sitemap.xml: returns valid sitemapindex with all expected child sitem
     `/sitemap.xml is missing <loc> references for: ${missingSubs.join(", ")}`,
   );
 });
+
+// ── /sitemap-main.xml HTTP-level regression guard ────────────────────────────
+//
+// GETs /sitemap-main.xml with the jetgomarket.com host header and asserts:
+//   (a) HTTP 200 with Content-Type: application/xml
+//   (b) The envelope is a valid <urlset>
+//   (c) At least 16 <loc> entries are present (the 16 hardcoded static pages)
+//   (d) Every known static page URL actually appears as a <loc> in the output
+//
+// A broken XML template, a deleted static-page entry, or a route-level error
+// would silently drop pages from Google's index. This test catches that
+// regression before it reaches production.
+
+const MAIN_SITEMAP_SITE = "https://www.yourpoodle.com";
+
+// The 16 hardcoded static pages from the /sitemap-main.xml handler.
+const EXPECTED_MAIN_STATIC_LOCS = [
+  `${MAIN_SITEMAP_SITE}/`,
+  `${MAIN_SITEMAP_SITE}/kategori`,
+  `${MAIN_SITEMAP_SITE}/kategori/kopek`,
+  `${MAIN_SITEMAP_SITE}/kampanya`,
+  `${MAIN_SITEMAP_SITE}/magaza`,
+  `${MAIN_SITEMAP_SITE}/sss`,
+  `${MAIN_SITEMAP_SITE}/hakkimizda`,
+  `${MAIN_SITEMAP_SITE}/iletisim`,
+  `${MAIN_SITEMAP_SITE}/islem-rehberi`,
+  `${MAIN_SITEMAP_SITE}/teslimat-iade`,
+  `${MAIN_SITEMAP_SITE}/kvkk`,
+  `${MAIN_SITEMAP_SITE}/gizlilik`,
+  `${MAIN_SITEMAP_SITE}/kullanim-kosullari`,
+  `${MAIN_SITEMAP_SITE}/cerez-politikasi`,
+  `${MAIN_SITEMAP_SITE}/mesafeli-satis`,
+  `${MAIN_SITEMAP_SITE}/gizlilik-sozlesmesi`,
+];
+
+// Floor = number of hardcoded static pages (does not depend on DB content).
+const MAIN_SITEMAP_MIN_URLS = EXPECTED_MAIN_STATIC_LOCS.length; // 16
+
+test("GET /sitemap-main.xml: returns 200 application/xml with all known static <loc> entries", async () => {
+  const res = await fetch(`${baseUrl}/sitemap-main.xml`, {
+    headers: { "X-Forwarded-Host": JETGO_HOST },
+  });
+
+  // (a) HTTP status and Content-Type
+  assert.equal(
+    res.status,
+    200,
+    `Expected HTTP 200 from /sitemap-main.xml; got ${res.status}`,
+  );
+  const ct = res.headers.get("content-type") ?? "";
+  assert.ok(
+    ct.includes("application/xml"),
+    `Expected Content-Type: application/xml from /sitemap-main.xml; got "${ct}"`,
+  );
+
+  const xml = await res.text();
+
+  // (b) Well-formed urlset envelope
+  assert.ok(
+    xml.includes("<urlset"),
+    "/sitemap-main.xml body must contain a <urlset> opening tag",
+  );
+  assert.ok(
+    xml.includes("</urlset>"),
+    "/sitemap-main.xml body must contain a </urlset> closing tag",
+  );
+
+  // (c) Minimum <loc> count (floor = 16 hardcoded static pages)
+  const locMatches = xml.match(/<loc>/g) ?? [];
+  assert.ok(
+    locMatches.length >= MAIN_SITEMAP_MIN_URLS,
+    `/sitemap-main.xml must contain at least ${MAIN_SITEMAP_MIN_URLS} <loc> entries; found ${locMatches.length}`,
+  );
+
+  // (d) Every known static page must appear as a <loc>
+  const missingLocs = EXPECTED_MAIN_STATIC_LOCS.filter(
+    (loc) => !xml.includes(`<loc>${loc}</loc>`),
+  );
+  assert.equal(
+    missingLocs.length,
+    0,
+    `/sitemap-main.xml is missing <loc> entries for:\n${missingLocs.map((l) => `  ${l}`).join("\n")}`,
+  );
+});
