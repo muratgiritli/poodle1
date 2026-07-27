@@ -1,0 +1,213 @@
+You are doing a ONE-PASS nationwide repositioning cleanup for YourPoodle.
+
+Goal:
+Transform YourPoodle from a Samsun/Atakum local “same-day door delivery pet shop” into a TURKEY-WIDE e-commerce brand that ships to ALL 81 provinces.
+
+This is a copy + SEO + meta + routing consistency pass.
+Do NOT redesign the brand.
+Do NOT rebuild working Magaza / Mama PLP features from scratch.
+Do NOT stop until every acceptance check is green AND you have self-verified in browser/curl.
+
+No stubs. No alert(). No “yakında / coming soon”.
+Do not regress Mama Bul / Rehber / AI Asistan / Club / Magaza hub / `/yourpoodle/kuru-mama` PLP.
+
+==================================================
+0) BUSINESS RULES (NON-NEGOTIABLE)
+==================================================
+YourPoodle sells online to ALL of Turkey.
+
+ALLOWED:
+- “Türkiye’nin 81 iline kargo”
+- “Türkiye geneline gönderim”
+- “Ücretsiz kargo [threshold]+”
+- National carriers: Yurtiçi / MNG (or existing carriers on /yourpoodle/kargo)
+- Same-day HANDOVER to cargo courier (e.g. order before 14:00) — clearly worded as “aynı gün kargoya verilir”, NOT “aynı gün kapınızda Türkiye geneli”
+
+FORBIDDEN in any user-facing shop/SEO/support/marketing surface:
+- Samsun
+- Atakum
+- İlkadım, Canik, Tekkeköy, Denizevleri, Atakent, Mimar Sinan, Bafra
+- “Samsun’a Aynı Gün Kapıda”
+- “Atakum içinde ortalama 1 saatte”
+- Local district delivery lists
+- “Kapıda nakit / POS / QR kurye getirsin” as primary nationwide checkout story
+- “WhatsApp ile sipariş onayla” as primary checkout path for category/SEO pages
+- Framing the brand as a Samsun-only local pet shop
+
+Physical warehouse/office address may remain for legal/invoice ONLY if framed as headquarters/warehouse, never as “we only deliver in Samsun”.
+
+==================================================
+1) CURRENT VERIFIED BROKEN STATE (must fix)
+==================================================
+A) `/kuru-mama` SEO page is still fully local:
+- Title: “Kuru Mama | YourPoodle Pet Shop — Samsun'a Aynı Gün Kapıda”
+- H1 includes “Samsun'a Aynı Gün Kapıda”
+- Body mentions Atakum / İlkadım / Canik / Tekkeköy / kapıda nakit / WhatsApp order
+- Meta description + keywords still Samsun/Atakum local
+
+B) Sitewide HTML still has local geo meta on many routes:
+- `<meta name="geo.region" content="TR-55" />`
+- `<meta name="geo.placename" content="Samsun" />`
+- `<meta name="geo.position" content="41.2867;36.33" />`
+- `<meta name="ICBM" content="41.2867, 36.33" />`
+Seen on `/`, `/yourpoodle/magaza`, `/yourpoodle/kuru-mama`, `/yourpoodle/kargo`, `/iletisim`, etc.
+
+C) Already working — PRESERVE:
+- `/yourpoodle/kuru-mama` PLP: “Köpek Mamaları”, “Mama ara...”, Marka/Yaş/Kg/Fiyat, real products, Sepete Ekle
+- Magaza → Kuru Mama / campaign → `/yourpoodle/kuru-mama`
+- Footer Mamalar → `/yourpoodle/kuru-mama`
+- `/yourpoodle/kargo` already has Turkey-wide delivery table (İstanbul / Ankara-İzmir / diğer iller / uzak bölgeler) — keep and align all copy to it
+
+==================================================
+2) GLOBAL SWEEP (do this first)
+==================================================
+Search the entire repo / content / SEO templates / page generators for:
+
+Samsun|Atakum|İlkadım|Canik|Tekkeköy|Denizevleri|Atakent|Mimar Sinan|Bafra|TR-55|41\.2867|Aynı Gün Kapıda|Kapıda nakit|WhatsApp Sipariş|YourPoodle Pet Shop Samsun
+
+For EVERY hit:
+1. If user-facing marketing/SEO/shop copy → rewrite to Turkey-wide shipping language
+2. If geo meta forcing Samsun → remove or replace with Turkey-wide (see section 4)
+3. If legal address only → keep address but remove “local delivery” claims around it
+4. Leave no conflicting statements (footer says Türkiye geneli while page says Samsun kapıda)
+
+Also scan generated SEO category pages / landing templates (not only `/kuru-mama`).
+Any `/{slug}` SEO page with the same local pet-shop essay pattern must be rewritten the same way.
+
+==================================================
+3) REWRITE `/kuru-mama` (CRITICAL)
+==================================================
+This page must stop being a Samsun local flyer.
+
+Required outcome:
+- Title example:
+  “Kuru Mama | YourPoodle — Türkiye’nin 81 İline Kargo”
+- H1 example:
+  “Kuru Mama — Türkiye Geneline Hızlı Kargo”
+- Description: nationwide shipping, original products, online checkout, free shipping threshold
+- Body sections may keep educational mama content, but logistics must be national
+- Remove all Samsun/Atakum district delivery paragraphs
+- Remove WhatsApp-first / kapıda-nakit-first ordering as the main CTA
+- Primary CTA button(s):
+  - “Ürünleri İncele” → `/yourpoodle/kuru-mama`
+  - optional secondary: “Kargo Bilgileri” → `/yourpoodle/kargo`
+- Keywords/meta/OG/Twitter/JSON-LD must NOT include samsun/atakum/kapıda local terms
+- If schema LocalBusiness exists with Samsun-only areaServed, update areaServed to Turkey / TR
+
+Recommended logistics copy to use (align with `/yourpoodle/kargo`):
+- İstanbul: 1 iş günü
+- Ankara, İzmir: 1–2 iş günü
+- Diğer iller: 2–3 iş günü
+- Uzak bölgeler: 3–4 iş günü
+- 299 TL+ ücretsiz kargo (or whatever live threshold is on `/yourpoodle/kargo` — keep ONE source of truth)
+- Below threshold: fixed fee from kargo page
+- “Hafta içi 14:00’e kadar verilen siparişler aynı gün kargoya verilir”
+
+==================================================
+4) GEO / META / SEO TEMPLATE CLEANUP (SITEWIDE)
+==================================================
+In the shared HTML/SEO head template used by app pages:
+
+REMOVE or REPLACE Samsun-forcing tags:
+- geo.region TR-55
+- geo.placename Samsun
+- geo.position 41.2867;36.33
+- ICBM 41.2867, 36.33
+
+Preferred:
+- Either remove geo tags entirely
+- OR set Turkey-wide:
+  - geo.region = TR
+  - geo.placename = Turkey / Türkiye
+  - do not pin one city coordinate as the service area
+
+Also update:
+- og:locale stays tr_TR (OK)
+- any Organization/Store JSON-LD areaServed → Turkey
+- any “service area / availableAtOrFrom” limited to Samsun → Turkey-wide
+- sitemap / robots / canonical text if they mention Samsun delivery
+
+Do this in the shared template so `/`, `/yourpoodle/*`, `/iletisim`, `/hakkimizda`, etc. are cleaned together.
+
+==================================================
+5) COPY ALIGNMENT ACROSS SHOP SURFACES
+==================================================
+Make these consistent everywhere:
+- Magaza footer: keep “Türkiye geneline hızlı kargo / hızlı teslimat”
+- Trust bar: “Aynı gün kargoya verilir” is OK (handover). Do NOT say nationwide same-day door delivery.
+- Homepage free-shipping banner / threshold must match `/yourpoodle/kargo`
+- Checkout/shipping UI messaging must match `/yourpoodle/kargo`
+- Contact page may show HQ address, but headline/support text must say nationwide shipping
+
+If homepage announcement says “750 TL üzeri ücretsiz kargo” while kargo page says “299 TL+”, unify to ONE official rule and update all banners/pages.
+
+==================================================
+6) ROUTING GUARDS (do not regress)
+==================================================
+Keep these exact shop paths:
+1) Magaza “Kuru Mama” → `/yourpoodle/kuru-mama`
+2) Magaza campaign banner → `/yourpoodle/kuru-mama`
+3) Footer Mamalar → `/yourpoodle/kuru-mama`
+4) `/yourpoodle/kargo` remains working shipping policy page
+5) `/kuru-mama` may remain for SEO, but rewritten + CTA to PLP
+6) Never send Magaza shoppers to the old Samsun essay experience
+
+Preserve PLP features on `/yourpoodle/kuru-mama`:
+search, filters, real product cards, prices, images, Sepete Ekle, empty state.
+
+==================================================
+7) SELF-QA LOOP (MANDATORY BEFORE YOU STOP)
+==================================================
+After coding/deploy, YOU must verify. Do not ask the user to check first.
+
+A) Content grep / search in built output + source:
+- Zero user-facing matches for:
+  Samsun|Atakum|İlkadım|Canik|Tekkeköy|Aynı Gün Kapıda|Kapıda nakit
+  on shop/SEO category pages and shared head template
+- Zero `geo.placename=Samsun` / `TR-55` in shared page head
+
+B) Browser checks:
+1. Open `/kuru-mama`
+   - title/H1 have no Samsun
+   - body has Turkey-wide shipping language
+   - CTA to `/yourpoodle/kuru-mama` works
+2. Open `/yourpoodle/kuru-mama`
+   - still “Köpek Mamaları” PLP with search/filters/products
+3. Open `/yourpoodle/magaza`
+   - tap Kuru Mama → `/yourpoodle/kuru-mama`
+   - tap campaign → `/yourpoodle/kuru-mama`
+4. Open `/yourpoodle/kargo`
+   - nationwide table visible; no Samsun districts
+5. View-source or fetch HTML for `/`, `/yourpoodle/magaza`, `/yourpoodle/kargo`, `/iletisim`
+   - no Samsun geo meta
+
+C) If any check fails: fix immediately and re-run the full checklist.
+Do not stop with partial cleanup.
+
+==================================================
+8) ACCEPTANCE CHECKLIST (ALL GREEN)
+==================================================
+[ ] `/kuru-mama` title has no Samsun
+[ ] `/kuru-mama` H1 has no Samsun
+[ ] `/kuru-mama` body has no Samsun/Atakum/district/kapıda-local claims
+[ ] `/kuru-mama` meta description/keywords/OG/JSON-LD cleaned
+[ ] `/kuru-mama` has CTA to `/yourpoodle/kuru-mama`
+[ ] Shared geo meta no longer forces Samsun/TR-55
+[ ] `/`, `/yourpoodle/magaza`, `/yourpoodle/kuru-mama`, `/yourpoodle/kargo`, `/iletisim` HTML have no Samsun geo placename
+[ ] `/yourpoodle/kargo` remains Turkey-wide shipping source of truth
+[ ] Magaza → Mama routing still correct
+[ ] Mama PLP features still intact
+[ ] Free-shipping threshold messaging consistent sitewide
+[ ] No alert()/yakında
+[ ] No regression on Mama Bul / Rehber / AI / Club
+
+==================================================
+9) FINAL RESPONSE FORMAT
+==================================================
+When done, report:
+1) Files/templates changed
+2) What Samsun content was removed/rewritten
+3) Self-QA results for each acceptance checkbox (PASS/FAIL)
+4) Any remaining intentional HQ address mentions (and why they are safe)
+
+Start now. Complete the full cleanup + self-QA in one pass.

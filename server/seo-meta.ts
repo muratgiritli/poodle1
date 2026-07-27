@@ -171,7 +171,7 @@ function cargoSeoStaticBlock(store: StoreConfig): string {
 
 function applyGlobalBranding(html: string, store: StoreConfig): string {
   let out = html;
-  const isCargo = store.commerce.fulfillment === "cargo";
+  const isCargo = store.commerce.fulfillment === "cargo" || !!store.commerce.nationwideSeo;
   const ogImage = `${store.domain}${store.seo.ogImage}`;
   out = replaceTag(out, /<meta\s+property="og:site_name"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:site_name" content="${escapeHtml(store.name)}" />`);
   out = replaceTag(out, /<meta\s+property="og:image"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:image" content="${escapeHtml(ogImage)}" />`);
@@ -230,7 +230,7 @@ function injectSeoMeta(html: string, urlPath: string, store: StoreConfig): strin
   const title = escapeHtml(bc(data.metaTitle || data.title));
   const description = escapeHtml(bc(data.metaDescription || ""));
   const canonical = `${store.domain}/${data.slug}`;
-  const keywords = data.keywords ? escapeHtml(brandifyFor(store, data.keywords)) : "";
+  const keywords = data.keywords ? escapeHtml(bc(data.keywords)) : "";
 
   let out = html;
 

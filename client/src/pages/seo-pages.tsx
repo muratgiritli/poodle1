@@ -9,7 +9,7 @@ import { findStorePage, filterStoreLinks } from "@/lib/store-seo";
 import NotFound from "@/pages/not-found";
 
 function StoreInfoBox({ hideWhatsapp = false }: { hideWhatsapp?: boolean }) {
-  const isCargo = CURRENT_STORE.commerce.fulfillment === "cargo";
+  const isCargo = CURRENT_STORE.commerce.fulfillment === "cargo" || !!CURRENT_STORE.commerce.nationwideSeo;
   return (
     <section className="border-2 border-[#6B3480]/20 rounded-2xl overflow-hidden" data-testid="store-info-box">
       <div className="bg-[#6B3480]/5 px-5 py-3 border-b border-[#6B3480]/10">
@@ -23,8 +23,8 @@ function StoreInfoBox({ hideWhatsapp = false }: { hideWhatsapp?: boolean }) {
           <div className="flex items-start gap-3">
             <MapPin className="w-4 h-4 text-[#6B3480] mt-0.5 shrink-0" />
             <div>
-              <p className="text-sm font-semibold">Adres</p>
-              <p className="text-sm text-muted-foreground">Atakum, Samsun 55200</p>
+              <p className="text-sm font-semibold">{isCargo ? "Kargo" : "Adres"}</p>
+              <p className="text-sm text-muted-foreground">{isCargo ? "Türkiye'nin 81 iline gönderim" : "Atakum, Samsun 55200"}</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
@@ -87,7 +87,7 @@ function SeoPageContent({ page }: { page: SeoPageData }) {
   // Rewrite false local delivery/payment claims for cargo stores BEFORE <SEO>
   // brandifies meta/jsonLd; bc = commercify + brandify for the visible body.
   const bc = (t: string) => brandify(commercify(t));
-  const isCargo = CURRENT_STORE.commerce.fulfillment === "cargo";
+  const isCargo = CURRENT_STORE.commerce.fulfillment === "cargo" || !!CURRENT_STORE.commerce.nationwideSeo;
 
   // LOCAL_BUSINESS_JSONLD asserts hyperlocal same-day/kapıda/neighborhood
   // delivery — false for cargo stores, so omit it (breadcrumb + commercified
@@ -137,12 +137,17 @@ function SeoPageContent({ page }: { page: SeoPageData }) {
       <div className="max-w-4xl mx-auto px-4 py-8 md:py-12 space-y-10">
         {page.type === "core" && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
+            {(isCargo ? [
+              { icon: Package, label: "900+ Ürün", desc: "Geniş ürün yelpazesi" },
+              { icon: Truck, label: "Hızlı Kargo", desc: "Türkiye'nin 81 ili" },
+              { icon: CreditCard, label: "Online Ödeme", desc: "Güvenli alışveriş" },
+              { icon: ShieldCheck, label: "Orijinal Ürün", desc: "Garantili teslimat" },
+            ] : [
               { icon: Package, label: "900+ Ürün", desc: "Geniş ürün yelpazesi" },
               { icon: Truck, label: "Aynı Gün", desc: "Hızlı teslimat" },
               { icon: MessageCircle, label: "WhatsApp", desc: "Kolay sipariş" },
               { icon: ShieldCheck, label: "Güvenli", desc: "Kapıda ödeme" },
-            ].map((item) => (
+            ]).map((item) => (
               <Card key={item.label} className="text-center">
                 <CardContent className="p-4">
                   <item.icon className="w-6 h-6 mx-auto mb-2 text-[#6B3480]" />
@@ -218,7 +223,7 @@ function SeoPageContent({ page }: { page: SeoPageData }) {
 
         <StoreInfoBox hideWhatsapp={page.type === "brand"} />
 
-        {page.type === "core" && (
+        {page.type === "core" && !isCargo && (
           <section>
             <h2 className="text-xl font-bold mb-4">Bölge Pet Shop Sayfaları</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -288,6 +293,19 @@ function SeoPageContent({ page }: { page: SeoPageData }) {
                   </Button>
                 </Link>
               ))
+            ) : isCargo ? (
+              <>
+                <Link href="/yourpoodle/kuru-mama">
+                  <Button variant="secondary" size="lg" className="w-full sm:w-auto" data-testid="cta-kuru-mama">
+                    Köpek Mamaları
+                  </Button>
+                </Link>
+                <Link href="/yourpoodle/kargo">
+                  <Button variant="secondary" size="lg" className="w-full sm:w-auto" data-testid="cta-kargo">
+                    Kargo Bilgileri
+                  </Button>
+                </Link>
+              </>
             ) : (
               <>
                 <Link href="/kategori/kedi">

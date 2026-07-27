@@ -46,7 +46,7 @@ const CONTENT: Record<LegalVariant, { title: string; pageTitle: string; sections
     sections: [
       { heading: "Satıcı Bilgileri", text: "SİZPA Bilişim Ltd. Şti. | Adres: Cumhuriyet Mah. Atatürk Bulvarı No:42, Atakum/Samsun | Tel: 0362 000 12 34 | E-posta: info@yourpoodle.com" },
       { heading: "Sipariş ve Ödeme", text: "Siparişler onaylandıktan sonra hazırlanmaya başlanır. Ödeme, sipariş sırasında kapıda (nakit/kart) veya havale/EFT ile gerçekleştirilir. Fiyatlara KDV dahildir." },
-      { heading: "Teslimat", text: "Siparişler, onay tarihinden itibaren 2-4 iş günü içinde teslim edilir. Kargo ücreti 1.000₺ altı siparişler için ayrıca belirtilir." },
+      { heading: "Teslimat", text: "Siparişler, onay tarihinden itibaren 2-4 iş günü içinde teslim edilir. 299₺ ve üzeri siparişlerde kargo ücretsizdir; 299₺ altı siparişlere kargo ücreti uygulanır." },
       { heading: "Cayma Hakkı", text: "Ürün tesliminden itibaren 14 gün içinde herhangi bir gerekçe göstermeksizin cayma hakkınızı kullanabilirsiniz. İade kargo ücreti alıcıya aittir. Açılmış, kullanılmış veya bozulmuş ürünler iade kabul edilmez." },
       { heading: "Şikâyet", text: "Tüketici şikâyetleri için önce info@yourpoodle.com üzerinden iletişime geçiniz. Çözüme kavuşamayan başvurular için Tüketici Hakem Heyeti'ne başvurabilirsiniz." },
     ],

@@ -59,6 +59,12 @@ export interface StoreCommerce {
    * Yalnızca jetgo (jetgomarket.com) için açıktır.
    */
   modernCatalogUI?: boolean;
+  /**
+   * true ise bu domain ülke geneline kargo ile sipariş gönderir. SEO katmanında
+   * aynı-gün/kapıda-ödeme/Samsun ifadeleri Türkiye-geneli karşılıklarıyla değiştirilir
+   * (commercifyFor + isCargo kontrolleri). Ödeme/sipariş akışını ETKİLEMEZ.
+   */
+  nationwideSeo?: boolean;
 }
 
 /**
@@ -172,6 +178,7 @@ const jetgo: StoreConfig = {
     quickAddToCart: true,
     guestCheckout: true,
     modernCatalogUI: true,
+    nationwideSeo: true,
   },
 };
 
@@ -285,6 +292,57 @@ const CARGO_COPY_REWRITES: ReadonlyArray<readonly [RegExp, string]> = [
   [/siparişinizi en kısa sürede kapınıza ulaştırır\./g, "siparişinizi en kısa sürede kargoya verir."],
   [/- aynı gün kapıda/g, "- hızlı kargo ile"],
   [/- hemen kapınızda/g, "- hızlı kargo ile"],
+  // h1 template — brand-agnostic catch (stored data may already have brand name substituted):
+  [/ Pet Shop'tan Samsun'a Aynı Gün Kapıda/g, " — Türkiye'nin 81 İline Hızlı Kargo ile"],
+  [/— JETGO Pet Shop'tan Samsun'a Aynı Gün Kapıda/g, "— Türkiye'nin 81 İline Hızlı Kargo ile"],
+  // metaTitle templates — brand-agnostic:
+  [/ Pet Shop — Samsun'a Aynı Gün Kapıda/g, " — Türkiye'nin 81 İline Hızlı Kargo"],
+  [/\| JETGO Pet Shop — Samsun'a Aynı Gün Kapıda/g, "| Türkiye Geneline Hızlı Kargo"],
+  [/\| JETGO Samsun Yerel Alternatif — Aynı Gün/g, "| Türkiye Geneli Hızlı Kargo Alternatifi"],
+  [/\| JETGO Samsun Pet Shop/g, "| Türkiye Geneli Online Pet Shop"],
+  // metaDesc opening with brand + Samsun reference:
+  [/ Pet Shop Samsun:/g, " — Online Pet Shop:"],
+  // metaDesc local delivery sentences (several variants found in the wild):
+  [/Atakum'da 1 saatte, Samsun'a aynı gün kapıda teslim\. Kapıda ödeme\./g, "Türkiye'nin 81 iline hızlı kargo ile teslim. Güvenli online ödeme."],
+  [/Atakum'da 1 saatte, Samsun'a aynı gün kapıda teslimat, kapıda ödeme\./g, "Türkiye geneline hızlı kargo ile teslimat, güvenli online ödeme."],
+  [/Atakum'da 1 saatte, Samsun'a aynı gün kapıda teslimat\./g, "Türkiye geneline hızlı kargo ile teslimat."],
+  [/Atakum içinde 1 saatte, Samsun \(İlkadım, Canik, Tekkeköy\) geneline aynı gün kapıda teslimat ve kapıda ödeme\./g, "Türkiye geneline hızlı kargo ile teslimat. Güvenli online ödeme."],
+  // intro sentence:
+  [/Atakum ve Samsun geneline hızlı teslimatla karşılar\./g, "Türkiye geneline hızlı kargoyla karşılar."],
+  // feature bullets:
+  [/Atakum içinde ortalama 1 saatte kapıda teslim/g, "Hafta içi 14:00'e kadar aynı gün kargoya verilir"],
+  [/Samsun \(İlkadım, Canik, Tekkeköy\) geneline aynı gün teslimat/g, "Türkiye'nin 81 iline hızlı kargo ile teslimat"],
+  // catch-all for remaining Samsun-local delivery phrases:
+  [/Samsun'a aynı gün kapıda teslimat/g, "Türkiye geneline hızlı kargo ile teslimat"],
+  [/Samsun'a Aynı Gün Kapıda/g, "Türkiye Geneline Hızlı Kargo ile"],
+  // SPEED_LINE and REGION_DELIVERY from local keyword-pages.ts template:
+  // (broad regex — avoids character-encoding mismatch with exact Turkish chars in long strings)
+  [/aynı gün siparişiniz kapınızda olur\./g, "1-3 iş gününde adresinize teslim edilir."],
+  [/tüm mahallelerine teslimat yapıyoruz\./g, "Türkiye'nin 81 iline hızlı kargo ile gönderim yapıyoruz."],
+  // PAY_LINE variants (multiple endings found across keyword-pages.ts flavors):
+  [/Kapıda nakit, kredi kartı \(POS\) ve QR ile ödeme yapabilirsiniz; nakit ödemede ekstra avantajlı fiyat sunuyoruz\./g, "Güvenli online kredi/banka kartı ile ödeme yapabilirsiniz."],
+  [/Kapıda nakit, kredi kartı \(POS\) ve QR ile ödeyebilirsiniz[^.]+\./g, "Güvenli online kredi/banka kartı ile ödeme yapabilirsiniz."],
+  // ORDER_LINE WhatsApp reference (brand-agnostic match after brandify):
+  [/WhatsApp ile tek tıkla siparişinizi onaylayın\./g, "güvenli online ödeme ile siparişinizi tamamlayın."],
+  // Pet Shop Samsun with semicolon variant (metaDesc intro):
+  [/ Pet Shop Samsun; /g, " — Online Pet Shop: "],
+  // Physical address + local delivery suffix:
+  [/adresinden Atakum ve Samsun geneline kapınıza teslimat yapar\./g, "adresi merkez olmak üzere Türkiye geneline kargo ile teslimat yapar."],
+  // Remaining FAQ answer variants (Atakum / Samsun in sentence context):
+  [/Atakum ve Samsun'da kapınıza teslim ediyoruz\./g, "Türkiye'nin her iline kargo ile gönderiyoruz."],
+  [/Atakum içinde ortalama 1 saatte, Samsun geneline aynı gün kapınıza getirir\. Kapıda ödeme, uygun fiyat\./g, "Türkiye geneline hızlı kargo ile gönderir. Güvenli online ödeme, uygun fiyat."],
+  [/Samsun geneline aynı gün kapınıza getirir\. Kapıda ödeme, uygun fiyat\./g, "Türkiye geneline hızlı kargo ile gönderir. Güvenli online ödeme, uygun fiyat."],
+  [/Atakum içinde 1 saatte, Samsun geneli aynı gün teslimat/g, "Hafta içi 14:00'e kadar aynı gün kargo"],
+  // SPEED_LINE lead-in: "Atakum içinde ortalama 1 saatte, Samsun (districts) geneline"
+  // (broad: avoids exact-char match issues; the "[^.]+" stops at the period)
+  [/Atakum içinde ortalama 1 saatte[^.]+geneline/g, "Türkiye geneline"],
+  // Physical store address sentence in noscript/intro (not a legal page):
+  [/Pet Shop Yenimahalle[^,]+, Atakum, Samsun adresi[^.]+\./g, "Türkiye geneline kargo ile teslimat yapar."],
+  // keywords meta — strip / replace local-only keyword suffixes:
+  [/ samsun,/g, ","],
+  [/ atakum,/g, ","],
+  [/ kapıda ödeme,/g, " online ödeme,"],
+  [/ aynı gün teslimat,/g, " hızlı kargo teslimat,"],
 ];
 
 /**
@@ -296,7 +354,7 @@ const CARGO_COPY_REWRITES: ReadonlyArray<readonly [RegExp, string]> = [
  * render time: brandifyFor(store, commercifyFor(store, text)).
  */
 export function commercifyFor(store: StoreConfig, text: string): string {
-  if (!text || store.commerce.fulfillment !== "cargo") return text;
+  if (!text || (store.commerce.fulfillment !== "cargo" && !store.commerce.nationwideSeo)) return text;
   let t = text;
   for (const [pattern, replacement] of CARGO_COPY_REWRITES) t = t.replace(pattern, replacement);
   return t;

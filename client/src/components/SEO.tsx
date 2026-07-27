@@ -15,6 +15,7 @@ interface SEOProps {
 export const SITE_DOMAIN = CURRENT_STORE.domain;
 export const SITE_NAME = CURRENT_STORE.name;
 export const DEFAULT_OG_IMAGE = `${SITE_DOMAIN}${CURRENT_STORE.seo.ogImage}`;
+const _isCargo = CURRENT_STORE.commerce.fulfillment === "cargo" || !!CURRENT_STORE.commerce.nationwideSeo;
 
 export default function SEO({ title, description, canonical, ogImage, ogType, jsonLd, noindex, keywords }: SEOProps) {
   useEffect(() => {
@@ -49,8 +50,16 @@ export default function SEO({ title, description, canonical, ogImage, ogType, js
     setMeta("name", "twitter:title", bTitle);
     setMeta("name", "twitter:description", bDescription);
     setMeta("name", "twitter:image", ogImage || DEFAULT_OG_IMAGE);
-    setMeta("name", "geo.region", "TR-55");
-    setMeta("name", "geo.placename", "Samsun");
+    if (!_isCargo) {
+      setMeta("name", "geo.region", "TR-55");
+      setMeta("name", "geo.placename", "Samsun");
+    } else {
+      // Remove any Samsun-forcing static geo tags inherited from index.html
+      ["geo.region", "geo.placename", "geo.position", "ICBM"].forEach(n => {
+        document.querySelector(`meta[name="${n}"]`)?.remove();
+      });
+      setMeta("name", "geo.region", "TR");
+    }
 
     if (noindex) {
       setMeta("name", "robots", "noindex, nofollow");
@@ -95,13 +104,14 @@ export default function SEO({ title, description, canonical, ogImage, ogType, js
   return null;
 }
 
+// Local-only arrays — only used when fulfillment is NOT cargo (JetGo local)
 const ATAKUM_MAHALLELERI = ["Denizevleri","Güzelyalı","Kurupelit","Atakent","İncesu","Mimar Sinan","Körfez","Yeni Mahalle","Altınkum","Balaç","Çakırlar","Soğuksu","Taflan","Çobanlı","Büyükoyumca","Esenevler"];
 const ILKADIM_MAHALLELERI = ["Kadıköy","Rasathane","Kılıçdede","Baruthane","Kalkancı","Ulugazi","Derecik","Adalet","Çiftlik"];
 const CANIK_MAHALLELERI = ["Karşıyaka","Gaziosmanpaşa","Yenimahalle","Kuzeyyıldızı"];
 
 export const LOCAL_BUSINESS_JSONLD = {
   "@context": "https://schema.org",
-  "@type": ["PetStore", "LocalBusiness", "Store"],
+  "@type": _isCargo ? ["OnlineStore", "Store"] : ["PetStore", "LocalBusiness", "Store"],
   "@id": `${SITE_DOMAIN}/#petstore`,
   "name": SITE_NAME,
   "alternateName": CURRENT_STORE.alternateNames,
@@ -118,33 +128,39 @@ export const LOCAL_BUSINESS_JSONLD = {
     "postalCode": "55200",
     "addressCountry": "TR",
   },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": 41.2867,
-    "longitude": 36.33,
-  },
-  "hasMap": "https://www.google.com/maps/search/?api=1&query=Yenimahalle+Atatürk+3.+Kısım+Bulvarı+113%2FA+Atakum+Samsun",
+  ...(_isCargo ? {} : {
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 41.2867,
+      "longitude": 36.33,
+    },
+    "hasMap": "https://www.google.com/maps/search/?api=1&query=Yenimahalle+Atatürk+3.+Kısım+Bulvarı+113%2FA+Atakum+Samsun",
+    "serviceArea": {
+      "@type": "GeoCircle",
+      "geoMidpoint": { "@type": "GeoCoordinates", "latitude": 41.2867, "longitude": 36.33 },
+      "geoRadius": "20000",
+    },
+  }),
   "priceRange": "₺₺",
   "currenciesAccepted": "TRY",
-  "paymentAccepted": ["Nakit", "Kredi Kartı", "Havale/EFT", "Kapıda Ödeme"],
+  "paymentAccepted": _isCargo
+    ? ["Kredi Kartı", "Banka Kartı", "Havale/EFT"]
+    : ["Nakit", "Kredi Kartı", "Havale/EFT", "Kapıda Ödeme"],
   "openingHoursSpecification": [
     { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"], "opens": "09:00", "closes": "21:00" },
     { "@type": "OpeningHoursSpecification", "dayOfWeek": "Sunday", "opens": "10:00", "closes": "20:00" },
   ],
-  "areaServed": [
-    { "@type": "City", "name": "Samsun", "@id": "https://www.wikidata.org/wiki/Q83171" },
-    { "@type": "AdministrativeArea", "name": "Atakum", "containedInPlace": { "@type": "City", "name": "Samsun" } },
-    { "@type": "AdministrativeArea", "name": "İlkadım", "containedInPlace": { "@type": "City", "name": "Samsun" } },
-    { "@type": "AdministrativeArea", "name": "Canik", "containedInPlace": { "@type": "City", "name": "Samsun" } },
-    ...ATAKUM_MAHALLELERI.map(m => ({ "@type": "Place", "name": `${m} Mahallesi, Atakum, Samsun` })),
-    ...ILKADIM_MAHALLELERI.map(m => ({ "@type": "Place", "name": `${m} Mahallesi, İlkadım, Samsun` })),
-    ...CANIK_MAHALLELERI.map(m => ({ "@type": "Place", "name": `${m} Mahallesi, Canik, Samsun` })),
-  ],
-  "serviceArea": {
-    "@type": "GeoCircle",
-    "geoMidpoint": { "@type": "GeoCoordinates", "latitude": 41.2867, "longitude": 36.33 },
-    "geoRadius": "20000",
-  },
+  "areaServed": _isCargo
+    ? { "@type": "Country", "name": "Türkiye", "@id": "https://www.wikidata.org/wiki/Q43" }
+    : [
+        { "@type": "City", "name": "Samsun", "@id": "https://www.wikidata.org/wiki/Q83171" },
+        { "@type": "AdministrativeArea", "name": "Atakum", "containedInPlace": { "@type": "City", "name": "Samsun" } },
+        { "@type": "AdministrativeArea", "name": "İlkadım", "containedInPlace": { "@type": "City", "name": "Samsun" } },
+        { "@type": "AdministrativeArea", "name": "Canik", "containedInPlace": { "@type": "City", "name": "Samsun" } },
+        ...ATAKUM_MAHALLELERI.map(m => ({ "@type": "Place", "name": `${m} Mahallesi, Atakum, Samsun` })),
+        ...ILKADIM_MAHALLELERI.map(m => ({ "@type": "Place", "name": `${m} Mahallesi, İlkadım, Samsun` })),
+        ...CANIK_MAHALLELERI.map(m => ({ "@type": "Place", "name": `${m} Mahallesi, Canik, Samsun` })),
+      ],
   "contactPoint": [{
     "@type": "ContactPoint",
     "telephone": CURRENT_STORE.phone,
@@ -159,7 +175,7 @@ export const LOCAL_BUSINESS_JSONLD = {
   "founder": { "@type": "Organization", "name": "Sizpa İnternet Tic. Ltd. Şti." },
   "hasOfferCatalog": {
     "@type": "OfferCatalog",
-    "name": "Samsun Pet Shop Ürün Kategorileri",
+    "name": _isCargo ? `${SITE_NAME} Ürün Kategorileri` : "Samsun Pet Shop Ürün Kategorileri",
     "itemListElement": [
       { "@type": "OfferCatalog", "name": "Köpek Maması", "url": `${SITE_DOMAIN}/kopek-mamasi` },
       { "@type": "OfferCatalog", "name": "Pet Aksesuarları", "url": `${SITE_DOMAIN}/pet-aksesuar` },
@@ -172,11 +188,15 @@ export const LOCAL_BUSINESS_JSONLD = {
     "bestRating": "5",
     "worstRating": "1",
   },
-  "knowsAbout": ["Köpek maması", "Köpek bakımı", "Pet shop", "Evcil hayvan bakımı", "Veteriner ürünleri", "Atakum pet shop", "Samsun pet shop"],
-  "makesOffer": [
-    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Aynı Gün Teslimat" }, "areaServed": "Samsun" },
-    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Kapıda Ödeme" }, "areaServed": "Samsun" },
-  ],
+  "knowsAbout": _isCargo
+    ? ["Köpek maması", "Köpek bakımı", "Pet shop", "Evcil hayvan bakımı", "Veteriner ürünleri", "Poodle", "Toy Poodle"]
+    : ["Köpek maması", "Köpek bakımı", "Pet shop", "Evcil hayvan bakımı", "Veteriner ürünleri", "Atakum pet shop", "Samsun pet shop"],
+  "makesOffer": _isCargo
+    ? [{ "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Türkiye Geneli Kargo Teslimat" }, "areaServed": { "@type": "Country", "name": "Türkiye" } }]
+    : [
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Aynı Gün Teslimat" }, "areaServed": "Samsun" },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Kapıda Ödeme" }, "areaServed": "Samsun" },
+      ],
   "sameAs": CURRENT_STORE.social,
 };
 
@@ -254,7 +274,6 @@ export const PRODUCT_JSONLD = (product: {
       "shippingDestination": {
         "@type": "DefinedRegion",
         "addressCountry": "TR",
-        "addressRegion": "Samsun",
       },
     },
   },
