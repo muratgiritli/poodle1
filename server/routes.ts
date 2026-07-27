@@ -978,6 +978,41 @@ export async function registerRoutes(
         // Non-fatal: serve static-only sitemap if DB unavailable
       }
 
+      // Dynamic: fetch active articles from yp_articles for /yourpoodle/rehber/:slug
+      let articleRows: Array<{ id: number; title: string }> = [];
+      try {
+        await sharedPool.query(`
+          CREATE TABLE IF NOT EXISTS yp_articles (
+            id SERIAL PRIMARY KEY, title TEXT NOT NULL, body TEXT,
+            tag TEXT, emoji TEXT, min_read INT DEFAULT 5,
+            featured BOOLEAN DEFAULT false, sort_order INT DEFAULT 0, is_active BOOLEAN DEFAULT true
+          )`);
+        const result = await sharedPool.query<{ id: number; title: string }>(
+          `SELECT id, title FROM yp_articles WHERE is_active = true ORDER BY featured DESC, sort_order ASC, id ASC`
+        );
+        articleRows = result.rows;
+      } catch (_dbErr) {
+        // Non-fatal: fall back to hardcoded slugs only
+      }
+
+      // Dynamic: fetch active events from yp_events for /yourpoodle/etkinlikler/:id
+      let eventRows: Array<{ id: number }> = [];
+      try {
+        await sharedPool.query(`
+          CREATE TABLE IF NOT EXISTS yp_events (
+            id SERIAL PRIMARY KEY, title TEXT NOT NULL, description TEXT,
+            location TEXT, event_date DATE, day TEXT, month TEXT, year TEXT,
+            type TEXT DEFAULT 'Etkinlik', free BOOLEAN DEFAULT true,
+            color TEXT DEFAULT '#7C3AFF', sort_order INT DEFAULT 0, is_active BOOLEAN DEFAULT true
+          )`);
+        const result = await sharedPool.query<{ id: number }>(
+          `SELECT id FROM yp_events WHERE is_active = true ORDER BY sort_order ASC, id ASC`
+        );
+        eventRows = result.rows;
+      } catch (_dbErr) {
+        // Non-fatal
+      }
+
       let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n`;
 
       // Static pages
@@ -1013,6 +1048,32 @@ export async function registerRoutes(
         xml += `    <changefreq>weekly</changefreq>\n`;
         xml += `    <priority>0.6</priority>\n`;
         xml += `    <xhtml:link rel="alternate" hreflang="tr" href="${SITE}/yourpoodle/urun/${p.id}/${slug}" />\n`;
+        xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}/" />\n`;
+        xml += `  </url>\n`;
+      }
+
+      // Dynamic article pages from yp_articles: /yourpoodle/rehber/:slug
+      for (const a of articleRows) {
+        const slug = toSlug(a.title);
+        if (!slug) continue;
+        xml += `  <url>\n`;
+        xml += `    <loc>${SITE}/yourpoodle/rehber/${slug}</loc>\n`;
+        xml += `    <lastmod>${today}</lastmod>\n`;
+        xml += `    <changefreq>monthly</changefreq>\n`;
+        xml += `    <priority>0.8</priority>\n`;
+        xml += `    <xhtml:link rel="alternate" hreflang="tr" href="${SITE}/yourpoodle/rehber/${slug}" />\n`;
+        xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}/" />\n`;
+        xml += `  </url>\n`;
+      }
+
+      // Dynamic event pages from yp_events: /yourpoodle/etkinlikler/:id
+      for (const e of eventRows) {
+        xml += `  <url>\n`;
+        xml += `    <loc>${SITE}/yourpoodle/etkinlikler/${e.id}</loc>\n`;
+        xml += `    <lastmod>${today}</lastmod>\n`;
+        xml += `    <changefreq>weekly</changefreq>\n`;
+        xml += `    <priority>0.7</priority>\n`;
+        xml += `    <xhtml:link rel="alternate" hreflang="tr" href="${SITE}/yourpoodle/etkinlikler/${e.id}" />\n`;
         xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}/" />\n`;
         xml += `  </url>\n`;
       }

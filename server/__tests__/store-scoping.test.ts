@@ -116,7 +116,9 @@ const ids: {
   orders: number[];
   customers: number[];
   users: string[];
-} = { banners: [], coupons: [], campaignItems: [], neighborhoods: [], products: [], brandCategories: [], orders: [], customers: [], users: [] };
+  ypArticles: number[];
+  ypEvents: number[];
+} = { banners: [], coupons: [], campaignItems: [], neighborhoods: [], products: [], brandCategories: [], orders: [], customers: [], users: [], ypArticles: [], ypEvents: [] };
 
 // The order endpoint requires an authenticated, non-blacklisted customer.
 // We seed a throwaway customer, forge a PgSession row carrying its id, and sign
@@ -296,6 +298,9 @@ before(async () => {
     );
     await pool.query("DELETE FROM banners WHERE strpos(title, $1) > 0", [MARK]);
     await pool.query("DELETE FROM delivery_neighborhoods WHERE strpos(name, $1) > 0", [MARK]);
+    // yp_articles / yp_events orphans (tables may not exist yet; ignore error)
+    try { await pool.query("DELETE FROM yp_articles WHERE strpos(title, $1) > 0", [MARK]); } catch {}
+    try { await pool.query("DELETE FROM yp_events  WHERE strpos(title, $1) > 0", [MARK]); } catch {}
   }
 
   // ---- Boot a fresh app instance against the real (dev) DB ----
@@ -400,6 +405,37 @@ before(async () => {
     ids.campaignItems.push(r.rows[0].id);
   }
 
+  // ---- Seed yp_articles row (used by sitemap-yp.xml DB-driven article test) ----
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS yp_articles (
+        id SERIAL PRIMARY KEY, title TEXT NOT NULL, body TEXT,
+        tag TEXT, emoji TEXT, min_read INT DEFAULT 5,
+        featured BOOLEAN DEFAULT false, sort_order INT DEFAULT 0, is_active BOOLEAN DEFAULT true
+      )`);
+    const art = await pool.query(
+      `INSERT INTO yp_articles (title, body, is_active) VALUES ($1, $2, true) RETURNING id`,
+      [`${MARK} Sitemap Article Test`, "test body"]
+    );
+    ids.ypArticles.push(art.rows[0].id);
+  } catch {}
+
+  // ---- Seed yp_events row (used by sitemap-yp.xml DB-driven event test) ----
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS yp_events (
+        id SERIAL PRIMARY KEY, title TEXT NOT NULL, description TEXT,
+        location TEXT, event_date DATE, day TEXT, month TEXT, year TEXT,
+        type TEXT DEFAULT 'Etkinlik', free BOOLEAN DEFAULT true,
+        color TEXT DEFAULT '#7C3AFF', sort_order INT DEFAULT 0, is_active BOOLEAN DEFAULT true
+      )`);
+    const evt = await pool.query(
+      `INSERT INTO yp_events (title, day, month, is_active) VALUES ($1, '1', 'Ocak', true) RETURNING id`,
+      [`${MARK} Sitemap Event Test`]
+    );
+    ids.ypEvents.push(evt.rows[0].id);
+  } catch {}
+
   // ---- Enable cash-on-delivery so the order endpoint accepts the method ----
   await setSetting("payment_nakit_enabled", "1");
 
@@ -470,6 +506,12 @@ after(async () => {
   if (ids.coupons.length) await pool.query("DELETE FROM coupons WHERE id = ANY($1)", [ids.coupons]);
   if (ids.neighborhoods.length) await pool.query("DELETE FROM delivery_neighborhoods WHERE id = ANY($1)", [ids.neighborhoods]);
   if (ids.users.length) await pool.query("DELETE FROM users WHERE id = ANY($1)", [ids.users]);
+  if (ids.ypArticles.length) {
+    try { await pool.query("DELETE FROM yp_articles WHERE id = ANY($1)", [ids.ypArticles]); } catch {}
+  }
+  if (ids.ypEvents.length) {
+    try { await pool.query("DELETE FROM yp_events WHERE id = ANY($1)", [ids.ypEvents]); } catch {}
+  }
 
   // Restore app_settings to their pre-test state.
   for (const [key, value] of settingBackup) {
@@ -3650,5 +3692,62 @@ test("GET /sitemap-yp.xml: returns 200 application/xml with all known static and
     missingArticles.length,
     0,
     `sitemap-yp.xml is missing ${missingArticles.length} expected article <loc> entries: ${missingArticles.join(", ")}`,
+  );
+});
+
+// ── DB-driven yp_articles sitemap regression guard ────────────────────────────
+//
+// Verifies that an article seeded in yp_articles actually appears in the
+// sitemap as a /yourpoodle/rehber/:slug <loc>. If the DB query in the handler
+// is broken or the column is renamed, the seeded slug will be absent and this
+// test fails — catching the regression before it reaches Google.
+//
+test("GET /sitemap-yp.xml: seeded yp_articles row appears as a /yourpoodle/rehber/<slug> <loc>", async () => {
+  // The seeded article title is `${MARK} Sitemap Article Test`.
+  // The route derives the slug using the same toSlug() helper the sitemap uses.
+  const expectedSlug = `${MARK} Sitemap Article Test`
+    .toLowerCase()
+    .replace(/[^a-z0-9ğüşıöç]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  const expectedLoc = `${YP_SITE_BASE}/yourpoodle/rehber/${expectedSlug}`;
+
+  const res = await fetch(`${baseUrl}/sitemap-yp.xml`, {
+    headers: { "X-Forwarded-Host": YP_SITEMAP_HOST },
+  });
+  assert.equal(res.status, 200, `Expected HTTP 200 from /sitemap-yp.xml; got ${res.status}`);
+  const xml = await res.text();
+
+  assert.ok(
+    xml.includes(`<loc>${expectedLoc}</loc>`),
+    `sitemap-yp.xml must contain the seeded yp_articles <loc>:\n  expected: <loc>${expectedLoc}</loc>\n  (this means the DB-driven article query is broken or the slug derivation changed)`,
+  );
+});
+
+// ── DB-driven yp_events sitemap regression guard ──────────────────────────────
+//
+// Verifies that an event seeded in yp_events actually appears in the sitemap
+// as a /yourpoodle/etkinlikler/:id <loc>. A missing CREATE TABLE IF NOT EXISTS,
+// a renamed column, or a broken query would silently drop all event pages.
+//
+test("GET /sitemap-yp.xml: seeded yp_events row appears as a /yourpoodle/etkinlikler/<id> <loc>", async () => {
+  // ids.ypEvents[0] is set by the seeder in before(); skip if the table couldn't
+  // be created (extremely unlikely in a working dev DB).
+  assert.ok(
+    ids.ypEvents.length > 0,
+    "yp_events seed row was not created in before() — cannot assert sitemap entry",
+  );
+  const eventId = ids.ypEvents[0];
+  const expectedLoc = `${YP_SITE_BASE}/yourpoodle/etkinlikler/${eventId}`;
+
+  const res = await fetch(`${baseUrl}/sitemap-yp.xml`, {
+    headers: { "X-Forwarded-Host": YP_SITEMAP_HOST },
+  });
+  assert.equal(res.status, 200, `Expected HTTP 200 from /sitemap-yp.xml; got ${res.status}`);
+  const xml = await res.text();
+
+  assert.ok(
+    xml.includes(`<loc>${expectedLoc}</loc>`),
+    `sitemap-yp.xml must contain the seeded yp_events <loc>:\n  expected: <loc>${expectedLoc}</loc>\n  (this means the DB-driven event query is broken or the id-based URL pattern changed)`,
   );
 });
