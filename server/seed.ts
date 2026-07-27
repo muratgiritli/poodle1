@@ -501,6 +501,56 @@ async function seedDeliveryNeighborhoods() {
   console.log(`Seeded ${NEIGHBORHOODS.length} delivery neighborhoods.`);
 }
 
+/* ─── YourPoodle Yaş Mama seed ─────────────────────────────────────────── */
+async function seedYasMamaProducts(): Promise<void> {
+  try {
+    let [bc] = await db.select().from(brandCategories).where(
+      and(
+        eq(brandCategories.animal, "kopek"),
+        eq(brandCategories.subcategory, "yas-mama"),
+        eq(brandCategories.brandSlug, "yas-mama")
+      )
+    );
+    if (!bc) {
+      [bc] = await db.insert(brandCategories).values({
+        brandName: "Yaş Mama Çeşitleri",
+        brandSlug: "yas-mama",
+        animal: "kopek",
+        subcategory: "yas-mama",
+      }).returning();
+      console.log("Created brand_category for yas-mama");
+    }
+
+    const YP_YAS_MAMA = [
+      { barcode: "8681234567201", name: "Puppy Tavuklu Yaş Mama 150 g",       price: 69,  originalPrice: 89,  skt: "12.2027", stock: 80  },
+      { barcode: "8681234567202", name: "Adult Kuzu Etli Yaş Mama 150 g",      price: 75,  originalPrice: 95,  skt: "11.2027", stock: 80  },
+      { barcode: "8681234567203", name: "Somonlu Yaş Mama 150 g",              price: 79,  originalPrice: 99,  skt: "01.2028", stock: 80  },
+      { barcode: "8681234567204", name: "Hindi Etli Konserve Mama 400 g",      price: 109, originalPrice: 139, skt: "10.2027", stock: 50  },
+      { barcode: "8681234567205", name: "Kuzu Etli Konserve Mama 400 g",       price: 119, originalPrice: 149, skt: "02.2028", stock: 50  },
+      { barcode: "8681234567206", name: "Sensitive Ördekli Yaş Mama 150 g",    price: 89,  originalPrice: 109, skt: "09.2027", stock: 80  },
+    ];
+
+    for (const p of YP_YAS_MAMA) {
+      const exists = await pool.query(
+        `SELECT id FROM products WHERE barcode = $1 LIMIT 1`, [p.barcode]
+      );
+      if (exists.rows.length > 0) continue;
+      await db.insert(products).values({
+        name: p.name,
+        price: p.price,
+        originalPrice: p.originalPrice,
+        skt: p.skt,
+        stock: p.stock,
+        barcode: p.barcode,
+        brandCategoryId: bc.id,
+      });
+    }
+    console.log(`Seeded YourPoodle yaş mama products.`);
+  } catch (e: any) {
+    console.error("[seedYasMamaProducts]", e?.message);
+  }
+}
+
 /* ─── YourPoodle Tuvalet Malzemeleri seed ──────────────────────────────── */
 async function seedTuvaletProducts(): Promise<void> {
   try {
@@ -563,6 +613,7 @@ export async function seedDatabase() {
   await cleanupOrphanBrandCategories();
   await seedDeliveryNeighborhoods();
   await seedTuvaletProducts();
+  await seedYasMamaProducts();
   console.log("Checking database for missing brand data...");
 
   for (const brand of ALL_BRAND_DATA) {

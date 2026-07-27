@@ -1,0 +1,217 @@
+You are implementing the YourPoodle TUVALET category page in ONE PASS so it matches the attached mockup and becomes a real shoppable PLP.
+
+Do not stop until every acceptance check is green AND you have self-verified.
+No stubs. No alert(). No “yakında / coming soon”.
+Do NOT redesign the whole site.
+Do NOT regress Mama Bul / Rehber / AI Asistan / Club / Magaza hub / `/yourpoodle/kuru-mama` mama PLP / Turkey-wide shipping cleanup.
+
+Reference UI: attached mockup “Köpek Tuvalet Malzemeleri”.
+
+==================================================
+0) BUSINESS / PRODUCT CONTEXT
+==================================================
+YourPoodle is a Turkey-wide e-commerce brand (ships to all 81 provinces).
+Forbidden anywhere on this page:
+- Samsun / Atakum / local “kapıda kurye” positioning
+- Placeholder products (“Premium Ürün 1”, emoji images)
+- Dead Magaza links
+
+Primary route to implement:
+- `/yourpoodle/kategori/tuvalet`
+
+Magaza wiring:
+- Magaza hub category “Tuvalet” MUST open `/yourpoodle/kategori/tuvalet`
+
+==================================================
+1) CURRENT BROKEN STATE (must replace)
+==================================================
+Today, Magaza → Tuvalet opens a generic category experience with fake products:
+- names like “Premium Ürün 1 Küçük Irk”
+- emoji / non-photo images
+- not matching the mockup
+
+Replace that with a dedicated Tuvalet PLP matching the mockup.
+
+==================================================
+2) TARGET PAGE (MATCH MOCKUP EXACTLY IN STRUCTURE)
+==================================================
+URL: `/yourpoodle/kategori/tuvalet`
+
+A) TITLE / H1
+- H1: “Köpek Tuvalet Malzemeleri”
+- document.title: “Köpek Tuvalet Malzemeleri | YourPoodle”
+
+B) HEADER
+- Left: YourPoodle script logo
+- Right: Search icon + Cart icon with badge count
+- Keep existing authenticated/guest shell patterns if already shared
+- Cart badge must reflect real cart state
+
+C) MAIN CONTENT
+- Page title under header
+- Product grid: **2 columns**
+- Cards stacked vertically in scrollable area
+- Padding ~12–16px, consistent gaps
+
+D) PRODUCT CARD (repeatable)
+Each card MUST include:
+1. Real product image (top / dominant)
+2. Product title (1–2 lines, real name)
+3. Optional meta line when data exists: `Barkod: {barcode}`
+4. Price row:
+   - old price struck through in grey (if discount exists)
+   - current price bold in brand purple
+5. Full-width purple CTA: “Sepete Ekle”
+
+Mockup examples of product types expected in this category:
+- washable pee pad
+- training pads
+- toilet training spray
+- toilet tray
+- female dog diapers
+- poop bags
+(Use real catalog items; do not hardcode fake mockup products if real data exists.)
+
+E) ADD TO CART
+- “Sepete Ekle” adds to real cart store
+- updates header/bottom cart badge
+- toast feedback OK: “Sepete eklendi”
+- if out of stock: disabled button + “Tükendi”
+
+F) PRODUCT TAP
+- Tapping image/title opens existing PDP route
+  (current product detail path, e.g. `/yourpoodle/urun/...`)
+- Do not break PDP
+
+G) SEARCH (recommended, keep simple)
+- Optional search field under title:
+  placeholder “Tuvalet ürünü ara...”
+- Filters client-side by name/brand
+- Empty state: “Sonuç bulunamadı”
+- If you add search, keep layout clean and still match mockup density
+
+H) BOTTOM NAV
+Keep the EXISTING site-wide bottom nav used across app:
+Ana Sayfa · Mama Bul · Sepet · Rehber · Club
+Do NOT invent a separate 4-tab shell for this page.
+Ensure content has bottom padding so last cards/CTAs are not hidden under bottom nav.
+
+I) FOOTER
+Use hideFooter / compact store footer on this PLP.
+Do not bury products under the huge marketing footer on mobile.
+
+==================================================
+3) DATA / CATALOG REQUIREMENTS
+==================================================
+- Use the real products API/catalog already used by Magaza / Mama PLP
+- Filter products by tuvalet category slug: `tuvalet`
+- Required fields: id, name, imageUrl, price, salePrice?, barcode?, stock/inStock
+- DELETE placeholder/mock generators for this category
+- Image rules:
+  - prefer real product image URLs
+  - on error: branded fallback image
+  - NEVER emoji-only cards
+- If barcode missing: hide barcode line (do not invent production barcodes)
+- If no products: show empty state with CTA back to Magaza
+
+==================================================
+4) ROUTING / NAV RULES
+==================================================
+1) Magaza “Tuvalet” category card → `/yourpoodle/kategori/tuvalet`
+2) Keep `/yourpoodle` prefix on all app routes
+3) If SEO page `/tuvalet` exists:
+   - may remain for SEO
+   - Magaza shop CTA must still open the PLP, not SEO essay
+   - SEO page should CTA to `/yourpoodle/kategori/tuvalet`
+4) Do not break:
+   - Magaza → Kuru Mama → `/yourpoodle/kuru-mama`
+   - Mama PLP search/filters/cart
+   - Turkey-wide `/kuru-mama` cleanup
+
+==================================================
+5) VISUAL SPEC
+==================================================
+- Brand purple ≈ `#6200EE` / existing YourPoodle purple token
+- White background
+- Cards: white, thin light border, radius ~12px
+- Price: strikethrough grey + bold purple current
+- CTA: solid purple, white text, full width, radius ~8–12px
+- Typography: clean sans for body; preserve logo script style
+- Mobile 390×844 first; no horizontal overflow
+- Desktop can scale grid but mobile mockup is source of truth
+
+==================================================
+6) COPY / POSITIONING
+==================================================
+Any helper text must be Turkey-wide shipping language.
+Forbidden:
+Samsun|Atakum|İlkadım|Canik|Tekkeköy|Kapıda nakit|Aynı Gün Kapıda
+
+If you mention shipping at all, align with `/yourpoodle/kargo`
+(e.g. aynı gün kargoya verilir, 1–3 iş günü teslimat, 299 TL+ ücretsiz if that is live rule).
+
+==================================================
+7) IMPLEMENTATION NOTES
+==================================================
+- Prefer reusing existing Magaza product-card / cart / layout primitives if available
+- If current generic category page is shared, either:
+  A) specialize rendering for `tuvalet` to the new mockup layout, OR
+  B) create dedicated Tuvalet page component routed at `/yourpoodle/kategori/tuvalet`
+- Ensure category slug mapping from Magaza (`tuvalet`) is correct
+- Keep accessibility:
+  - product buttons/links have clear names
+  - Sepete Ekle aria-labels include product name
+
+==================================================
+8) SELF-QA LOOP (MANDATORY BEFORE YOU STOP)
+==================================================
+After deploy, YOU verify:
+
+A) Magaza path
+1. Open `/yourpoodle/magaza`
+2. Tap “Tuvalet”
+3. Confirm URL = `/yourpoodle/kategori/tuvalet`
+4. Confirm H1 = “Köpek Tuvalet Malzemeleri”
+
+B) PLP quality
+5. 2-column grid visible on 390×844
+6. Real names + real images + TL prices
+7. No “Premium Ürün…” / emoji cards
+8. Sepete Ekle increments cart badge
+9. Last row not hidden under bottom nav
+10. No Samsun/Atakum text
+
+C) Regression
+11. Magaza → Kuru Mama still opens `/yourpoodle/kuru-mama` mama PLP
+12. Mama search/filters still work
+13. No alert()/yakında
+
+If any check fails: fix and re-run full checklist.
+
+==================================================
+9) ACCEPTANCE CHECKLIST (ALL GREEN)
+==================================================
+[ ] Route `/yourpoodle/kategori/tuvalet` live
+[ ] Magaza “Tuvalet” opens that route
+[ ] Title/H1 correct
+[ ] Mockup-like 2-column cards
+[ ] Real product data (no placeholders)
+[ ] Real images
+[ ] Prices + discount strike correct
+[ ] Sepete Ekle works + badge updates
+[ ] PDP tap works
+[ ] Mobile layout clean (no overflow / no CTA under nav)
+[ ] Turkey-wide copy only
+[ ] No regression on Mama PLP / Magaza mama routing
+[ ] No alert()/yakında
+
+==================================================
+10) FINAL REPORT FORMAT
+==================================================
+When done, report:
+1) Files/routes changed
+2) How Magaza → Tuvalet is wired
+3) Self-QA PASS/FAIL for each acceptance item
+4) Any missing catalog fields (barcode/images) and how handled
+
+Start now. Complete Tuvalet PLP + wiring + self-QA in one pass.

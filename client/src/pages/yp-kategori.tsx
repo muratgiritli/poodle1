@@ -33,7 +33,7 @@ const SLUG_TO_SUBCAT: Record<string, string> = {
 /* ── Page title / H1 mapping ──────────────────────────────────────── */
 const SLUG_TO_TITLE: Record<string, string> = {
   "tuvalet":           "Köpek Tuvalet Malzemeleri",
-  "yas-mama":          "Yaş Mama Çeşitleri",
+  "yas-mama":          "Köpek Yaş Mamaları",
   "odul-cesitleri":    "Ödül ve Atıştırmalıklar",
   "tasima-cantalari":  "Taşıma Çantaları",
   "kulubeler":         "Kulübeler ve Taşıma Araçları",
@@ -168,10 +168,19 @@ function ProductCard({
           {product.name}
         </p>
 
-        {product.barcode && (
-          <p style={{ fontSize:10, color:"#9CA3AF", margin:"0 0 6px" }}>
-            Barkod: {product.barcode}
-          </p>
+        {(product.barcode || product.skt) && (
+          <div style={{ margin:"0 0 6px" }}>
+            {product.barcode && (
+              <p style={{ fontSize:10, color:"#9CA3AF", margin:0, lineHeight:1.5 }}>
+                Barkod: {product.barcode}
+              </p>
+            )}
+            {product.skt && (
+              <p style={{ fontSize:10, color:"#9CA3AF", margin:0, lineHeight:1.5 }}>
+                SKT: {product.skt}
+              </p>
+            )}
+          </div>
         )}
 
         <div style={{ marginBottom:8 }}>
@@ -328,7 +337,7 @@ export default function YPKategoriPage({ routeSlug }: YPKategoriPageProps) {
             type="search"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Tuvalet ürünü ara..."
+            placeholder={`${title.replace("Köpek ", "")} ara...`}
             style={{
               flex:1, background:"transparent", border:"none", outline:"none",
               fontSize:14, color:"#111827", fontFamily:"inherit",
