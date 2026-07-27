@@ -3613,32 +3613,10 @@ const EXPECTED_YP_STATIC_LOCS = [
   `${YP_SITE_BASE}/yourpoodle/ozel-tasarim`,
 ];
 
-// The 15 hardcoded article slugs from the /sitemap-yp.xml handler (articleSlugs array).
-const EXPECTED_YP_ARTICLE_LOCS = [
-  "toy-poodle-en-iyi-mama-markalari-2026",
-  "evde-poodle-tirasi-adim-adim-rehber",
-  "poodle-saglik-sorunlari",
-  "temel-komut-egitimi",
-  "poodle-anksiyetesi",
-  "poodle-kalca-displazisi-erken-teshis",
-  "poodle-tuy-bakimi-haftalik-rutin",
-  "yavru-poodle-beslenmesi-ilk-12-ay",
-  "clicker-egitimi",
-  "poodle-kizginlik-ciftlestirme",
-  "poodle-yavrulara-ilk-gunlerde-bakim",
-  "tuvalet-egitimi",
-  "poodle-goz-yasi-lekesi-temizleme",
-  "poodle-beslenme-alerjisi",
-  "poodle-dis-bakim-rehberi",
-].map((slug) => `${YP_SITE_BASE}/yourpoodle/rehber/${slug}`);
-
-// Combined minimum: all static pages + all article pages (both are hardcoded
-// constants in routes.ts, so this floor is unconditional — it does NOT depend
-// on the DB having any products).
-const YP_SITEMAP_MIN_URLS =
-  EXPECTED_YP_STATIC_LOCS.length + EXPECTED_YP_ARTICLE_LOCS.length; // 44
-
 test("GET /sitemap-yp.xml: returns 200 application/xml with all known static and article <loc> entries", async () => {
+  // Fetch the sitemap first — this triggers the handler to seed the 15 initial
+  // articles and add the slug column (idempotent). The DB query below then reads
+  // whatever is in yp_articles, which is the sole source of truth.
   const res = await fetch(`${baseUrl}/sitemap-yp.xml`, {
     headers: { "X-Forwarded-Host": YP_SITEMAP_HOST },
   });
@@ -3667,14 +3645,33 @@ test("GET /sitemap-yp.xml: returns 200 application/xml with all known static and
     "sitemap-yp.xml body must contain a </urlset> closing tag",
   );
 
+  // Derive expected article locs from DB rows. The handler has already run above,
+  // so the slug column and the 15 seed rows definitely exist by this point.
+  const toSlugLocal = (s: string) =>
+    s.toLowerCase().replace(/[^a-z0-9ğüşıöç]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+  let expectedArticleLocs: string[] = [];
+  try {
+    const rows = await pool.query<{ slug: string | null; title: string }>(
+      `SELECT slug, title FROM yp_articles WHERE is_active = true ORDER BY featured DESC, sort_order ASC, id ASC`
+    );
+    const seen = new Set<string>();
+    for (const r of rows.rows) {
+      const s = r.slug || toSlugLocal(r.title);
+      if (s && !seen.has(s)) { seen.add(s); expectedArticleLocs.push(`${YP_SITE_BASE}/yourpoodle/rehber/${s}`); }
+    }
+  } catch {
+    // If DB is unavailable, skip the article floor check; static check still runs.
+  }
+  const ypSitemapMinUrls = EXPECTED_YP_STATIC_LOCS.length + expectedArticleLocs.length;
+
   // (c) Minimum <url> count — count <loc> occurrences as a proxy for <url> count.
   const locMatches = xml.match(/<loc>/g) ?? [];
   assert.ok(
-    locMatches.length >= YP_SITEMAP_MIN_URLS,
-    `sitemap-yp.xml contains ${locMatches.length} <loc> entries; expected at least ${YP_SITEMAP_MIN_URLS} (${EXPECTED_YP_STATIC_LOCS.length} static + ${EXPECTED_YP_ARTICLE_LOCS.length} articles)`,
+    locMatches.length >= ypSitemapMinUrls,
+    `sitemap-yp.xml contains ${locMatches.length} <loc> entries; expected at least ${ypSitemapMinUrls} (${EXPECTED_YP_STATIC_LOCS.length} static + ${expectedArticleLocs.length} articles from DB)`,
   );
 
-  // (d) Every hardcoded static page must appear as a <loc>.
+  // (d) Every static page must appear as a <loc>.
   const missingStatic = EXPECTED_YP_STATIC_LOCS.filter(
     (loc) => !xml.includes(`<loc>${loc}</loc>`),
   );
@@ -3684,8 +3681,8 @@ test("GET /sitemap-yp.xml: returns 200 application/xml with all known static and
     `sitemap-yp.xml is missing ${missingStatic.length} expected static <loc> entries: ${missingStatic.join(", ")}`,
   );
 
-  // (e) Every hardcoded article page must appear as a <loc>.
-  const missingArticles = EXPECTED_YP_ARTICLE_LOCS.filter(
+  // (e) Every DB-seeded article page must appear as a <loc>.
+  const missingArticles = expectedArticleLocs.filter(
     (loc) => !xml.includes(`<loc>${loc}</loc>`),
   );
   assert.equal(
@@ -3721,6 +3718,115 @@ test("GET /sitemap-yp.xml: seeded yp_articles row appears as a /yourpoodle/rehbe
   assert.ok(
     xml.includes(`<loc>${expectedLoc}</loc>`),
     `sitemap-yp.xml must contain the seeded yp_articles <loc>:\n  expected: <loc>${expectedLoc}</loc>\n  (this means the DB-driven article query is broken or the slug derivation changed)`,
+  );
+});
+
+// ── Startup-seed completeness guard for yp_articles ───────────────────────────
+//
+// Verifies that all 15 initial article slugs were successfully seeded by the
+// registerRoutes startup block. If any seed insert fails (e.g. due to a schema
+// constraint) the row will be absent and this test fails immediately, making
+// the failure explicit rather than silently missing URLs from the sitemap.
+//
+test("yp_articles startup seed: all 15 initial article slugs exist in DB after registerRoutes", async () => {
+  const expectedSlugs = [
+    "toy-poodle-en-iyi-mama-markalari-2026",
+    "evde-poodle-tirasi-adim-adim-rehber",
+    "poodle-saglik-sorunlari",
+    "temel-komut-egitimi",
+    "poodle-anksiyetesi",
+    "poodle-kalca-displazisi-erken-teshis",
+    "poodle-tuy-bakimi-haftalik-rutin",
+    "yavru-poodle-beslenmesi-ilk-12-ay",
+    "clicker-egitimi",
+    "poodle-kizginlik-ciftlestirme",
+    "poodle-yavrulara-ilk-gunlerde-bakim",
+    "tuvalet-egitimi",
+    "poodle-goz-yasi-lekesi-temizleme",
+    "poodle-beslenme-alerjisi",
+    "poodle-dis-bakim-rehberi",
+  ];
+
+  const result = await pool.query<{ slug: string }>(
+    `SELECT slug FROM yp_articles WHERE slug = ANY($1)`,
+    [expectedSlugs]
+  );
+  const foundSlugs = new Set(result.rows.map((r) => r.slug));
+  const missingSlugs = expectedSlugs.filter((s) => !foundSlugs.has(s));
+
+  assert.equal(
+    missingSlugs.length,
+    0,
+    `registerRoutes startup seed is missing ${missingSlugs.length} article slug(s) in yp_articles: ${missingSlugs.join(", ")}`,
+  );
+});
+
+// ── Admin-control regression guard for yp_articles ────────────────────────────
+//
+// Proves that the sitemap handler is read-only: deactivating an article
+// removes it from /sitemap-yp.xml and the handler never resurrects it (i.e.
+// there is no hidden re-seeding on every request). This is the key behavioural
+// guarantee of "fully admin-managed" articles.
+//
+// Uses a self-contained test article (explicit slug, tracked in ids) so the
+// test does not depend on any specific startup-seeded row being present.
+//
+test("GET /sitemap-yp.xml: deactivating an article removes it from the sitemap and it is not resurrected", async () => {
+  // Insert a test article with an explicit slug so we control its lifecycle.
+  const testSlug = `${MARK}-admin-control-test`;
+  const testLoc = `${YP_SITE_BASE}/yourpoodle/rehber/${testSlug}`;
+
+  let articleId: number | null = null;
+  try {
+    const ins = await pool.query<{ id: number }>(
+      `INSERT INTO yp_articles (title, body, slug, is_active, featured, sort_order)
+       VALUES ($1, '', $2, true, false, 999) RETURNING id`,
+      [`${MARK} Admin Control Test`, testSlug]
+    );
+    articleId = ins.rows[0].id;
+    ids.ypArticles.push(articleId); // cleaned up by after()
+  } catch (e) {
+    assert.fail(`Could not insert test article for admin-control regression: ${e}`);
+    return;
+  }
+
+  // (a) Confirm the article appears in the sitemap while active.
+  {
+    const res = await fetch(`${baseUrl}/sitemap-yp.xml`, {
+      headers: { "X-Forwarded-Host": YP_SITEMAP_HOST },
+    });
+    assert.equal(res.status, 200, "Expected HTTP 200 before deactivation");
+    const xml = await res.text();
+    assert.ok(
+      xml.includes(`<loc>${testLoc}</loc>`),
+      `Active article slug "${testSlug}" must appear in sitemap-yp.xml`,
+    );
+  }
+
+  // (b) Deactivate the article — this is what an admin would do.
+  await pool.query(`UPDATE yp_articles SET is_active = false WHERE id = $1`, [articleId]);
+
+  // (c) Fetch sitemap TWICE to confirm the handler never re-seeds / re-activates.
+  for (let i = 0; i < 2; i++) {
+    const res = await fetch(`${baseUrl}/sitemap-yp.xml`, {
+      headers: { "X-Forwarded-Host": YP_SITEMAP_HOST },
+    });
+    assert.equal(res.status, 200, `Expected HTTP 200 from /sitemap-yp.xml on hit ${i + 1}`);
+    const xml = await res.text();
+    assert.ok(
+      !xml.includes(`<loc>${testLoc}</loc>`),
+      `Hit ${i + 1}: deactivated article "${testSlug}" must NOT appear in sitemap-yp.xml (handler must be read-only, not re-seeding)`,
+    );
+  }
+
+  // (d) Verify the DB row is still deactivated — the handler must not have touched it.
+  const dbCheck = await pool.query<{ is_active: boolean }>(
+    `SELECT is_active FROM yp_articles WHERE id = $1`, [articleId]
+  );
+  assert.equal(
+    dbCheck.rows[0]?.is_active,
+    false,
+    "The deactivated article must remain inactive after sitemap requests (handler must not update DB rows)",
   );
 });
 

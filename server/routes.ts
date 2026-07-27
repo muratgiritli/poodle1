@@ -678,6 +678,52 @@ export async function registerRoutes(
     console.error("Stock movements table setup error:", e);
   }
 
+  // ── yp_articles one-time schema migration + initial seed ──────────────────────
+  // Runs at startup (not per-request). The sitemap handler is intentionally
+  // read-only; admin edits/deletes are the sole mechanism for changing the list.
+  try {
+    await sharedPool.query(`
+      CREATE TABLE IF NOT EXISTS yp_articles (
+        id SERIAL PRIMARY KEY, title TEXT NOT NULL, body TEXT,
+        tag TEXT, emoji TEXT, min_read INT DEFAULT 5,
+        featured BOOLEAN DEFAULT false, sort_order INT DEFAULT 0,
+        is_active BOOLEAN DEFAULT true, slug TEXT
+      )`);
+    await sharedPool.query(`ALTER TABLE yp_articles ADD COLUMN IF NOT EXISTS slug TEXT`);
+    await sharedPool.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS yp_articles_slug_unique
+      ON yp_articles (slug) WHERE slug IS NOT NULL`);
+
+    // Seed the 15 initial articles once. Each is a no-op when its slug already exists.
+    const initialYpArticles: Array<{ title: string; slug: string; sortOrder: number }> = [
+      { title: "Toy Poodle En İyi Mama Markaları 2026", slug: "toy-poodle-en-iyi-mama-markalari-2026", sortOrder: 1 },
+      { title: "Evde Poodle Tıraşı: Adım Adım Rehber", slug: "evde-poodle-tirasi-adim-adim-rehber", sortOrder: 2 },
+      { title: "Poodle Sağlık Sorunları", slug: "poodle-saglik-sorunlari", sortOrder: 3 },
+      { title: "Temel Komut Eğitimi", slug: "temel-komut-egitimi", sortOrder: 4 },
+      { title: "Poodle Anksiyetesi", slug: "poodle-anksiyetesi", sortOrder: 5 },
+      { title: "Poodle Kalça Displazisi: Erken Teşhis", slug: "poodle-kalca-displazisi-erken-teshis", sortOrder: 6 },
+      { title: "Poodle Tüy Bakımı: Haftalık Rutin", slug: "poodle-tuy-bakimi-haftalik-rutin", sortOrder: 7 },
+      { title: "Yavru Poodle Beslenmesi: İlk 12 Ay", slug: "yavru-poodle-beslenmesi-ilk-12-ay", sortOrder: 8 },
+      { title: "Clicker Eğitimi", slug: "clicker-egitimi", sortOrder: 9 },
+      { title: "Poodle Kızgınlık ve Çiftleştirme", slug: "poodle-kizginlik-ciftlestirme", sortOrder: 10 },
+      { title: "Poodle Yavrulara İlk Günlerde Bakım", slug: "poodle-yavrulara-ilk-gunlerde-bakim", sortOrder: 11 },
+      { title: "Tuvalet Eğitimi", slug: "tuvalet-egitimi", sortOrder: 12 },
+      { title: "Poodle Göz Yaşı Lekesi Temizleme", slug: "poodle-goz-yasi-lekesi-temizleme", sortOrder: 13 },
+      { title: "Poodle Beslenme Alerjisi", slug: "poodle-beslenme-alerjisi", sortOrder: 14 },
+      { title: "Poodle Diş Bakım Rehberi", slug: "poodle-dis-bakim-rehberi", sortOrder: 15 },
+    ];
+    for (const a of initialYpArticles) {
+      await sharedPool.query(
+        `INSERT INTO yp_articles (title, body, slug, is_active, featured, sort_order)
+         SELECT $1, '', $2, true, false, $3
+         WHERE NOT EXISTS (SELECT 1 FROM yp_articles WHERE slug = $2)`,
+        [a.title, a.slug, a.sortOrder]
+      );
+    }
+  } catch (e) {
+    console.error("yp_articles schema/seed error:", e);
+  }
+
   try {
     const defaults: Array<[string, string]> = [
       ["payment_nakit_enabled", "true"],
@@ -942,25 +988,6 @@ export async function registerRoutes(
           .replace(/-+/g, "-")
           .replace(/^-|-$/g, "");
 
-      // Static article pages for /yourpoodle/rehber/:slug
-      const articleSlugs = [
-        "toy-poodle-en-iyi-mama-markalari-2026",
-        "evde-poodle-tirasi-adim-adim-rehber",
-        "poodle-saglik-sorunlari",
-        "temel-komut-egitimi",
-        "poodle-anksiyetesi",
-        "poodle-kalca-displazisi-erken-teshis",
-        "poodle-tuy-bakimi-haftalik-rutin",
-        "yavru-poodle-beslenmesi-ilk-12-ay",
-        "clicker-egitimi",
-        "poodle-kizginlik-ciftlestirme",
-        "poodle-yavrulara-ilk-gunlerde-bakim",
-        "tuvalet-egitimi",
-        "poodle-goz-yasi-lekesi-temizleme",
-        "poodle-beslenme-alerjisi",
-        "poodle-dis-bakim-rehberi",
-      ];
-
       // Dynamic: fetch active dog products from DB for /yourpoodle/urun/:id/:slug
       let productRows: Array<{ id: number; name: string }> = [];
       try {
@@ -978,21 +1005,18 @@ export async function registerRoutes(
         // Non-fatal: serve static-only sitemap if DB unavailable
       }
 
-      // Dynamic: fetch active articles from yp_articles for /yourpoodle/rehber/:slug
-      let articleRows: Array<{ id: number; title: string }> = [];
+      // Dynamic: fetch active articles from yp_articles for /yourpoodle/rehber/:slug.
+      // The sitemap handler is intentionally read-only here — schema and initial seeding
+      // happen once at startup (registerRoutes init block above). Admin edits/deletes
+      // are the sole mechanism for changing what appears in the sitemap.
+      let articleRows: Array<{ id: number; title: string; slug: string | null }> = [];
       try {
-        await sharedPool.query(`
-          CREATE TABLE IF NOT EXISTS yp_articles (
-            id SERIAL PRIMARY KEY, title TEXT NOT NULL, body TEXT,
-            tag TEXT, emoji TEXT, min_read INT DEFAULT 5,
-            featured BOOLEAN DEFAULT false, sort_order INT DEFAULT 0, is_active BOOLEAN DEFAULT true
-          )`);
-        const result = await sharedPool.query<{ id: number; title: string }>(
-          `SELECT id, title FROM yp_articles WHERE is_active = true ORDER BY featured DESC, sort_order ASC, id ASC`
+        const result = await sharedPool.query<{ id: number; title: string; slug: string | null }>(
+          `SELECT id, title, slug FROM yp_articles WHERE is_active = true ORDER BY featured DESC, sort_order ASC, id ASC`
         );
         articleRows = result.rows;
       } catch (_dbErr) {
-        // Non-fatal: fall back to hardcoded slugs only
+        // Non-fatal: serve without article pages if DB unavailable
       }
 
       // Dynamic: fetch active events from yp_events for /yourpoodle/etkinlikler/:slug
@@ -1027,20 +1051,6 @@ export async function registerRoutes(
         xml += `  </url>\n`;
       }
 
-      // Article pages — track emitted slugs to prevent duplicates with DB-driven rows
-      const emittedArticleSlugs = new Set<string>();
-      for (const slug of articleSlugs) {
-        emittedArticleSlugs.add(slug);
-        xml += `  <url>\n`;
-        xml += `    <loc>${SITE}/yourpoodle/rehber/${slug}</loc>\n`;
-        xml += `    <lastmod>${today}</lastmod>\n`;
-        xml += `    <changefreq>monthly</changefreq>\n`;
-        xml += `    <priority>0.8</priority>\n`;
-        xml += `    <xhtml:link rel="alternate" hreflang="tr" href="${SITE}/yourpoodle/rehber/${slug}" />\n`;
-        xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}/" />\n`;
-        xml += `  </url>\n`;
-      }
-
       // Dynamic product pages
       for (const p of productRows) {
         const slug = toSlug(p.name);
@@ -1054,10 +1064,11 @@ export async function registerRoutes(
         xml += `  </url>\n`;
       }
 
-      // Dynamic article pages from yp_articles: /yourpoodle/rehber/:slug
-      // Skip any slug already emitted from the hardcoded list to prevent duplicate <loc> entries.
+      // Article pages from yp_articles (DB is sole source of truth).
+      // Use the explicit slug column when set; fall back to slugifying the title.
+      const emittedArticleSlugs = new Set<string>();
       for (const a of articleRows) {
-        const slug = toSlug(a.title);
+        const slug = a.slug || toSlug(a.title);
         if (!slug || emittedArticleSlugs.has(slug)) continue;
         emittedArticleSlugs.add(slug);
         xml += `  <url>\n`;
