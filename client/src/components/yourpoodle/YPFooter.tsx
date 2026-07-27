@@ -21,7 +21,7 @@ const COLUMNS = [
     title: "Mağaza",
     links: [
       { label: "Tüm Ürünler",     href: "/yourpoodle/magaza" },
-      { label: "Mamalar",         href: "/yourpoodle/magaza?kategori=mama" },
+      { label: "Mamalar",         href: "/yourpoodle/kuru-mama" },
       { label: "Bakım Ürünleri",  href: "/yourpoodle/magaza?kategori=bakim" },
       { label: "Oyuncaklar",      href: "/yourpoodle/magaza?kategori=oyuncak" },
       { label: "Kıyafetler",      href: "/yourpoodle/magaza?kategori=kiyafet" },

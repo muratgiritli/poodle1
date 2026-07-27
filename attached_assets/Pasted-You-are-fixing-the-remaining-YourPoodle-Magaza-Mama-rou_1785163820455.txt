@@ -1,0 +1,70 @@
+You are fixing the remaining YourPoodle Magaza → Mama routing bugs.
+Do NOT rebuild the Köpek Mamaları PLP — it already works at `/yourpoodle/kuru-mama`.
+
+Mobile: 390×844
+No stubs. No alert(). No “yakında / coming soon”.
+Do not stop until every acceptance check is green.
+Do NOT regress Mama Bul / Rehber / AI Asistan / Club / the working mama PLP.
+
+==================================================
+A) ALREADY DONE — DO NOT TOUCH / PRESERVE
+==================================================
+`/yourpoodle/kuru-mama` already works:
+- H1 + document.title: “Köpek Mamaları | YourPoodle”
+- Search: “Mama ara...”
+- Filter chips: Marka / Yaş / Kg / Fiyat (bottom sheets)
+- Real products with real images, prices, Sepete Ekle
+- Empty state: “Sonuç bulunamadı”
+- hideFooter
+- No “Premium Ürün …” placeholders / emoji product images
+
+Keep all of this exactly as-is.
+
+==================================================
+B) CRITICAL BUG (must fix)
+==================================================
+From `/yourpoodle/magaza`:
+
+BROKEN now:
+- Tap “Kuru Mama” category → goes to `/kuru-mama`
+- Tap campaign “Poodle Kuru Mama” → goes to `/kuru-mama`
+- `/kuru-mama` is SEO text only (“Samsun’a Aynı Gün Kapıda”) — NO product grid
+
+REQUIRED:
+- Both taps must go to `/yourpoodle/kuru-mama`
+- User must see “Köpek Mamaları” + search + filters + product cards
+
+Likely root cause: Magaza basePath / prefix (`c`) resolves to `""`, so:
+`${c}/kuru-mama` → `/kuru-mama` (wrong)
+instead of
+`${basePath}/kuru-mama` → `/yourpoodle/kuru-mama` (correct)
+
+Fix Magaza navigation so ALL shop links keep the `/yourpoodle` prefix:
+1) Kuru Mama category → `/yourpoodle/kuru-mama`
+2) Campaign banner → `/yourpoodle/kuru-mama`
+3) Other categories → `/yourpoodle/kategori/{slug}` (not `/kategori/{slug}`)
+4) Footer “Mamalar” → `/yourpoodle/kuru-mama`
+5) `?kategori=mama` must open the mama PLP (redirect or filter) — not a no-op
+
+Keep SEO page `/kuru-mama` if needed for SEO, but Magaza shop CTAs must NEVER land there.
+
+==================================================
+C) LIGHT POLISH (only if safe/quick)
+==================================================
+On `/yourpoodle/kuru-mama` only:
+- If barcode/expiry exist in product data, show “Barkod · SKT · X KG”
+- Sepete Ekle should toast “Sepete eklendi” and update cart badge
+Do NOT invent fake products. 3 real mamalar is fine.
+
+==================================================
+D) ACCEPTANCE CHECKS (all green)
+==================================================
+[ ] `/yourpoodle/magaza` → “Kuru Mama” → URL `/yourpoodle/kuru-mama` + product PLP
+[ ] `/yourpoodle/magaza` → campaign banner → same PLP (NOT SEO `/kuru-mama`)
+[ ] Direct `/yourpoodle/kuru-mama` still works (search/filters/cart unchanged)
+[ ] Other Magaza categories keep `/yourpoodle/...` prefix
+[ ] Footer “Mamalar” opens mama PLP
+[ ] No alert() / yakında
+[ ] No regression on Mama Bul / Rehber / AI / Club
+
+Fix basePath/routing in one pass and verify Magaza → Mama end-to-end.
