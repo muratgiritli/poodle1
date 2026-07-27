@@ -1027,10 +1027,15 @@ export async function registerRoutes(
             id SERIAL PRIMARY KEY, title TEXT NOT NULL, description TEXT,
             location TEXT, event_date DATE, day TEXT, month TEXT, year TEXT,
             type TEXT DEFAULT 'Etkinlik', free BOOLEAN DEFAULT true,
-            color TEXT DEFAULT '#7C3AFF', sort_order INT DEFAULT 0, is_active BOOLEAN DEFAULT true
+            color TEXT DEFAULT '#7C3AFF', sort_order INT DEFAULT 0, is_active BOOLEAN DEFAULT true,
+            slug TEXT
           )`);
-        const result = await sharedPool.query<{ id: number; title: string }>(
-          `SELECT id, title FROM yp_events WHERE is_active = true ORDER BY sort_order ASC, id ASC`
+        await sharedPool.query(`ALTER TABLE yp_events ADD COLUMN IF NOT EXISTS slug TEXT`);
+        await sharedPool.query(`
+          UPDATE yp_events SET slug = lower(regexp_replace(regexp_replace(title, '[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ]+', '-', 'g'), '-+', '-', 'g'))
+          WHERE slug IS NULL OR slug = ''`);
+        const result = await sharedPool.query<{ id: number; title: string; slug: string }>(
+          `SELECT id, title, slug FROM yp_events WHERE is_active = true ORDER BY sort_order ASC, id ASC`
         );
         eventRows = result.rows;
       } catch (_dbErr) {
@@ -1082,9 +1087,11 @@ export async function registerRoutes(
       }
 
       // Dynamic event pages from yp_events: /yourpoodle/etkinlikler/:slug
+      const emittedEventSlugs = new Set<string>();
       for (const e of eventRows) {
-        const evSlug = toSlug(e.title);
-        if (!evSlug) continue;
+        const evSlug = (e as any).slug || toSlug(e.title);
+        if (!evSlug || emittedEventSlugs.has(evSlug)) continue;
+        emittedEventSlugs.add(evSlug);
         xml += `  <url>\n`;
         xml += `    <loc>${SITE}/yourpoodle/etkinlikler/${evSlug}</loc>\n`;
         xml += `    <lastmod>${today}</lastmod>\n`;
@@ -8487,10 +8494,20 @@ Kurallar:
       s.toLowerCase().replace(/[^a-z0-9ğüşıöç]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
     try {
       const result = await sharedPool.query(
-        `SELECT id, title, description, location, event_date, day, month, year, type, free, color
-         FROM yp_events WHERE is_active = true`
+        `SELECT id, title, description, location, event_date, day, month, year, type, free, color, slug
+         FROM yp_events WHERE is_active = true AND slug = $1
+         LIMIT 1`,
+        [slug]
       );
-      const row = result.rows.find((r: any) => toSlug(r.title) === slug);
+      // Fallback: match by runtime-derived slug for rows not yet backfilled
+      let row = result.rows[0];
+      if (!row) {
+        const all = await sharedPool.query(
+          `SELECT id, title, description, location, event_date, day, month, year, type, free, color, slug
+           FROM yp_events WHERE is_active = true`
+        );
+        row = all.rows.find((r: any) => toSlug(r.title) === slug);
+      }
       if (!row) return res.status(404).json({ message: "Etkinlik bulunamadı" });
       res.json(row);
     } catch (e: any) {
@@ -8505,10 +8522,15 @@ Kurallar:
           id SERIAL PRIMARY KEY, title TEXT NOT NULL, description TEXT,
           location TEXT, event_date DATE, day TEXT, month TEXT, year TEXT,
           type TEXT DEFAULT 'Etkinlik', free BOOLEAN DEFAULT true,
-          color TEXT DEFAULT '#7C3AFF', sort_order INT DEFAULT 0, is_active BOOLEAN DEFAULT true
+          color TEXT DEFAULT '#7C3AFF', sort_order INT DEFAULT 0, is_active BOOLEAN DEFAULT true,
+          slug TEXT
         )`);
+      await sharedPool.query(`ALTER TABLE yp_events ADD COLUMN IF NOT EXISTS slug TEXT`);
+      await sharedPool.query(`
+        UPDATE yp_events SET slug = lower(regexp_replace(regexp_replace(title, '[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ]+', '-', 'g'), '-+', '-', 'g'))
+        WHERE slug IS NULL OR slug = ''`);
       const result = await sharedPool.query(
-        `SELECT id, title, description, location, event_date, day, month, year, type, free, color
+        `SELECT id, title, description, location, event_date, day, month, year, type, free, color, slug
          FROM yp_events WHERE is_active = true ORDER BY sort_order ASC, id ASC`
       );
       res.json(result.rows);
@@ -8530,10 +8552,13 @@ Kurallar:
     const { title, description, location, event_date, day, month, year, type, free, color, sort_order } = req.body;
     if (!title || !day || !month) return res.status(400).json({ message: "title, day, month gerekli" });
     try {
+      const toSlugLocal = (s: string) =>
+        s.toLowerCase().replace(/[^a-z0-9ğüşıöç]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+      const computedSlug = toSlugLocal(title);
       const result = await sharedPool.query(
-        `INSERT INTO yp_events (title, description, location, event_date, day, month, year, type, free, color, sort_order, is_active)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,true) RETURNING *`,
-        [title, description||null, location||null, event_date||null, day, month, year||null, type||"Etkinlik", free===true||free==="true", color||"#7C3AFF", sort_order||0]
+        `INSERT INTO yp_events (title, description, location, event_date, day, month, year, type, free, color, sort_order, is_active, slug)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,true,$12) RETURNING *`,
+        [title, description||null, location||null, event_date||null, day, month, year||null, type||"Etkinlik", free===true||free==="true", color||"#7C3AFF", sort_order||0, computedSlug||null]
       );
       res.json(result.rows[0]);
     } catch (e: any) { res.status(500).json({ message: e.message }); }
@@ -8544,10 +8569,13 @@ Kurallar:
     const id = parseInt(String(req.params.id));
     const { title, description, location, event_date, day, month, year, type, free, color, sort_order, is_active } = req.body;
     try {
+      const toSlugLocal = (s: string) =>
+        s.toLowerCase().replace(/[^a-z0-9ğüşıöç]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+      const computedSlug = title ? toSlugLocal(title) : null;
       const result = await sharedPool.query(
         `UPDATE yp_events SET title=$1, description=$2, location=$3, event_date=$4, day=$5, month=$6, year=$7,
-         type=$8, free=$9, color=$10, sort_order=$11, is_active=$12 WHERE id=$13 RETURNING *`,
-        [title, description||null, location||null, event_date||null, day, month, year||null, type||"Etkinlik", free===true||free==="true", color||"#7C3AFF", sort_order||0, is_active!==false, id]
+         type=$8, free=$9, color=$10, sort_order=$11, is_active=$12, slug=COALESCE($14, slug) WHERE id=$13 RETURNING *`,
+        [title, description||null, location||null, event_date||null, day, month, year||null, type||"Etkinlik", free===true||free==="true", color||"#7C3AFF", sort_order||0, is_active!==false, id, computedSlug||null]
       );
       if (!result.rows[0]) return res.status(404).json({ message: "Etkinlik bulunamadı" });
       res.json(result.rows[0]);
