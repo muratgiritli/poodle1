@@ -2015,6 +2015,70 @@ test("jetgo-exclusive: retailer-intent keywords are framed as a local ALTERNATIV
   }
 });
 
+// ---------------------------------------------------------------------------
+// Sitemap keyword-page count regression guards.
+//
+// The availability filter bug silently dropped ~500 YourPoodle keyword pages
+// from the sitemap without any test failing. These two assertions catch that
+// class of regression: (1) getSeoPagesForStore(jetgo) must include every page
+// in JETGO_EXCLUSIVE_PAGES; (2) storeId-owned localOnly pages must survive
+// even when the same store is forced to a cargo/nationwide commerce model,
+// proving the storeId ownership check runs BEFORE the availability filter.
+// ---------------------------------------------------------------------------
+
+test("getSeoPagesForStore(jetgo): total page count includes the full JETGO_EXCLUSIVE corpus", () => {
+  // If the availability filter ever runs before the storeId check, all localOnly
+  // storeId-owned pages would be dropped for cargo stores — and could also be
+  // accidentally suppressed for local stores by a filter-order bug.
+  const jetgoPages = getSeoPagesForStore(JETGO_STORE);
+  // Total count must meet the known corpus floor.
+  assert.ok(
+    jetgoPages.length >= JETGO_EXCLUSIVE_PAGES.length,
+    `getSeoPagesForStore(jetgo) returned ${jetgoPages.length} pages; expected at least ${JETGO_EXCLUSIVE_PAGES.length} (the JETGO_EXCLUSIVE corpus alone)`,
+  );
+  // Every individual JETGO_EXCLUSIVE page must appear in the output.
+  const jetgoSlugs = new Set(jetgoPages.map((p) => p.slug));
+  const missing = JETGO_EXCLUSIVE_PAGES.filter((p) => !jetgoSlugs.has(p.slug));
+  assert.equal(
+    missing.length,
+    0,
+    `${missing.length} JETGO_EXCLUSIVE_PAGES are missing from getSeoPagesForStore(jetgo): ${missing.slice(0, 5).map((p) => p.slug).join(", ")}`,
+  );
+});
+
+test("getSeoPagesForStore: storeId-owned localOnly pages survive even on a cargo/nationwide commerce model", () => {
+  // Regression guard: when a store publishes pages tagged storeId:"jetgo" +
+  // availability:"localOnly", those pages belong to that store UNCONDITIONALLY.
+  // A future refactor that applies the availability filter before the storeId
+  // ownership check would silently drop them — catching it requires a cargo-model
+  // variant of the jetgo store (the original production regression surface).
+  const cargoJetgo: typeof JETGO_STORE = {
+    ...JETGO_STORE,
+    commerce: {
+      ...JETGO_STORE.commerce,
+      fulfillment: "cargo" as const,
+      nationwideSeo: true,
+      onlinePaymentOnly: true,
+      shippingLabel: "Kargo Ücreti",
+      preorderEnabled: false,
+    },
+  };
+  assert.ok(isCargoStore(cargoJetgo), "guard: synthetic cargo-model jetgo must be classified as cargo by isCargoStore");
+  const cargoPages = getSeoPagesForStore(cargoJetgo);
+  const cargoSlugs = new Set(cargoPages.map((p) => p.slug));
+  // Every jetgo-storeId page (all tagged localOnly) must still be present.
+  const missing = JETGO_EXCLUSIVE_PAGES.filter((p) => !cargoSlugs.has(p.slug));
+  assert.equal(
+    missing.length,
+    0,
+    `${missing.length} storeId-owned localOnly pages dropped when jetgo runs cargo model: ${missing.slice(0, 5).map((p) => p.slug).join(", ")}`,
+  );
+  // Count floor: must not be smaller than the exclusive corpus alone.
+  assert.ok(
+    cargoPages.length >= JETGO_EXCLUSIVE_PAGES.length,
+    `cargo-model jetgo returned only ${cargoPages.length} pages; expected at least ${JETGO_EXCLUSIVE_PAGES.length}`,
+  );
+});
 
 // ---------------------------------------------------------------------------
 // Royal Canin jetgo-exclusive corpus.
