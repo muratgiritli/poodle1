@@ -338,6 +338,34 @@ const CARGO_COPY_REWRITES: ReadonlyArray<readonly [RegExp, string]> = [
   [/Atakum içinde ortalama 1 saatte[^.]+geneline/g, "Türkiye geneline"],
   // Physical store address sentence in noscript/intro (not a legal page):
   [/Pet Shop Yenimahalle[^,]+, Atakum, Samsun adresi[^.]+\./g, "Türkiye geneline kargo ile teslimat yapar."],
+  // ---- JETGO-EXCLUSIVE keyword page: deliverySection ----
+  // H2: "${K} Atakum ve Samsun'a Teslimat"
+  [/Atakum ve Samsun'a Teslimat/g, "Türkiye Geneline Kargo ile Teslimat"],
+  // Delivery paragraph lead: "${K} siparişlerinizi Atakum'un tüm mahallelerine kurye ile ulaştırıyoruz."
+  [/Atakum'un tüm mahallelerine kurye ile ulaştırıyoruz\./g, "Türkiye'nin 81 iline kargo ile ulaştırıyoruz."],
+  // Delivery paragraph 2nd sentence after pattern chain: "Aşağıdaki bölgelere ... aynı gün teslimat yapıyoruz."
+  [/Aşağıdaki bölgelere [^.]+aynı gün teslimat yapıyoruz\./g, "İstanbul 1, Ankara-İzmir 1-2, diğer iller 2-3 iş günü teslimat."],
+  // "aynı gün teslimat yapıyoruz" standalone (after Türkiye geneline replacement above)
+  [/aynı gün teslimat yapıyoruz\./g, "1-3 iş günü içinde teslim ediyoruz."],
+  // Delivery list items: "${N} bölgesine hızlı teslimat" (NEIGHBORHOODS from keyword-pages-jetgo.ts)
+  [/(?:Denizevleri|Atakent|Mimar Sinan|Kurupelit|Cumhuriyet|Körfez|Esenevler|Çatalçam|Aksu|Taflan|Balaç|Güzelyalı|İncesu|Alanlı|Kamalı|Beypınar|Yeşiltepe|Karakavuk|Elmaçukuru|İlkadım|Canik|Tekkeköy|Bafra[^\n]*) bölgesine hızlı teslimat/g, "Türkiye'nin her iline hızlı kargo"],
+  // ---- JETGO-EXCLUSIVE keyword page: whyJetgoSection ----
+  // "kurye ekibimiz apartman katınıza kadar getirsin."
+  [/kurye ekibimiz apartman katınıza kadar getirsin\./g, "kargo adresinize kadar ulaştırır."],
+  // ORDER_LINE variant from keyword-pages-jetgo.ts (uses "seçip" not "seçin"):
+  [/üzerinden ürünleri seçip sepete ekleyin; WhatsApp ile tek tıkla ya da[^.]+siparişinizi onaylayın\./g, "üzerinden ürünleri seçin, sepete ekleyin ve güvenli online ödeme ile siparişinizi tamamlayın."],
+  // whyJetgoSection list item (longer form than existing feature bullet):
+  [/Atakum içinde ortalama 1 saatte, Samsun geneline aynı gün teslimat/g, "Hafta içi 14:00'e kadar aynı gün kargoya verilir"],
+  // "Kapıda nakit, kredi kartı (POS) ve QR ile ödeme" — short form (no verb, appears as list item)
+  [/Kapıda nakit, kredi kartı \(POS\) ve QR ile ödeme(?![,] var| yapabilirsiniz)/g, "Güvenli online kart ile ödeme"],
+  // ---- JETGO-EXCLUSIVE keyword page: FAQ ----
+  // Retailer FAQ: "JETGO, Samsun merkezli bağımsız bir yerel pet shop'tur"
+  [/Samsun merkezli bağımsız bir yerel pet shop'tur/g, "Türkiye genelinde hizmet veren bağımsız bir online pet shop'tur"],
+  // Retailer FAQ 2nd sentence: "Atakum ve Samsun içinde aynı gün kapıya teslimat ve kapıda ödeme sunmamızdır."
+  [/Atakum ve Samsun içinde aynı gün kapıya teslimat ve kapıda ödeme sunmamızdır\./g, "hızlı kargo ve güvenli online ödeme sunmamızdır."],
+  // FAQ stock availability: "siparişinizi Atakum ve Samsun içinde aynı gün kapınıza ulaştırırız."
+  [/Atakum ve Samsun içinde aynı gün kapınıza ulaştırırız\./g, "Türkiye geneline kargo ile ulaştırırız."],
+  // ---- General cleanup ----
   // keywords meta — strip / replace local-only keyword suffixes:
   [/ samsun,/g, ","],
   [/ atakum,/g, ","],

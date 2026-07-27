@@ -1,0 +1,81 @@
+```text
+You are doing a FOLLOW-UP cleanup pass for YourPoodle.
+Do NOT rebuild Magaza / Mama PLP / routing from scratch.
+Do NOT redesign.
+
+Previous pass already fixed:
+- `/kuru-mama` title → “Türkiye'nin 81 İline Hızlı Kargo”
+- Shared geo meta no longer forces Samsun/TR-55
+- CTA links to `/yourpoodle/kuru-mama` and `/yourpoodle/kargo`
+- Magaza → `/yourpoodle/kuru-mama` PLP still works
+- `/yourpoodle/kargo` nationwide table works
+
+PRESERVE all of the above.
+
+==================================================
+CRITICAL: `/kuru-mama` BODY IS STILL HALF-LOCAL
+==================================================
+Title/intro are Turkey-wide, but lower sections still contain Samsun local delivery copy.
+
+Verified remaining bad content on `/kuru-mama`:
+1) H2: “Kuru Mama Atakum ve Samsun'a Teslimat”
+2) “Atakum'un tüm mahallelerine kurye ile ulaştırıyoruz…”
+3) “Canik bölgesine hızlı teslimat”
+4) “Tekkeköy bölgesine hızlı teslimat”
+5) “Kapıda nakit, kredi kartı (POS) ve QR ile ödeme”
+6) WhatsApp-first order confirmation still used as primary CTA narrative
+
+Also remove any remaining:
+Samsun|Atakum|İlkadım|Canik|Tekkeköy|Denizevleri|Atakent|Mimar Sinan|Bafra|Kapıda nakit|aynı gün kapıda
+
+==================================================
+REQUIRED REWRITE
+==================================================
+Rewrite the leftover local sections to nationwide shipping language aligned with `/yourpoodle/kargo`:
+
+Use:
+- “Türkiye’nin 81 iline kargo”
+- İstanbul 1 iş günü
+- Ankara / İzmir 1–2 iş günü
+- Diğer iller 2–3 iş günü
+- Uzak bölgeler 3–4 iş günü
+- “Hafta içi 14:00’e kadar siparişler aynı gün kargoya verilir”
+- Free shipping rule from `/yourpoodle/kargo` (currently 299 TL+)
+- Online checkout / card payment as primary
+- CTA buttons only:
+  - “Ürünleri İncele” → `/yourpoodle/kuru-mama`
+  - “Kargo Bilgileri” → `/yourpoodle/kargo`
+
+Delete district lists and kapıda-kurye framing.
+WhatsApp/phone may remain as support contact only, not primary checkout path.
+
+Rename/replace the bad H2 entirely. Example:
+- “Kuru Mama Türkiye Geneline Teslimat”
+NOT “Atakum ve Samsun'a Teslimat”
+
+==================================================
+SWEEP SCOPE
+==================================================
+1) Fix `/kuru-mama` fully (title+body+FAQ+lists)
+2) Grep all SEO category landings for the same leftover local blocks and clean them the same way
+3) Ensure no conflicting local section remains under a nationwide H1
+
+Do not touch working PLP features on `/yourpoodle/kuru-mama`.
+
+==================================================
+SELF-QA (must pass before stop)
+==================================================
+Open `/kuru-mama` and verify:
+[ ] No “Samsun”
+[ ] No “Atakum”
+[ ] No “Canik” / “Tekkeköy” / “İlkadım”
+[ ] No “Kapıda nakit”
+[ ] No H2 containing Atakum/Samsun
+[ ] Body logistics matches nationwide kargo page
+[ ] CTA to `/yourpoodle/kuru-mama` still works
+[ ] Magaza → Kuru Mama still opens PLP
+[ ] Mama PLP still has search/filters/products
+
+If any checkbox fails, fix and re-check.
+Report PASS/FAIL for each item when done.
+```

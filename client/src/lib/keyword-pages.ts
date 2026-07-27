@@ -1059,6 +1059,7 @@ const CARGO_KEYWORDS: string[] = [
   "kısırlaştırılmış kedi maması online",
   "tahılsız kedi maması online",
   "yaş mama online sipariş",
+  "kuru mama",
   "kuru mama online sipariş",
   "köpek ödül maması online",
   "kedi ödül maması online",

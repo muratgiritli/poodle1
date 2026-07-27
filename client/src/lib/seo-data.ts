@@ -4226,7 +4226,7 @@ for (const p of SEO_PAGES) {
 }
 
 export function isCargoStore(store: StoreConfig): boolean {
-  return store.commerce.fulfillment === "cargo";
+  return store.commerce.fulfillment === "cargo" || !!store.commerce.nationwideSeo;
 }
 
 /** Pages eligible for a store's commerce model (unique slugs per model). */
@@ -4337,11 +4337,22 @@ for (const group of SITEMAP_PARTITION_GROUPS) {
 }
 
 /** Resolve a slug to the variant served by this store: its own exclusive
- * override first, otherwise the shared variant for its commerce model. */
+ * override first, otherwise the shared variant for its commerce model.
+ * For cargo/nationwide stores: prefer a clean cargo variant when one exists
+ * rather than serving a localOnly store-exclusive page with false claims. */
 export function findSeoPage(slug: string, store: StoreConfig): SeoPageData | undefined {
+  const cargo = isCargoStore(store);
   const override = _overrideByStore.get(store.id)?.get(slug);
-  if (override) return override;
-  return (isCargoStore(store) ? _cargoSlugMap : _localSlugMap).get(slug);
+  if (override) {
+    // Nationwide/cargo stores: if the override is localOnly AND a cargo-model
+    // variant exists in the shared map, prefer the clean cargo version.
+    if (cargo && override.availability === "localOnly") {
+      const cargoVariant = _cargoSlugMap.get(slug);
+      if (cargoVariant) return cargoVariant;
+    }
+    return override;
+  }
+  return (cargo ? _cargoSlugMap : _localSlugMap).get(slug);
 }
 
 /** Set of slugs reachable on this store (for link/orphan filtering). */
