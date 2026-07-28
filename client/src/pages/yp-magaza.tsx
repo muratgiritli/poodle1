@@ -58,6 +58,7 @@ const SLUG_TO_SUBCAT: Record<string, string> = {
   "bit-pire-parazit":    "bit-pire-parazit",
   "goz-kulak-bakimi":    "goz-kulak-bakim",
   "tiras-ekipmanlari":   "tras-ekipmanlari",
+  "acik-mama":           "acik-mama",
 };
 
 /* ── Category data ── */
@@ -80,6 +81,7 @@ const CATEGORIES: Cat[] = [
   { id:"c15", name:"Bit, Pire ve Parazit",   color:"green",  Icon:Bug,              slug:"bit-pire-parazit"    },
   { id:"c16", name:"Göz ve Kulak Bakımı",    color:"purple", Icon:Eye,              slug:"goz-kulak-bakimi"    },
   { id:"c17", name:"Tıraş Ekipmanları",      color:"yellow", Icon:Wand2,            slug:"tiras-ekipmanlari"   },
+  { id:"c18", name:"Açık Mama",              color:"orange", Icon:UtensilsCrossed,  slug:"acik-mama"           },
 ];
 
 /* ── Inline toast ── */

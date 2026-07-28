@@ -28,6 +28,7 @@ const SLUG_TO_SUBCAT: Record<string, string> = {
   "bit-pire-parazit":    "bit-pire-parazit",
   "goz-kulak-bakimi":    "goz-kulak-bakim",
   "tiras-ekipmanlari":   "tras-ekipmanlari",
+  "acik-mama":           "acik-mama",
 };
 
 /* ── Page title / H1 mapping ──────────────────────────────────────── */
@@ -48,6 +49,7 @@ const SLUG_TO_TITLE: Record<string, string> = {
   "bit-pire-parazit":    "Bit, Pire ve Parazit",
   "goz-kulak-bakimi":    "Göz ve Kulak Bakımı",
   "tiras-ekipmanlari":   "Tıraş Ekipmanları",
+  "acik-mama":           "Açık Mama",
 };
 
 /**
