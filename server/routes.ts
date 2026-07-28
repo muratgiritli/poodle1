@@ -8592,6 +8592,49 @@ Kurallar:
   });
 
   // ─── YourPoodle Articles API ──────────────────────────────────────────────
+
+  // Public: single article by slug — used by the detail page + 410 guard below
+  app.get("/api/yp-article/:slug", async (req, res) => {
+    const { slug } = req.params;
+    try {
+      const result = await sharedPool.query(
+        `SELECT id, title, body, tag, emoji, min_read, featured, sort_order, is_active, slug
+         FROM yp_articles WHERE slug = $1 LIMIT 1`,
+        [slug]
+      );
+      if (!result.rows[0]) return res.status(404).json({ message: "Makale bulunamadı" });
+      const article = result.rows[0];
+      if (!article.is_active) return res.status(410).json({ message: "Bu makale artık yayında değil" });
+      res.json(article);
+    } catch {
+      res.status(500).json({ message: "Sunucu hatası" });
+    }
+  });
+
+  // SEO: return 410 Gone for deactivated article URLs before the SPA catches them.
+  // Active articles and unknown slugs fall through to the SPA normally.
+  app.get("/yourpoodle/rehber/:slug", async (req, res, next) => {
+    const { slug } = req.params;
+    // Skip if it looks like a static asset
+    if (slug.includes(".")) return next();
+    try {
+      const result = await sharedPool.query(
+        `SELECT is_active FROM yp_articles WHERE slug = $1 LIMIT 1`,
+        [slug]
+      );
+      if (result.rows[0] && !result.rows[0].is_active) {
+        return res.status(410).send(
+          `<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>Makale Kaldırıldı</title></head>` +
+          `<body><h1>410 Gone</h1><p>Bu makale artık yayında değil.</p>` +
+          `<p><a href="/yourpoodle/rehber">Tüm rehberlere dön</a></p></body></html>`
+        );
+      }
+    } catch {
+      // DB error — fall through to SPA so the page still loads
+    }
+    next();
+  });
+
   // Public: list all articles
   app.get("/api/yp-articles", async (_req, res) => {
     try {
