@@ -8621,13 +8621,19 @@ Kurallar:
 
   // Admin: create article
   app.post("/api/admin/yp-articles", requireAdmin, async (req, res) => {
-    const { title, body, tag, emoji, min_read, featured, sort_order } = req.body;
+    const { title, body, tag, emoji, min_read, featured, sort_order, slug, is_active } = req.body;
     if (!title || !body) return res.status(400).json({ message: "title ve body gerekli" });
+    const finalSlug = slug && slug.trim() ? slug.trim() : null;
+    if (finalSlug) {
+      const existing = await sharedPool.query(`SELECT id FROM yp_articles WHERE slug=$1`, [finalSlug]);
+      if (existing.rows.length) return res.status(409).json({ message: "Bu slug zaten kullanımda" });
+    }
+    const activeVal = is_active === false || is_active === "false" ? false : true;
     try {
       const result = await sharedPool.query(
-        `INSERT INTO yp_articles (title, body, tag, emoji, min_read, featured, sort_order, is_active)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,true) RETURNING *`,
-        [title, body, tag||null, emoji||"📖", min_read||5, featured===true||featured==="true", sort_order||0]
+        `INSERT INTO yp_articles (title, body, tag, emoji, min_read, featured, sort_order, is_active, slug)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+        [title, body, tag||null, emoji||"📖", min_read||5, featured===true||featured==="true", sort_order||0, activeVal, finalSlug]
       );
       res.json(result.rows[0]);
     } catch (e: any) { res.status(500).json({ message: e.message }); }
@@ -8636,12 +8642,17 @@ Kurallar:
   // Admin: update article
   app.put("/api/admin/yp-articles/:id", requireAdmin, async (req, res) => {
     const id = parseInt(String(req.params.id));
-    const { title, body, tag, emoji, min_read, featured, sort_order, is_active } = req.body;
+    const { title, body, tag, emoji, min_read, featured, sort_order, is_active, slug } = req.body;
+    const finalSlug = slug && slug.trim() ? slug.trim() : null;
+    if (finalSlug) {
+      const existing = await sharedPool.query(`SELECT id FROM yp_articles WHERE slug=$1 AND id<>$2`, [finalSlug, id]);
+      if (existing.rows.length) return res.status(409).json({ message: "Bu slug zaten kullanımda" });
+    }
     try {
       const result = await sharedPool.query(
-        `UPDATE yp_articles SET title=$1, body=$2, tag=$3, emoji=$4, min_read=$5, featured=$6, sort_order=$7, is_active=$8
-         WHERE id=$9 RETURNING *`,
-        [title, body, tag||null, emoji||"📖", min_read||5, featured===true||featured==="true", sort_order||0, is_active!==false, id]
+        `UPDATE yp_articles SET title=$1, body=$2, tag=$3, emoji=$4, min_read=$5, featured=$6, sort_order=$7, is_active=$8, slug=$9
+         WHERE id=$10 RETURNING *`,
+        [title, body, tag||null, emoji||"📖", min_read||5, featured===true||featured==="true", sort_order||0, is_active!==false, finalSlug, id]
       );
       if (!result.rows[0]) return res.status(404).json({ message: "Makale bulunamadı" });
       res.json(result.rows[0]);

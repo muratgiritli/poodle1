@@ -7239,6 +7239,17 @@ function BannersSection() {
 }
 
 /* ─── YP Articles Admin ─────────────────────────────────────── */
+function slugifyTr(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s")
+    .replace(/ı/g, "i").replace(/ö/g, "o").replace(/ç/g, "c")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
 function YPArticlesCard() {
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -7249,9 +7260,15 @@ function YPArticlesCard() {
   });
   const [editing, setEditing] = useState<any|null>(null);
   const [form, setForm] = useState<any>({});
-  const openNew = () => { setForm({ emoji:"📖", min_read:5, sort_order:0 }); setEditing({ id: null }); };
-  const openEdit = (a: any) => { setForm(a); setEditing(a); };
-  const close = () => { setEditing(null); setForm({}); };
+  const [slugManual, setSlugManual] = useState(false);
+
+  const openNew = () => {
+    setForm({ emoji:"📖", min_read:5, sort_order:0, is_active:true, featured:false });
+    setEditing({ id: null });
+    setSlugManual(false);
+  };
+  const openEdit = (a: any) => { setForm(a); setEditing(a); setSlugManual(true); };
+  const close = () => { setEditing(null); setForm({}); setSlugManual(false); };
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -7276,6 +7293,20 @@ function YPArticlesCard() {
   const F = (k: string) => (e: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) =>
     setForm((f: any) => ({ ...f, [k]: e.target.value }));
 
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const title = e.target.value;
+    setForm((f: any) => ({
+      ...f,
+      title,
+      ...(slugManual ? {} : { slug: slugifyTr(title) }),
+    }));
+  };
+
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSlugManual(true);
+    setForm((f: any) => ({ ...f, slug: e.target.value }));
+  };
+
   return (
     <Card className="border-violet-200">
       <CardHeader className="pb-2">
@@ -7291,12 +7322,20 @@ function YPArticlesCard() {
             <span className="text-lg flex-shrink-0">{a.emoji}</span>
             <div className="flex-1 min-w-0">
               <div className="text-xs font-semibold truncate">{a.title}</div>
-              <div className="text-[10px] text-muted-foreground flex gap-2 mt-0.5">
-                <span>{a.tag}</span><span>{a.min_read} dk</span>
+              <div className="text-[10px] text-muted-foreground flex gap-2 mt-0.5 flex-wrap">
+                {a.tag && <span>{a.tag}</span>}
+                <span>{a.min_read} dk</span>
+                {a.featured && <span className="text-violet-600">⭐ Öne Çıkan</span>}
                 <span className={a.is_active ? "text-green-600" : "text-red-500"}>{a.is_active ? "Aktif" : "Gizli"}</span>
+                {a.slug && <span className="font-mono text-[9px] text-muted-foreground/70">/{a.slug}</span>}
               </div>
             </div>
             <div className="flex gap-1 flex-shrink-0">
+              {a.slug && (
+                <a href={`/yourpoodle/rehber/${a.slug}`} target="_blank" rel="noopener noreferrer">
+                  <Button size="sm" variant="outline" className="h-6 text-[10px] px-2">Görüntüle</Button>
+                </a>
+              )}
               <Button size="sm" variant="outline" className="h-6 text-[10px] px-2" onClick={() => openEdit(a)}>Düzenle</Button>
               <Button size="sm" variant="destructive" className="h-6 text-[10px] px-2" onClick={() => { if (confirm("Makaleyi sil?")) deleteMutation.mutate(a.id); }}>Sil</Button>
             </div>
@@ -7319,11 +7358,18 @@ function YPArticlesCard() {
           </div>
           <div className="space-y-1">
             <Label className="text-[11px]">Başlık *</Label>
-            <Input value={form.title||""} onChange={F("title")} className="h-7 text-sm"/>
+            <Input value={form.title||""} onChange={handleTitleChange} className="h-7 text-sm"/>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-[11px]">Slug (URL) <span className="text-muted-foreground font-normal">— başlıktan otomatik, düzenlenebilir</span></Label>
+            <div className="flex items-center gap-1">
+              <span className="text-[11px] text-muted-foreground shrink-0">/rehber/</span>
+              <Input value={form.slug||""} onChange={handleSlugChange} className="h-7 text-sm font-mono" placeholder="ornek-makale-basligi"/>
+            </div>
           </div>
           <div className="space-y-1">
             <Label className="text-[11px]">İçerik *</Label>
-            <textarea value={form.body||""} onChange={F("body")} rows={4} className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm resize-none"/>
+            <textarea value={form.body||""} onChange={F("body")} rows={6} className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm resize-y"/>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
@@ -7334,6 +7380,16 @@ function YPArticlesCard() {
               <Label className="text-[11px]">Sıra</Label>
               <Input type="number" value={form.sort_order||0} onChange={F("sort_order")} className="h-7 text-sm"/>
             </div>
+          </div>
+          <div className="flex gap-4">
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" checked={!!form.featured} onChange={e => setForm((f:any) => ({ ...f, featured: e.target.checked }))} className="w-3.5 h-3.5 rounded"/>
+              <span className="text-[11px]">Öne Çıkan</span>
+            </label>
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" checked={form.is_active !== false} onChange={e => setForm((f:any) => ({ ...f, is_active: e.target.checked }))} className="w-3.5 h-3.5 rounded"/>
+              <span className="text-[11px]">Aktif (yayında)</span>
+            </label>
           </div>
           <div className="flex gap-2">
             <Button size="sm" onClick={() => saveMutation.mutate()} disabled={!form.title||!form.body||saveMutation.isPending} className="flex-1">
