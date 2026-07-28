@@ -559,7 +559,7 @@ async function seedTasimaProducts(): Promise<void> {
 }
 
 /* ─── YourPoodle Yaş Mama seed ─────────────────────────────────────────── */
-async function seedYasMamaProducts(): Promise<void> {
+export async function seedYasMamaProducts(): Promise<void> {
   try {
     let [bc] = await db.select().from(brandCategories).where(
       and(
@@ -587,22 +587,29 @@ async function seedYasMamaProducts(): Promise<void> {
       { name: "Sensitive Ördekli Yaş Mama 150 g",    price: 89,  originalPrice: 109, skt: "09.2027", stock: 80  },
     ];
 
+    // Count guard: if the brand_category already has at least as many products as
+    // YP_YAS_MAMA, every row is already present — skip all inserts. This is a
+    // belt-and-suspenders guard for environments where the unique index may not
+    // have been applied yet (e.g. a DB with pre-existing duplicates that blocked
+    // the index migration).
+    const existing = await pool.query(
+      `SELECT COUNT(*) AS n FROM products WHERE brand_category_id = $1`,
+      [bc.id]
+    );
+    if (parseInt(existing.rows[0].n, 10) >= YP_YAS_MAMA.length) {
+      console.log(`Yaş mama products already seeded (${existing.rows[0].n} rows), skipping inserts.`);
+      return;
+    }
+
     for (const p of YP_YAS_MAMA) {
-      // Dedup by name (NOT barcode — barcode was removed to avoid fake sequential barcodes)
-      const exists = await pool.query(
-        `SELECT id FROM products WHERE name = $1 AND brand_category_id = $2 LIMIT 1`,
-        [p.name, bc.id]
+      // INSERT … ON CONFLICT DO NOTHING: the unique index on (name, brand_category_id)
+      // makes this a true no-op on a re-seed or mid-seed crash recovery.
+      await pool.query(
+        `INSERT INTO products (name, price, original_price, skt, stock, brand_category_id)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (name, brand_category_id) DO NOTHING`,
+        [p.name, p.price, p.originalPrice, p.skt, p.stock, bc.id]
       );
-      if (exists.rows.length > 0) continue;
-      await db.insert(products).values({
-        name: p.name,
-        price: p.price,
-        originalPrice: p.originalPrice,
-        skt: p.skt,
-        stock: p.stock,
-        brandCategoryId: bc.id,
-        // barcode intentionally omitted — no real EAN assigned yet
-      });
     }
     console.log(`Seeded YourPoodle yaş mama products.`);
   } catch (e: any) {

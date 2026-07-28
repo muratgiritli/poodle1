@@ -592,6 +592,25 @@ export async function registerRoutes(
   }
 
   try {
+    // Dedup any existing (name, brand_category_id) pairs before creating the unique
+    // index — keeps the row with the highest stock (most active/recent).
+    await sharedPool.query(`
+      DELETE FROM products
+      WHERE id IN (
+        SELECT id FROM (
+          SELECT id,
+                 ROW_NUMBER() OVER (PARTITION BY name, brand_category_id ORDER BY stock DESC, id DESC) AS rn
+          FROM products
+        ) ranked
+        WHERE rn > 1
+      )
+    `);
+    await sharedPool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_products_name_brand_category ON products (name, brand_category_id);`);
+  } catch (e) {
+    console.error("Products (name, brand_category_id) unique index migration error:", e);
+  }
+
+  try {
     await sharedPool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS long_description text;`);
     await sharedPool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS meta_title text;`);
     await sharedPool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS meta_description text;`);

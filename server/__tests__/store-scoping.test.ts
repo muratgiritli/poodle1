@@ -41,6 +41,7 @@ import { getStoreByHost, brandifyFor, STORES, DEFAULT_STORE } from "../../shared
 import { setStoreGoogleConfig, deleteStoreGoogleConfig, getAllStoreGoogleConfigs } from "../google-tags";
 import { setStoreMerchantConfig, deleteStoreMerchantConfig, getAllStoreMerchantConfigs, normalizeMerchantConfig, effectiveStoreCode, DEFAULT_LOCAL_STORE_CODE } from "../merchant";
 import { pool } from "../storage";
+import { seedYasMamaProducts } from "../seed";
 // The shared-edit protection helpers live in the client lib so they can be unit
 // tested here without booting the React app. STORE_SCOPED_SETTING_KEYS must stay
 // in sync with the server-side copy in routes.ts (asserted by a drift test below).
@@ -4204,4 +4205,43 @@ test("GET /google-merchant.xml: returns 200 application/xml with seeded product 
     await pool.query("DELETE FROM products WHERE id = $1", [merchantProductId]);
     await pool.query("DELETE FROM brand_categories WHERE id = $1", [merchantBcId]);
   }
+});
+
+// ── seedYasMamaProducts idempotence: no duplicate products on re-seed ─────────
+//
+// Calls seedYasMamaProducts() twice and asserts the second call is a no-op.
+// The unique index on (name, brand_category_id) + ON CONFLICT DO NOTHING
+// guarantee this even across mid-seed crashes or accidental double brand_category
+// creation.
+test("seedYasMamaProducts is idempotent — calling twice never creates duplicate products", async () => {
+  // Run the seed once (creates brand_category + 6 products if absent, or is a no-op)
+  await seedYasMamaProducts();
+
+  // Fetch the brand_category seeded by seedYasMamaProducts
+  const bcRes = await pool.query(
+    `SELECT id FROM brand_categories WHERE brand_slug = 'yas-mama' AND animal = 'kopek' AND subcategory = 'yas-mama' LIMIT 1`
+  );
+  assert.ok(bcRes.rows.length > 0, "yas-mama brand_category must exist after first seed call");
+  const bcId = bcRes.rows[0].id;
+
+  // Count products after first seed
+  const countAfterFirst = await pool.query(
+    `SELECT COUNT(*) AS n FROM products WHERE brand_category_id = $1`,
+    [bcId]
+  );
+  const n1 = parseInt(countAfterFirst.rows[0].n, 10);
+  assert.ok(n1 > 0, "yas-mama products must exist after first seed call");
+
+  // Run the seed a second time
+  await seedYasMamaProducts();
+
+  // Count must be identical — no new rows
+  const countAfterSecond = await pool.query(
+    `SELECT COUNT(*) AS n FROM products WHERE brand_category_id = $1`,
+    [bcId]
+  );
+  const n2 = parseInt(countAfterSecond.rows[0].n, 10);
+  assert.equal(n2, n1,
+    `Expected product count to remain ${n1} after re-seed, but got ${n2} — duplicate products were created`
+  );
 });
