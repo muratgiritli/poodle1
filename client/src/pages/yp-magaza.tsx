@@ -39,6 +39,27 @@ const COLOR_MAP = {
 } as const;
 type AccentKey = keyof typeof COLOR_MAP;
 
+/* ── Route slug → DB subcategory (mirrors yp-kategori.tsx SLUG_TO_SUBCAT) ── */
+const SLUG_TO_SUBCAT: Record<string, string> = {
+  "kuru-mama":           "kopek-kuru-mama",
+  "tuvalet":             "tuvalet-malzemeleri",
+  "yas-mama":            "yas-mama",
+  "odul-cesitleri":      "odul-kemik",
+  "tasima-cantalari":    "tasima-kulube",
+  "kulubeler":           "tasima-kulube",
+  "oyuncaklar":          "oyuncak",
+  "mama-su-kaplari":     "mama-su-kabi",
+  "bel-boyun-tasmalari": "bel-boyun-tasma",
+  "bakim-saglik":        "bakim-saglik",
+  "makas-taraklar":      "tras-ekipmanlari",
+  "sampuan-parfum":      "sampuan-banyo",
+  "agiz-dis-bakimi":     "agiz-dis-bakim",
+  "sut-tozu-biberon":    "sut-tozu-biberon",
+  "bit-pire-parazit":    "bit-pire-parazit",
+  "goz-kulak-bakimi":    "goz-kulak-bakim",
+  "tiras-ekipmanlari":   "tras-ekipmanlari",
+};
+
 /* ── Category data ── */
 interface Cat { id:string; name:string; color:AccentKey; Icon:React.ElementType; slug:string; }
 const CATEGORIES: Cat[] = [
@@ -185,8 +206,15 @@ function ProductCard({ product, onNavigate }: {
 }
 
 /* ── Category row ── */
-function CategoryRow({ cat, onClick }: { cat:Cat; onClick:()=>void }) {
+function CategoryRow({ cat, count, onClick }: { cat:Cat; count:number|null; onClick:()=>void }) {
   const c = COLOR_MAP[cat.color];
+  const badge = count === null
+    ? null
+    : count === 0
+      ? <span style={{ fontSize:11, fontWeight:500, color:"#9CA3AF", background:"#F3F4F6",
+                        padding:"2px 8px", borderRadius:999, whiteSpace:"nowrap" }}>Yakında</span>
+      : <span style={{ fontSize:11, fontWeight:600, color:"#6B7280", background:"#F3F4F6",
+                        padding:"2px 8px", borderRadius:999, whiteSpace:"nowrap" }}>{count} ürün</span>;
   return (
     <div
       role="button"
@@ -208,7 +236,10 @@ function CategoryRow({ cat, onClick }: { cat:Cat; onClick:()=>void }) {
         </div>
         <span style={{ fontSize:14, fontWeight:500, color:"#111827" }}>{cat.name}</span>
       </div>
-      <ChevronRight size={18} color={c.icon} />
+      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+        {badge}
+        <ChevronRight size={18} color={c.icon} />
+      </div>
     </div>
   );
 }
@@ -237,6 +268,12 @@ export default function YPMagazaPage() {
     setToast({ message:msg, visible:true });
     toastTimer.current = setTimeout(() => setToast(t => ({ ...t, visible:false })), 2500);
   }, []);
+
+  /* Category counts */
+  const { data: categoryCounts = {} } = useQuery<Record<string, number>>({
+    queryKey: ["/api/yp-category-counts"],
+    staleTime: 5 * 60 * 1000,
+  });
 
   /* Products from API */
   const { data: allProducts = [], isLoading, isError, refetch } = useQuery<any[]>({
@@ -317,9 +354,17 @@ export default function YPMagazaPage() {
 
         {/* ── Category grid ── */}
         <div className="yp-cat-grid">
-          {CATEGORIES.map(cat => (
-            <CategoryRow key={cat.id} cat={cat} onClick={() => goCat(cat)} />
-          ))}
+          {CATEGORIES.map(cat => {
+            const subcat = SLUG_TO_SUBCAT[cat.slug];
+            const count = Object.keys(categoryCounts).length === 0
+              ? null
+              : subcat
+                ? (categoryCounts[subcat] ?? 0)
+                : null;
+            return (
+              <CategoryRow key={cat.id} cat={cat} count={count} onClick={() => goCat(cat)} />
+            );
+          })}
         </div>
 
       </main>

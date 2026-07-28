@@ -2253,6 +2253,28 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
+  // YourPoodle category counts: active+in-stock kopek product count per subcategory
+  app.get("/api/yp-category-counts", async (_req, res) => {
+    try {
+      const result = await sharedPool.query(
+        `SELECT bc.subcategory, COUNT(*) AS count
+         FROM products p
+         LEFT JOIN brand_categories bc ON p.brand_category_id = bc.id
+         WHERE p.is_active = true AND p.stock > 0 AND bc.animal = 'kopek'
+         GROUP BY bc.subcategory`
+      );
+      const counts: Record<string, number> = {};
+      for (const row of result.rows) {
+        if (row.subcategory) counts[row.subcategory] = Number(row.count);
+      }
+      res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+      res.json(counts);
+    } catch (e: any) {
+      console.error("[/api/yp-category-counts]", e?.message);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // YourPoodle cart validation: check current price/stock/active for a list of product IDs
   // POST body: { ids: number[] }
   // Returns: { [id]: { price, stock, isActive, name } }
