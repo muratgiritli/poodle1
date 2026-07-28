@@ -406,16 +406,14 @@ export default function YPMagazaPage() {
           <div style={{ flex:1, height:1, background:GB }} />
         </div>
 
-        {/* ── Category grid — hide categories with 0 imaged products ── */}
+        {/* ── Category grid — ALL categories always visible ── */}
         <div className="yp-cat-grid">
           {CATEGORIES.map(cat => {
             const subcat = SLUG_TO_SUBCAT[cat.slug];
             const countsLoaded = Object.keys(categoryCounts).length > 0;
             const count = countsLoaded
-              ? (subcat ? (categoryCounts[subcat] ?? 0) : 0)
+              ? (subcat ? (categoryCounts[subcat] ?? null) : null)
               : null;
-            // Hide categories that are confirmed empty (counts loaded + count = 0)
-            if (countsLoaded && count === 0) return null;
             return (
               <CategoryRow key={cat.id} cat={cat} count={count} onClick={() => goCat(cat)} />
             );

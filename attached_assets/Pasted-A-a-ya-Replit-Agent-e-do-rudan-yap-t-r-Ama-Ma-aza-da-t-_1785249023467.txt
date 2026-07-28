@@ -1,0 +1,134 @@
+Aşağıya Replit Agent’e **doğrudan yapıştır**. Amaç: Mağaza’da **tüm kategoriler geri gelsin**, hiçbiri boş kalmasın — fake ürün olsa da olur.
+
+```text
+You are fixing YourPoodle Magaza categories NOW.
+Do this in ONE PASS. Do not ask questions. Do not stop halfway.
+
+GOAL
+Magaza must again show ALL category cards (not only Taşıma + Kulübeler).
+Every category PLP must have products (fake/mock is OK for now).
+No empty category. No “0 ürün bulundu”. No hiding categories because stock is empty.
+
+NON-NEGOTIABLE
+1. Restore FULL Magaza category grid (all original categories).
+2. Every category must list at least 6 products.
+3. Fake products are ALLOWED and REQUIRED if real catalog is empty.
+4. Each product card must have:
+   - name
+   - image (real photo OR decent placeholder image URL / generated product-like image — NOT blank grey empty box if avoidable)
+   - price + optional old price
+   - Sepete Ekle working (toast + cart badge sync)
+5. Do NOT remove categories from Magaza.
+6. Do NOT leave “Yakında ürün eklenecek” as the only state for any Magaza category.
+7. Keep existing Magaza search + Öne Çıkan if present.
+8. Keep `/yourpoodle` routes.
+9. No Samsun/Atakum copy.
+
+CURRENT BUG
+`/yourpoodle/magaza` “Tüm Kategoriler” currently shows ONLY:
+- Taşıma Çantaları
+- Kulübeler
+Other categories were hidden because they had 0 products.
+`/yourpoodle/kuru-mama` and many `/yourpoodle/kategori/...` pages are empty.
+FIX by ADDING PRODUCTS, not by hiding categories.
+
+==================================================
+1) RESTORE ALL MAGAZA CATEGORY CARDS
+==================================================
+Show ALL of these on `/yourpoodle/magaza` again:
+1. Kuru Mama → `/yourpoodle/kuru-mama`
+2. Tuvalet → `/yourpoodle/kategori/tuvalet`
+3. Yaş Mama → `/yourpoodle/kategori/yas-mama`
+4. Ödül Çeşitleri → `/yourpoodle/kategori/odul-cesitleri`
+5. Taşıma Çantaları → `/yourpoodle/kategori/tasima-cantalari`
+6. Kulübeler → `/yourpoodle/kategori/kulubeler`
+7. Oyuncaklar → `/yourpoodle/kategori/oyuncaklar`
+8. Mama ve Su Kapları → `/yourpoodle/kategori/mama-su-kaplari`
+9. Bel ve Boyun Tasmaları → `/yourpoodle/kategori/bel-boyun-tasmalari`
+10. Bakım ve Sağlık → `/yourpoodle/kategori/bakim-saglik`
+11. Makas ve Taraklar → `/yourpoodle/kategori/makas-taraklar`
+12. Şampuan ve Parfüm → `/yourpoodle/kategori/sampuan-parfum`
+13. Ağız ve Diş Bakımı → `/yourpoodle/kategori/agiz-dis-bakimi`
+14. Süt Tozu ve Biberon → `/yourpoodle/kategori/sut-tozu-biberon`
+15. Bit, Pire ve Parazit → `/yourpoodle/kategori/bit-pire-parazit`
+16. Göz ve Kulak Bakımı → `/yourpoodle/kategori/goz-kulak-bakimi`
+17. Tıraş Ekipmanları → `/yourpoodle/kategori/tiras-ekipmanlari`
+
+Campaign banner “Poodle Kuru Mama” must go to `/yourpoodle/kuru-mama` and that page must NOT be empty.
+
+==================================================
+2) FILL EVERY CATEGORY WITH >=6 PRODUCTS (FAKE OK)
+==================================================
+For each category above:
+- If real API products exist and map correctly → use them
+- If missing/empty/broken mapping → CREATE fake local catalog products for that category
+- Minimum 6 products per category
+- Turkish realistic names for Toy Poodle shoppers (not “Premium Ürün 1”)
+- Prices in TL, optional discount strikethrough
+- Image required (unsplash/placeholder/product-image endpoint/static assets — just make cards look filled)
+- Barkod optional (if used, can be fake for now)
+- SKT only for perishable categories (Yaş Mama, and care liquids if relevant)
+
+Use one shared CategoryPLP template (same look as Taşıma/Tuvalet style):
+- ← Mağaza
+- H1
+- search
+- “N ürün bulundu” where N >= 6
+- 2-column mobile grid
+- Sepete Ekle + toast “Sepete eklendi”
+- header badge == bottom badge
+
+Special:
+- `/yourpoodle/kuru-mama` = dry food only (>=6). Include Royal Canin/Reflex style names if helpful. No bowls/wet.
+- `/yourpoodle/kategori/yas-mama` = wet food only (>=6), with SKT rows.
+- Do not mix categories.
+
+==================================================
+3) MAGAZA HUB
+==================================================
+- Keep search
+- Keep/restore Öne Çıkan with products
+- Restore FULL category grid (all 17)
+- Each category card can show count (e.g. “6 ürün”)
+- Clicking each card opens the correct filled PLP
+
+==================================================
+4) DATA APPROACH (PRACTICAL)
+==================================================
+Preferred quick implementation:
+- Shared mockProductsByCategory map in frontend OR seed into `/api/products` with categorySlug
+- Magaza + PLP both read same source
+- Fake products must still add to cart
+
+Do not hide categories with zero real stock.
+If real stock is zero → fake fill.
+
+==================================================
+5) SELF-QA (ALL GREEN OR NOT DONE)
+==================================================
+[ ] Magaza shows all 17 category cards (not only 2)
+[ ] Every category PLP has >= 6 products
+[ ] `/yourpoodle/kuru-mama` has >= 6 dry foods (not empty)
+[ ] tuvalet / yas-mama / mama-su-kaplari / oyuncaklar etc. not empty
+[ ] Each product has name + image + price + Sepete Ekle
+[ ] Cart add works from at least 3 different categories
+[ ] No category hidden due to empty stock
+[ ] Magaza search + Öne Çıkan still work
+[ ] No regression on Mama Bul / Rehber / AI / Club
+
+If any fails: fix and re-check all.
+
+==================================================
+6) FINAL REPORT
+==================================================
+Return:
+1) Magaza category count restored
+2) Table: category / product count / real-or-fake source
+3) Proof kuru-mama no longer empty
+4) Self-QA PASS/FAIL (all PASS)
+
+START NOW.
+Restore all Magaza categories and fill every one with >=6 products (fake allowed) so nothing looks empty.
+```
+
+Bu prompt bilerek “fake ürün OK” diyor; Replit’in kategorileri silmesini engeller, içini doldurtur.
