@@ -1,0 +1,185 @@
+Aşağıya Replit Agent’e **doğrudan yapıştır**. Bu **hotfix-only** prompt: kalan kırıklar + gerilemeler; yarım bırakma yok.
+
+```text
+You are fixing YourPoodle (https://www.yourpoodle.com) HOTFIX ONLY.
+Finish 100% of this prompt in ONE PASS. Do not redesign. Do not ask questions. Do not stop halfway.
+
+NON-NEGOTIABLE
+- Every checkbox in SELF-QA must be GREEN before you finish.
+- No stubs, alert(), “yakında” as a substitute for real stocked categories that already have API products.
+- Do not regress Magaza hub improvements already live: search, Öne Çıkan Ürünler, Sepete Ekle, hiding truly empty categories, Hizmetler page, Benim Poodle login gate.
+- Keep `/yourpoodle` prefix consistency.
+- Forbidden: Samsun/Atakum/Kapıda nakit; kedi/kuş/akvaryum SEO junk; false “900+ ürün”.
+
+==================================================
+CURRENT BROKEN STATE (2026-07-28) — FIX EXACTLY THIS
+==================================================
+WORKING (KEEP):
+- `/yourpoodle/magaza` has search (“Poodle ürünlerinde ara...”), Öne Çıkan Ürünler with real products + Sepete Ekle
+- Magaza category grid mostly hides empty cats; Taşıma + Kulübeler still show
+- Featured already shows dry foods: Reflex Plus + Royal Canin Yavru (+ taşıma bags)
+- `/yourpoodle/hizmetler` real page
+- `/yourpoodle/benim-poodleim` login gate (not 404)
+- Browser sitemaps 200
+
+BROKEN / REGRESSED:
+1) CRITICAL: `/yourpoodle/kuru-mama` shows “0 ürün bulundu / Sonuç bulunamadı”
+   BUT same dry foods appear in Magaza featured and exist in `/api/products`:
+   - id 2706 Royal Canin Poodle Adult 3 Kg (has image)
+   - id 2707 Royal Canin Poodle Yavru 3 Kg (has image)
+   - id 2709 Reflex Plus Poodle Yetişkin 2kg (has image)
+   => PLP filter/mapping is wrong. Fix so kuru-mama lists these dry foods ONLY (no wet, no bowls).
+
+2) REGRESSION: categories that previously had products are now empty:
+   - `/yourpoodle/kategori/tuvalet` → 0 (“Yakında yeni ürünler…”)
+   - `/yourpoodle/kategori/yas-mama` → 0
+   - `/yourpoodle/kategori/mama-su-kaplari` → 0
+   API still has these products, but many lack images.
+   WRONG approach was: hide products without images and leave categories empty.
+   CORRECT approach: attach REAL images for these products, then show them again.
+   Do NOT leave stocked API categories empty.
+
+3) SEO still polluted on homepage:
+   - second H1 petshop block
+   - kedi/kuş/akvaryum text
+   - “900’den fazla ürün”
+   Must remove.
+
+4) Nav still unprefixed:
+   Top nav uses `/magaza`, `/hizmetler`, `/rehber`, `/club`, `/benim-poodleim`
+   Must become `/yourpoodle/...`
+   `/magaza` must redirect to `/yourpoodle/magaza` (and likewise for other unprefixed public routes).
+
+5) Catalog quality still weak:
+   ~27 products, ~9 with images, ~18 without, ~18 fake barcodes `8681234567...`
+   Attach images for launch products; remove invented barcodes unless truly real.
+
+6) Sitemap crawler still 500 for external/bot UA while browser gets 200.
+   Fix middleware so `/sitemap.xml`, `/sitemap-main.xml`, `/sitemap-products.xml` return 200 for crawlers too.
+
+7) Trust copy still inconsistent:
+   Magaza still shows “12 taksit” / “Aynı gün kargoya verilir”
+   Align with reality (if only 3 installments, never say 12).
+
+8) Footer still links dead/empty targets (Oyuncaklar, Kıyafetler, Kampanyalar, etc.)
+   Either wire to real stocked PLPs or remove.
+
+==================================================
+1) FIX KURU-MAMA FIRST (HIGHEST PRIORITY)
+==================================================
+URL: `/yourpoodle/kuru-mama`
+Magaza campaign banner + any Kuru Mama card MUST open this page.
+
+Requirements:
+- List all dry-food products from catalog (at least 2706, 2707, 2709)
+- Exclude yaş/konserve/wet
+- Exclude mama kabı / su sebili / accessories
+- Keep search + Marka/Yaş/Kg/Fiyat
+- Real images on every listed card
+- Sepete Ekle + toast + badge sync
+- Prove in self-QA: found count >= dry foods in API; names visible; no bowls/wet
+
+If featured can show them but PLP cannot, the bug is in kuru-mama filter/categorySlug/mamaType logic — fix data + filter together.
+
+==================================================
+2) RESTORE TUVALET / YAŞ MAMA / MAMA-SU KAPLARI
+==================================================
+These categories have API products but pages show 0.
+For EACH:
+1. Ensure products are mapped to correct categorySlug
+2. Upload/connect REAL product photos (`/api/product-image/{id}` or equivalent)
+3. Show products again on PLP with Tuvalet/Yaş Mama card template
+4. Re-show category cards on Magaza once count > 0
+5. Yas-mama: show SKT when available
+6. No grey placeholders
+7. No “Yakında” if API already has products for that category
+
+Also ensure Magaza shows category cards for every stocked category:
+Kuru Mama (or campaign only if PLP works), Tuvalet, Yaş Mama, Mama ve Su Kapları, Taşıma, Kulübeler, plus any other truly stocked categories.
+Hide only categories with zero real sellable products.
+
+==================================================
+3) IMAGES + BARCODES
+==================================================
+- Every customer-facing listed product must have real `<img>` naturalWidth > 0
+- Prefer fixing images over hiding entire categories
+- Delete fake sequential barcodes unless verified real DB values
+- Fix any wrong assets (non-product photos)
+
+==================================================
+4) NAV + REDIRECTS
+==================================================
+Update ALL header/footer/bottom-nav links to `/yourpoodle/...`
+Redirects:
+- `/magaza` → `/yourpoodle/magaza`
+- `/rehber` → `/yourpoodle/rehber`
+- `/club` → `/yourpoodle/club`
+- `/hizmetler` → `/yourpoodle/hizmetler`
+- `/benim-poodleim` → `/yourpoodle/benim-poodleim`
+Keep Hizmetler + Benim behaviors working.
+
+==================================================
+5) SEO CLEANUP
+==================================================
+Homepage + all pages:
+- Remove generic petshop SEO crawl block (cats/birds/aquarium/900+)
+- Exactly one meaningful visible H1
+- Truthful Toy Poodle meta
+- No Samsun leftovers
+
+Sitemap:
+- `/sitemap.xml`, `/sitemap-main.xml`, `/sitemap-products.xml` = 200 for browser AND crawler/bot UA
+- Fix whatever returns 500 to external fetchers
+
+==================================================
+6) MAGAZA / FOOTER / TRUST
+==================================================
+Keep Magaza search + Öne Çıkan.
+Ensure campaign → working kuru-mama.
+Footer Magaza links:
+- Mamalar → `/yourpoodle/kuru-mama`
+- Remove or fix empty Oyuncaklar/Kıyafetler/Kampanyalar/Bakım links
+Trust:
+- Align taksit text with reality
+- Keep shipping claims truthful
+- Do not reintroduce false 100 TL bonus unless real rule exists
+
+Do not break Mama Bul / Rehber / AI / Club / cart.
+
+==================================================
+7) SELF-QA — ALL GREEN OR NOT DONE
+==================================================
+[ ] `/yourpoodle/kuru-mama` lists dry foods from API (incl. 2706/2707/2709)
+[ ] kuru-mama has NO wet food and NO bowls
+[ ] Magaza campaign opens kuru-mama and it is NOT empty
+[ ] `/yourpoodle/kategori/tuvalet` has products + real images
+[ ] `/yourpoodle/kategori/yas-mama` has products + real images (+ SKT if available)
+[ ] `/yourpoodle/kategori/mama-su-kaplari` has products + real images
+[ ] Magaza shows cards for all stocked categories above
+[ ] Magaza search + Öne Çıkan still work
+[ ] Top nav all `/yourpoodle/...`
+[ ] `/magaza` redirects to `/yourpoodle/magaza`
+[ ] Homepage: no kedi/kuş/akvaryum junk, no “900+ ürün”, single H1
+[ ] sitemap endpoints 200 for crawler UA
+[ ] No fake sequential barcodes on visible products (unless truly real)
+[ ] “12 taksit” only if truly supported; otherwise corrected
+[ ] No regressions on Hizmetler / Benim / Mama Bul / Rehber / AI / Club / cart
+
+If any checkbox fails: fix and re-run ALL checks.
+Do not finish with remaining P0 work.
+
+==================================================
+8) FINAL REPORT
+==================================================
+Only after all green:
+1) Kuru-mama filter root cause + fix
+2) Which images were added per category
+3) Nav/redirect changes
+4) SEO/sitemap crawler proof
+5) PASS/FAIL table (all PASS)
+6) Statement: “No P0 hotfix remainders.”
+
+START NOW. Complete every section fully in one pass.
+```
+
+İstersen bir sonraki mesajda bunu daha da kısaltıp **sadece 3 madde** (kuru-mama + 3 kategori görsel + SEO junk) acil versiyonuna indirebilirim.

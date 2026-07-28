@@ -255,7 +255,7 @@ export default function YPMagazaPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const kat = params.get("kategori");
-    if (kat === "mama") navigate("/yourpoodle/kuru-mama", { replace: true });
+    if (kat === "mama") navigate(`${BASE}/kuru-mama`, { replace: true });
   }, [navigate]);
 
   /* Page title */
@@ -301,8 +301,8 @@ export default function YPMagazaPage() {
 
   /* Category click */
   const goCat = useCallback((cat: Cat) => {
-    if (cat.slug === "kuru-mama") navigate("/yourpoodle/kuru-mama");
-    else navigate(`/yourpoodle/kategori/${cat.slug}`);
+    if (cat.slug === "kuru-mama") navigate(`${BASE}/kuru-mama`);
+    else navigate(`${BASE}/kategori/${cat.slug}`);
   }, [navigate]);
 
   return (
@@ -350,7 +350,7 @@ export default function YPMagazaPage() {
 
         {/* ── Campaign banner ── */}
         <button
-          onClick={() => navigate("/yourpoodle/kuru-mama")}
+          onClick={() => navigate(`${BASE}/kuru-mama`)}
           aria-label="Kuru mama kampanyasına git"
           style={{ width:"100%", marginBottom:24, borderRadius:16, border:"none", cursor:"pointer",
                    background:`linear-gradient(135deg,${P} 0%,#9333EA 100%)`,

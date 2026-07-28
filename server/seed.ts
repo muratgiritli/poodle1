@@ -579,17 +579,19 @@ async function seedYasMamaProducts(): Promise<void> {
     }
 
     const YP_YAS_MAMA = [
-      { barcode: "8681234567201", name: "Puppy Tavuklu Yaş Mama 150 g",       price: 69,  originalPrice: 89,  skt: "12.2027", stock: 80  },
-      { barcode: "8681234567202", name: "Adult Kuzu Etli Yaş Mama 150 g",      price: 75,  originalPrice: 95,  skt: "11.2027", stock: 80  },
-      { barcode: "8681234567203", name: "Somonlu Yaş Mama 150 g",              price: 79,  originalPrice: 99,  skt: "01.2028", stock: 80  },
-      { barcode: "8681234567204", name: "Hindi Etli Konserve Mama 400 g",      price: 109, originalPrice: 139, skt: "10.2027", stock: 50  },
-      { barcode: "8681234567205", name: "Kuzu Etli Konserve Mama 400 g",       price: 119, originalPrice: 149, skt: "02.2028", stock: 50  },
-      { barcode: "8681234567206", name: "Sensitive Ördekli Yaş Mama 150 g",    price: 89,  originalPrice: 109, skt: "09.2027", stock: 80  },
+      { name: "Puppy Tavuklu Yaş Mama 150 g",       price: 69,  originalPrice: 89,  skt: "12.2027", stock: 80  },
+      { name: "Adult Kuzu Etli Yaş Mama 150 g",      price: 75,  originalPrice: 95,  skt: "11.2027", stock: 80  },
+      { name: "Somonlu Yaş Mama 150 g",              price: 79,  originalPrice: 99,  skt: "01.2028", stock: 80  },
+      { name: "Hindi Etli Konserve Mama 400 g",      price: 109, originalPrice: 139, skt: "10.2027", stock: 50  },
+      { name: "Kuzu Etli Konserve Mama 400 g",       price: 119, originalPrice: 149, skt: "02.2028", stock: 50  },
+      { name: "Sensitive Ördekli Yaş Mama 150 g",    price: 89,  originalPrice: 109, skt: "09.2027", stock: 80  },
     ];
 
     for (const p of YP_YAS_MAMA) {
+      // Dedup by name (NOT barcode — barcode was removed to avoid fake sequential barcodes)
       const exists = await pool.query(
-        `SELECT id FROM products WHERE barcode = $1 LIMIT 1`, [p.barcode]
+        `SELECT id FROM products WHERE name = $1 AND brand_category_id = $2 LIMIT 1`,
+        [p.name, bc.id]
       );
       if (exists.rows.length > 0) continue;
       await db.insert(products).values({
@@ -598,8 +600,8 @@ async function seedYasMamaProducts(): Promise<void> {
         originalPrice: p.originalPrice,
         skt: p.skt,
         stock: p.stock,
-        barcode: p.barcode,
         brandCategoryId: bc.id,
+        // barcode intentionally omitted — no real EAN assigned yet
       });
     }
     console.log(`Seeded YourPoodle yaş mama products.`);
@@ -640,12 +642,12 @@ async function seedTuvaletProducts(): Promise<void> {
     }
 
     const TUVALET_PRODUCTS = [
-      { name: "Yıkanabilir Köpek Çiş Pedi", price: 399, originalPrice: 499, stock: 50, barcode: "8681234567101" },
-      { name: "Köpek Çiş Eğitim Pedi 60×90 cm (30'lu)", price: 449, originalPrice: 549, stock: 80, barcode: "8681234567102" },
-      { name: "Tuvalet Eğitim Spreyi 100 ml", price: 239, originalPrice: 299, stock: 100, barcode: "8681234567103" },
-      { name: "Köpek Tuvalet Tepsisi", price: 649, originalPrice: 799, stock: 30, barcode: "8681234567104" },
-      { name: "Dişi Köpek Adet Bezi 12'li", price: 279, originalPrice: 349, stock: 60, barcode: "8681234567105" },
-      { name: "Kaka Poşeti 8 Rulo", price: 189, originalPrice: 249, stock: 200, barcode: "8681234567106" },
+      { name: "Yıkanabilir Köpek Çiş Pedi",           price: 399, originalPrice: 499, stock: 50  },
+      { name: "Köpek Çiş Eğitim Pedi 60×90 cm (30'lu)", price: 449, originalPrice: 549, stock: 80  },
+      { name: "Tuvalet Eğitim Spreyi 100 ml",           price: 239, originalPrice: 299, stock: 100 },
+      { name: "Köpek Tuvalet Tepsisi",                  price: 649, originalPrice: 799, stock: 30  },
+      { name: "Dişi Köpek Adet Bezi 12'li",             price: 279, originalPrice: 349, stock: 60  },
+      { name: "Kaka Poşeti 8 Rulo",                     price: 189, originalPrice: 249, stock: 200 },
     ];
 
     for (const p of TUVALET_PRODUCTS) {
@@ -654,7 +656,7 @@ async function seedTuvaletProducts(): Promise<void> {
         price: p.price,
         originalPrice: p.originalPrice,
         stock: p.stock,
-        barcode: p.barcode,
+        // barcode intentionally omitted — no real EAN assigned yet
         brandCategoryId: bc.id,
       });
     }
@@ -829,6 +831,39 @@ async function seedYPCategoryImages(): Promise<void> {
     { id: 3106, url: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=600&q=80" },
     { id: 3107, url: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=600&q=80" },
     { id: 3108, url: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=600&q=80" },
+    // ── tuvalet-malzemeleri (toilet / hygiene) ────────────────────────────
+    { id: 3473, url: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=600&q=80" },
+    { id: 3474, url: "https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?auto=format&fit=crop&w=600&q=80" },
+    { id: 3475, url: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=600&q=80" },
+    { id: 3476, url: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=600&q=80" },
+    { id: 3477, url: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=600&q=80" },
+    { id: 3478, url: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=600&q=80" },
+    // ── yas-mama (wet food / canned food) ────────────────────────────────
+    { id: 3012, url: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?auto=format&fit=crop&w=600&q=80" },
+    { id: 3479, url: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?auto=format&fit=crop&w=600&q=80" },
+    { id: 3480, url: "https://images.unsplash.com/photo-1601758125946-6ec2ef64daf8?auto=format&fit=crop&w=600&q=80" },
+    { id: 3481, url: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=600&q=80" },
+    { id: 3482, url: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=600&q=80" },
+    { id: 3483, url: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=600&q=80" },
+    { id: 3484, url: "https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?auto=format&fit=crop&w=600&q=80" },
+    { id: 3519, url: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?auto=format&fit=crop&w=600&q=80" },
+    { id: 3520, url: "https://images.unsplash.com/photo-1601758125946-6ec2ef64daf8?auto=format&fit=crop&w=600&q=80" },
+    { id: 3521, url: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=600&q=80" },
+    { id: 3522, url: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=600&q=80" },
+    { id: 3523, url: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=600&q=80" },
+    { id: 3524, url: "https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?auto=format&fit=crop&w=600&q=80" },
+    { id: 3531, url: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?auto=format&fit=crop&w=600&q=80" },
+    { id: 3532, url: "https://images.unsplash.com/photo-1601758125946-6ec2ef64daf8?auto=format&fit=crop&w=600&q=80" },
+    { id: 3533, url: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=600&q=80" },
+    { id: 3534, url: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=600&q=80" },
+    { id: 3535, url: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=600&q=80" },
+    { id: 3536, url: "https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?auto=format&fit=crop&w=600&q=80" },
+    { id: 3556, url: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?auto=format&fit=crop&w=600&q=80" },
+    { id: 3557, url: "https://images.unsplash.com/photo-1601758125946-6ec2ef64daf8?auto=format&fit=crop&w=600&q=80" },
+    { id: 3558, url: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=600&q=80" },
+    { id: 3559, url: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=600&q=80" },
+    { id: 3560, url: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=600&q=80" },
+    { id: 3561, url: "https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?auto=format&fit=crop&w=600&q=80" },
   ];
 
   let downloaded = 0;

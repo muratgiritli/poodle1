@@ -1,10 +1,10 @@
 import { Truck, RefreshCcw, ShieldCheck, CreditCard, MapPin, Phone, Mail, Clock, Instagram, Facebook, Youtube, Twitter } from "lucide-react";
 
 const TRUST = [
-  { Icon: Truck,       title: "Hızlı Kargo",    sub: "Aynı gün kargoya verilir" },
+  { Icon: Truck,       title: "Hızlı Kargo",    sub: "Hızlı kargoya verilir" },
   { Icon: RefreshCcw,  title: "Kolay İade",      sub: "14 gün ücretsiz iade" },
   { Icon: ShieldCheck, title: "Güvenli Ödeme",   sub: "256-bit SSL şifreleme" },
-  { Icon: CreditCard,  title: "Taksit İmkânı",   sub: "12 taksit seçeneği" },
+  { Icon: CreditCard,  title: "Taksit İmkânı",   sub: "3 taksit seçeneği" },
 ];
 
 const COLUMNS = [
@@ -20,13 +20,12 @@ const COLUMNS = [
   {
     title: "Mağaza",
     links: [
-      { label: "Tüm Ürünler",     href: "/yourpoodle/magaza" },
-      { label: "Mamalar",         href: "/yourpoodle/kuru-mama" },
-      { label: "Bakım Ürünleri",  href: "/yourpoodle/magaza?kategori=bakim" },
-      { label: "Oyuncaklar",      href: "/yourpoodle/magaza?kategori=oyuncak" },
-      { label: "Kıyafetler",      href: "/yourpoodle/magaza?kategori=kiyafet" },
-      { label: "Özel Tasarım",    href: "/yourpoodle/ozel-tasarim" },
-      { label: "Kampanyalar",     href: "/yourpoodle/magaza?kategori=kampanya" },
+      { label: "Tüm Ürünler",        href: "/yourpoodle/magaza" },
+      { label: "Kuru Mamalar",        href: "/yourpoodle/kuru-mama" },
+      { label: "Yaş Mamalar",         href: "/yourpoodle/kategori/yas-mama" },
+      { label: "Oyuncaklar",          href: "/yourpoodle/kategori/oyuncaklar" },
+      { label: "Bakım & Sağlık",      href: "/yourpoodle/kategori/bakim-saglik" },
+      { label: "Taşıma & Kulübeler",  href: "/yourpoodle/kategori/tasima-cantalari" },
     ],
   },
   {

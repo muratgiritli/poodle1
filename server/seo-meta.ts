@@ -169,6 +169,37 @@ function cargoSeoStaticBlock(store: StoreConfig): string {
   );
 }
 
+/** YourPoodle-specific SEO static block: Toy Poodle focused, no kedi/kuş/akvaryum. */
+function ypSeoStaticBlock(): string {
+  return (
+    `<div id="seo-static" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0;padding:0;margin:-1px;">\n` +
+    `      <h1>YourPoodle — Toy Poodle Sahipleri İçin Mama, Bakım ve Topluluk Platformu</h1>\n` +
+    `      <p>Toy Poodle ve Miniature Poodle sahipleri için kuru mama, yaş mama, oyuncak, bakım ürünleri ve taşıma çantaları. Türkiye geneline hızlı kargo. Mama Bul sihirbazı, AI asistan ve Poodle topluluğu da burada.</p>\n` +
+    `      <h2>Toy Poodle Kuru Mama Çeşitleri</h2>\n` +
+    `      <p>Royal Canin Poodle, Pro Plan Small &amp; Mini, Hill's Science Plan, N&amp;D Pumpkin ve Reflex Plus Poodle gibi küçük ırk ve toy ırk kuru mamalar. Marka, yaş ve kg filtreleriyle kolayca seçin.</p>\n` +
+    `      <h2>Toy Poodle Bakım ve Tıraş Ürünleri</h2>\n` +
+    `      <p>Poodle tüy bakımı için şampuan, tıraş makası, tarak, kulak ve göz bakım ürünleri. Poodle tıraş modelleri ve bakım takvimi rehberi.</p>\n` +
+    `      <h2>Poodle Taşıma Çantası ve Kulübeler</h2>\n` +
+    `      <p>Toy Poodle için uçuşa uygun taşıma çantaları, plastik ve metal kulübeler, yumuşak taşıma torbaları. Küçük ırk ölçülerine göre filtrelenmiş ürünler.</p>\n` +
+    `      <h2>Poodle Topluluk, Rehber ve AI Asistan</h2>\n` +
+    `      <p>Türkiye'nin en büyük Toy Poodle topluluğu: etkinlikler, bakım rehberleri, eğitim içerikleri, sağlık asistanı ve Mama Bul sihirbazı.</p>\n` +
+    `      <nav aria-label="YourPoodle site haritası">\n` +
+    `        <ul>\n` +
+    `          <li><a href="/yourpoodle">YourPoodle ana sayfa</a></li>\n` +
+    `          <li><a href="/yourpoodle/kuru-mama">Toy Poodle kuru mama</a></li>\n` +
+    `          <li><a href="/yourpoodle/kategori/yas-mama">Toy Poodle yaş mama</a></li>\n` +
+    `          <li><a href="/yourpoodle/magaza">Poodle ürünleri mağazası</a></li>\n` +
+    `          <li><a href="/yourpoodle/mama-bul">Poodle mama bulma sihirbazı</a></li>\n` +
+    `          <li><a href="/yourpoodle/rehber">Poodle bakım rehberleri</a></li>\n` +
+    `          <li><a href="/yourpoodle/ai-asistan">AI Poodle sağlık asistanı</a></li>\n` +
+    `          <li><a href="/yourpoodle/club">Poodle topluluğu ve etkinlikler</a></li>\n` +
+    `          <li><a href="/yourpoodle/hizmetler">YourPoodle hizmetleri</a></li>\n` +
+    `        </ul>\n` +
+    `      </nav>\n` +
+    `    </div>`
+  );
+}
+
 function applyGlobalBranding(html: string, store: StoreConfig): string {
   let out = html;
   const isCargo = store.commerce.fulfillment === "cargo" || !!store.commerce.nationwideSeo;
@@ -178,11 +209,13 @@ function applyGlobalBranding(html: string, store: StoreConfig): string {
   out = replaceTag(out, /<meta\s+name="theme-color"\s+content="[^"]*"\s*\/?>/i, `<meta name="theme-color" content="${store.theme.topBar}" />`);
   out = replaceTag(out, /<meta\s+name="apple-mobile-web-app-title"\s+content="[^"]*"\s*\/?>/i, `<meta name="apple-mobile-web-app-title" content="${escapeHtml(store.shortName)}" />`);
 
-  // Static crawler-visible SEO block (hidden seo-static div). Cargo stores get a
-  // nationwide-cargo block (the local one's same-day/kapıda/mahalle promises are
-  // false for them); local/default stores keep the block, brandified to their domain.
-  out = out.replace(/<div id="seo-static"[^>]*>[\s\S]*?<\/div>/i, (block) =>
-    isCargo ? cargoSeoStaticBlock(store) : brandifyFor(store, block),
+  // Static crawler-visible SEO block (hidden seo-static div).
+  // YourPoodle gets its own Toy-Poodle-focused block (no kedi/kuş/akvaryum/petshop).
+  // Other cargo stores get the nationwide-cargo block.
+  // Local/default stores keep the block, brandified to their domain.
+  const isYP = store.domain.includes("yourpoodle");
+  out = out.replace(/<div id="seo-static"[^>]*>[\s\S]*?<\/div>/i, (_block) =>
+    isYP ? ypSeoStaticBlock() : isCargo ? cargoSeoStaticBlock(store) : brandifyFor(store, _block),
   );
 
   // Brandify the static JSON-LD fallback block: brand name and self-referential
