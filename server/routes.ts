@@ -724,6 +724,28 @@ export async function registerRoutes(
     console.error("yp_articles schema/seed error:", e);
   }
 
+  // ── yp_events one-time schema migration ───────────────────────────────────
+  // Runs at startup (not per-request). The sitemap handler and public API are
+  // intentionally read-only; DDL here keeps schema changes centralised.
+  try {
+    await sharedPool.query(`
+      CREATE TABLE IF NOT EXISTS yp_events (
+        id SERIAL PRIMARY KEY, title TEXT NOT NULL, description TEXT,
+        location TEXT, event_date DATE, day TEXT, month TEXT, year TEXT,
+        type TEXT DEFAULT 'Etkinlik', free BOOLEAN DEFAULT true,
+        color TEXT DEFAULT '#7C3AFF', sort_order INT DEFAULT 0,
+        is_active BOOLEAN DEFAULT true, slug TEXT
+      )`);
+    await sharedPool.query(`ALTER TABLE yp_events ADD COLUMN IF NOT EXISTS slug TEXT`);
+    // Back-fill slugs for any rows created before the slug column existed.
+    await sharedPool.query(`
+      UPDATE yp_events
+         SET slug = trim(both '-' from lower(regexp_replace(regexp_replace(title, '[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ]+', '-', 'g'), '-+', '-', 'g')))
+       WHERE slug IS NULL OR slug = ''`);
+  } catch (e) {
+    console.error("yp_events schema migration error:", e);
+  }
+
   try {
     const defaults: Array<[string, string]> = [
       ["payment_nakit_enabled", "true"],
@@ -1020,27 +1042,11 @@ export async function registerRoutes(
       }
 
       // Dynamic: fetch active events from yp_events for /yourpoodle/etkinlikler/:slug
-      let eventRows: Array<{ id: number; title: string }> = [];
-      try {
-        await sharedPool.query(`
-          CREATE TABLE IF NOT EXISTS yp_events (
-            id SERIAL PRIMARY KEY, title TEXT NOT NULL, description TEXT,
-            location TEXT, event_date DATE, day TEXT, month TEXT, year TEXT,
-            type TEXT DEFAULT 'Etkinlik', free BOOLEAN DEFAULT true,
-            color TEXT DEFAULT '#7C3AFF', sort_order INT DEFAULT 0, is_active BOOLEAN DEFAULT true,
-            slug TEXT
-          )`);
-        await sharedPool.query(`ALTER TABLE yp_events ADD COLUMN IF NOT EXISTS slug TEXT`);
-        await sharedPool.query(`
-          UPDATE yp_events SET slug = trim(both '-' from lower(regexp_replace(regexp_replace(title, '[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ]+', '-', 'g'), '-+', '-', 'g')))
-          WHERE slug IS NULL OR slug = ''`);
-        const result = await sharedPool.query<{ id: number; title: string; slug: string }>(
-          `SELECT id, title, slug FROM yp_events WHERE is_active = true ORDER BY sort_order ASC, id ASC`
-        );
-        eventRows = result.rows;
-      } catch (_dbErr) {
-        // Non-fatal
-      }
+      // Schema is guaranteed by the startup migration — this block is read-only.
+      const eventsResult = await sharedPool.query<{ id: number; title: string; slug: string }>(
+        `SELECT id, title, slug FROM yp_events WHERE is_active = true ORDER BY sort_order ASC, id ASC`
+      );
+      const eventRows = eventsResult.rows;
 
       let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n`;
 
@@ -8549,26 +8555,16 @@ Kurallar:
   });
 
   app.get("/api/yp-events", async (_req, res) => {
+    // Schema is guaranteed by the startup migration — this handler is read-only.
     try {
-      await sharedPool.query(`
-        CREATE TABLE IF NOT EXISTS yp_events (
-          id SERIAL PRIMARY KEY, title TEXT NOT NULL, description TEXT,
-          location TEXT, event_date DATE, day TEXT, month TEXT, year TEXT,
-          type TEXT DEFAULT 'Etkinlik', free BOOLEAN DEFAULT true,
-          color TEXT DEFAULT '#7C3AFF', sort_order INT DEFAULT 0, is_active BOOLEAN DEFAULT true,
-          slug TEXT
-        )`);
-      await sharedPool.query(`ALTER TABLE yp_events ADD COLUMN IF NOT EXISTS slug TEXT`);
-      await sharedPool.query(`
-        UPDATE yp_events SET slug = trim(both '-' from lower(regexp_replace(regexp_replace(title, '[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ]+', '-', 'g'), '-+', '-', 'g')))
-        WHERE slug IS NULL OR slug = ''`);
       const result = await sharedPool.query(
         `SELECT id, title, description, location, event_date, day, month, year, type, free, color, slug
          FROM yp_events WHERE is_active = true ORDER BY sort_order ASC, id ASC`
       );
       res.json(result.rows);
-    } catch {
-      res.json([]);
+    } catch (e: any) {
+      console.error("[api/yp-events]", e);
+      res.status(500).json({ message: e.message });
     }
   });
 
