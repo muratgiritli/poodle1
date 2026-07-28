@@ -4,7 +4,7 @@ import { exportStockMovementsPdf } from "@/lib/exportStockMovementsPdf";
 import { exportSktPdf } from "@/lib/exportSktPdf";
 import { printOrderReceipt } from "@/lib/printReceipt";
 import { STORES, type StoreGoogle } from "@shared/stores";
-import { brandify } from "@/lib/store";
+import { brandify, IS_YP } from "@/lib/store";
 import { isSharedRowInStoreView, confirmSharedEdit, storeCtxParam, STORE_SCOPED_SETTING_KEYS, confirmSharedSettingsSave } from "@/lib/storeScope";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,15 +96,17 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Product, BrandCategory, CrossSellSection, CrossSellItem, Order, BreedStat, StockAlert, Subcategory } from "@shared/schema";
 
-const ANIMALS = [
-  { id: "kedi", name: "Kedi", icon: Cat },
-  { id: "kopek", name: "Köpek", icon: Dog },
-  { id: "kus", name: "Kuş", icon: Bird },
-  { id: "kemirgen", name: "Kemirgen", icon: Rabbit },
-  { id: "akvaryum", name: "Akvaryum", icon: Fish },
-  { id: "veteriner", name: "Veteriner Mama", icon: Stethoscope },
-  { id: "sokak_canlari", name: "Sokak Canları", icon: Heart },
-];
+const ANIMALS = IS_YP
+  ? [{ id: "kopek", name: "Köpek", icon: Dog }]
+  : [
+      { id: "kedi", name: "Kedi", icon: Cat },
+      { id: "kopek", name: "Köpek", icon: Dog },
+      { id: "kus", name: "Kuş", icon: Bird },
+      { id: "kemirgen", name: "Kemirgen", icon: Rabbit },
+      { id: "akvaryum", name: "Akvaryum", icon: Fish },
+      { id: "veteriner", name: "Veteriner Mama", icon: Stethoscope },
+      { id: "sokak_canlari", name: "Sokak Canları", icon: Heart },
+    ];
 
 // Admin panelinde seçili mağaza (store) bağlamı. "all" = Tümü.
 const AdminStoreContext = createContext<{ store: string; setStore: (s: string) => void }>({ store: "all", setStore: () => {} });
@@ -2245,8 +2247,17 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <h1 className="text-lg sm:text-xl font-extrabold tracking-tight" data-testid="text-admin-header">
-              <span style={{ color: "#6B3480" }}>JET</span>
-              <span className="text-foreground">GO</span>
+              {IS_YP ? (
+                <>
+                  <span style={{ color: "#6B3480" }}>Your</span>
+                  <span className="text-foreground">Poodle</span>
+                </>
+              ) : (
+                <>
+                  <span style={{ color: "#6B3480" }}>JET</span>
+                  <span className="text-foreground">GO</span>
+                </>
+              )}
               <span className="text-xs sm:text-sm font-normal text-muted-foreground ml-1 sm:ml-2">Admin</span>
             </h1>
           </div>
@@ -2330,7 +2341,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             { key: "bildirim", label: "Bildirim", icon: <Bell className="w-3.5 h-3.5" /> },
             { key: "havale", label: "Havale", icon: <Banknote className="w-3.5 h-3.5" /> },
             { key: "banner", label: "Banner", icon: <ImageLucide className="w-3.5 h-3.5" /> },
-            { key: "sokakcanlari", label: "Sokak Canları", icon: <Heart className="w-3.5 h-3.5" /> },
+            ...(!IS_YP ? [{ key: "sokakcanlari", label: "Sokak Canları", icon: <Heart className="w-3.5 h-3.5" /> }] : []),
             { key: "abone", label: "Abone", icon: <Gift className="w-3.5 h-3.5" /> },
             { key: "yasakli", label: "Yasaklı No", icon: <Ban className="w-3.5 h-3.5" /> },
             { key: "raporlama", label: "Raporlama", icon: <BarChart3 className="w-3.5 h-3.5" /> },
@@ -2340,8 +2351,10 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             { key: "iletisim", label: "İletişim", icon: <Mail className="w-3.5 h-3.5" /> },
             { key: "eksik", label: "Eksik Ürünler", icon: <AlertTriangle className="w-3.5 h-3.5" /> },
             { key: "google", label: "Google", icon: <Tag className="w-3.5 h-3.5" /> },
-            { key: "merchant", label: "Merchant", icon: <ShoppingBag className="w-3.5 h-3.5" /> },
-            { key: "localfeed", label: "Local Feed", icon: <MapPin className="w-3.5 h-3.5" /> },
+            ...(!IS_YP ? [
+              { key: "merchant", label: "Merchant", icon: <ShoppingBag className="w-3.5 h-3.5" /> },
+              { key: "localfeed", label: "Local Feed", icon: <MapPin className="w-3.5 h-3.5" /> },
+            ] : []),
             { key: "ayarlar", label: "Ayarlar", icon: <Settings className="w-3.5 h-3.5" /> },
           ].map(tab => (
             <button
