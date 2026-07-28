@@ -2254,6 +2254,10 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   });
 
   // YourPoodle category counts: active+in-stock kopek product count per subcategory
+  // Only counts products that have a real image (img IS NOT NULL) so the count
+  // accurately reflects what shoppers will actually see in the PLP (imageless products
+  // are hidden from listings). This prevents categories from appearing non-empty when
+  // all their products lack photos.
   app.get("/api/yp-category-counts", async (_req, res) => {
     try {
       const result = await sharedPool.query(
@@ -2261,6 +2265,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
          FROM products p
          LEFT JOIN brand_categories bc ON p.brand_category_id = bc.id
          WHERE p.is_active = true AND p.stock > 0 AND bc.animal = 'kopek'
+           AND p.img IS NOT NULL AND p.img != ''
          GROUP BY bc.subcategory`
       );
       const counts: Record<string, number> = {};

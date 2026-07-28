@@ -320,13 +320,13 @@ export default function YPKuruMamaPage() {
     staleTime: 5 * 60 * 1000,
   });
 
-  /* filter to DRY FOOD ONLY — kopek-kuru-mama subcategory exclusively.
-     Never include yas-mama (wet food), acik-mama, mama-su-kabi (bowls),
-     or any other non-dry-food subcategory. */
+  /* filter to DRY FOOD ONLY with real images.
+     - subcategory must be kopek-kuru-mama exclusively (never wet food / bowls)
+     - product must have a real image; imageless products are hidden from all PLPs */
   const mamaProducts = useMemo(() =>
     rawProducts.filter((p: any) => {
       const sub = (p.subcategory || "").toLowerCase();
-      return sub === "kopek-kuru-mama";
+      return sub === "kopek-kuru-mama" && !!p.img;
     }),
   [rawProducts]);
 

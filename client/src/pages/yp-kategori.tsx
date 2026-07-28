@@ -294,16 +294,22 @@ export default function YPKategoriPage({ routeSlug }: YPKategoriPageProps) {
     staleTime: 5 * 60 * 1000,
   });
 
-  /* client-side search filter */
+  /* Only show products that have a real image — imageless products are hidden
+     from all YP PLPs until an admin attaches a photo. */
+  const imgProducts = useMemo(() =>
+    rawProducts.filter((p: any) => !!p.img),
+  [rawProducts]);
+
+  /* client-side search filter (runs over imaged products only) */
   const filtered = useMemo(() => {
-    if (!debouncedQ) return rawProducts;
+    if (!debouncedQ) return imgProducts;
     const q = debouncedQ.toLowerCase();
-    return rawProducts.filter((p: any) =>
+    return imgProducts.filter((p: any) =>
       (p.name || "").toLowerCase().includes(q) ||
       (p.brandName || "").toLowerCase().includes(q) ||
       (p.barcode || "").includes(q)
     );
-  }, [rawProducts, debouncedQ]);
+  }, [imgProducts, debouncedQ]);
 
   const goProduct = useCallback((id: number, name: string) => {
     navigate(`${BASE}/urun/${id}/${slugify(name)}`);

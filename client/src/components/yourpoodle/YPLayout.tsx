@@ -191,7 +191,7 @@ export default function YPLayout({
         {/* ── Duyuru çubuğu — auth sayfalarında gösterilmez ── */}
         {!authMode && (
           <div style={{ background: "#7022C4", color: "#fff", textAlign: "center", padding: "9px 20px", fontSize: 13.5, fontWeight: 500 }}>
-            🎁 Yeni üyelere 100 TL hoş geldin bonusu
+            🎁 Üye ol, özel kampanya ve fırsatları kaçırma
           </div>
         )}
 

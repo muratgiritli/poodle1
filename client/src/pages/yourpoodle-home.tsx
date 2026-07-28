@@ -623,7 +623,7 @@ export default function YourPoodleHomePage() {
                       display:"flex", alignItems:"center", gap:10 }}>
           <span style={{ fontSize:26 }}>🎁</span>
           <span style={{ flex:1, fontSize:14, fontWeight:600, color:TEXT }}>
-            Yeni Üye Ol, 100 TL Bonus Kazan
+            Üye Ol, Özel Fırsatları Kaçırma
           </span>
           <button onClick={() => nav(isLoggedIn ? "/yourpoodle" : "/yourpoodle/giris")}
             style={{ background:P, color:"#fff", border:"none", borderRadius:10,

@@ -368,7 +368,9 @@ function Router() {
         {/* Catalog */}
         <Route path="/magaza/kategori/:slug" component={YPKategoriSayfasiPage} />
         <Route path="/magaza/marka/:slug"    component={YPMarkaSayfasiPage} />
-        <Route path="/magaza"                component={YPMagazaPage} />
+        <Route path="/magaza">
+          {() => IS_YP ? <YPMagazaPage /> : <Redirect to="/yourpoodle/magaza" />}
+        </Route>
         {/* Club */}
         <Route path="/club/gonderi/:postId"  component={YPGonderiDetayPage} />
         <Route path="/club/profil/:username" component={YPProfilPage} />
@@ -376,15 +378,21 @@ function Router() {
         <Route path="/club/mesajlar"         component={YPClubMesajlarPage} />
         <Route path="/club/kesfet"           component={YPClubKesfetPage} />
         <Route path="/club/kopekler"         component={YPClubKopeklerPage} />
-        <Route path="/club"                  component={YPClubPage} />
+        <Route path="/club">
+          {() => IS_YP ? <YPClubPage /> : <Redirect to="/yourpoodle/club" />}
+        </Route>
         {/* Bildirimler */}
         <Route path="/bildirimler"           component={YPBildirimlerPage} />
         {/* Rehber */}
         <Route path="/rehber/:category/:slug" component={YPRehberMakalePage} />
         <Route path="/rehber/:slug">
-          {(params: any) => <YPRehberPage routeSlug={params?.slug} />}
+          {(params: any) => params
+            ? (IS_YP ? <YPRehberPage routeSlug={params?.slug} /> : <Redirect to={`/yourpoodle/rehber/${params.slug}`} />)
+            : null}
         </Route>
-        <Route path="/rehber"                component={YPRehberPage} />
+        <Route path="/rehber">
+          {() => IS_YP ? <YPRehberPage /> : <Redirect to="/yourpoodle/rehber" />}
+        </Route>
         {/* Araçlar */}
         <Route path="/araclar/mama-hesaplama" component={YPMamaHesaplamaPage} />
         <Route path="/araclar/yas-hesaplama"  component={YPYasHesaplamaPage} />
@@ -403,8 +411,12 @@ function Router() {
         <Route path="/odeme"                 component={YPOdemePage} />
         <Route path="/tesekkurler"           component={YPTesekkurlerPage} />
         {/* Hizmetler & profil */}
-        <Route path="/hizmetler"             component={YPHizmetlerPage} />
-        <Route path="/benim-poodleim"        component={YPBenimPoodleimPage} />
+        <Route path="/hizmetler">
+          {() => IS_YP ? <YPHizmetlerPage /> : <Redirect to="/yourpoodle/hizmetler" />}
+        </Route>
+        <Route path="/benim-poodleim">
+          {() => IS_YP ? <YPBenimPoodleimPage /> : <Redirect to="/yourpoodle/benim-poodleim" />}
+        </Route>
         {/* Marketing & static */}
         <Route path="/kampanyalar"           component={YPKampanyalarPage} />
         <Route path="/hakkimizda"            component={YPHakkimizdaPage} />

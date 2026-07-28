@@ -1,0 +1,294 @@
+Aşağıya Replit Agent’e **doğrudan yapıştır**. Güncel kalan işlerin tamamı + “yarım bırakma” zorunluluğu en başta.
+
+```text
+You are the lead engineer for YourPoodle (https://www.yourpoodle.com).
+
+==================================================
+NON-NEGOTIABLE EXECUTION CONTRACT
+==================================================
+You MUST finish 100% of this prompt in ONE continuous pass.
+You are FORBIDDEN from:
+- Stopping after “partial progress”
+- Shipping “good enough for now”
+- Leaving TODOs, stubs, FIXME, alert(), “yakında”, fake products, grey placeholder images
+- Asking the user questions mid-task
+- Marking items done without DOM/URL self-verification
+- Fixing only easy items and skipping hard ones (images, catalog mapping, SEO junk, crawler sitemap 500)
+
+Definition of done:
+EVERY checkbox in section 13 is GREEN on the live/preview build.
+If ANY checkbox is red, you are NOT finished — fix and re-run the full checklist.
+Do not end your run with “remaining work”. There must be zero P0/P1 remainders.
+
+Work order (mandatory):
+1) Fix kuru-mama empty regression FIRST
+2) Routing/nav/404/redirects
+3) Catalog + images + barcode cleanup + hide empty categories
+4) Magaza hub upgrade
+5) SEO junk + single H1 + sitemap crawler 200
+6) Trust/copy alignment
+7) Home + legal/support polish
+8) Full self-QA loop until all green
+9) Final report
+
+Do not redesign the whole brand. Keep purple (~#6200EE/#6A38C2), mobile-first 390×844, existing Mama Bul / Rehber / AI / Club / cart toast patterns.
+Do not regress working modules.
+
+Forbidden copy anywhere (UI/SEO/meta/JSON-LD/hidden blocks):
+Samsun | Atakum | İlkadım | Canik | Tekkeköy | Kapıda nakit | Aynı Gün Kapıda | WhatsApp as primary checkout
+Forbidden brand pollution:
+kedi/kuş/kemirgen/akvaryum petshop junk, “900+ ürün” false claims
+
+All shopper routes must use `/yourpoodle/...`.
+
+==================================================
+0) CURRENT LIVE STATE (2026-07-28) — FIX EXACTLY THIS
+==================================================
+DONE (keep, do not break):
+- `/yourpoodle/hizmetler` is a real page (not 404)
+- `/yourpoodle/benim-poodleim` no longer 404; redirects to `/giris?returnTo=/benim-poodleim` when logged out
+- Browser sitemap index/children largely 200
+- Some PLPs still list products: tuvalet, yas-mama, tasima-cantalari, kulubeler, mama-su-kaplari
+- Tasima/Kulubeler have real product images
+
+BROKEN NOW:
+A) CRITICAL REGRESSION
+`/yourpoodle/kuru-mama` shows “0 ürün bulundu / Sonuç bulunamadı”
+BUT `/api/products` still has dry foods with images:
+- Royal Canin Poodle Adult 3 Kg (id 2706)
+- Royal Canin Poodle Yavru 3 Kg (id 2707)
+- Reflex Plus Poodle Yetişkin 2kg (id 2709)
+Filter/mapping is wrong. Must show DRY FOOD ONLY (no wet food, no bowls).
+
+B) NAV still wrong
+Top nav still unprefixed: `/magaza`, `/hizmetler`, `/rehber`, `/club`, `/benim-poodleim`
+`/magaza` returns 200 but does NOT redirect to `/yourpoodle/magaza`
+
+C) SEO still polluted
+Homepage still has:
+- second H1 “YourPoodle - Türkiye Geneli Hızlı Petshop Kargo”
+- kedi/kuş/akvaryum junk
+- “900’den fazla ürün”
+External crawlers still get HTTP 500 on sitemap endpoints (WebFetch/bot UA)
+
+D) Catalog still weak
+~27 products, ~9 with images, ~18 without images, ~18 fake barcodes `8681234567...`
+11 empty categories still shown in Magaza grid
+
+E) Magaza hub incomplete
+Still mostly category menu only
+No featured/bestsellers with Sepete Ekle
+No real Magaza search UX (hub remains weak)
+Trust text still says “12 taksit” / “aynı gün kargoya” / “100 TL bonus” inconsistently
+
+==================================================
+1) FIX KURU-MAMA FIRST (BLOCKER)
+==================================================
+URL: `/yourpoodle/kuru-mama`
+Also wire Magaza “Kuru Mama” + campaign banner here.
+
+Requirements:
+1. Show ALL real dry-food products from catalog (at least the 3 above)
+2. Exclude wet food / konserve / yaş mama
+3. Exclude bowls / mama kabı / su sebili / accessories
+4. Keep UI: search “Mama ara...”, Marka/Yaş/Kg/Fiyat filters, Sepete Ekle, toast, badge sync
+5. Every listed product must have real `<img>` (naturalWidth > 0)
+6. document.title / H1 truthful (“Köpek Mamaları” or “Kuru Mama” OK if content is dry-only)
+7. Self-proof: open page → count >= number of dry foods in API → names match → no bowls/wet
+
+If categorySlug/mamaType mapping is missing, FIX DATA + FILTER together.
+Do not leave the page empty.
+
+==================================================
+2) ROUTING + NAV (COMPLETE, NOT PARTIAL)
+==================================================
+1. Every header/footer/bottom-nav/CTA uses `/yourpoodle/...`
+2. Redirects required:
+   - `/magaza` → `/yourpoodle/magaza`
+   - `/rehber` → `/yourpoodle/rehber`
+   - `/club` → `/yourpoodle/club`
+   - `/hizmetler` → `/yourpoodle/hizmetler`
+   - `/benim-poodleim` → `/yourpoodle/benim-poodleim`
+3. Keep `/yourpoodle/hizmetler` real and linked correctly
+4. Keep `/yourpoodle/benim-poodleim`:
+   - logged out → giris with returnTo (already OK) OR onboarding page then CTA
+   - logged in → real pet profile/empty-state UI (not 404)
+5. Footer dead ends: implement minimal real pages OR remove links.
+   No 404s from visible navigation.
+6. Legal paths consistent and working:
+   sss, iade, kargo, guvenli-alisveris, gizlilik, cerez, kullanim-sartlari, mesafeli-satis, hakkimizda, iletisim
+   `/kvkk` may redirect to gizlilik but must not fail.
+
+==================================================
+3) CATALOG + IMAGES + CATEGORIES (COMPLETE)
+==================================================
+One source of truth. No hardcoded mock arrays that diverge from API.
+
+Every customer-facing product MUST have:
+- id, name, price, originalPrice?, stock, isActive
+- REAL image (`/api/product-image/{id}` or CDN), naturalWidth > 0
+- correct categorySlug(s)
+- barcode ONLY if real (delete invented sequential 8681234567… fakes)
+- skt ONLY if real
+- brand + mama metadata when relevant
+
+Rules:
+1. Products without images MUST NOT appear in listings until image attached
+   (preferred: attach real images for all launch products)
+2. Replace wrong assets (human selfie / non-product photos)
+3. Category map exact slugs:
+   kuru-mama, yas-mama, tuvalet, odul-cesitleri, tasima-cantalari, kulubeler, oyuncaklar,
+   mama-su-kaplari, bel-boyun-tasmalari, makas-taraklar, tiras-ekipmanlari, bakim-saglik,
+   sampuan-parfum, agiz-dis-bakimi, sut-tozu-biberon, bit-pire-parazit, goz-kulak-bakimi
+4. Empty category policy:
+   - 0 products → HIDE from Magaza grid
+   - Do NOT invent fake products
+5. Launch minimum non-empty WITH real images:
+   kuru-mama, yas-mama, tuvalet, tasima-cantalari, mama-su-kaplari,
+   oyuncaklar, bel-boyun-tasmalari, bakim-saglik
+   For others: stock real products+images OR hide.
+
+Shared CategoryPLP (Tuvalet/Yaş Mama kalıp):
+- back “← Mağaza”
+- H1 + title
+- search
+- “N ürün bulundu”
+- honest empty state only if truly empty
+- 2-col mobile grid
+- card order: name → real photo → barkod? → SKT? → prices → Sepete Ekle/Tükendi
+- toast + synced badges
+- Variant A no SKT / Variant B SKT when available
+NO grey boxes, NO Premium/Deluxe placeholders, NO emoji products
+
+==================================================
+4) MAGAZA HUB (COMPLETE UPGRADE)
+==================================================
+`/yourpoodle/magaza` must become a real store hub:
+1. Working search → `/yourpoodle/ara` over real catalog
+2. Featured + bestsellers: REAL in-stock products with images + Sepete Ekle
+3. Category grid shows ONLY categories with products
+4. Campaign banner → `/yourpoodle/kuru-mama` (must not be empty)
+5. Footer Magaza links work or are removed:
+   Mamalar → kuru-mama
+   Oyuncaklar/Bakım → correct PLP if stocked
+   Kıyafetler/Kampanyalar → real filtered view OR remove
+6. No dead `?kategori=` params unless they actually filter
+
+==================================================
+5) SEO / SITEMAP (COMPLETE)
+==================================================
+1. Remove ALL generic petshop SEO junk from homepage and all pages
+2. Exactly one meaningful visible H1 per page
+3. No “900+ ürün” unless truly true
+4. Toy Poodle-specific truthful meta title/description
+5. Sitemap endpoints must return 200 for browsers AND crawler/bot UAs:
+   `/sitemap.xml`, `/sitemap-main.xml`, `/sitemap-products.xml` (+ any children)
+   If middleware blocks bots with 500, FIX IT.
+6. Include public indexable routes; exclude private auth/cart/checkout/admin/api
+7. No Samsun/Atakum geo leftovers
+
+==================================================
+6) HOME + TRUST + CART
+==================================================
+Home:
+- one primary H1
+- featured products real + imaged
+- rehber teasers → real article/section URLs
+- CTAs prefixed
+- newsletter/KVKK remain
+
+Trust/cart:
+- Align taksit claims with reality (if 3, never say 12)
+- Shipping claims truthful Turkey-wide
+- “100 TL welcome bonus”: implement real rule OR change/remove banner
+- Keep `/yourpoodle/sepet` working; badge sync; checkout CTA not dead
+- Self-test add from PLPs → cart totals correct
+
+==================================================
+7) MODULE HARDENING (NO REGRESSION)
+==================================================
+Mama Bul: wizard works; recommendations map to real in-stock products when possible
+Rehber: deep links work
+AI Asistan: chat/calculators/disclaimer intact
+Club: no crash; no fake-live social proof pretending to be real users
+Desktop: hide redundant bottom nav at >=768/1024 or make non-duplicative
+Reduce hydration blank flash with skeletons on Magaza/PLP
+Quiet logged-out `/api/customer/me` 401 handling
+
+==================================================
+8) LEGAL/SUPPORT PAGES
+==================================================
+Real Turkish content (not empty) for:
+sss, iade, kargo (Turkey-wide only), guvenli-alisveris,
+gizlilik-politikasi, cerez-politikasi, kullanim-sartlari, mesafeli-satis,
+hakkimizda, iletisim.
+No Samsun local courier narrative.
+
+==================================================
+9) SELF-QA LOOP — ALL MUST BE GREEN OR YOU ARE NOT DONE
+==================================================
+Kuru-mama
+[ ] `/yourpoodle/kuru-mama` shows dry foods from API (>=3 currently known)
+[ ] No wet food
+[ ] No bowls/accessories
+[ ] Real images on all listed products
+[ ] Magaza campaign + Kuru Mama card open this PLP
+
+Routing
+[ ] All top nav hrefs are `/yourpoodle/...`
+[ ] `/magaza` redirects to `/yourpoodle/magaza`
+[ ] Hizmetler works
+[ ] Benim Poodle’ım works (login gate or page, never 404)
+[ ] No visible nav/footer 404
+
+SEO
+[ ] Homepage: no kedi/kuş/akvaryum junk
+[ ] Homepage: no “900+ ürün” false claim
+[ ] Single H1
+[ ] sitemap.xml + children = 200 for normal AND crawler UA
+[ ] No Samsun/Atakum/Kapıda nakit
+
+Catalog / PLP
+[ ] Magaza hides empty categories
+[ ] Every visible product has real photo
+[ ] No fake sequential barcodes unless truly real
+[ ] No mock-only hardcoded lists
+[ ] Launch categories stocked with images OR hidden
+[ ] Search + Sepete Ekle + toast + synced badges work
+
+Magaza hub
+[ ] Search works
+[ ] Featured/bestsellers with real products exist
+[ ] Category wiring correct
+
+Cart / trust
+[ ] Cart totals correct; checkout not dead
+[ ] Taksit/shipping/bonus copy consistent with reality
+
+Modules
+[ ] Mama Bul / Rehber / AI / Club no regressions
+[ ] Home featured real; SEO junk gone
+
+If ANY box fails: fix and re-check ALL boxes from the top.
+Do not stop after one area.
+
+==================================================
+10) FINAL REPORT (ONLY AFTER ALL GREEN)
+==================================================
+Return:
+1) What was broken vs fixed (especially kuru-mama mapping)
+2) Routes/redirects changed
+3) Category table: slug / count / images / hidden-or-live
+4) Catalog/image/barcode cleanup summary
+5) SEO/sitemap crawler proof
+6) Full PASS/FAIL checklist (all PASS)
+7) Explicit statement: “No P0/P1 remainders.”
+
+START NOW.
+Complete every section fully in one pass.
+Do not ask questions.
+Do not deliver a half-fixed site.
+Do not finish until section 9 is entirely green.
+```
+
+Bu prompt’un en kritik 3 kilidi: **(1) kuru-mama boşluğu**, **(2) yarım bırakma yasağı + full checklist**, **(3) crawler sitemap 500 + SEO junk**.

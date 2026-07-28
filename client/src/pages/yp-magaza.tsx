@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -275,15 +275,17 @@ export default function YPMagazaPage() {
     staleTime: 5 * 60 * 1000,
   });
 
-  /* Products from API */
-  const { data: allProducts = [], isLoading, isError, refetch } = useQuery<any[]>({
-    queryKey: ["/api/products"],
+  /* YP products for featured strip — real images only, sorted by stock desc */
+  const { data: ypProducts = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/yp-products"],
     staleTime: 5 * 60 * 1000,
   });
-
-  const activeProducts = allProducts.filter((p: any) => p.isActive !== false && p.stock > 0);
-  const featured   = activeProducts.slice(0, 8);
-  const bestsellers = [...activeProducts].sort((a, b) => b.price - a.price).slice(0, 8);
+  const featuredProducts = useMemo(() =>
+    ypProducts
+      .filter((p: any) => !!p.img && p.stock > 0 && p.isActive !== false)
+      .sort((a: any, b: any) => b.stock - a.stock)
+      .slice(0, 8),
+  [ypProducts]);
 
   /* Navigate to product detail */
   const goProduct = useCallback((id: number, name: string) => {
@@ -321,6 +323,31 @@ export default function YPMagazaPage() {
 
       <main className="yp-pw yp-mag-main">
 
+        {/* ── Search bar ── */}
+        <form onSubmit={handleSearch} style={{ marginBottom:20 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:0,
+                        border:`1.5px solid ${GB}`, borderRadius:12,
+                        background:"#fff", overflow:"hidden",
+                        boxShadow:"0 1px 4px rgba(0,0,0,0.06)" }}>
+            <Search size={16} color="#9CA3AF" style={{ marginLeft:14, flexShrink:0 }} />
+            <input
+              value={searchQ}
+              onChange={e => setSearchQ(e.target.value)}
+              type="search"
+              placeholder="Poodle ürünlerinde ara..."
+              style={{ flex:1, border:"none", outline:"none", padding:"12px 10px",
+                       fontSize:14, color:"#111827", fontFamily:"inherit",
+                       background:"transparent" }}
+            />
+            <button type="submit"
+              style={{ background:P, color:"#fff", border:"none",
+                       padding:"12px 16px", fontSize:13, fontWeight:600,
+                       cursor:"pointer", fontFamily:"inherit", flexShrink:0 }}>
+              Ara
+            </button>
+          </div>
+        </form>
+
         {/* ── Campaign banner ── */}
         <button
           onClick={() => navigate("/yourpoodle/kuru-mama")}
@@ -343,6 +370,31 @@ export default function YPMagazaPage() {
           <div style={{ fontSize:48, lineHeight:1, flexShrink:0, marginLeft:12 }}>🐾</div>
         </button>
 
+        {/* ── Featured products strip ── */}
+        {featuredProducts.length > 0 && (
+          <section style={{ marginBottom:28 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+              <h2 style={{ fontSize:16, fontWeight:800, color:"#111827", margin:0 }}>Öne Çıkan Ürünler</h2>
+              <button onClick={() => navigate(`${BASE}/ara`)}
+                style={{ background:"none", border:"none", cursor:"pointer", fontFamily:"inherit",
+                          fontSize:12, fontWeight:600, color:P, padding:"4px 0" }}>
+                Tümü →
+              </button>
+            </div>
+            {isLoading ? (
+              <div style={{ display:"flex", gap:10, overflowX:"auto", paddingBottom:4 }} className="yp-mag-scroll">
+                {[1,2,3,4].map(i => <ProductSkeleton key={i} />)}
+              </div>
+            ) : (
+              <div style={{ display:"flex", gap:10, overflowX:"auto", paddingBottom:4 }} className="yp-mag-scroll">
+                {featuredProducts.map(p => (
+                  <ProductCard key={p.id} product={p} onNavigate={goProduct} />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
         {/* ── Category divider ── */}
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
           <div style={{ flex:1, height:1, background:GB }} />
@@ -352,15 +404,16 @@ export default function YPMagazaPage() {
           <div style={{ flex:1, height:1, background:GB }} />
         </div>
 
-        {/* ── Category grid ── */}
+        {/* ── Category grid — hide categories with 0 imaged products ── */}
         <div className="yp-cat-grid">
           {CATEGORIES.map(cat => {
             const subcat = SLUG_TO_SUBCAT[cat.slug];
-            const count = Object.keys(categoryCounts).length === 0
-              ? null
-              : subcat
-                ? (categoryCounts[subcat] ?? 0)
-                : null;
+            const countsLoaded = Object.keys(categoryCounts).length > 0;
+            const count = countsLoaded
+              ? (subcat ? (categoryCounts[subcat] ?? 0) : 0)
+              : null;
+            // Hide categories that are confirmed empty (counts loaded + count = 0)
+            if (countsLoaded && count === 0) return null;
             return (
               <CategoryRow key={cat.id} cat={cat} count={count} onClick={() => goCat(cat)} />
             );
