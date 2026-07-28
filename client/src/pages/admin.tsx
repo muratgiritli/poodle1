@@ -7513,8 +7513,8 @@ function YPEventsCard() {
             </div>
             <div className="flex gap-1 flex-shrink-0">
               {ev.slug && (
-                <a href={`/yourpoodle/etkinlikler/${ev.slug}`} target="_blank" rel="noopener noreferrer">
-                  <Button size="sm" variant="outline" className="h-6 text-[10px] px-2">Görüntüle</Button>
+                <a href={`/yourpoodle/etkinlikler/${ev.slug}${ev.is_active ? "" : "?preview=1"}`} target="_blank" rel="noopener noreferrer">
+                  <Button size="sm" variant="outline" className="h-6 text-[10px] px-2">{ev.is_active ? "Görüntüle" : "Önizle"}</Button>
                 </a>
               )}
               <Button size="sm" variant="outline" className="h-6 text-[10px] px-2" onClick={() => openEdit(ev)}>Düzenle</Button>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useRoute, useLocation } from "wouter";
+import { useRoute, useLocation, useSearch } from "wouter";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { ArrowLeft, MapPin, Calendar, Clock, Users, Plus } from "lucide-react";
 import { getEvent } from "@/data/events";
@@ -27,8 +27,10 @@ export default function YPEtkinlikDetayPage() {
   const [, paramsA] = useRoute("/etkinlikler/:slug");
   const [, paramsB] = useRoute("/yourpoodle/etkinlikler/:slug");
   const [, navigate] = useLocation();
+  const search = useSearch();
   const params = paramsA ?? paramsB;
   const slug = params?.slug ?? "";
+  const isPreview = new URLSearchParams(search).get("preview") === "1";
 
   const mockEvent = slug ? getEvent(slug) : undefined;
 
@@ -54,7 +56,8 @@ export default function YPEtkinlikDetayPage() {
     const controller = new AbortController();
     setLoading(true);
 
-    fetch(`/api/yp-events/by-slug/${encodeURIComponent(slug)}`, { signal: controller.signal })
+    const previewParam = isPreview ? "?preview=1" : "";
+    fetch(`/api/yp-events/by-slug/${encodeURIComponent(slug)}${previewParam}`, { signal: controller.signal })
       .then(r => {
         if (!r.ok) { setNotFound(true); setLoading(false); return null; }
         return r.json();
@@ -122,6 +125,11 @@ export default function YPEtkinlikDetayPage() {
 
   return (
     <YPLayout constrain={false}>
+      {isPreview && (
+        <div style={{ background: "#F59E0B", color: "#fff", textAlign: "center", padding: "8px 16px", fontSize: 13, fontWeight: 700 }}>
+          ⚠️ Önizleme modu — Bu etkinlik henüz yayında değil (Gizli)
+        </div>
+      )}
       <div style={{ minHeight: "100vh", background: "#FAFAFA", paddingBottom: 64 }}>
         <div style={{ maxWidth: 760, margin: "0 auto", padding: "20px 20px 0" }}>
           <button onClick={() => navigate(`${BASE}/etkinlikler`)}

@@ -8510,14 +8510,20 @@ Kurallar:
   // ─── YourPoodle Events API ────────────────────────────────────────────────
   // Public: list all events (sorted by date)
   // Public: fetch single event by slug (slugified title match)
+  // Admins can fetch inactive events by passing ?preview=1
   app.get("/api/yp-events/by-slug/:slug", async (req, res) => {
     const slug = req.params.slug;
+    const isPreview = req.query.preview === "1";
+    const sess = req.session as any;
+    const isAdmin = !!(sess?.userId && sess?.isAdmin === true);
+    const allowInactive = isPreview && isAdmin;
     const toSlug = (s: string) =>
       s.toLowerCase().replace(/[^a-z0-9ğüşıöç]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
     try {
+      const activeClause = allowInactive ? "" : "is_active = true AND ";
       const result = await sharedPool.query(
-        `SELECT id, title, description, location, event_date, day, month, year, type, free, color, slug
-         FROM yp_events WHERE is_active = true AND slug = $1
+        `SELECT id, title, description, location, event_date, day, month, year, type, free, color, slug, is_active
+         FROM yp_events WHERE ${activeClause}slug = $1
          LIMIT 1`,
         [slug]
       );
@@ -8525,8 +8531,8 @@ Kurallar:
       let row = result.rows[0];
       if (!row) {
         const all = await sharedPool.query(
-          `SELECT id, title, description, location, event_date, day, month, year, type, free, color, slug
-           FROM yp_events WHERE is_active = true`
+          `SELECT id, title, description, location, event_date, day, month, year, type, free, color, slug, is_active
+           FROM yp_events WHERE ${allowInactive ? "TRUE" : "is_active = true"}`
         );
         row = all.rows.find((r: any) => toSlug(r.title) === slug);
       }
