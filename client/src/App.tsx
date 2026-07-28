@@ -299,6 +299,7 @@ function Router() {
           {(params) => <YPDogProfilePage routeSlug={params?.slug} />}
         </Route>
         <Route path="/yourpoodle/bilgi"          component={YPBilgiPage} />
+        <Route path="/yourpoodle/ara"             component={YPAraPage} />
         <Route path="/yourpoodle/magaza"         component={YPMagazaPage} />
         <Route path="/yourpoodle/kategori/:slug">
           {(params) => <YPKategoriPage routeSlug={params?.slug} />}
