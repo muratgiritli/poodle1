@@ -8686,19 +8686,14 @@ Kurallar:
   // Public: list all articles
   app.get("/api/yp-articles", async (_req, res) => {
     try {
-      await sharedPool.query(`
-        CREATE TABLE IF NOT EXISTS yp_articles (
-          id SERIAL PRIMARY KEY, title TEXT NOT NULL, body TEXT,
-          tag TEXT, emoji TEXT, min_read INT DEFAULT 5,
-          featured BOOLEAN DEFAULT false, sort_order INT DEFAULT 0, is_active BOOLEAN DEFAULT true
-        )`);
       const result = await sharedPool.query(
         `SELECT id, title, body, tag, emoji, min_read, featured, sort_order
          FROM yp_articles WHERE is_active = true ORDER BY featured DESC, sort_order ASC, id ASC`
       );
       res.json(result.rows);
-    } catch {
-      res.json([]);
+    } catch (e) {
+      console.error("GET /api/yp-articles error:", e);
+      res.status(500).json({ message: "Makaleler yüklenemedi." });
     }
   });
 
