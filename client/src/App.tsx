@@ -311,6 +311,7 @@ function Router() {
         <Route path="/yourpoodle/saglik"       component={YPSaglikPage} />
         <Route path="/yourpoodle/bakim"        component={YPBakimPage} />
         <Route path="/yourpoodle/bildirimler"  component={YPBildirimlerPage} />
+        <Route path="/yourpoodle/etkinlikler/:slug" component={YPEtkinlikDetayPage} />
         <Route path="/yourpoodle/etkinlikler"    component={YPEtkinliklerPage} />
         <Route path="/yourpoodle/ai-asistan"     component={YPAiAsistanPage} />
         <Route path="/yourpoodle/mama-bul"       component={YPMamaBulPage} />

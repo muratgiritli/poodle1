@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { MapPin, Calendar, Check, X } from "lucide-react";
+import { MapPin, Calendar, Check, ExternalLink } from "lucide-react";
 import { useCustomer } from "@/contexts/CustomerContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import { IS_YP } from "@/lib/store";
+
+const BASE = IS_YP ? "" : "/yourpoodle";
 
 const FALLBACK_EVENTS = [
   { id:1, day:"26", month:"TEM", year:"2026", title:"Poodle Buluşması — Kadıköy", location:"İstanbul", desc:"İstanbul poodle severler Kadıköy Moda sahilinde buluşuyor. Poodlenizi getirin!", color:"#FF7FA7", type:"Buluşma", free:true },
@@ -194,6 +197,14 @@ export default function Etkinlikler() {
                   </div>
                 )}
               </div>
+              {/* Detail page link (slug-based) */}
+              {selectedEvent.slug && (
+                <button
+                  onClick={() => { setSelectedEvent(null); navigate(`${BASE}/etkinlikler/${selectedEvent.slug}`); }}
+                  style={{ width:"100%", height:44, borderRadius:12, border:"1.5px solid #E5E7EB", background:"#F9FAFB", color:"#374151", fontSize:13, fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, fontFamily:"Inter,sans-serif", marginBottom:10 }}>
+                  <ExternalLink size={14} /> Etkinlik Detayı
+                </button>
+              )}
               {/* CTA */}
               {isLoggedIn ? (() => {
                 const joined = myRegistrations.includes(selectedEvent.id);
