@@ -332,6 +332,8 @@ function Router() {
         <Route path="/yourpoodle/guvenli-alisveris"    component={YPGuvenliAlisverisPage} />
         <Route path="/yourpoodle/mesafeli-satis"       component={YPMesafeliSatisPage} />
         <Route path="/yourpoodle/cerez-politikasi"     component={YPCerezPolitikasiPage} />
+        <Route path="/yourpoodle/hizmetler"             component={YPHizmetlerPage} />
+        <Route path="/yourpoodle/benim-poodleim"       component={YPBenimPoodleimPage} />
         <Route path="/yourpoodle/kariyer"              component={YPKariyerPage} />
         <Route path="/yourpoodle/bayi-basvurusu"       component={YPBayiBasvurusuPage} />
         <Route path="/yourpoodle/fotograf-yarismasi"   component={YPFotografYarismasi} />
