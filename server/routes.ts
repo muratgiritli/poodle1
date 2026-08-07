@@ -2803,6 +2803,33 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json({ message: `${updated} ürün stoğu güncellendi`, updated });
   });
 
+  app.post("/api/admin/products/bulk-img-update", requireAdmin, async (req, res) => {
+    const { updates } = req.body;
+    if (!Array.isArray(updates) || updates.length === 0 || updates.length > 500) {
+      return res.status(400).json({ message: "Invalid data" });
+    }
+    let updated = 0;
+    for (const item of updates) {
+      const id = Number(item.id);
+      const imgUrl = typeof item.img === "string" ? item.img.trim() : null;
+      if (!Number.isInteger(id) || id <= 0) continue;
+      const product = await storage.getProduct(id);
+      if (!product) continue;
+      let finalImg: string | null = imgUrl || null;
+      if (imgUrl && imgUrl.startsWith("http")) {
+        try {
+          const saved = await downloadAndSaveImage(imgUrl, id);
+          if (saved) finalImg = saved;
+        } catch {
+          // keep original URL if download fails
+        }
+      }
+      await storage.updateProduct(id, { img: finalImg });
+      updated++;
+    }
+    res.json({ message: `${updated} ürün görseli güncellendi`, updated });
+  });
+
   app.get("/api/product-detail/:id", async (req, res) => {
     const id = parseInt(String(req.params.id));
     const product = await storage.getProduct(id);

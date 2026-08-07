@@ -1319,6 +1319,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [individualPrices, setIndividualPrices] = useState<Record<number, string>>({});
   const [bulkStockDialogOpen, setBulkStockDialogOpen] = useState(false);
   const [individualStocks, setIndividualStocks] = useState<Record<number, string>>({});
+  const [bulkImgDialogOpen, setBulkImgDialogOpen] = useState(false);
+  const [individualImgs, setIndividualImgs] = useState<Record<number, string>>({});
   const [ordersExpanded, setOrdersExpanded] = useState(false);
   const [campaignExpanded, setCampaignExpanded] = useState(false);
   const [campaignAddPrice, setCampaignAddPrice] = useState("");
@@ -1498,6 +1500,21 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     },
   });
 
+  const bulkImgUpdateMutation = useMutation({
+    mutationFn: async ({ updates }: { updates: { id: number; img: string }[] }) => {
+      await apiRequest("POST", "/api/admin/products/bulk-img-update", { updates });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      setBulkImgDialogOpen(false);
+      setIndividualImgs({});
+      toast({ title: "Başarılı", description: `${variables.updates.length} ürün görseli güncellendi.` });
+    },
+    onError: () => {
+      toast({ title: "Hata", description: "Görseller güncellenirken bir hata oluştu.", variant: "destructive" });
+    },
+  });
+
   // Sipariş masası listesi global staleTime: Infinity'yi geçersiz kılar: aksi halde
   // liste yalnızca bildirim polling'i bir mutasyon/yeni sipariş tetiklediğinde
   // yenilenir; bildirim kapalıysa veya tespit kaçarsa sayfa açıkken liste eskir ve
@@ -1639,6 +1656,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       products = products.filter((p) => p.stock > 0 && p.stock <= 3);
     } else if (quickFilter === "no-image") {
       products = products.filter((p) => p.isActive && !p.img);
+    } else if (quickFilter === "placeholder-image") {
+      products = products.filter((p) => p.isActive && p.img && p.img.startsWith("http"));
     } else if (quickFilter === "no-barcode") {
       products = products.filter((p) => !p.barcode && !(Array.isArray(p.variants) && p.variants.some((v: any) => v?.barcode)));
     }
@@ -4180,6 +4199,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 { id: "campaign", label: "Kampanya", icon: "🏷️" },
                 { id: "has-skt", label: "SKT'li", icon: "📅" },
                 { id: "no-image", label: "Resimsiz (Aktif)", icon: "🖼️" },
+                { id: "placeholder-image", label: "Dış Resimli", icon: "🔗" },
                 { id: "no-barcode", label: "Barkodsuz", icon: "🔖" },
               ].map((f) => (
                 <button
@@ -4229,6 +4249,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     "campaign": "Kampanya",
                     "has-skt": "SKT'li",
                     "no-image": "Resimsiz (Aktif)",
+                    "placeholder-image": "Dış Resimli",
                     "no-barcode": "Barkodsuz",
                   };
                   exportProductsPdf(
@@ -4514,6 +4535,88 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                           )}
                         </Button>
                       </div>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              <Dialog open={bulkImgDialogOpen} onOpenChange={(open) => { setBulkImgDialogOpen(open); if (!open) setIndividualImgs({}); }}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" disabled={filteredProducts.length === 0} data-testid="btn-bulk-img">
+                    <ImageIcon className="w-4 h-4" />
+                    Toplu Resim Güncelle
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] flex flex-col">
+                  <DialogHeader>
+                    <DialogTitle>Toplu Resim URL Güncelleme</DialogTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Seçili filtredeki <span className="font-bold text-foreground">{filteredProducts.length}</span> ürün — URL yapıştırın; boş bırakılan ürünler değişmez.
+                    </p>
+                  </DialogHeader>
+                  <div className="flex flex-col flex-1 min-h-0">
+                    <div className="overflow-y-auto flex-1 border rounded-lg" style={{ maxHeight: "50vh" }}>
+                      <table className="w-full text-sm">
+                        <thead className="sticky top-0 bg-background border-b">
+                          <tr>
+                            <th className="text-left p-2 font-medium w-8"></th>
+                            <th className="text-left p-2 font-medium">Ürün</th>
+                            <th className="text-left p-2 font-medium">Resim URL</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredProducts.map((p) => (
+                            <tr key={p.id} className="border-b last:border-0 hover:bg-muted/30">
+                              <td className="p-2">
+                                {p.img ? (
+                                  <img src={p.img} alt="" className="w-8 h-8 rounded object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                                ) : (
+                                  <div className="w-8 h-8 rounded bg-muted/50 flex items-center justify-center">
+                                    <ImageIcon className="w-4 h-4 text-muted-foreground/40" />
+                                  </div>
+                                )}
+                              </td>
+                              <td className="p-2 text-xs leading-tight max-w-[200px]">
+                                <span className="block truncate" title={p.name}>{p.name}</span>
+                                {p.img?.startsWith("http") && (
+                                  <span className="text-[10px] text-orange-500">🔗 dış URL</span>
+                                )}
+                              </td>
+                              <td className="p-2">
+                                <Input
+                                  type="url"
+                                  placeholder={p.img || "https://..."}
+                                  value={individualImgs[p.id] || ""}
+                                  onChange={(e) => setIndividualImgs(prev => ({ ...prev, [p.id]: e.target.value }))}
+                                  className="h-8 text-xs w-full"
+                                  data-testid={`input-img-${p.id}`}
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                      <p className="text-xs text-muted-foreground">
+                        {Object.values(individualImgs).filter(v => v.trim()).length} ürün değiştirilecek
+                      </p>
+                      <Button
+                        disabled={Object.values(individualImgs).filter(v => v.trim()).length === 0 || bulkImgUpdateMutation.isPending}
+                        onClick={() => {
+                          const updates = Object.entries(individualImgs)
+                            .filter(([_, v]) => v.trim())
+                            .map(([id, v]) => ({ id: parseInt(id), img: v.trim() }));
+                          if (updates.length > 0) bulkImgUpdateMutation.mutate({ updates });
+                        }}
+                        data-testid="btn-save-bulk-img"
+                      >
+                        {bulkImgUpdateMutation.isPending ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <>Resimleri Kaydet</>
+                        )}
+                      </Button>
                     </div>
                   </div>
                 </DialogContent>
