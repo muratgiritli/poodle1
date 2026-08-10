@@ -13,7 +13,7 @@ import {
 import YPLayout from "@/components/yourpoodle/YPLayout";
 
 const BASE = IS_YP ? "" : "/yourpoodle";
-const P    = "#7022C4";
+const P    = "#5D3A1A";
 
 /* ── The 5 Doors ────────────────────────────────────────────── */
 const DOORS = [
@@ -21,9 +21,9 @@ const DOORS = [
     id: "mama",
     icon: Utensils,
     emoji: "🍖",
-    color: "#7022C4",
-    bg: "linear-gradient(135deg,#F3E8FF 0%,#EDE9FE 100%)",
-    border: "#DDD6FE",
+    color: "#5D3A1A",
+    bg: "linear-gradient(135deg,#F3E8FF 0%,#EDE5D8 100%)",
+    border: "#E5DDD0",
     label: "Mama & Mağaza",
     tagline: "Poodle'ınıza özel mama bul",
     desc: "Yaş ve kiloya göre filtreleme, veteriner onaylı listeler.",
@@ -174,7 +174,7 @@ function QuickFinder({ navigate }: { navigate: (p: string) => void }) {
   const [weight, setWeight] = useState("");
 
   const sel: React.CSSProperties = {
-    flex: 1, height: 40, border: "1.5px solid #DDD6FE", borderRadius: 10,
+    flex: 1, height: 40, border: "1.5px solid #E5DDD0", borderRadius: 10,
     padding: "0 12px", fontSize: 13, background: "#fff",
     cursor: "pointer", fontFamily: "inherit", outline: "none",
     color: "#374151", minWidth: 130,
@@ -182,8 +182,8 @@ function QuickFinder({ navigate }: { navigate: (p: string) => void }) {
 
   return (
     <div style={{
-      background: "#fff", borderRadius: 16, border: "1px solid #EDE9FE",
-      boxShadow: "0 2px 12px rgba(112,34,196,0.08)",
+      background: "#fff", borderRadius: 16, border: "1px solid #EDE5D8",
+      boxShadow: "0 2px 12px rgba(93,58,26,0.08)",
       padding: "20px 24px", marginBottom: 40,
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
@@ -222,7 +222,7 @@ function QuickFinder({ navigate }: { navigate: (p: string) => void }) {
             height: 40, padding: "0 20px", borderRadius: 10, border: "none",
             background: P, color: "#fff", fontSize: 13, fontWeight: 700,
             cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
-            boxShadow: "0 4px 12px rgba(112,34,196,0.3)",
+            boxShadow: "0 4px 12px rgba(93,58,26,0.3)",
           }}>
           Mama Bul →
         </button>
@@ -256,9 +256,9 @@ export default function YourPoodleV2Page() {
       `}</style>
 
       {/* ── HERO ── */}
-      <section style={{ background: "linear-gradient(180deg,#F8F5FF 0%,#fff 100%)", borderBottom: "1px solid #F3F4F6" }}>
+      <section style={{ background: "linear-gradient(180deg,#FAF7F0 0%,#fff 100%)", borderBottom: "1px solid #F3F4F6" }}>
         <div className="v2-hero-inner">
-          <div style={{ display:"flex", alignItems:"center", gap:10, background:"#EDE9FE", borderRadius:999, padding:"6px 16px 6px 10px" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10, background:"#EDE5D8", borderRadius:999, padding:"6px 16px 6px 10px" }}>
             <img src="/images/poodle-hero-transparent.png" alt="" style={{ width:28, height:28, objectFit:"contain", borderRadius:"50%" }} />
             <span style={{ fontSize:13, fontWeight:700, color:P }}>Toy Poodle'ınıza özel platform</span>
           </div>
@@ -290,7 +290,7 @@ export default function YourPoodleV2Page() {
       </section>
 
       {/* ── TRUST STRIP ── */}
-      <section style={{ background:"#F8F5FF", borderTop:"1px solid #EDE9FE", padding:"20px 0" }}>
+      <section style={{ background:"#FAF7F0", borderTop:"1px solid #EDE5D8", padding:"20px 0" }}>
         <div className="v2-wrap">
           <div style={{ display:"flex", gap:32, flexWrap:"wrap", justifyContent:"center", alignItems:"center" }}>
             {[

@@ -14,9 +14,9 @@ import { IS_YP } from "@/lib/store";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 /* ── Tokens ── */
-const P   = "#6200EE";
-const PL  = "#F3EEFF";
-const GB  = "#E5E7EB";
+const P   = "#5D3A1A";
+const PL  = "#F5F0E6";
+const GB  = "#E5DDD0";
 
 /* ── Slugify helper ── */
 function slugify(str: string) {
@@ -28,14 +28,14 @@ function slugify(str: string) {
 
 /* ── Accent map ── */
 const COLOR_MAP = {
-  purple: { bg:"#F3EEFF", border:"#DDD6FE", icon:"#6200EE" },
-  red:    { bg:"#FEF2F2", border:"#FECACA", icon:"#EF4444" },
-  teal:   { bg:"#F0FDFA", border:"#99F6E4", icon:"#14B8A6" },
-  orange: { bg:"#FFF7ED", border:"#FED7AA", icon:"#F97316" },
-  blue:   { bg:"#EFF6FF", border:"#BFDBFE", icon:"#3B82F6" },
-  pink:   { bg:"#FDF2F8", border:"#FBCFE8", icon:"#EC4899" },
-  green:  { bg:"#F0FDF4", border:"#BBF7D0", icon:"#22C55E" },
-  yellow: { bg:"#FEFCE8", border:"#FEF08A", icon:"#EAB308" },
+  purple: { bg:"#F5F0E6", border:"#E5DDD0", icon:"#5D3A1A" },
+  red:    { bg:"#F5F0E6", border:"#E5DDD0", icon:"#5D3A1A" },
+  teal:   { bg:"#F5F0E6", border:"#E5DDD0", icon:"#5D3A1A" },
+  orange: { bg:"#F5F0E6", border:"#E5DDD0", icon:"#5D3A1A" },
+  blue:   { bg:"#F5F0E6", border:"#E5DDD0", icon:"#5D3A1A" },
+  pink:   { bg:"#F5F0E6", border:"#E5DDD0", icon:"#5D3A1A" },
+  green:  { bg:"#F5F0E6", border:"#E5DDD0", icon:"#5D3A1A" },
+  yellow: { bg:"#F5F0E6", border:"#E5DDD0", icon:"#5D3A1A" },
 } as const;
 type AccentKey = keyof typeof COLOR_MAP;
 
@@ -89,7 +89,7 @@ function Toast({ message, visible }: { message:string; visible:boolean }) {
   return (
     <div style={{ position:"fixed", bottom:88, left:"50%", transform:"translateX(-50%)",
                   zIndex:999, pointerEvents:"none", opacity:visible?1:0, transition:"opacity 0.3s" }}>
-      <div style={{ background:"#1A0052", color:"#fff", padding:"10px 22px", borderRadius:999,
+      <div style={{ background:"#3D2612", color:"#fff", padding:"10px 22px", borderRadius:999,
                     fontSize:13, fontWeight:500, whiteSpace:"nowrap", boxShadow:"0 4px 16px rgba(0,0,0,0.25)" }}>
         {message}
       </div>
@@ -144,7 +144,7 @@ function ProductCard({ product, onNavigate }: {
                background:"#fff", overflow:"hidden", cursor:"pointer",
                transition:"box-shadow 0.15s, transform 0.15s",
                boxShadow:"0 1px 4px rgba(0,0,0,0.05)" }}
-      onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 4px 12px rgba(98,0,238,0.12)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 4px 12px rgba(93,58,26,0.12)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
       onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.05)"; e.currentTarget.style.transform = "translateY(0)"; }}
     >
       {/* Image */}
@@ -319,7 +319,10 @@ export default function YPMagazaPage() {
         /* Content area — footer sits below and handles bottom nav clearance */
         .yp-mag-main {
           padding: 16px 16px 24px;
+          background: #FAF8F4;
+          min-height: 60vh;
         }
+        .yp-mag-main h2 { font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif; }
       `}</style>
       <Toast message={toast.message} visible={toast.visible} />
 
@@ -355,9 +358,9 @@ export default function YPMagazaPage() {
           onClick={() => navigate(`${BASE}/kuru-mama`)}
           aria-label="Kuru mama kampanyasına git"
           style={{ width:"100%", marginBottom:24, borderRadius:16, border:"none", cursor:"pointer",
-                   background:`linear-gradient(135deg,${P} 0%,#9333EA 100%)`,
+                   background:`linear-gradient(135deg,${P} 0%,#8B5E34 100%)`,
                    padding:"18px 20px", display:"flex", alignItems:"center", justifyContent:"space-between",
-                   boxShadow:"0 4px 16px rgba(98,0,238,0.25)", fontFamily:"inherit" }}>
+                   boxShadow:"0 4px 16px rgba(93,58,26,0.25)", fontFamily:"inherit" }}>
           <div style={{ textAlign:"left" }}>
             <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.8)", letterSpacing:1, textTransform:"uppercase", marginBottom:4 }}>
               Özel Fiyat

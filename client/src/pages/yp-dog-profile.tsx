@@ -35,7 +35,7 @@ function PostCard({ post, onLike }: { post: Post; onLike: (id: number) => void }
   return (
     <div style={{ border: "1.5px solid #F0F0F0", borderRadius: 12, overflow: "hidden", background: "#fff", marginBottom: 12 }}>
       {img && (
-        <div style={{ width: "100%", aspectRatio: "1", background: "#F5F0FF", overflow: "hidden" }}>
+        <div style={{ width: "100%", aspectRatio: "1", background: "#F5F0E6", overflow: "hidden" }}>
           <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
       )}
@@ -219,16 +219,16 @@ export default function YPDogProfilePage({ routeSlug }: { routeSlug?: string }) 
   const followBtnStyle: React.CSSProperties = {
     flex: 1, padding: "10px 0", borderRadius: 12, border: "1.5px solid",
     fontSize: 13.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-    borderColor: dog.followStatus === "active" ? "#E5E7EB" : "#7C3AED",
-    background: dog.followStatus === "active" ? "#fff" : dog.followStatus === "pending" ? "#F5F0FF" : "linear-gradient(135deg,#7C3AED,#A855F7)",
-    color: (dog.followStatus === "active" || dog.followStatus === "pending") ? "#7C3AED" : "#fff",
+    borderColor: dog.followStatus === "active" ? "#E5E7EB" : "#5D3A1A",
+    background: dog.followStatus === "active" ? "#fff" : dog.followStatus === "pending" ? "#F5F0E6" : "linear-gradient(135deg,#5D3A1A,#A67C52)",
+    color: (dog.followStatus === "active" || dog.followStatus === "pending") ? "#5D3A1A" : "#fff",
   };
 
   return (
     <YPLayout activeLink="/yourpoodle/club" constrain={false}>
       <style>{`
         .dog-photo-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; }
-        .dog-photo-cell { aspect-ratio: 1; overflow: hidden; background: #F5F0FF; }
+        .dog-photo-cell { aspect-ratio: 1; overflow: hidden; background: #F5F0E6; }
         .dog-photo-cell img { width: 100%; height: 100%; object-fit: cover; }
         .dog-photo-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px; }
       `}</style>
@@ -251,7 +251,7 @@ export default function YPDogProfilePage({ routeSlug }: { routeSlug?: string }) 
         <div style={{ padding: "20px 20px 16px", background: "#fff", borderBottom: "1px solid #f0f0f0" }}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: 20, marginBottom: 14 }}>
             {/* Avatar */}
-            <div style={{ width: 84, height: 84, borderRadius: "50%", border: "3px solid #7C3AED", overflow: "hidden", flexShrink: 0, background: "#F5F0FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36 }}>
+            <div style={{ width: 84, height: 84, borderRadius: "50%", border: "3px solid #5D3A1A", overflow: "hidden", flexShrink: 0, background: "#F5F0E6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36 }}>
               {dog.avatar_url
                 ? <img src={dog.avatar_url} alt={dog.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 : "🐩"
@@ -339,8 +339,8 @@ export default function YPDogProfilePage({ routeSlug }: { routeSlug?: string }) 
               ] as { id: string; Icon: any; label: string }[]).map(({ id, Icon, label }) => (
                 <button key={id} onClick={() => setActiveTab(id as any)}
                   style={{ flexShrink: 0, padding: "12px 14px", background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 12, fontWeight: 700,
-                    color: activeTab === id ? "#7C3AED" : "#aaa",
-                    borderBottom: activeTab === id ? "2px solid #7C3AED" : "2px solid transparent" }}>
+                    color: activeTab === id ? "#5D3A1A" : "#aaa",
+                    borderBottom: activeTab === id ? "2px solid #5D3A1A" : "2px solid transparent" }}>
                   <Icon size={15} /> {label}
                 </button>
               ))}
@@ -394,14 +394,14 @@ export default function YPDogProfilePage({ routeSlug }: { routeSlug?: string }) 
                       style={{ display: "none" }}
                       onChange={e => { const f = e.target.files?.[0]; if (f) uploadPhoto(f); }} />
                     <button onClick={() => photoInputRef.current?.click()} disabled={photoUploading}
-                      style={{ width: "100%", padding: "11px", borderRadius: 12, border: "1.5px dashed #D8B4FE", background: "#F5F0FF", color: "#7C3AED", fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 12, fontFamily: "inherit", opacity: photoUploading ? 0.6 : 1 }}>
+                      style={{ width: "100%", padding: "11px", borderRadius: 12, border: "1.5px dashed #D4C4B0", background: "#F5F0E6", color: "#5D3A1A", fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 12, fontFamily: "inherit", opacity: photoUploading ? 0.6 : 1 }}>
                       <Camera size={16} /> {photoUploading ? "Yükleniyor…" : "Fotoğraf Ekle (maks. 30)"}
                     </button>
                   </>
                 )}
                 {photos.length === 0 ? (
                   <div style={{ textAlign: "center", padding: "40px 16px", color: "#aaa" }}>
-                    <Camera size={36} color="#D8B4FE" style={{ marginBottom: 12 }} />
+                    <Camera size={36} color="#D4C4B0" style={{ marginBottom: 12 }} />
                     <div style={{ fontSize: 14, fontWeight: 700, color: "#555", marginBottom: 6 }}>Henüz Fotoğraf Yok</div>
                     {dog.isOwner && <div style={{ fontSize: 12 }}>Yukarıdaki butonu kullanarak fotoğraf ekleyin.</div>}
                   </div>
@@ -443,31 +443,31 @@ export default function YPDogProfilePage({ routeSlug }: { routeSlug?: string }) 
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                   <span style={{ fontSize: 14, fontWeight: 800, color: "#1a1a1a" }}>Kilo Geçmişi</span>
                   <button onClick={() => setShowWeightForm(s => !s)}
-                    style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 10, border: "none", background: "#7C3AED", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                    style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 10, border: "none", background: "#5D3A1A", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
                     <Plus size={13} /> Kaydet
                   </button>
                 </div>
                 {showWeightForm && (
-                  <div style={{ background: "#F5F0FF", borderRadius: 14, padding: 14, marginBottom: 14 }}>
+                  <div style={{ background: "#F5F0E6", borderRadius: 14, padding: 14, marginBottom: 14 }}>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
                       <div>
                         <label style={{ fontSize: 11, fontWeight: 700, color: "#555", display: "block", marginBottom: 4 }}>Kilo (kg) *</label>
                         <input type="number" step="0.1" value={newWeight} onChange={e => setNewWeight(e.target.value)}
-                          placeholder="2.5" style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #D8B4FE", fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
+                          placeholder="2.5" style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #D4C4B0", fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
                       </div>
                       <div>
                         <label style={{ fontSize: 11, fontWeight: 700, color: "#555", display: "block", marginBottom: 4 }}>Tarih</label>
                         <input type="date" value={newWeightDate} onChange={e => setNewWeightDate(e.target.value)}
-                          style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #D8B4FE", fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
+                          style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #D4C4B0", fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
                       </div>
                     </div>
                     <input value={newWeightNote} onChange={e => setNewWeightNote(e.target.value)}
-                      placeholder="Not (opsiyonel)" style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #D8B4FE", fontSize: 13, fontFamily: "inherit", outline: "none", marginBottom: 10, boxSizing: "border-box" }} />
+                      placeholder="Not (opsiyonel)" style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #D4C4B0", fontSize: 13, fontFamily: "inherit", outline: "none", marginBottom: 10, boxSizing: "border-box" }} />
                     <div style={{ display: "flex", gap: 8 }}>
                       <button onClick={() => setShowWeightForm(false)}
-                        style={{ flex: 1, padding: "8px", borderRadius: 8, border: "1.5px solid #D8B4FE", background: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", color: "#7C3AED", fontFamily: "inherit" }}>İptal</button>
+                        style={{ flex: 1, padding: "8px", borderRadius: 8, border: "1.5px solid #D4C4B0", background: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", color: "#5D3A1A", fontFamily: "inherit" }}>İptal</button>
                       <button onClick={() => addWeightMutation.mutate()} disabled={!newWeight || addWeightMutation.isPending}
-                        style={{ flex: 2, padding: "8px", borderRadius: 8, border: "none", background: "#7C3AED", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", opacity: !newWeight ? 0.5 : 1 }}>
+                        style={{ flex: 2, padding: "8px", borderRadius: 8, border: "none", background: "#5D3A1A", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", opacity: !newWeight ? 0.5 : 1 }}>
                         {addWeightMutation.isPending ? "Kaydediliyor…" : "Kaydet"}
                       </button>
                     </div>
@@ -475,18 +475,18 @@ export default function YPDogProfilePage({ routeSlug }: { routeSlug?: string }) 
                 )}
                 {weightLog.length === 0 && !showWeightForm ? (
                   <div style={{ textAlign: "center", padding: "32px", color: "#aaa", fontSize: 13 }}>
-                    <Scale size={32} color="#D8B4FE" style={{ marginBottom: 8 }} />
+                    <Scale size={32} color="#D4C4B0" style={{ marginBottom: 8 }} />
                     <div>Henüz kilo kaydı yok.</div>
                     <div style={{ fontSize: 12, marginTop: 4 }}>Düzenli takip sağlık için önemli!</div>
                   </div>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {weightLog.map((entry: any, i: number) => (
-                      <div key={entry.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 12, background: i === 0 ? "#F5F0FF" : "#FAFAFA", border: `1.5px solid ${i === 0 ? "#D8B4FE" : "#F0F0F0"}` }}>
+                      <div key={entry.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 12, background: i === 0 ? "#F5F0E6" : "#FAFAFA", border: `1.5px solid ${i === 0 ? "#D4C4B0" : "#F0F0F0"}` }}>
                         <div style={{ flex: 1 }}>
                           <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                            <span style={{ fontSize: 18, fontWeight: 900, color: "#7C3AED" }}>{entry.weight_kg} kg</span>
-                            {i === 0 && <span style={{ fontSize: 10, fontWeight: 800, color: "#7C3AED", background: "#EDE9FE", borderRadius: 6, padding: "1px 6px" }}>Güncel</span>}
+                            <span style={{ fontSize: 18, fontWeight: 900, color: "#5D3A1A" }}>{entry.weight_kg} kg</span>
+                            {i === 0 && <span style={{ fontSize: 10, fontWeight: 800, color: "#5D3A1A", background: "#EDE5D8", borderRadius: 6, padding: "1px 6px" }}>Güncel</span>}
                           </div>
                           <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{entry.measured_at ? new Date(entry.measured_at).toLocaleDateString("tr-TR") : ""}{entry.note ? ` · ${entry.note}` : ""}</div>
                         </div>
@@ -507,46 +507,46 @@ export default function YPDogProfilePage({ routeSlug }: { routeSlug?: string }) 
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                   <span style={{ fontSize: 14, fontWeight: 800, color: "#1a1a1a" }}>Veteriner Ziyaretleri</span>
                   <button onClick={() => setShowVetForm(s => !s)}
-                    style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 10, border: "none", background: "#7C3AED", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                    style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 10, border: "none", background: "#5D3A1A", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
                     <Plus size={13} /> Ekle
                   </button>
                 </div>
                 {showVetForm && (
-                  <div style={{ background: "#F5F0FF", borderRadius: 14, padding: 14, marginBottom: 14 }}>
+                  <div style={{ background: "#F5F0E6", borderRadius: 14, padding: 14, marginBottom: 14 }}>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
                       <div>
                         <label style={{ fontSize: 11, fontWeight: 700, color: "#555", display: "block", marginBottom: 4 }}>Ziyaret Tarihi *</label>
                         <input type="date" value={vetDate} onChange={e => setVetDate(e.target.value)}
-                          style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #D8B4FE", fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
+                          style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #D4C4B0", fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
                       </div>
                       <div>
                         <label style={{ fontSize: 11, fontWeight: 700, color: "#555", display: "block", marginBottom: 4 }}>Sonraki Ziyaret</label>
                         <input type="date" value={vetNextDate} onChange={e => setVetNextDate(e.target.value)}
-                          style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #D8B4FE", fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
+                          style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #D4C4B0", fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
                       </div>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
                       <div>
                         <label style={{ fontSize: 11, fontWeight: 700, color: "#555", display: "block", marginBottom: 4 }}>Veteriner Adı</label>
                         <input value={vetName} onChange={e => setVetName(e.target.value)}
-                          placeholder="Dr. Ayşe Kaya" style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #D8B4FE", fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
+                          placeholder="Dr. Ayşe Kaya" style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #D4C4B0", fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
                       </div>
                       <div>
                         <label style={{ fontSize: 11, fontWeight: 700, color: "#555", display: "block", marginBottom: 4 }}>Ziyaret Türü</label>
                         <select value={vetType} onChange={e => setVetType(e.target.value)}
-                          style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #D8B4FE", fontSize: 13, fontFamily: "inherit", outline: "none", background: "#fff", boxSizing: "border-box" }}>
+                          style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #D4C4B0", fontSize: 13, fontFamily: "inherit", outline: "none", background: "#fff", boxSizing: "border-box" }}>
                           {["Rutin Kontrol", "Aşı", "Tıraş / Bakım", "Hastalık", "Ameliyat", "Diş", "Diğer"].map(t => <option key={t}>{t}</option>)}
                         </select>
                       </div>
                     </div>
                     <textarea value={vetNotes} onChange={e => setVetNotes(e.target.value)}
                       placeholder="Notlar (opsiyonel)" rows={2}
-                      style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #D8B4FE", fontSize: 13, fontFamily: "inherit", outline: "none", resize: "none", marginBottom: 10, boxSizing: "border-box" }} />
+                      style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #D4C4B0", fontSize: 13, fontFamily: "inherit", outline: "none", resize: "none", marginBottom: 10, boxSizing: "border-box" }} />
                     <div style={{ display: "flex", gap: 8 }}>
                       <button onClick={() => setShowVetForm(false)}
-                        style={{ flex: 1, padding: "8px", borderRadius: 8, border: "1.5px solid #D8B4FE", background: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", color: "#7C3AED", fontFamily: "inherit" }}>İptal</button>
+                        style={{ flex: 1, padding: "8px", borderRadius: 8, border: "1.5px solid #D4C4B0", background: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", color: "#5D3A1A", fontFamily: "inherit" }}>İptal</button>
                       <button onClick={() => addVetMutation.mutate()} disabled={!vetDate || addVetMutation.isPending}
-                        style={{ flex: 2, padding: "8px", borderRadius: 8, border: "none", background: "#7C3AED", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", opacity: !vetDate ? 0.5 : 1 }}>
+                        style={{ flex: 2, padding: "8px", borderRadius: 8, border: "none", background: "#5D3A1A", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", opacity: !vetDate ? 0.5 : 1 }}>
                         {addVetMutation.isPending ? "Kaydediliyor…" : "Kaydet"}
                       </button>
                     </div>
@@ -554,7 +554,7 @@ export default function YPDogProfilePage({ routeSlug }: { routeSlug?: string }) 
                 )}
                 {vetVisits.length === 0 && !showVetForm ? (
                   <div style={{ textAlign: "center", padding: "32px", color: "#aaa", fontSize: 13 }}>
-                    <Stethoscope size={32} color="#D8B4FE" style={{ marginBottom: 8 }} />
+                    <Stethoscope size={32} color="#D4C4B0" style={{ marginBottom: 8 }} />
                     <div>Henüz veteriner ziyareti kaydedilmemiş.</div>
                   </div>
                 ) : (
@@ -564,7 +564,7 @@ export default function YPDogProfilePage({ routeSlug }: { routeSlug?: string }) 
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: "#FAFAFA", borderBottom: v.notes ? "1px solid #F0F0F0" : "none" }}>
                           <div>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <span style={{ fontSize: 10, fontWeight: 800, background: "#EDE9FE", color: "#7C3AED", borderRadius: 6, padding: "2px 8px" }}>{v.visit_type}</span>
+                              <span style={{ fontSize: 10, fontWeight: 800, background: "#EDE5D8", color: "#5D3A1A", borderRadius: 6, padding: "2px 8px" }}>{v.visit_type}</span>
                               <span style={{ fontSize: 12, fontWeight: 700, color: "#1a1a1a" }}>{new Date(v.visit_date).toLocaleDateString("tr-TR")}</span>
                             </div>
                             {v.vet_name && <div style={{ fontSize: 11, color: "#888", marginTop: 3 }}>👨‍⚕️ {v.vet_name}</div>}

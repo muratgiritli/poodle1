@@ -10,7 +10,7 @@ import YPLayout from "@/components/yourpoodle/YPLayout";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 /* ── Design tokens ── */
-const P  = "#6200EE";
+const P  = "#5D3A1A";
 const GB = "#E5E7EB";
 
 /* ── Stories data ── */
@@ -236,7 +236,7 @@ function PostActionSheet({
             onClick={onClose}
             style={{
               width: "100%", padding: "16px 20px", background: "none", border: "none",
-              cursor: "pointer", fontSize: 15, fontWeight: 700, color: "#6200EE",
+              cursor: "pointer", fontSize: 15, fontWeight: 700, color: "#5D3A1A",
               fontFamily: "inherit",
             }}>
             İptal
@@ -309,7 +309,7 @@ function Toast({ message, visible }: { message: string; visible: boolean }) {
       zIndex: 999, pointerEvents: "none", opacity: visible ? 1 : 0, transition: "opacity 0.3s ease",
     }}>
       <div style={{
-        background: "#1A0052", color: "#fff", padding: "12px 24px",
+        background: "#3D2612", color: "#fff", padding: "12px 24px",
         borderRadius: 999, fontSize: 14, fontWeight: 500,
         whiteSpace: "nowrap", boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
       }}>
@@ -368,7 +368,7 @@ function PostCard({
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <span style={{ fontWeight: 700, fontSize: 14, color: "#111827" }}>{post.name}</span>
-            {post.verified && <CheckCircle size={14} color="#6200EE" fill="#6200EE" strokeWidth={0} style={{ flexShrink: 0 }} />}
+            {post.verified && <CheckCircle size={14} color="#5D3A1A" fill="#5D3A1A" strokeWidth={0} style={{ flexShrink: 0 }} />}
           </div>
           <div style={{ fontSize: 12, color: "#6B7280" }}>{post.handle} · {post.location}</div>
         </div>
@@ -400,7 +400,7 @@ function PostCard({
             position: "absolute", top: 12, right: 12,
             background: `linear-gradient(135deg,${P},#4F46E5)`,
             color: "#fff", fontSize: 11, fontWeight: 700, padding: "5px 10px", borderRadius: 999,
-            display: "flex", alignItems: "center", gap: 5, boxShadow: "0 2px 8px rgba(98,0,238,0.4)",
+            display: "flex", alignItems: "center", gap: 5, boxShadow: "0 2px 8px rgba(93,58,26,0.4)",
           }}>
             🐾 Haftanın Poodle'ı
           </div>

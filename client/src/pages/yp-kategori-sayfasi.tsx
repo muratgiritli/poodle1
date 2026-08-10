@@ -5,7 +5,7 @@ import { ChevronRight } from "lucide-react";
 import { MOCK_SEARCH_PRODUCTS } from "@/data/searchResults";
 import { IS_YP } from "@/lib/store";
 
-const P = "#7022C4";
+const P = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 const CATEGORY_MAP: Record<string, string> = {
@@ -54,7 +54,7 @@ export default function YPKategoriSayfasiPage() {
             {MOCK_SEARCH_PRODUCTS.map(p => (
               <div key={p.id} onClick={() => navigate(`${BASE}/urun/${p.id}`)}
                 style={{ background: "#fff", borderRadius: 14, overflow: "hidden", cursor: "pointer", boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
-                <div style={{ height: 150, background: "#F9F5FF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ height: 150, background: "#FAF7F0", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <img src={p.img} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => { (e.currentTarget as any).style.display = "none"; }} />
                 </div>
                 <div style={{ padding: "12px 14px" }}>

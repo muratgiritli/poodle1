@@ -11,6 +11,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import session from "express-session";
 import pgSession from "connect-pg-simple";
+import createMemoryStore from "memorystore";
 import { saveProductImage, getProductImage, downloadAndSaveImage } from "./image-service";
 import { runVetImport, getVetImportStatus, isVetImportRunning } from "./vet-import";
 import { runSeoFill, getSeoFillStatus, isSeoFillRunning } from "./seo-fill";
@@ -826,12 +827,25 @@ export async function registerRoutes(
     console.error("Payment settings defaults seeding error:", e);
   }
 
+  // Local preview fallback: if Postgres is unreachable, use in-memory sessions
+  // and skip DB seed so the Vite UI can still boot.
+  let dbAvailable = false;
+  try {
+    await sharedPool.query("SELECT 1");
+    dbAvailable = true;
+  } catch (e: any) {
+    console.warn("[local] Postgres unavailable — starting UI without DB:", e?.code || e?.message);
+  }
+
+  const MemoryStore = createMemoryStore(session);
   app.use(
     session({
-      store: new PgSession({
-        pool: sharedPool,
-        createTableIfMissing: false,
-      }),
+      store: dbAvailable
+        ? new PgSession({
+            pool: sharedPool,
+            createTableIfMissing: false,
+          })
+        : new MemoryStore({ checkPeriod: 86400000 }),
       secret: process.env.SESSION_SECRET!,
       resave: false,
       saveUninitialized: false,
@@ -841,8 +855,12 @@ export async function registerRoutes(
     })
   );
 
-  await seedDatabase();
-  await ensureAdminExists();
+  if (dbAvailable) {
+    await seedDatabase();
+    await ensureAdminExists();
+  } else {
+    console.warn("[local] Skipping seedDatabase/ensureAdminExists (no Postgres)");
+  }
 
   app.use((req, res, next) => {
     // Task 15: Correct security headers — no X-XSS-Protection (deprecated)
@@ -871,9 +889,16 @@ export async function registerRoutes(
     ].join("; "));
 
     // Task 14: Global API rate limiting — 100 req / 15 min / IP for all /api/*
+    // Skip in development / localhost: HMR + admin polling otherwise trip 429 and crash the UI.
     if (req.path.startsWith("/api/")) {
       const ip = req.ip || "unknown";
-      if (rateLimit(`global:api:${ip}`, 100, 15 * 60 * 1000)) {
+      const isLocalDev =
+        process.env.NODE_ENV === "development" ||
+        ip === "127.0.0.1" ||
+        ip === "::1" ||
+        ip === "::ffff:127.0.0.1" ||
+        ip === "localhost";
+      if (!isLocalDev && rateLimit(`global:api:${ip}`, 100, 15 * 60 * 1000)) {
         return res.status(429).json({ error: "Too many requests", retryAfter: 900 });
       }
     }
@@ -1552,60 +1577,62 @@ export async function registerRoutes(
     }
   });
 
-  await sharedPool.query(`CREATE TABLE IF NOT EXISTS product_images (product_id INTEGER PRIMARY KEY, data TEXT NOT NULL, updated_at TIMESTAMP NOT NULL DEFAULT NOW())`);
-  
-  const { rows: [{ count: imgCount }] } = await sharedPool.query(`SELECT COUNT(*)::int as count FROM product_images`);
-  
-  if (imgCount === 0) {
-    setTimeout(async () => {
-      console.log(`[image] product_images table is empty, importing disk images in background...`);
-      const fs = await import("fs");
-      const pathMod = await import("path");
-      const bgPool = sharedPool;
-      
-      const imageDirs = [
-        pathMod.default.join(process.cwd(), "dist", "public", "product-images"),
-        pathMod.default.join(process.cwd(), "client", "public", "product-images"),
-      ].filter(d => fs.existsSync(d));
-      
-      let imported = 0;
-      for (const dir of imageDirs) {
-        const files = fs.readdirSync(dir).filter((f: string) => f.endsWith(".webp"));
-        for (let i = 0; i < files.length; i += 50) {
-          const batch = files.slice(i, i + 50);
-          for (const file of batch) {
-            const match = file.match(/product-(\d+)\.webp/);
-            if (!match) continue;
-            const productId = parseInt(match[1]);
-            const data = fs.readFileSync(pathMod.default.join(dir, file));
-            const base64 = data.toString("base64");
-            try {
-              await bgPool.query(
-                `INSERT INTO product_images (product_id, data, updated_at) VALUES ($1, $2, NOW()) ON CONFLICT (product_id) DO NOTHING`,
-                [productId, base64]
-              );
-              imported++;
-            } catch {}
-          }
-          console.log(`[image] Imported ${Math.min(i + 50, files.length)}/${files.length} from ${dir}`);
-        }
-      }
-      console.log(`[image] Disk import complete: ${imported} images`);
+  if (dbAvailable) {
+    await sharedPool.query(`CREATE TABLE IF NOT EXISTS product_images (product_id INTEGER PRIMARY KEY, data TEXT NOT NULL, updated_at TIMESTAMP NOT NULL DEFAULT NOW())`);
 
-      const allProducts = await storage.getAllProducts();
-      for (const p of allProducts) {
-        if (p.originalImg && p.img?.startsWith("/product-images/")) {
-          try {
-            const imgPath = await (await import("./image-service")).downloadAndSaveImage(p.originalImg, p.id);
-            if (imgPath) {
-              await storage.updateProduct(p.id, { img: imgPath });
+    const { rows: [{ count: imgCount }] } = await sharedPool.query(`SELECT COUNT(*)::int as count FROM product_images`);
+
+    if (imgCount === 0) {
+      setTimeout(async () => {
+        console.log(`[image] product_images table is empty, importing disk images in background...`);
+        const fs = await import("fs");
+        const pathMod = await import("path");
+        const bgPool = sharedPool;
+
+        const imageDirs = [
+          pathMod.default.join(process.cwd(), "dist", "public", "product-images"),
+          pathMod.default.join(process.cwd(), "client", "public", "product-images"),
+        ].filter(d => fs.existsSync(d));
+
+        let imported = 0;
+        for (const dir of imageDirs) {
+          const files = fs.readdirSync(dir).filter((f: string) => f.endsWith(".webp"));
+          for (let i = 0; i < files.length; i += 50) {
+            const batch = files.slice(i, i + 50);
+            for (const file of batch) {
+              const match = file.match(/product-(\d+)\.webp/);
+              if (!match) continue;
+              const productId = parseInt(match[1]);
+              const data = fs.readFileSync(pathMod.default.join(dir, file));
+              const base64 = data.toString("base64");
+              try {
+                await bgPool.query(
+                  `INSERT INTO product_images (product_id, data, updated_at) VALUES ($1, $2, NOW()) ON CONFLICT (product_id) DO NOTHING`,
+                  [productId, base64]
+                );
+                imported++;
+              } catch {}
             }
-          } catch {}
-          await new Promise(r => setTimeout(r, 300));
+            console.log(`[image] Imported ${Math.min(i + 50, files.length)}/${files.length} from ${dir}`);
+          }
         }
-      }
-      console.log(`[image] Background import fully complete`);
-    }, 3000);
+        console.log(`[image] Disk import complete: ${imported} images`);
+
+        const allProducts = await storage.getAllProducts();
+        for (const p of allProducts) {
+          if (p.originalImg && p.img?.startsWith("/product-images/")) {
+            try {
+              const imgPath = await (await import("./image-service")).downloadAndSaveImage(p.originalImg, p.id);
+              if (imgPath) {
+                await storage.updateProduct(p.id, { img: imgPath });
+              }
+            } catch {}
+            await new Promise(r => setTimeout(r, 300));
+          }
+        }
+        console.log(`[image] Background import fully complete`);
+      }, 3000);
+    }
   }
 
   app.get("/api/product-image/:id", async (req, res) => {
@@ -6987,7 +7014,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   });
 
   const petAI = new OpenAI({
-    apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+    apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || "sk-local-placeholder",
     baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
   });
 

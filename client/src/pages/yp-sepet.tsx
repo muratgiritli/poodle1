@@ -16,8 +16,8 @@ const BASE = IS_YP ? "" : "/yourpoodle";
 /* ─── Palette ──────────────────────────── */
 const P   = "#4A2ED1";
 const PB  = "#3B59FF";
-const PL  = "#F3EEFF";
-const PBD = "#DDD6FE";
+const PL  = "#F5F0E6";
+const PBD = "#E5DDD0";
 const GB  = "#E5E7EB";
 
 /* ─── Types ────────────────────────────── */

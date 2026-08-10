@@ -43,8 +43,8 @@ export default function YPClubKopeklerPage() {
               style={{ flex: 1, padding: "11px 10px", background: "transparent", border: "none", outline: "none", fontSize: 14, fontFamily: "inherit" }} />
           </div>
           <button onClick={() => setShowFilters(f => !f)}
-            style={{ width: 44, height: 44, borderRadius: 12, border: "1.5px solid", borderColor: showFilters ? "#7C3AED" : "#E5E7EB", background: showFilters ? "#F5F0FF" : "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <SlidersHorizontal size={18} color={showFilters ? "#7C3AED" : "#555"} />
+            style={{ width: 44, height: 44, borderRadius: 12, border: "1.5px solid", borderColor: showFilters ? "#5D3A1A" : "#E5E7EB", background: showFilters ? "#F5F0E6" : "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <SlidersHorizontal size={18} color={showFilters ? "#5D3A1A" : "#555"} />
           </button>
         </div>
 
@@ -57,9 +57,9 @@ export default function YPClubKopeklerPage() {
                 {CITIES.map(c => (
                   <button key={c} onClick={() => setCity(c)}
                     style={{ padding: "6px 12px", borderRadius: 20, border: "1.5px solid", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-                      borderColor: city === c ? "#7C3AED" : "#E5E7EB",
-                      background: city === c ? "#F5F0FF" : "#fff",
-                      color: city === c ? "#7C3AED" : "#555" }}>
+                      borderColor: city === c ? "#5D3A1A" : "#E5E7EB",
+                      background: city === c ? "#F5F0E6" : "#fff",
+                      color: city === c ? "#5D3A1A" : "#555" }}>
                     {c === "tumu" ? "Tüm Şehirler" : c}
                   </button>
                 ))}
@@ -71,9 +71,9 @@ export default function YPClubKopeklerPage() {
                 {[["newest", "En Yeni"], ["popular", "En Popüler"]].map(([v, l]) => (
                   <button key={v} onClick={() => setSort(v)}
                     style={{ padding: "6px 14px", borderRadius: 20, border: "1.5px solid", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-                      borderColor: sort === v ? "#7C3AED" : "#E5E7EB",
-                      background: sort === v ? "#F5F0FF" : "#fff",
-                      color: sort === v ? "#7C3AED" : "#555" }}>
+                      borderColor: sort === v ? "#5D3A1A" : "#E5E7EB",
+                      background: sort === v ? "#F5F0E6" : "#fff",
+                      color: sort === v ? "#5D3A1A" : "#555" }}>
                     {l}
                   </button>
                 ))}
@@ -99,7 +99,7 @@ export default function YPClubKopeklerPage() {
             <div style={{ fontWeight: 700, fontSize: 15, color: "#555" }}>Profil bulunamadı</div>
             <div style={{ fontSize: 13, marginTop: 6 }}>Arama kriterlerini değiştir veya ilk profili oluştur.</div>
             <button onClick={() => navigate("/yourpoodle/p/olustur")}
-              style={{ marginTop: 20, padding: "12px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#7C3AED,#A855F7)", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+              style={{ marginTop: 20, padding: "12px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#5D3A1A,#A67C52)", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
               Profil Oluştur
             </button>
           </div>
@@ -109,7 +109,7 @@ export default function YPClubKopeklerPage() {
           {dogs.map(dog => (
             <div key={dog.id} onClick={() => navigate(`/yourpoodle/p/${dog.slug}`)}
               style={{ background: "#fff", borderRadius: 14, border: "1.5px solid #F0F0F0", overflow: "hidden", cursor: "pointer" }}>
-              <div style={{ width: "100%", aspectRatio: "1", background: "#F5F0FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40 }}>
+              <div style={{ width: "100%", aspectRatio: "1", background: "#F5F0E6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40 }}>
                 {dog.avatar_url
                   ? <img src={dog.avatar_url} alt={dog.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   : "🐩"

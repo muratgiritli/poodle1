@@ -4,7 +4,7 @@ import YPLayout from "@/components/yourpoodle/YPLayout";
 import { ChevronLeft, Utensils } from "lucide-react";
 import { IS_YP } from "@/lib/store";
 
-const P = "#7022C4";
+const P = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 export default function YPMamaHesaplamaPage() {

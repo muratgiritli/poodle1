@@ -10,7 +10,7 @@ import YPLayout from "@/components/yourpoodle/YPLayout";
 
 /* ── Palette ─────────────────────────── */
 const P    = "#5D3EBD";
-const PL   = "#F3EEFF";
+const PL   = "#F5F0E6";
 const NAV  = "#1D1E9B";
 const DRK  = "#111827";
 const GT   = "#6B7280";

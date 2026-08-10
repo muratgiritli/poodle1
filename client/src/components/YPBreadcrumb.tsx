@@ -84,7 +84,7 @@ export default function YPBreadcrumb({ items, className = "" }: YPBreadcrumbProp
                       itemProp="item"
                       style={{
                         fontSize: 12,
-                        color: "#7C3AFF",
+                        color: "#5D3A1A",
                         textDecoration: "none",
                         fontWeight: 600,
                         padding: "2px 0",

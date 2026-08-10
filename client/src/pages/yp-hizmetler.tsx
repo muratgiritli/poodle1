@@ -8,8 +8,8 @@ import YPLayout from "@/components/yourpoodle/YPLayout";
 import { IS_YP } from "@/lib/store";
 
 const BASE = IS_YP ? "" : "/yourpoodle";
-const P  = "#6200EE";
-const PL = "#F3EEFF";
+const P  = "#5D3A1A";
+const PL = "#F5F0E6";
 
 interface Service {
   icon: React.ElementType;
@@ -24,8 +24,8 @@ interface Service {
 const SERVICES: Service[] = [
   {
     icon: Search,
-    color: "#6200EE",
-    bg: "#F3EEFF",
+    color: "#5D3A1A",
+    bg: "#F5F0E6",
     title: "Mama Bul",
     desc: "Poodle'ınızın yaşına, kilosuna ve sağlık durumuna göre en uygun mamayı 11 adımda bulun.",
     href: `${BASE}/mama-bul`,
@@ -33,8 +33,8 @@ const SERVICES: Service[] = [
   },
   {
     icon: Bot,
-    color: "#7C3AED",
-    bg: "#EDE9FE",
+    color: "#5D3A1A",
+    bg: "#EDE5D8",
     title: "AI Asistan",
     desc: "Poodle sağlığı, beslenmesi ve eğitimi hakkında 7/24 yapay zeka destekli rehberlik.",
     href: `${BASE}/ai-asistan`,
@@ -141,7 +141,7 @@ export default function YPHizmetlerPage() {
                   transition: "box-shadow 0.15s, transform 0.15s",
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.boxShadow = `0 4px 16px rgba(98,0,238,0.12)`;
+                  e.currentTarget.style.boxShadow = `0 4px 16px rgba(93,58,26,0.12)`;
                   e.currentTarget.style.transform = "translateY(-1px)";
                 }}
                 onMouseLeave={e => {

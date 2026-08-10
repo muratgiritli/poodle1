@@ -132,7 +132,7 @@ export default function YPFooter() {
             {/* Logo */}
             <a href="/yourpoodle" className="flex items-center w-fit">
               <img
-                src="/yourpoodle-logo.jpg"
+                src="/images/brand/logo.png"
                 alt="YourPoodle"
                 style={{ height: 38, width: "auto", objectFit: "contain", background: "#fff", borderRadius: 12, padding: "5px 14px", boxShadow: "0 2px 12px rgba(0,0,0,0.25)" }}
               />

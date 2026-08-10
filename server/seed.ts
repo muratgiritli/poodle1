@@ -909,58 +909,85 @@ async function seedYPCategoryImages(): Promise<void> {
   console.log(`[yp-images] Done: ${downloaded} downloaded, ${skipped} already existed.`);
 }
 
+async function purgeNonKopekCatalog() {
+  // YourPoodle: keep only dog catalog structure; drop cat/bird/etc leftovers.
+  try {
+    await pool.query(`DELETE FROM brand_categories WHERE animal <> 'kopek'`);
+    await pool.query(`DELETE FROM subcategories WHERE animal <> 'kopek'`);
+    await pool.query(
+      `DELETE FROM cross_sell_sections WHERE for_animal IS NOT NULL AND for_animal <> 'kopek'`
+    );
+    console.log("[seed] Purged non-kopek brand_categories / subcategories");
+  } catch (e: any) {
+    console.warn("[seed] purgeNonKopekCatalog:", e?.message);
+  }
+}
+
 export async function seedDatabase() {
   await seedSubcategories();
+  await purgeNonKopekCatalog();
   await seedDefaultBrandCategoriesForSubcategories();
   await cleanupOrphanBrandCategories();
   await seedDeliveryNeighborhoods();
-  await seedTuvaletProducts();
-  await seedYasMamaProducts();
-  await seedTasimaProducts();
-  await seedMamaSuKabiProducts();
-  console.log("Checking database for missing brand data...");
 
-  for (const brand of ALL_BRAND_DATA) {
-    const existing = await db.select().from(brandCategories).where(
-      and(
-        eq(brandCategories.brandSlug, brand.brandSlug),
-        eq(brandCategories.animal, brand.animal),
-        eq(brandCategories.subcategory, brand.subcategory)
-      )
-    );
+  // Empty catalog mode for YourPoodle — do not re-seed demo products.
+  const skipProducts =
+    process.env.YP_EMPTY_CATALOG === "1" ||
+    process.env.SKIP_PRODUCT_SEED === "1" ||
+    true; // YourPoodle: catalog starts empty; admin will add products
 
-    if (existing.length > 0) {
-      console.log(`Brand ${brand.brandName} (${brand.animal}/${brand.subcategory}) already exists, skipping...`);
-      continue;
+  if (skipProducts) {
+    console.log("[seed] Skipping product/brand product seeds (empty catalog)");
+  } else {
+    await seedTuvaletProducts();
+    await seedYasMamaProducts();
+    await seedTasimaProducts();
+    await seedMamaSuKabiProducts();
+    console.log("Checking database for missing brand data...");
+
+    for (const brand of ALL_BRAND_DATA) {
+      const existing = await db.select().from(brandCategories).where(
+        and(
+          eq(brandCategories.brandSlug, brand.brandSlug),
+          eq(brandCategories.animal, brand.animal),
+          eq(brandCategories.subcategory, brand.subcategory)
+        )
+      );
+
+      if (existing.length > 0) {
+        console.log(`Brand ${brand.brandName} (${brand.animal}/${brand.subcategory}) already exists, skipping...`);
+        continue;
+      }
+
+      const [category] = await db.insert(brandCategories).values({
+        brandName: brand.brandName,
+        brandSlug: brand.brandSlug,
+        animal: brand.animal,
+        subcategory: brand.subcategory,
+      }).returning();
+
+      for (const product of brand.products) {
+        await db.insert(products).values({
+          name: product.name,
+          price: product.price,
+          originalPrice: product.originalPrice,
+          skt: product.skt,
+          img: product.img,
+          stock: product.stock !== undefined ? product.stock : 10,
+          brandCategoryId: category.id,
+        });
+      }
+
+      console.log(`Seeded ${brand.products.length} products for ${brand.brandName} (${brand.animal}/${brand.subcategory})`);
     }
 
-    const [category] = await db.insert(brandCategories).values({
-      brandName: brand.brandName,
-      brandSlug: brand.brandSlug,
-      animal: brand.animal,
-      subcategory: brand.subcategory,
-    }).returning();
-
-    for (const product of brand.products) {
-      await db.insert(products).values({
-        name: product.name,
-        price: product.price,
-        originalPrice: product.originalPrice,
-        skt: product.skt,
-        img: product.img,
-        stock: product.stock !== undefined ? product.stock : 10,
-        brandCategoryId: category.id,
-      });
-    }
-
-    console.log(`Seeded ${brand.products.length} products for ${brand.brandName} (${brand.animal}/${brand.subcategory})`);
+    await seedBreedStats();
+    await seedCrossSellSections();
+    await seedCampaignItems();
+    await seedYPMamaMetadata();
+    await seedYPCategoryImages();
   }
 
-  await seedBreedStats();
-  await seedCrossSellSections();
-  await seedCampaignItems();
-  await seedYPMamaMetadata();
-  await seedYPCategoryImages();
   console.log("Database seeding complete!");
 }
 

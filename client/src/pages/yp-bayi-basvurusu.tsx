@@ -77,7 +77,7 @@ export default function YPBayiBasvurusu() {
                 rows={4} style={{ width:"100%", borderRadius:12, border:"1.5px solid #E5E7EB", padding:"12px 14px", fontSize:14, fontFamily:"Inter,sans-serif", outline:"none", boxSizing:"border-box", background:"#FAFAFA", resize:"none", lineHeight:1.6 }} />
             </div>
             <button type="submit" disabled={!form.ad || !form.email || !form.sehir || status==="sending"}
-              style={{ height:50, borderRadius:14, border:"none", background:(form.ad && form.email && form.sehir) ? "#7C3AED" : "#E5E7EB", color:(form.ad && form.email && form.sehir) ? "#fff" : "#9CA3AF", fontSize:15, fontWeight:800, cursor:(form.ad && form.email && form.sehir) ? "pointer" : "not-allowed", fontFamily:"Inter,sans-serif" }}>
+              style={{ height:50, borderRadius:14, border:"none", background:(form.ad && form.email && form.sehir) ? "#5D3A1A" : "#E5E7EB", color:(form.ad && form.email && form.sehir) ? "#fff" : "#9CA3AF", fontSize:15, fontWeight:800, cursor:(form.ad && form.email && form.sehir) ? "pointer" : "not-allowed", fontFamily:"Inter,sans-serif" }}>
               {status === "sending" ? "Gönderiliyor..." : "Başvuru Gönder"}
             </button>
           </form>
@@ -86,7 +86,7 @@ export default function YPBayiBasvurusu() {
 
       <div className="sp-section">
         <h2>İletişim</h2>
-        <p>Bayi programı hakkında daha fazla bilgi almak için <a href="mailto:info@yourpoodle.com" style={{ color:"#7C3AED", fontWeight:700 }}>info@yourpoodle.com</a> adresine yazabilirsiniz.</p>
+        <p>Bayi programı hakkında daha fazla bilgi almak için <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A", fontWeight:700 }}>info@yourpoodle.com</a> adresine yazabilirsiniz.</p>
       </div>
     </YPStaticPage>
   );

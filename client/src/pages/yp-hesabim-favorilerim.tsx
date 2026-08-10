@@ -11,7 +11,7 @@ import { useCustomer } from "@/contexts/CustomerContext";
 /* ─── Palette ─────────────────────────── */
 const P   = "#4B2BD6";
 const PD  = "#3E27B3";
-const PL  = "#F3EEFF";
+const PL  = "#F5F0E6";
 const GB  = "#E5E7EB";
 const GBG = "#F9FAFB";
 const GT  = "#6B7280";

@@ -76,7 +76,7 @@ export default function YPAyarlarPage() {
           <div style={{ fontSize: 18, fontWeight: 800, color: "#1a1a1a", marginBottom: 8 }}>Giriş Gerekli</div>
           <p style={{ fontSize: 13, color: "#888", marginBottom: 24, textAlign: "center" }}>Ayarlarınıza erişmek için giriş yapın.</p>
           <button onClick={() => navigate("/yourpoodle/giris")}
-            style={{ padding: "12px 28px", borderRadius: 12, border: "none", background: "#7C3AED", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer" }}>
+            style={{ padding: "12px 28px", borderRadius: 12, border: "none", background: "#5D3A1A", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer" }}>
             Giriş Yap
           </button>
         </div>
@@ -89,7 +89,7 @@ export default function YPAyarlarPage() {
       <title>Ayarlar | YourPoodle</title>
       <style>{`
         .ayar-section { background: #fff; border-radius: 16px; border: 1px solid #F0EAFF; margin: 0 16px 16px; overflow: hidden; }
-        .ayar-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #F9F5FF; }
+        .ayar-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #FAF7F0; }
         .ayar-row:last-child { border-bottom: none; }
         .toggle-track { width: 44px; height: 24px; border-radius: 12px; cursor: pointer; border: none; position: relative; transition: background 0.2s; flex-shrink: 0; }
         .toggle-thumb { position: absolute; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
@@ -101,14 +101,14 @@ export default function YPAyarlarPage() {
         {/* Header */}
         <div style={{ background: "#fff", borderBottom: "1px solid #F0EAFF", padding: "12px 16px", display: "flex", alignItems: "center", gap: 10 }}>
           <button onClick={() => navigate("/hesabim")}
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", color: "#7C3AED" }}>
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", color: "#5D3A1A" }}>
             <ChevronLeft size={22} />
           </button>
           <h1 style={{ fontSize: 17, fontWeight: 900, color: "#1a1a1a", margin: 0 }}>Hesap Ayarları</h1>
         </div>
 
         {/* Profile summary */}
-        <div style={{ background: "linear-gradient(135deg,#7C3AED,#A855F7)", padding: "20px 16px", margin: "16px 16px 0", borderRadius: 16, display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ background: "linear-gradient(135deg,#5D3A1A,#A67C52)", padding: "20px 16px", margin: "16px 16px 0", borderRadius: 16, display: "flex", alignItems: "center", gap: 14 }}>
           <div style={{ width: 52, height: 52, borderRadius: "50%", background: "rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <User size={28} color="#fff" />
           </div>
@@ -136,7 +136,7 @@ export default function YPAyarlarPage() {
                 <div style={{ fontSize: 11.5, color: "#9CA3AF", marginTop: 2 }}>{desc}</div>
               </div>
               <button className="toggle-track"
-                style={{ background: notifs[key] ? "#7C3AED" : "#E5E7EB" }}
+                style={{ background: notifs[key] ? "#5D3A1A" : "#E5E7EB" }}
                 onClick={() => setNotifs(n => ({ ...n, [key]: !n[key] }))}>
                 <div className="toggle-thumb" style={{ left: notifs[key] ? 23 : 3 }} />
               </button>
@@ -145,7 +145,7 @@ export default function YPAyarlarPage() {
         </div>
         <div style={{ textAlign: "right", padding: "0 16px 8px" }}>
           <button onClick={() => save("bildirim")}
-            style={{ padding: "7px 18px", borderRadius: 10, border: "none", background: saved === "bildirim" ? "#16A34A" : "#7C3AED", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5, transition: "background 0.2s" }}>
+            style={{ padding: "7px 18px", borderRadius: 10, border: "none", background: saved === "bildirim" ? "#16A34A" : "#5D3A1A", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5, transition: "background 0.2s" }}>
             {saved === "bildirim" ? <><Check size={13} /> Kaydedildi</> : "Kaydet"}
           </button>
         </div>
@@ -166,7 +166,7 @@ export default function YPAyarlarPage() {
                 <div style={{ fontSize: 11.5, color: "#9CA3AF", marginTop: 2 }}>{desc}</div>
               </div>
               <button className="toggle-track"
-                style={{ background: privacy[key] ? "#7C3AED" : "#E5E7EB" }}
+                style={{ background: privacy[key] ? "#5D3A1A" : "#E5E7EB" }}
                 onClick={() => setPrivacy(p => ({ ...p, [key]: !p[key] }))}>
                 <div className="toggle-thumb" style={{ left: privacy[key] ? 23 : 3 }} />
               </button>
@@ -175,7 +175,7 @@ export default function YPAyarlarPage() {
         </div>
         <div style={{ textAlign: "right", padding: "0 16px 8px" }}>
           <button onClick={() => save("gizlilik")}
-            style={{ padding: "7px 18px", borderRadius: 10, border: "none", background: saved === "gizlilik" ? "#16A34A" : "#7C3AED", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5, transition: "background 0.2s" }}>
+            style={{ padding: "7px 18px", borderRadius: 10, border: "none", background: saved === "gizlilik" ? "#16A34A" : "#5D3A1A", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5, transition: "background 0.2s" }}>
             {saved === "gizlilik" ? <><Check size={13} /> Kaydedildi</> : "Kaydet"}
           </button>
         </div>
@@ -211,7 +211,7 @@ export default function YPAyarlarPage() {
               <div style={{ fontSize: 13.5, fontWeight: 700, color: "#1a1a1a" }}>Dil</div>
               <div style={{ fontSize: 11.5, color: "#9CA3AF", marginTop: 2 }}>Türkçe</div>
             </div>
-            <span style={{ fontSize: 12, color: "#7C3AED", fontWeight: 700 }}>Türkçe</span>
+            <span style={{ fontSize: 12, color: "#5D3A1A", fontWeight: 700 }}>Türkçe</span>
           </div>
           <div className="ayar-row">
             <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>

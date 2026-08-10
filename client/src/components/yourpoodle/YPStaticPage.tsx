@@ -13,9 +13,9 @@ export const staticCSS = `
   .sp-section li { margin-bottom: 6px; }
   .sp-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
   .sp-table th, .sp-table td { padding: 10px 12px; text-align: left; border: 1px solid #f0f0f0; }
-  .sp-table th { background: #F5F0FF; color: #7C3AED; font-weight: 700; }
+  .sp-table th { background: #F5F0E6; color: #5D3A1A; font-weight: 700; }
   .sp-alert { background: #FFF7ED; border: 1.5px solid #FED7AA; border-radius: 12px; padding: 14px 16px; margin-bottom: 20px; font-size: 13.5px; color: #92400E; line-height: 1.6; }
-  .sp-cta-btn { display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 24px; border-radius: 14px; border: none; background: #7C3AED; color: #fff; font-size: 14px; font-weight: 800; cursor: pointer; text-decoration: none; font-family: Inter, sans-serif; }
+  .sp-cta-btn { display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 24px; border-radius: 14px; border: none; background: #5D3A1A; color: #fff; font-size: 14px; font-weight: 800; cursor: pointer; text-decoration: none; font-family: Inter, sans-serif; }
   .sp-cta-btn:hover { background: #6D28D9; }
   @media (min-width: 768px) { .sp-wrap { padding: 48px 32px 80px; } }
 `;
@@ -58,7 +58,7 @@ export default function YPStaticPage({ title, description, updatedDate, breadcru
               <span key={i} style={{ display:"flex", alignItems:"center", gap:4 }}>
                 {i > 0 && <ChevronRight size={12} color="#ccc"/>}
                 {c.href
-                  ? <a href={c.href} style={{ fontSize:12, color:"#7C3AED", textDecoration:"none", fontWeight:600 }}>{c.label}</a>
+                  ? <a href={c.href} style={{ fontSize:12, color:"#5D3A1A", textDecoration:"none", fontWeight:600 }}>{c.label}</a>
                   : <span style={{ fontSize:12, color:"#888", fontWeight:600 }}>{c.label}</span>
                 }
               </span>

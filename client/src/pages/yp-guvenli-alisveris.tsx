@@ -18,8 +18,8 @@ export default function YPGuvenliAlisveris() {
           { Icon:Award,       title:"14 Gün İade",          desc:"Koşulsuz iade hakkı." },
         ].map(({ Icon, title, desc }) => (
           <div key={title} style={{ background:"#F9FAFB", border:"1px solid #E5E7EB", borderRadius:14, padding:"16px", display:"flex", gap:12, alignItems:"flex-start" }}>
-            <div style={{ width:38, height:38, borderRadius:10, background:"#EDE8FF", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-              <Icon size={18} color="#7C3AED" strokeWidth={2}/>
+            <div style={{ width:38, height:38, borderRadius:10, background:"#EDE5D8", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              <Icon size={18} color="#5D3A1A" strokeWidth={2}/>
             </div>
             <div>
               <div style={{ fontSize:13, fontWeight:800, color:"#1a1a1a", marginBottom:3 }}>{title}</div>
@@ -56,10 +56,10 @@ export default function YPGuvenliAlisveris() {
 
       <div className="sp-section">
         <h2>Alıcı Güvencesi</h2>
-        <p>Siparişiniz hasarlı veya yanlış geldiyse tüm masraflar tarafımıza aittir. <strong>14 gün koşulsuz iade</strong> hakkınız mevcuttur. Sorun yaşadığınızda <a href="mailto:info@yourpoodle.com" style={{ color:"#7C3AED" }}>info@yourpoodle.com</a> adresine yazın.</p>
+        <p>Siparişiniz hasarlı veya yanlış geldiyse tüm masraflar tarafımıza aittir. <strong>14 gün koşulsuz iade</strong> hakkınız mevcuttur. Sorun yaşadığınızda <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A" }}>info@yourpoodle.com</a> adresine yazın.</p>
       </div>
 
-      <a href="/yourpoodle/gizlilik-politikasi" className="sp-cta-btn" style={{ background:"#F5F0FF", color:"#7C3AED" }}>KVKK / Gizlilik Politikası →</a>
+      <a href="/yourpoodle/gizlilik-politikasi" className="sp-cta-btn" style={{ background:"#F5F0E6", color:"#5D3A1A" }}>KVKK / Gizlilik Politikası →</a>
     </YPStaticPage>
   );
 }

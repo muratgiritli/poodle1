@@ -11,7 +11,7 @@ import YPLayout from "@/components/yourpoodle/YPLayout";
 
 /* ── Palette ─────────────────────────── */
 const P   = "#4B2BD6";
-const PL  = "#F3EEFF";
+const PL  = "#F5F0E6";
 const NAV = "#1D1E9B";
 const DRK = "#111827";
 const GT  = "#6B7280";
@@ -117,7 +117,7 @@ export default function YPTalepDetayPage() {
                       border:`1px solid ${GB}`, overflow:"hidden" }}>
           {/* Gradient top */}
           <div style={{
-            background:"linear-gradient(180deg, #F3EEFF 0%, #fff 100%)",
+            background:"linear-gradient(180deg, #F5F0E6 0%, #fff 100%)",
             padding:"28px 20px 20px", textAlign:"center",
           }}>
             {/* Checkmark with sparkles */}

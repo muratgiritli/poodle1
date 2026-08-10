@@ -64,7 +64,7 @@ function groupByDate(items: HistoryEntry[]): Array<{ label: string; entries: His
 
 function AnswerTag({ label }: { label: string }) {
   return (
-    <span style={{ background: "#EDE9FE", color: "#7C3AED", borderRadius: 99, padding: "3px 10px", fontSize: 11, fontWeight: 700, display: "inline-block" }}>
+    <span style={{ background: "#EDE5D8", color: "#5D3A1A", borderRadius: 99, padding: "3px 10px", fontSize: 11, fontWeight: 700, display: "inline-block" }}>
       {label}
     </span>
   );
@@ -95,7 +95,7 @@ function HistoryCard({ entry, navigate, onDelete }: { entry: HistoryEntry; navig
   if (answers.activity) answerTags.push(ACTIVITY_LABELS[answers.activity] || answers.activity);
 
   const RANK_META = [
-    { label: "🏆 En Uygun", color: "#7C3AED", bg: "linear-gradient(135deg,#7C3AED,#8B5CF6)" },
+    { label: "🏆 En Uygun", color: "#5D3A1A", bg: "linear-gradient(135deg,#5D3A1A,#8B5E34)" },
     { label: "💚 Fiyat Performans", color: "#059669", bg: "#D1FAE5" },
     { label: "⭐ Premium", color: "#D97706", bg: "#FEF3C7" },
   ];
@@ -129,12 +129,12 @@ function HistoryCard({ entry, navigate, onDelete }: { entry: HistoryEntry; navig
             ) : (
               <button
                 onClick={e => { e.stopPropagation(); setConfirmDelete(true); }}
-                style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", color: "#C4B5FD" }}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", color: "#D4C4B0" }}
                 title="Sil">
                 <Trash2 size={14} />
               </button>
             )}
-            <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#7C3AED", fontSize: 12, fontWeight: 700 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#5D3A1A", fontSize: 12, fontWeight: 700 }}>
               {expanded ? "Gizle" : "Detaylar"}
               <ChevronRight size={14} style={{ transform: expanded ? "rotate(90deg)" : "none", transition: "transform 0.2s" }} />
             </div>
@@ -148,7 +148,7 @@ function HistoryCard({ entry, navigate, onDelete }: { entry: HistoryEntry; navig
 
         {/* Top pick preview */}
         {products[0] && (
-          <div style={{ background: "linear-gradient(135deg,#7C3AED,#8B5CF6)", borderRadius: 14, padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ background: "linear-gradient(135deg,#5D3A1A,#8B5E34)", borderRadius: 14, padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div>
               <div style={{ fontSize: 10, color: "rgba(255,255,255,0.75)", fontWeight: 700, marginBottom: 2 }}>🏆 En Uygun</div>
               <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", lineHeight: 1.3 }}>{products[0].name}</div>
@@ -180,7 +180,7 @@ function HistoryCard({ entry, navigate, onDelete }: { entry: HistoryEntry; navig
               ].filter(([, v]) => v).map(([k, v]) => (
                 <div key={String(k)} style={{ fontSize: 12 }}>
                   <span style={{ color: "#9580CC", fontWeight: 600 }}>{k}: </span>
-                  <span style={{ color: "#18114a", fontWeight: 700 }}>{v}</span>
+                  <span style={{ color: "#2C2118", fontWeight: 700 }}>{v}</span>
                 </div>
               ))}
             </div>
@@ -211,10 +211,10 @@ function HistoryCard({ entry, navigate, onDelete }: { entry: HistoryEntry; navig
                 >
                   <div>
                     <div style={{ fontSize: 10, color: isFirst ? "rgba(255,255,255,0.8)" : meta.color, fontWeight: 700, marginBottom: 2 }}>{meta.label}</div>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: isFirst ? "#fff" : "#18114a", lineHeight: 1.3 }}>{p.name}</div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: isFirst ? "#fff" : "#2C2118", lineHeight: 1.3 }}>{p.name}</div>
                     {p.reason && <div style={{ fontSize: 11, color: isFirst ? "rgba(255,255,255,0.7)" : "#9580CC", marginTop: 2 }}>{p.reason}</div>}
                   </div>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: isFirst ? "#fff" : "#7C3AED", flexShrink: 0, marginLeft: 8 }}>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: isFirst ? "#fff" : "#5D3A1A", flexShrink: 0, marginLeft: 8 }}>
                     ₺{Number(p.price).toLocaleString("tr-TR")}
                   </span>
                 </button>
@@ -255,7 +255,7 @@ export default function YPGecmisOnerilerPage() {
         <YPBreadcrumb items={BREADCRUMBS} />
 
         {/* Header */}
-        <section style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #5B21B6 100%)", padding: "28px 20px 24px", color: "#fff" }}>
+        <section style={{ background: "linear-gradient(135deg, #5D3A1A 0%, #3D2612 100%)", padding: "28px 20px 24px", color: "#fff" }}>
           <button
             onClick={() => navigate("/yourpoodle/profil")}
             style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 12, padding: "6px 14px 6px 10px", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontFamily: "'Inter', sans-serif", marginBottom: 16 }}
@@ -274,7 +274,7 @@ export default function YPGecmisOnerilerPage() {
               <p style={{ fontSize: 15, color: "#666", marginBottom: 20 }}>Geçmiş önerilerinizi görmek için giriş yapmanız gerekiyor.</p>
               <button
                 onClick={() => navigate("/yourpoodle/giris")}
-                style={{ height: 48, borderRadius: 14, background: "#7C3AFF", border: "none", color: "#fff", fontSize: 15, fontWeight: 800, padding: "0 28px", cursor: "pointer", fontFamily: "'Inter', sans-serif" }}
+                style={{ height: 48, borderRadius: 14, background: "#5D3A1A", border: "none", color: "#fff", fontSize: 15, fontWeight: 800, padding: "0 28px", cursor: "pointer", fontFamily: "'Inter', sans-serif" }}
               >
                 Giriş Yap
               </button>
@@ -288,7 +288,7 @@ export default function YPGecmisOnerilerPage() {
               <p style={{ fontSize: 14, color: "#888", marginBottom: 24 }}>Mama Bul sihirbazını kullanarak poodle'ınıza özel öneriler oluşturun.</p>
               <button
                 onClick={() => navigate("/yourpoodle/mama-bul")}
-                style={{ height: 48, borderRadius: 14, background: "#7C3AFF", border: "none", color: "#fff", fontSize: 15, fontWeight: 800, padding: "0 28px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "'Inter', sans-serif" }}
+                style={{ height: 48, borderRadius: 14, background: "#5D3A1A", border: "none", color: "#fff", fontSize: 15, fontWeight: 800, padding: "0 28px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "'Inter', sans-serif" }}
               >
                 <RotateCcw size={16} /> Mama Bul'a Git
               </button>
@@ -299,7 +299,7 @@ export default function YPGecmisOnerilerPage() {
                 <span style={{ fontSize: 13, color: "#888" }}>Toplam <strong style={{ color: "#1a1a1a" }}>{data.total}</strong> sonuç</span>
                 <button
                   onClick={() => navigate("/yourpoodle/mama-bul")}
-                  style={{ background: "#EDE9FE", border: "none", borderRadius: 10, padding: "6px 12px", fontSize: 12, fontWeight: 700, color: "#7C3AED", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontFamily: "'Inter', sans-serif" }}
+                  style={{ background: "#EDE5D8", border: "none", borderRadius: 10, padding: "6px 12px", fontSize: 12, fontWeight: 700, color: "#5D3A1A", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontFamily: "'Inter', sans-serif" }}
                 >
                   <RotateCcw size={12} /> Yeni Öneri
                 </button>
@@ -331,7 +331,7 @@ export default function YPGecmisOnerilerPage() {
                   <button
                     disabled={page <= 1}
                     onClick={() => setPage(p => p - 1)}
-                    style={{ height: 40, borderRadius: 12, border: "2px solid #EDE9FE", background: page <= 1 ? "#F5F3FF" : "#fff", color: page <= 1 ? "#C4B5FD" : "#7C3AED", fontWeight: 700, fontSize: 13, padding: "0 16px", cursor: page <= 1 ? "not-allowed" : "pointer", fontFamily: "'Inter', sans-serif" }}
+                    style={{ height: 40, borderRadius: 12, border: "2px solid #EDE5D8", background: page <= 1 ? "#F5F0E6" : "#fff", color: page <= 1 ? "#D4C4B0" : "#5D3A1A", fontWeight: 700, fontSize: 13, padding: "0 16px", cursor: page <= 1 ? "not-allowed" : "pointer", fontFamily: "'Inter', sans-serif" }}
                   >
                     ← Önceki
                   </button>
@@ -341,7 +341,7 @@ export default function YPGecmisOnerilerPage() {
                   <button
                     disabled={page >= data.pages}
                     onClick={() => setPage(p => p + 1)}
-                    style={{ height: 40, borderRadius: 12, border: "2px solid #EDE9FE", background: page >= data.pages ? "#F5F3FF" : "#fff", color: page >= data.pages ? "#C4B5FD" : "#7C3AED", fontWeight: 700, fontSize: 13, padding: "0 16px", cursor: page >= data.pages ? "not-allowed" : "pointer", fontFamily: "'Inter', sans-serif" }}
+                    style={{ height: 40, borderRadius: 12, border: "2px solid #EDE5D8", background: page >= data.pages ? "#F5F0E6" : "#fff", color: page >= data.pages ? "#D4C4B0" : "#5D3A1A", fontWeight: 700, fontSize: 13, padding: "0 16px", cursor: page >= data.pages ? "not-allowed" : "pointer", fontFamily: "'Inter', sans-serif" }}
                   >
                     Sonraki →
                   </button>

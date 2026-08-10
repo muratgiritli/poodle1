@@ -17,7 +17,7 @@ const DIFF_COLOR: Record<Difficulty, string> = {
   "Orta":      "#F59E0B",
   "İleri":     "#EF4444",
 };
-const AGE_COLOR = ["#FFB347", "#A78BFA", "#34D399"];
+const AGE_COLOR = ["#FFB347", "#A67C52", "#34D399"];
 
 const ARTICLE_CATS  = ["Tümü", "Temel", "Yavru", "Sosyalleşme", "Spor", "Davranış"];
 const DIFF_FILTERS  = ["Tümü", "Başlangıç", "Orta", "İleri"] as const;
@@ -307,7 +307,7 @@ const STAGES = [
       { text:"Sosyalleşme",      slug:"sosyallesme" },
       { text:"Bakım rutinine alıştırma", slug:"bakim-rutini-egitimi" },
     ]},
-  { label:"Genç (6–18 ay)", age:"genç" as AgeGroup, color:"#A78BFA",
+  { label:"Genç (6–18 ay)", age:"genç" as AgeGroup, color:"#A67C52",
     tips:[
       { text:"Temel komutlar",    slug:"temel-komutlar" },
       { text:"Clicker eğitimi",  slug:"clicker-egitimi" },
@@ -343,7 +343,7 @@ const FAQS = [
 /* ─── Davranış Sorunları ──────────────────────────────── */
 const BEHAVIOR_ISSUES = [
   { emoji:"🔊", title:"Havlama Kontrolü",    slug:"havlama-kontrolu",    color:"#FFF7ED", accent:"#EA580C" },
-  { emoji:"😰", title:"Yalnız Kalma Kaygısı",slug:"yalniz-kalma-kaygisi",color:"#FDF4FF", accent:"#9333EA" },
+  { emoji:"😰", title:"Yalnız Kalma Kaygısı",slug:"yalniz-kalma-kaygisi",color:"#FAF7F0", accent:"#8B5E34" },
   { emoji:"😬", title:"Isırma Davranışı",    slug:"isirma-davranisi",    color:"#FFF1F2", accent:"#EF4444" },
   { emoji:"😤", title:"Aşırı Heyecan",       slug:"sosyallesme",         color:"#F0FDF4", accent:"#16A34A" },
 ];

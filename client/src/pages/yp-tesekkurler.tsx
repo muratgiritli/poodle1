@@ -10,7 +10,7 @@ export default function YPTesekkurlerPage() {
     document.title = "Siparişiniz Alındı | YourPoodle";
   }, []);
 
-  const purple = "#7C3AFF";
+  const purple = "#5D3A1A";
 
   return (
     <YPLayout activeLink="/yourpoodle/magaza">
@@ -37,7 +37,7 @@ export default function YPTesekkurlerPage() {
             onClick={() => navigate("/yourpoodle/magaza")}
             style={{
               height: 50, borderRadius: 14, border: "none",
-              background: `linear-gradient(135deg,${purple},#A855F7)`,
+              background: `linear-gradient(135deg,${purple},#A67C52)`,
               color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
               fontFamily: "inherit",

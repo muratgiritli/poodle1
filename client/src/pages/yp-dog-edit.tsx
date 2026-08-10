@@ -89,14 +89,14 @@ export default function YPDogEditPage({ routeSlug }: { routeSlug?: string }) {
                 r.readAsDataURL(f);
               }} />
             <div onClick={() => fileRef.current?.click()}
-              style={{ width: 90, height: 90, borderRadius: "50%", border: "3px solid #7C3AED", overflow: "hidden", margin: "0 auto 10px", cursor: "pointer", background: "#F5F0FF", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+              style={{ width: 90, height: 90, borderRadius: "50%", border: "3px solid #5D3A1A", overflow: "hidden", margin: "0 auto 10px", cursor: "pointer", background: "#F5F0E6", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
               {(avatarPreview || dog?.avatar_url)
                 ? <img src={avatarPreview ?? dog.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                : <div style={{ textAlign: "center" }}><Camera size={28} color="#7C3AED" /><div style={{ fontSize: 10, color: "#7C3AED", fontWeight: 700 }}>Fotoğraf</div></div>
+                : <div style={{ textAlign: "center" }}><Camera size={28} color="#5D3A1A" /><div style={{ fontSize: 10, color: "#5D3A1A", fontWeight: 700 }}>Fotoğraf</div></div>
               }
             </div>
             <button onClick={() => fileRef.current?.click()}
-              style={{ fontSize: 13, color: "#7C3AED", fontWeight: 700, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
+              style={{ fontSize: 13, color: "#5D3A1A", fontWeight: 700, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
               Fotoğraf Değiştir
             </button>
           </div>
@@ -121,8 +121,8 @@ export default function YPDogEditPage({ routeSlug }: { routeSlug?: string }) {
             <div style={{ display: "flex", gap: 10 }}>
               {["Dişi", "Erkek"].map(g => (
                 <button key={g} onClick={() => set("gender", g)}
-                  style={{ flex: 1, padding: "10px", borderRadius: 12, border: `1.5px solid ${form.gender === g ? "#7C3AED" : "#E5E7EB"}`,
-                    background: form.gender === g ? "#F5F0FF" : "#fff", color: form.gender === g ? "#7C3AED" : "#555", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>
+                  style={{ flex: 1, padding: "10px", borderRadius: 12, border: `1.5px solid ${form.gender === g ? "#5D3A1A" : "#E5E7EB"}`,
+                    background: form.gender === g ? "#F5F0E6" : "#fff", color: form.gender === g ? "#5D3A1A" : "#555", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>
                   {g === "Dişi" ? "♀️ Dişi" : "♂️ Erkek"}
                 </button>
               ))}
@@ -135,8 +135,8 @@ export default function YPDogEditPage({ routeSlug }: { routeSlug?: string }) {
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {COLORS.map(c => (
                 <button key={c} onClick={() => set("color", c)}
-                  style={{ padding: "7px 14px", borderRadius: 20, border: `1.5px solid ${form.color === c ? "#7C3AED" : "#E5E7EB"}`,
-                    background: form.color === c ? "#F5F0FF" : "#fff", color: form.color === c ? "#7C3AED" : "#555", fontWeight: 700, fontSize: 12.5, cursor: "pointer", fontFamily: "inherit" }}>
+                  style={{ padding: "7px 14px", borderRadius: 20, border: `1.5px solid ${form.color === c ? "#5D3A1A" : "#E5E7EB"}`,
+                    background: form.color === c ? "#F5F0E6" : "#fff", color: form.color === c ? "#5D3A1A" : "#555", fontWeight: 700, fontSize: 12.5, cursor: "pointer", fontFamily: "inherit" }}>
                   {c}
                 </button>
               ))}
@@ -167,8 +167,8 @@ export default function YPDogEditPage({ routeSlug }: { routeSlug?: string }) {
             <div style={{ display: "flex", gap: 10 }}>
               {[{ v: false, l: "🌍 Herkese Açık" }, { v: true, l: "🔒 Gizli" }].map(({ v, l }) => (
                 <button key={String(v)} onClick={() => set("isPrivate", v)}
-                  style={{ flex: 1, padding: "10px", borderRadius: 12, border: `1.5px solid ${form.isPrivate === v ? "#7C3AED" : "#E5E7EB"}`,
-                    background: form.isPrivate === v ? "#F5F0FF" : "#fff", color: form.isPrivate === v ? "#7C3AED" : "#555", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
+                  style={{ flex: 1, padding: "10px", borderRadius: 12, border: `1.5px solid ${form.isPrivate === v ? "#5D3A1A" : "#E5E7EB"}`,
+                    background: form.isPrivate === v ? "#F5F0E6" : "#fff", color: form.isPrivate === v ? "#5D3A1A" : "#555", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
                   {l}
                 </button>
               ))}
@@ -189,7 +189,7 @@ export default function YPDogEditPage({ routeSlug }: { routeSlug?: string }) {
 
         <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#fff", borderTop: "1px solid #f0f0f0", padding: "12px 20px", maxWidth: 480, margin: "0 auto", zIndex: 100 }}>
           <button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}
-            style={{ width: "100%", height: 50, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#7C3AED,#A855F7)", color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            style={{ width: "100%", height: 50, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#5D3A1A,#A67C52)", color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
             <Save size={18} /> {saveMutation.isPending ? "Kaydediliyor..." : "Kaydet"}
           </button>
         </div>

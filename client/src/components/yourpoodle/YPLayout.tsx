@@ -105,9 +105,9 @@ export default function YPLayout({
   const initials = customer?.name?.slice(0, 1).toUpperCase() || "";
 
   return (
-    <div style={{ fontFamily: "'Inter',-apple-system,sans-serif", minHeight: "100vh", background: "#FAFAFA" }}>
+    <div style={{ fontFamily: "'DM Sans','Helvetica Neue',Arial,sans-serif", minHeight: "100vh", background: "#FAF8F4" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap');
 
         .yp-desktop-hdr { display: none !important; }
         .yp-mobile-hdr  { display: flex !important; }
@@ -176,11 +176,11 @@ export default function YPLayout({
         }
 
         .yp-nav-item { transition: background 0.15s, color 0.15s; cursor: pointer; }
-        .yp-nav-item:hover { background: #F5F0FF !important; color: #7C3AED !important; }
-        .yp-nav-item:hover svg { color: #7C3AED !important; }
+        .yp-nav-item:hover { background: #F5F0E6 !important; color: #5D3A1A !important; }
+        .yp-nav-item:hover svg { color: #5D3A1A !important; }
         .yp-util-btn { transition: background 0.15s; cursor: pointer; }
         .yp-util-btn:hover { background: #F5F5F5 !important; }
-        .yp-search-inp:focus { outline: none; border-color: #A78BFA !important; }
+        .yp-search-inp:focus { outline: none; border-color: #A67C52 !important; }
         .yp-profile-drop { animation: yp-fade-in 0.12s ease; }
         @keyframes yp-fade-in { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
       `}</style>
@@ -190,7 +190,7 @@ export default function YPLayout({
 
         {/* ── Duyuru çubuğu — auth sayfalarında gösterilmez ── */}
         {!authMode && (
-          <div style={{ background: "#7022C4", color: "#fff", textAlign: "center", padding: "9px 20px", fontSize: 13.5, fontWeight: 500 }}>
+          <div style={{ background: "#5D3A1A", color: "#fff", textAlign: "center", padding: "9px 20px", fontSize: 13.5, fontWeight: 500 }}>
             🎁 Üye ol, özel kampanya ve fırsatları kaçırma
           </div>
         )}
@@ -202,7 +202,7 @@ export default function YPLayout({
             {/* Logo */}
             <Link href={BASE || "/"}>
               <img
-                src="/images/yourpoodle-logo.jpg"
+                src="/images/brand/logo.png"
                 alt="YourPoodle"
                 style={{ height: 42, width: "auto", objectFit: "contain", cursor: "pointer", flexShrink: 0, display: "block" }}
               />
@@ -224,12 +224,12 @@ export default function YPLayout({
                       <div style={{
                         padding: "6px 12px", borderRadius: 8, cursor: "pointer",
                         fontSize: 14, fontWeight: active ? 700 : 500,
-                        color: active ? "#7022C4" : "#374151",
-                        background: active ? "#F5F0FF" : "transparent",
+                        color: active ? "#5D3A1A" : "#374151",
+                        background: active ? "#F5F0E6" : "transparent",
                         transition: "background 0.15s, color 0.15s",
                         whiteSpace: "nowrap",
                       }}
-                        onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = "#F9F5FF"; (e.currentTarget as HTMLElement).style.color = "#7022C4"; } }}
+                        onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = "#FAF7F0"; (e.currentTarget as HTMLElement).style.color = "#5D3A1A"; } }}
                         onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#374151"; } }}>
                         {label}
                       </div>
@@ -253,13 +253,13 @@ export default function YPLayout({
                       onClick={() => setProfileOpen(o => !o)}
                       style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px 4px 4px", borderRadius: 9999, border: "1.5px solid #E5E7EB", background: "#fff", cursor: "pointer" }}
                     >
-                      <div style={{ width: 30, height: 30, borderRadius: "50%", background: "linear-gradient(135deg,#7022C4,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <div style={{ width: 30, height: 30, borderRadius: "50%", background: "linear-gradient(135deg,#5D3A1A,#A67C52)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                         <span style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{initials || "🐾"}</span>
                       </div>
                       <ChevronDown size={13} color="#9CA3AF" strokeWidth={2} style={{ transform: profileOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
                     </button>
                     {profileOpen && (
-                      <div className="yp-profile-drop" style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: 16, boxShadow: "0 8px 32px rgba(112,34,196,0.18)", border: "1px solid #EDE9FE", minWidth: 200, zIndex: 300, overflow: "hidden" }}>
+                      <div className="yp-profile-drop" style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", borderRadius: 16, boxShadow: "0 8px 32px rgba(93,58,26,0.18)", border: "1px solid #EDE5D8", minWidth: 200, zIndex: 300, overflow: "hidden" }}>
                         {[
                           { label: "👤 Profilim",           href: "/hesabim" },
                           { label: "📦 Siparişlerim",       href: "/hesabim/siparisler" },
@@ -269,7 +269,7 @@ export default function YPLayout({
                         ].map(({ label, href }) => (
                           <button key={href} onClick={() => { navigate(href); setProfileOpen(false); }}
                             style={{ display: "block", width: "100%", padding: "11px 18px", fontSize: 13, fontWeight: 600, color: "#374151", background: "none", border: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}
-                            onMouseEnter={e => (e.currentTarget.style.background = "#F5F0FF")}
+                            onMouseEnter={e => (e.currentTarget.style.background = "#F5F0E6")}
                             onMouseLeave={e => (e.currentTarget.style.background = "none")}
                           >{label}</button>
                         ))}
@@ -280,14 +280,14 @@ export default function YPLayout({
                   <>
                     <button onClick={() => navigate(`${BASE}/giris`)}
                       style={{ background: "none", border: "1.5px solid #D1D5DB", borderRadius: 9999, cursor: "pointer", fontSize: 14, fontWeight: 600, color: "#374151", fontFamily: "inherit", padding: "8px 18px", whiteSpace: "nowrap" }}
-                      onMouseEnter={e => (e.currentTarget.style.borderColor = "#7022C4")}
+                      onMouseEnter={e => (e.currentTarget.style.borderColor = "#5D3A1A")}
                       onMouseLeave={e => (e.currentTarget.style.borderColor = "#D1D5DB")}>
                       Giriş Yap
                     </button>
                     <button onClick={() => navigate(`${BASE}/uye-ol`)}
-                      style={{ padding: "9px 20px", borderRadius: 9999, border: "none", background: "#7022C4", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
-                      onMouseEnter={e => (e.currentTarget.style.background = "#5A32A3")}
-                      onMouseLeave={e => (e.currentTarget.style.background = "#7022C4")}>
+                      style={{ padding: "9px 20px", borderRadius: 9999, border: "none", background: "#5D3A1A", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "#4A2E14")}
+                      onMouseLeave={e => (e.currentTarget.style.background = "#5D3A1A")}>
                       Üye Ol
                     </button>
                   </>
@@ -324,7 +324,7 @@ export default function YPLayout({
           boxShadow: "4px 0 28px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column",
         }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 18px 14px", borderBottom: "1px solid #f2f2f2" }}>
-          <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 30, width: "auto", objectFit: "contain" }} />
+          <img src="/images/brand/logo.png" alt="YourPoodle" style={{ height: 30, width: "auto", objectFit: "contain" }} />
           <button onClick={() => setDrawerOpen(false)}
             style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", width: 32, height: 32 }}>
             <X size={20} color="#666" />
@@ -338,15 +338,15 @@ export default function YPLayout({
             <button key={l.href} onClick={() => { navigate(l.href); setDrawerOpen(false); }}
               style={{
                 display: "block", width: "100%", padding: "13px 20px", fontSize: 15, fontWeight: 600,
-                color: isActive(activeLink, l.href) ? "#7C3AED" : "#222",
-                background: isActive(activeLink, l.href) ? "#F5F0FF" : "transparent",
+                color: isActive(activeLink, l.href) ? "#5D3A1A" : "#222",
+                background: isActive(activeLink, l.href) ? "#F5F0E6" : "transparent",
                 border: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit",
               }}>{l.label}</button>
           ))}
         </div>
         <div style={{ padding: "16px 18px", borderTop: "1px solid #f2f2f2" }}>
           <button onClick={() => { navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris"); setDrawerOpen(false); }}
-            style={{ width: "100%", height: 46, borderRadius: 12, background: "linear-gradient(135deg,#7C3AED,#A855F7)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+            style={{ width: "100%", height: 46, borderRadius: 12, background: "linear-gradient(135deg,#5D3A1A,#A67C52)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
             {isLoggedIn ? "👤 Hesabım" : "Ücretsiz Başla"}
           </button>
         </div>
@@ -365,13 +365,13 @@ export default function YPLayout({
       }}>
         {authMode ? (
           <Link href={BASE || "/"}>
-            <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle" style={{ height: 34, width: "auto", objectFit: "contain", cursor: "pointer" }} />
+            <img src="/images/brand/logo.png" alt="YourPoodle" style={{ height: 34, width: "auto", objectFit: "contain", cursor: "pointer" }} />
           </Link>
         ) : (
           <div style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             {/* Left: logo only — same as homepage */}
             <Link href={BASE || "/"}>
-              <img src="/images/yourpoodle-logo.jpg" alt="YourPoodle"
+              <img src="/images/brand/logo.png" alt="YourPoodle"
                 style={{ height: 34, width: "auto", objectFit: "contain", cursor: "pointer" }} />
             </Link>
 
@@ -382,11 +382,11 @@ export default function YPLayout({
                 aria-label={isLoggedIn ? "Profilim" : "Giriş yap"}
                 style={{ width: 44, height: 44, background: "none", border: "none", cursor: "pointer",
                          display: "flex", alignItems: "center", justifyContent: "center",
-                         borderRadius: 8, color: isLoggedIn ? "#7C3AED" : "#374151",
+                         borderRadius: 8, color: isLoggedIn ? "#5D3A1A" : "#374151",
                          gap: 4 }}>
                 {isLoggedIn ? (
                   <div style={{ width: 26, height: 26, borderRadius: "50%",
-                                background: "linear-gradient(135deg,#7022C4,#A855F7)",
+                                background: "linear-gradient(135deg,#5D3A1A,#A67C52)",
                                 display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <span style={{ fontSize: 12, fontWeight: 800, color: "#fff" }}>
                       {initials || "🐾"}
@@ -407,7 +407,7 @@ export default function YPLayout({
                 <ShoppingCart size={20} strokeWidth={2} />
                 {cartCount > 0 && (
                   <span style={{ position: "absolute", top: 6, right: 6,
-                                 background: "#7C3AED", color: "#fff",
+                                 background: "#5D3A1A", color: "#fff",
                                  fontSize: 9, fontWeight: 900,
                                  width: 16, height: 16, borderRadius: "50%",
                                  display: "flex", alignItems: "center", justifyContent: "center",
@@ -440,8 +440,8 @@ export default function YPLayout({
               <button key={href} onClick={() => navigate(href)}
                 style={{
                   flex: "none", padding: "12px 10px", fontSize: 14, fontWeight: active ? 700 : 500,
-                  color: active ? "#7C3AED" : "#111827", background: "none", border: "none",
-                  borderBottom: `2.5px solid ${active ? "#7C3AED" : "transparent"}`,
+                  color: active ? "#5D3A1A" : "#111827", background: "none", border: "none",
+                  borderBottom: `2.5px solid ${active ? "#5D3A1A" : "transparent"}`,
                   cursor: "pointer", whiteSpace: "nowrap", minHeight: 44,
                   display: "flex", alignItems: "center", fontFamily: "inherit",
                   transition: "color 0.15s, border-color 0.15s",

@@ -11,7 +11,7 @@ import YPLayout from "@/components/yourpoodle/YPLayout";
 /* ── Palette ─────────────────────────── */
 const P    = "#5D3EBD";
 const PD   = "#4A22A0";
-const PL   = "#F3EEFF";
+const PL   = "#F5F0E6";
 const DRK  = "#111827";
 const GT   = "#6B7280";
 const GB   = "#E5E7EB";
@@ -432,7 +432,7 @@ export default function YPOdulOnaylaPage() {
         {/* ── ACTION BUTTONS ── */}
         <div style={{ padding:"0 16px 10px", display:"flex", flexDirection:"column", gap:10 }}>
           <button onClick={confirmRedeem} disabled={!canConfirm}
-            style={{ width:"100%", background: canConfirm ? P : "#C4B5FD",
+            style={{ width:"100%", background: canConfirm ? P : "#D4C4B0",
                      color:"#fff", border:"none", borderRadius:14, padding:"16px 0",
                      fontSize:14, fontWeight:800, cursor: canConfirm ? "pointer" : "not-allowed",
                      fontFamily:"inherit", transition:"background .2s" }}>

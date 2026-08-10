@@ -42,7 +42,7 @@ export default function YPDogCreatePage() {
           <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>Önce giriş yapmalısın</h2>
           <p style={{ color: "#888", marginBottom: 24 }}>Köpek profili oluşturmak için üye olman gerekiyor.</p>
           <button onClick={() => navigate("/yourpoodle/giris")}
-            style={{ padding: "12px 28px", borderRadius: 20, background: "linear-gradient(135deg,#7C3AED,#A855F7)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+            style={{ padding: "12px 28px", borderRadius: 20, background: "linear-gradient(135deg,#5D3A1A,#A67C52)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
             Giriş Yap / Üye Ol
           </button>
         </div>
@@ -131,8 +131,8 @@ export default function YPDogCreatePage() {
         </div>
 
         {/* Progress bar */}
-        <div style={{ height: 3, background: "#F5F0FF" }}>
-          <div style={{ height: "100%", background: "#7C3AED", width: `${((step + 1) / STEPS.length) * 100}%`, transition: "width 0.3s" }} />
+        <div style={{ height: 3, background: "#F5F0E6" }}>
+          <div style={{ height: "100%", background: "#5D3A1A", width: `${((step + 1) / STEPS.length) * 100}%`, transition: "width 0.3s" }} />
         </div>
 
         <div style={{ padding: "24px 20px" }}>
@@ -162,9 +162,9 @@ export default function YPDogCreatePage() {
                 {BREEDS.map(b => (
                   <button key={b} onClick={() => set("breed", b)}
                     style={{ padding: "8px 16px", borderRadius: 20, border: "1.5px solid", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-                      borderColor: form.breed === b ? "#7C3AED" : "#E5E7EB",
-                      background: form.breed === b ? "#F5F0FF" : "#fff",
-                      color: form.breed === b ? "#7C3AED" : "#555" }}>
+                      borderColor: form.breed === b ? "#5D3A1A" : "#E5E7EB",
+                      background: form.breed === b ? "#F5F0E6" : "#fff",
+                      color: form.breed === b ? "#5D3A1A" : "#555" }}>
                     {BREED_TR[b]}
                   </button>
                 ))}
@@ -187,10 +187,10 @@ export default function YPDogCreatePage() {
                   reader.readAsDataURL(f);
                 }} />
               <div onClick={() => fileRef.current?.click()}
-                style={{ width: 140, height: 140, borderRadius: "50%", border: "3px dashed #7C3AED", background: "#F5F0FF", margin: "0 auto 24px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                style={{ width: 140, height: 140, borderRadius: "50%", border: "3px dashed #5D3A1A", background: "#F5F0E6", margin: "0 auto 24px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                 {avatarPreview
                   ? <img src={avatarPreview} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  : <div><Camera size={36} color="#7C3AED" /><div style={{ fontSize: 12, color: "#7C3AED", marginTop: 6, fontWeight: 700 }}>Fotoğraf seç</div></div>
+                  : <div><Camera size={36} color="#5D3A1A" /><div style={{ fontSize: 12, color: "#5D3A1A", marginTop: 6, fontWeight: 700 }}>Fotoğraf seç</div></div>
                 }
               </div>
               {avatarPreview && (
@@ -213,9 +213,9 @@ export default function YPDogCreatePage() {
                 {["Dişi", "Erkek"].map(g => (
                   <button key={g} onClick={() => set("gender", g)}
                     style={{ flex: 1, padding: "10px", borderRadius: 12, border: "1.5px solid", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-                      borderColor: form.gender === g ? "#7C3AED" : "#E5E7EB",
-                      background: form.gender === g ? "#F5F0FF" : "#fff",
-                      color: form.gender === g ? "#7C3AED" : "#555" }}>
+                      borderColor: form.gender === g ? "#5D3A1A" : "#E5E7EB",
+                      background: form.gender === g ? "#F5F0E6" : "#fff",
+                      color: form.gender === g ? "#5D3A1A" : "#555" }}>
                     {g === "Dişi" ? "♀️ Dişi" : "♂️ Erkek"}
                   </button>
                 ))}
@@ -226,9 +226,9 @@ export default function YPDogCreatePage() {
                 {COLORS.map(c => (
                   <button key={c} onClick={() => set("color", c)}
                     style={{ padding: "7px 14px", borderRadius: 20, border: "1.5px solid", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-                      borderColor: form.color === c ? "#7C3AED" : "#E5E7EB",
-                      background: form.color === c ? "#F5F0FF" : "#fff",
-                      color: form.color === c ? "#7C3AED" : "#555" }}>
+                      borderColor: form.color === c ? "#5D3A1A" : "#E5E7EB",
+                      background: form.color === c ? "#F5F0E6" : "#fff",
+                      color: form.color === c ? "#5D3A1A" : "#555" }}>
                     {c}
                   </button>
                 ))}
@@ -283,10 +283,10 @@ export default function YPDogCreatePage() {
                 { value: true, emoji: "🔒", title: "Gizli Profil", desc: "Gönderilerini sadece onaylanan takipçiler görebilir." },
               ].map(o => (
                 <div key={String(o.value)} onClick={() => set("isPrivate", o.value)}
-                  style={{ padding: "16px", borderRadius: 14, border: `2px solid ${form.isPrivate === o.value ? "#7C3AED" : "#E5E7EB"}`,
-                    background: form.isPrivate === o.value ? "#F5F0FF" : "#fff", cursor: "pointer", marginBottom: 12 }}>
+                  style={{ padding: "16px", borderRadius: 14, border: `2px solid ${form.isPrivate === o.value ? "#5D3A1A" : "#E5E7EB"}`,
+                    background: form.isPrivate === o.value ? "#F5F0E6" : "#fff", cursor: "pointer", marginBottom: 12 }}>
                   <div style={{ fontSize: 24, marginBottom: 6 }}>{o.emoji}</div>
-                  <div style={{ fontWeight: 800, fontSize: 15, color: form.isPrivate === o.value ? "#7C3AED" : "#1a1a1a", marginBottom: 4 }}>{o.title}</div>
+                  <div style={{ fontWeight: 800, fontSize: 15, color: form.isPrivate === o.value ? "#5D3A1A" : "#1a1a1a", marginBottom: 4 }}>{o.title}</div>
                   <div style={{ fontSize: 13, color: "#666" }}>{o.desc}</div>
                 </div>
               ))}
@@ -310,13 +310,13 @@ export default function YPDogCreatePage() {
                 <ChevronLeft size={20} />
               </button>
               <button onClick={() => setStep(s => s + 1)} disabled={!canNext}
-                style={{ flex: 1, height: 48, borderRadius: 12, border: "none", background: canNext ? "linear-gradient(135deg,#7C3AED,#A855F7)" : "#E5E7EB", color: canNext ? "#fff" : "#aaa", fontSize: 15, fontWeight: 800, cursor: canNext ? "pointer" : "default", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                style={{ flex: 1, height: 48, borderRadius: 12, border: "none", background: canNext ? "linear-gradient(135deg,#5D3A1A,#A67C52)" : "#E5E7EB", color: canNext ? "#fff" : "#aaa", fontSize: 15, fontWeight: 800, cursor: canNext ? "pointer" : "default", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
                 Devam <ChevronRight size={18} />
               </button>
             </>
           ) : (
             <button onClick={() => createMutation.mutate()} disabled={createMutation.isPending}
-              style={{ flex: 1, height: 52, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#7C3AED,#A855F7)", color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              style={{ flex: 1, height: 52, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#5D3A1A,#A67C52)", color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {createMutation.isPending ? "Oluşturuluyor..." : <><Check size={20} /> Profili Oluştur</>}
             </button>
           )}

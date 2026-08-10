@@ -18,7 +18,7 @@ import {
 /* ── Palette ── */
 const P  = "#4B2BD6";
 const PD = "#3E27B3";
-const PL = "#F3EEFF";
+const PL = "#F5F0E6";
 const GB = "#E5E7EB";
 const FBG = "#1D1E9B";
 
@@ -37,7 +37,7 @@ function AccountHeader({ onMenuClick }: { onMenuClick: () => void }) {
   return (
     <header style={{
       position: "sticky", top: 0, zIndex: 100,
-      background: "linear-gradient(135deg,#F5F0FF 0%,#EDE9FE 100%)",
+      background: "linear-gradient(135deg,#F5F0E6 0%,#EDE5D8 100%)",
       display: "flex", alignItems: "center", justifyContent: "space-between",
       height: 58, padding: "0 12px",
       borderBottom: "1px solid #E9E3FD",
@@ -45,16 +45,17 @@ function AccountHeader({ onMenuClick }: { onMenuClick: () => void }) {
       {/* Left: hamburger + logo */}
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <button onClick={onMenuClick} aria-label="Menü"
-          style={{ background: "#EDE9FE", border: "none", cursor: "pointer",
-                   padding: "5px 8px", fontSize: 18, color: "#7C3AED",
+          style={{ background: "#EDE5D8", border: "none", cursor: "pointer",
+                   padding: "5px 8px", fontSize: 18, color: "#5D3A1A",
                    borderRadius: 10, lineHeight: 1 }}>
           ☰
         </button>
-        <span style={{ fontFamily: "'Pacifico', cursive", fontSize: 17,
-                       color: "#6B21A8", cursor: "pointer" }}
-          onClick={() => navigate("/yourpoodle")}>
-          YourPoodle 🐾
-        </span>
+        <img
+          src="/images/brand/logo.png"
+          alt="YourPoodle"
+          onClick={() => navigate("/yourpoodle")}
+          style={{ height: 28, width: "auto", cursor: "pointer", display: "block" }}
+        />
       </div>
 
       {/* Right: bell + DM + avatar */}
@@ -70,7 +71,7 @@ function AccountHeader({ onMenuClick }: { onMenuClick: () => void }) {
                          background: "#EF4444", color: "#fff", fontSize: 9, fontWeight: 800,
                          width: 16, height: 16, borderRadius: "50%",
                          display: "flex", alignItems: "center", justifyContent: "center",
-                         border: "2px solid #EDE9FE" }}>
+                         border: "2px solid #EDE5D8" }}>
             3
           </span>
         </button>
@@ -86,7 +87,7 @@ function AccountHeader({ onMenuClick }: { onMenuClick: () => void }) {
                          background: P, color: "#fff", fontSize: 9, fontWeight: 800,
                          width: 16, height: 16, borderRadius: "50%",
                          display: "flex", alignItems: "center", justifyContent: "center",
-                         border: "2px solid #EDE9FE" }}>
+                         border: "2px solid #EDE5D8" }}>
             2
           </span>
         </button>
@@ -747,12 +748,12 @@ function BottomNav() {
                    alignItems: "center", justifyContent: tab.center ? "flex-end" : "flex-end",
                    gap: 3, paddingBottom: 8, border: "none", background: "none",
                    cursor: "pointer", fontFamily: "inherit",
-                   color: tab.href === "/hesabim" ? "#7C3AED" : "#9CA3AF" }}>
+                   color: tab.href === "/hesabim" ? "#5D3A1A" : "#9CA3AF" }}>
           {tab.center ? (
             <div style={{ position: "absolute", bottom: 24, width: 52, height: 52,
-                          borderRadius: "50%", background: "#7C3AED",
+                          borderRadius: "50%", background: "#5D3A1A",
                           display: "flex", alignItems: "center", justifyContent: "center",
-                          boxShadow: "0 0 0 5px rgba(124,58,237,0.12),0 4px 14px rgba(124,58,237,0.35)",
+                          boxShadow: "0 0 0 5px rgba(93,58,26,0.12),0 4px 14px rgba(93,58,26,0.35)",
                           fontSize: 22 }}>
               {tab.emoji}
             </div>

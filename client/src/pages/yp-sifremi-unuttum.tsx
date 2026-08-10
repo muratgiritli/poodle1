@@ -4,7 +4,7 @@ import YPLayout from "@/components/yourpoodle/YPLayout";
 import { Mail, CheckCircle, ChevronLeft } from "lucide-react";
 import { IS_YP } from "@/lib/store";
 
-const P = "#7022C4";
+const P = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 export default function YPSifremiUnuttumPage() {
@@ -27,7 +27,7 @@ export default function YPSifremiUnuttumPage() {
 
   return (
     <YPLayout authMode constrain={false}>
-      <div style={{ minHeight: "100vh", background: "#F9F5FF", paddingBottom: 48 }}>
+      <div style={{ minHeight: "100vh", background: "#FAF7F0", paddingBottom: 48 }}>
         <div style={{ maxWidth: 440, margin: "0 auto", padding: "28px 20px 0" }}>
           <button onClick={() => navigate(`${BASE}/giris`)}
             style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", color: "#6B7280", fontSize: 13, fontWeight: 600, padding: 0, fontFamily: "inherit", marginBottom: 20 }}>
@@ -52,7 +52,7 @@ export default function YPSifremiUnuttumPage() {
             ) : (
               <>
                 <div style={{ textAlign: "center", marginBottom: 28 }}>
-                  <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#F5F0FF", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+                  <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#F5F0E6", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
                     <Mail size={28} color={P} />
                   </div>
                   <h1 style={{ fontSize: 20, fontWeight: 800, color: "#111827", margin: "0 0 8px" }}>Şifremi Unuttum</h1>

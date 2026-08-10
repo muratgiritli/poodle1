@@ -8,7 +8,7 @@ import { IS_YP } from "@/lib/store";
 
 const BASE = IS_YP ? "" : "/yourpoodle";
 const P    = "#6A38C2";
-const PD   = "#4C1DAA";
+const PD   = "#3D2612";
 
 /* ── helpers ────────────────────────────────────────── */
 function fmtPrice(n: number) {
@@ -44,7 +44,7 @@ function Toast({ message, visible }: { message: string; visible: boolean }) {
       zIndex:9999, pointerEvents:"none", opacity:visible?1:0, transition:"opacity 0.3s",
     }}>
       <div style={{
-        background:"#1A0052", color:"#fff", padding:"10px 22px", borderRadius:999,
+        background:"#3D2612", color:"#fff", padding:"10px 22px", borderRadius:999,
         fontSize:13, fontWeight:500, whiteSpace:"nowrap", boxShadow:"0 4px 16px rgba(0,0,0,0.25)",
       }}>
         {message}
@@ -64,7 +64,7 @@ function FilterChip({
         display:"flex", alignItems:"center", gap:5, flexShrink:0,
         padding:"8px 12px", borderRadius:999,
         border:`1.5px solid ${active ? P : "#D1D5DB"}`,
-        background: active ? "#EDE9FE" : "#fff",
+        background: active ? "#EDE5D8" : "#fff",
         color: active ? P : "#374151",
         fontSize:13, fontWeight:active?700:500,
         cursor:"pointer", fontFamily:"inherit",

@@ -10,7 +10,7 @@ import YPLayout from "@/components/yourpoodle/YPLayout";
 
 /* ── Palette ─────────────────────────── */
 const P   = "#4B2BD6";
-const PL  = "#F3EEFF";
+const PL  = "#F5F0E6";
 const NAV = "#1D1E9B";
 const DRK = "#111827";
 const GT  = "#6B7280";
@@ -36,7 +36,7 @@ const FAQ = [
 
 /* ── Quick help categories ───────────── */
 const CATS = [
-  { id:"orders",     title:"Siparişlerim",   sub:"Kargo ve teslimat",         Icon:Package,    bg:"#F3EEFF", ic:P },
+  { id:"orders",     title:"Siparişlerim",   sub:"Kargo ve teslimat",         Icon:Package,    bg:"#F5F0E6", ic:P },
   { id:"returns",    title:"İade ve Değişim", sub:"Kolay iade işlemleri",     Icon:RefreshCw,  bg:"#F0FDF4", ic:"#16A34A" },
   { id:"payment",    title:"Ödeme",           sub:"Kart ve taksit sorunları", Icon:CreditCard, bg:"#FFF7ED", ic:"#EA580C" },
   { id:"products",   title:"Ürünler",         sub:"Mama ve ürün bilgileri",   Icon:ShoppingBag,bg:"#EFF6FF", ic:"#3B82F6" },

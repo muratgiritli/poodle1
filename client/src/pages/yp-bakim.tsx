@@ -13,7 +13,7 @@ const ARTICLE_CATS = ["Tümü","Tıraş","Tüy Bakımı","Pençe","Kulak","Ağı
 
 const CAT_STYLE: Record<string,{bg:string;color:string}> = {
   "Tıraş":     {bg:"#FFE4EC",color:"#E75480"},
-  "Tüy Bakımı":{bg:"#FDF4FF",color:"#9333EA"},
+  "Tüy Bakımı":{bg:"#F5F0E6",color:"#5D3A1A"},
   "Pençe":     {bg:"#F0FDF4",color:"#16A34A"},
   "Kulak":     {bg:"#FFF7ED",color:"#EA580C"},
   "Ağız":      {bg:"#EFF6FF",color:"#2563EB"},

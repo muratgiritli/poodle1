@@ -7,8 +7,8 @@ import { useCart } from "@/contexts/CartContext";
 import { IS_YP } from "@/lib/store";
 
 const BASE = IS_YP ? "" : "/yourpoodle";
-const P    = "#6200EE";
-const PD   = "#4C1DAA";
+const P    = "#5D3A1A";
+const PD   = "#3D2612";
 
 /* ── Route slug → DB subcategory mapping ─────────────────────────── */
 const SLUG_TO_SUBCAT: Record<string, string> = {
@@ -87,7 +87,7 @@ function Toast({ message, visible }: { message: string; visible: boolean }) {
       zIndex:9999, pointerEvents:"none", opacity:visible?1:0, transition:"opacity 0.3s",
     }}>
       <div style={{
-        background:"#1A0052", color:"#fff", padding:"10px 22px", borderRadius:999,
+        background:"#3D2612", color:"#fff", padding:"10px 22px", borderRadius:999,
         fontSize:13, fontWeight:500, whiteSpace:"nowrap", boxShadow:"0 4px 16px rgba(0,0,0,0.25)",
       }}>
         {message}
@@ -140,7 +140,7 @@ function ProductCard({
         boxShadow:"0 1px 4px rgba(0,0,0,0.06)", cursor:"pointer",
         transition:"box-shadow 0.15s, transform 0.15s",
       }}
-      onMouseEnter={e => { e.currentTarget.style.boxShadow="0 4px 12px rgba(98,0,238,0.10)"; e.currentTarget.style.transform="translateY(-1px)"; }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow="0 4px 12px rgba(93,58,26,0.10)"; e.currentTarget.style.transform="translateY(-1px)"; }}
       onMouseLeave={e => { e.currentTarget.style.boxShadow="0 1px 4px rgba(0,0,0,0.06)"; e.currentTarget.style.transform="translateY(0)"; }}
     >
       {/* Image */}

@@ -14,7 +14,7 @@ import YPLayout from "@/components/yourpoodle/YPLayout";
 /* ── Palette ─────────────────────────── */
 const P    = "#5D3EBD";
 const PD   = "#4A22A0";
-const PL   = "#F3EEFF";
+const PL   = "#F5F0E6";
 const DRK  = "#111827";
 const GT   = "#6B7280";
 const GB   = "#E5E7EB";

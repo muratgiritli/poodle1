@@ -263,7 +263,7 @@ export default function YPOdemePage() {
 
   if (cart.length === 0) return null;
 
-  const purple = "#7C3AFF";
+  const purple = "#5D3A1A";
 
   /* ─── Login gate: kullanıcı giriş yapmamışsa önce giriş/kayıt ekranı ─── */
   if (!isLoggedIn) {
@@ -294,7 +294,7 @@ export default function YPOdemePage() {
               onClick={() => navigate("/yourpoodle/giris?returnTo=/yourpoodle/odeme")}
               style={{
                 width: "100%", height: 52, borderRadius: 14, border: "none",
-                background: `linear-gradient(135deg,${purple},#A855F7)`,
+                background: `linear-gradient(135deg,${purple},#A67C52)`,
                 color: "#fff", fontSize: 16, fontWeight: 800,
                 cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
                 gap: 8, fontFamily: "inherit", marginBottom: 12,
@@ -349,7 +349,7 @@ export default function YPOdemePage() {
         <div style={{ maxWidth: 640, margin: "0 auto", padding: "16px 16px 24px" }}>
 
           {/* Payment badge */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F5F0FF", borderRadius: 12, padding: "10px 14px", marginBottom: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F5F0E6", borderRadius: 12, padding: "10px 14px", marginBottom: 20 }}>
             <CreditCard size={18} color={purple} />
             <span style={{ fontSize: 13, fontWeight: 700, color: purple }}>Güvenli Online Kart Ödemesi</span>
             <span style={{ marginLeft: "auto", fontSize: 11, color: "#888" }}>SSL şifreli</span>
@@ -357,7 +357,7 @@ export default function YPOdemePage() {
 
           {/* Stock checking indicator */}
           {stockLoading && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F5F0FF", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 13, color: purple }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F5F0E6", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 13, color: purple }}>
               <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} />
               Sepetinizdeki ürünlerin güncel stoku kontrol ediliyor…
             </div>
@@ -569,7 +569,7 @@ export default function YPOdemePage() {
             disabled={orderLoading || (stockChecked && hasBlockingIssues)}
             style={{
               width: "100%", height: 52, borderRadius: 14, border: "none",
-              background: (orderLoading || (stockChecked && hasBlockingIssues)) ? "#ccc" : `linear-gradient(135deg,${purple},#A855F7)`,
+              background: (orderLoading || (stockChecked && hasBlockingIssues)) ? "#ccc" : `linear-gradient(135deg,${purple},#A67C52)`,
               color: "#fff", fontSize: 15, fontWeight: 800,
               cursor: (orderLoading || (stockChecked && hasBlockingIssues)) ? "not-allowed" : "pointer",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontFamily: "inherit",

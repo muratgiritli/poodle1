@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { Eye, EyeOff, CheckCircle, ChevronLeft } from "lucide-react";
 
-const P  = "#7022C4";
+const P  = "#5D3A1A";
 const PD = "#5B18A8";
 const BG = "#FAFAFA";
 const BORDER = "#E5E7EB";
@@ -135,7 +135,7 @@ export default function YPUyeOlPage() {
           <div style={{ background:"#fff", borderRadius:20, padding:32, boxShadow:"0 2px 16px rgba(0,0,0,0.08)", marginTop:8 }}>
             {/* Header */}
             <div style={{ textAlign:"center", marginBottom:28 }}>
-              <span style={{ fontFamily:"'Pacifico',cursive", fontSize:22, color:"#6B21A8" }}>YourPoodle 🐾</span>
+              <img src="/images/brand/logo.png" alt="YourPoodle" style={{ height: 40, width: "auto", display: "block", margin: "0 auto" }} />
               <h1 style={{ fontSize:20, fontWeight:800, color:"#111827", margin:"12px 0 4px" }}>Ücretsiz Üye Ol</h1>
               <p style={{ fontSize:13, color:"#6B7280", margin:0 }}>Poodle topluluğuna katılın</p>
             </div>
@@ -201,12 +201,12 @@ export default function YPUyeOlPage() {
               <button type="submit" disabled={submitting}
                 style={{
                   width:"100%", height:52, borderRadius:14, border:"none",
-                  background: submitting ? "#D1D5DB" : `linear-gradient(135deg,${P},#A855F7)`,
+                  background: submitting ? "#D1D5DB" : `linear-gradient(135deg,${P},#A67C52)`,
                   color:"#fff", fontSize:16, fontWeight:700, cursor: submitting ? "default" : "pointer",
                   fontFamily:"inherit", transition:"background 0.2s",
                 }}
                 onMouseEnter={e => { if (!submitting) e.currentTarget.style.background = `linear-gradient(135deg,${PD},${P})`; }}
-                onMouseLeave={e => { if (!submitting) e.currentTarget.style.background = `linear-gradient(135deg,${P},#A855F7)`; }}>
+                onMouseLeave={e => { if (!submitting) e.currentTarget.style.background = `linear-gradient(135deg,${P},#A67C52)`; }}>
                 {submitting ? "Hesap oluşturuluyor…" : "Üye Ol"}
               </button>
             </form>

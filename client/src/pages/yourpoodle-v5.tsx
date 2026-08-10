@@ -425,7 +425,7 @@ export default function YourPoodleV5() {
               padding:"14px 0", borderTop:"1px solid rgba(255,255,255,0.1)", marginBottom:14,
             }}>
               <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                <ShieldCheck size={14} color="#A78BFA" />
+                <ShieldCheck size={14} color="#A67C52" />
                 <span style={{ fontSize:11, color:"rgba(255,255,255,0.65)" }}>256-bit SSL ile güvenli alışveriş</span>
               </div>
               <div style={{ display:"flex", gap:6 }}>

@@ -12,7 +12,7 @@ import { useCustomer } from "@/contexts/CustomerContext";
 /* ─── Palette ─────────────────────────── */
 const P   = "#4B2BD6";
 const PD  = "#3E27B3";
-const PL  = "#F3EEFF";
+const PL  = "#F5F0E6";
 const GB  = "#E5E7EB";
 const GBG = "#F9FAFB";
 const GT  = "#6B7280";
@@ -112,7 +112,7 @@ const INITIAL_ADDRESSES: Address[] = [
 ];
 
 const ICON_CONFIG = {
-  home:   { bg: "#F3EEFF", color: "#7C3AED", Icon: Home },
+  home:   { bg: "#F5F0E6", color: "#5D3A1A", Icon: Home },
   work:   { bg: "#EFF6FF", color: "#3B82F6", Icon: Building2 },
   family: { bg: "#FDF2F8", color: "#EC4899", Icon: MapPin },
 };
@@ -225,7 +225,7 @@ function AddressCard({
               {isDefault && (
                 <span style={{
                   fontSize: 10, fontWeight: 700, color: P,
-                  background: "#EDE9FE", padding: "2px 7px", borderRadius: 999,
+                  background: "#EDE5D8", padding: "2px 7px", borderRadius: 999,
                 }}>
                   Varsayılan
                 </span>
@@ -690,7 +690,7 @@ export default function YPHesabimAdreslerimPage() {
             <h1 style={{ fontSize: 22, fontWeight: 700, color: DRK }}>Adreslerim</h1>
             <span style={{
               fontSize: 11, fontWeight: 700, color: P,
-              background: "#EDE9FE", padding: "4px 10px", borderRadius: 999,
+              background: "#EDE5D8", padding: "4px 10px", borderRadius: 999,
             }}>
               {addresses.length} kayıtlı adres
             </span>
@@ -781,7 +781,7 @@ export default function YPHesabimAdreslerimPage() {
 
           {/* ── SUPPORT BANNER ── */}
           <div style={{
-            background: "#F3EEFF", borderRadius: 16, padding: "16px 14px",
+            background: "#F5F0E6", borderRadius: 16, padding: "16px 14px",
             display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12,
           }}>
             <div style={{

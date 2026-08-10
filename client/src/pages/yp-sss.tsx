@@ -66,7 +66,7 @@ function Accordion({ items }: { items: typeof SECTIONS[0]["items"] }) {
             style={{ width:"100%", display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 16px", background:"none", border:"none", cursor:"pointer", textAlign:"left", gap:12 }}
           >
             <span style={{ fontSize:14, fontWeight:700, color:"#1a1a1a", lineHeight:1.4 }}>{item.q}</span>
-            <span style={{ fontSize:18, color:"#7C3AED", flexShrink:0, lineHeight:1 }}>{open === i ? "−" : "+"}</span>
+            <span style={{ fontSize:18, color:"#5D3A1A", flexShrink:0, lineHeight:1 }}>{open === i ? "−" : "+"}</span>
           </button>
           <div style={{ maxHeight: open === i ? "400px" : "0", overflow:"hidden", transition:"max-height 0.28s ease" }}>
             <p style={{ fontSize:14, color:"#555", lineHeight:1.75, padding:"0 16px 16px", margin:0 }}>{item.a}</p>
@@ -97,7 +97,7 @@ export default function YPSSS() {
     >
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <p style={{ fontSize:14, color:"#555", lineHeight:1.75, marginBottom:28 }}>
-        Aradığınızı bulamazsanız <a href="mailto:info@yourpoodle.com" style={{ color:"#7C3AED", fontWeight:700 }}>info@yourpoodle.com</a> adresinden bize ulaşabilirsiniz.
+        Aradığınızı bulamazsanız <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A", fontWeight:700 }}>info@yourpoodle.com</a> adresinden bize ulaşabilirsiniz.
       </p>
       {SECTIONS.map(s => (
         <div key={s.title} className="sp-section">
@@ -106,8 +106,8 @@ export default function YPSSS() {
         </div>
       ))}
       <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginTop:8 }}>
-        <a href="/yourpoodle/kargo" className="sp-cta-btn" style={{ background:"#F5F0FF", color:"#7C3AED" }}>Kargo Bilgileri →</a>
-        <a href="/yourpoodle/iade" className="sp-cta-btn" style={{ background:"#F5F0FF", color:"#7C3AED" }}>İade & Değişim →</a>
+        <a href="/yourpoodle/kargo" className="sp-cta-btn" style={{ background:"#F5F0E6", color:"#5D3A1A" }}>Kargo Bilgileri →</a>
+        <a href="/yourpoodle/iade" className="sp-cta-btn" style={{ background:"#F5F0E6", color:"#5D3A1A" }}>İade & Değişim →</a>
       </div>
     </YPStaticPage>
   );

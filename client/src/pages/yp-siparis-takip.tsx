@@ -5,7 +5,7 @@ import { Search, Package } from "lucide-react";
 import { getOrder, STEP_LABELS } from "@/data/orders";
 import { IS_YP } from "@/lib/store";
 
-const P = "#7022C4";
+const P = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 function Stepper({ step }: { step: number }) {
@@ -51,7 +51,7 @@ export default function YPSiparisTakipPage() {
 
   return (
     <YPLayout constrain={false}>
-      <div style={{ minHeight: "100vh", background: "#F9F5FF", paddingBottom: 48 }}>
+      <div style={{ minHeight: "100vh", background: "#FAF7F0", paddingBottom: 48 }}>
         <div style={{ maxWidth: 480, margin: "0 auto", padding: "32px 20px" }}>
           <div style={{ textAlign: "center", marginBottom: 32 }}>
             <div style={{ width: 64, height: 64, borderRadius: "50%", background: P, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>

@@ -11,7 +11,7 @@ import { useCustomer } from "@/contexts/CustomerContext";
 
 /* ─── Palette ─────────────────────────────────── */
 const P   = "#4B2BD6";
-const PL  = "#F3EEFF";
+const PL  = "#F5F0E6";
 const GB  = "#E5E7EB";
 const GBG = "#F9FAFB";
 const GT  = "#6B7280";
@@ -493,7 +493,7 @@ export default function YPHesabimSiparislerimPage() {
                       </div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: DRK }}>{order.total}</div>
                     </div>
-                    <StatusBadge label="İade Tamamlandı" color="#6D28D9" bg="#EDE9FE" />
+                    <StatusBadge label="İade Tamamlandı" color="#6D28D9" bg="#EDE5D8" />
                   </div>
 
                   {/* Refund note */}
@@ -532,7 +532,7 @@ export default function YPHesabimSiparislerimPage() {
 
           {/* ══════════ SUPPORT BANNER ══════════ */}
           <div style={{
-            background: "linear-gradient(135deg,#F3EEFF 0%,#E9D5FF 100%)",
+            background: "linear-gradient(135deg,#F5F0E6 0%,#E9D5FF 100%)",
             borderRadius: 16, padding: "16px 14px",
             display: "flex", alignItems: "flex-start", gap: 12,
             marginBottom: 16,

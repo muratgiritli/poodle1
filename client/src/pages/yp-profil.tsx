@@ -5,7 +5,7 @@ import { MapPin, MessageCircle } from "lucide-react";
 import { MOCK_POSTS } from "@/data/clubPosts";
 import { IS_YP } from "@/lib/store";
 
-const P = "#7022C4";
+const P = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 const PROFILES: Record<string, any> = {
@@ -32,7 +32,7 @@ export default function YPProfilPage() {
           {/* Profile header */}
           <div style={{ background: "#fff", borderRadius: 20, padding: 28, marginBottom: 20, boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
             <div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
-              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "linear-gradient(135deg,#7022C4,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, flexShrink: 0 }}>
+              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "linear-gradient(135deg,#5D3A1A,#A67C52)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, flexShrink: 0 }}>
                 {profile.avatar}
               </div>
               <div style={{ flex: 1, minWidth: 180 }}>
@@ -57,7 +57,7 @@ export default function YPProfilPage() {
             </div>
 
             {/* Poodle mini card */}
-            <div style={{ marginTop: 20, padding: "12px 16px", background: "#F9F5FF", borderRadius: 12, display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ marginTop: 20, padding: "12px 16px", background: "#FAF7F0", borderRadius: 12, display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 24 }}>🐩</span>
               <div>
                 <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: "#111827" }}>{profile.poodle.name}</p>
@@ -92,7 +92,7 @@ export default function YPProfilPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
             {MOCK_POSTS.map(p => (
               <div key={p.id} onClick={() => navigate(`${BASE}/club/gonderi/${p.id}`)}
-                style={{ aspectRatio: "1", borderRadius: 12, background: `linear-gradient(135deg,#7022C4,#A855F7)`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 36, position: "relative", overflow: "hidden" }}>
+                style={{ aspectRatio: "1", borderRadius: 12, background: `linear-gradient(135deg,#5D3A1A,#A67C52)`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 36, position: "relative", overflow: "hidden" }}>
                 <span>{p.avatar}</span>
                 <div style={{ position: "absolute", bottom: 6, right: 8, color: "rgba(255,255,255,0.9)", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", gap: 3 }}>
                   ❤️ {p.likes}

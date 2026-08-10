@@ -23,7 +23,7 @@ export default function YPClubMesajlarPage() {
           <button
             aria-label="Geri"
             onClick={() => navigate(`${BASE}/club`)}
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#6200EE", display: "flex", minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}>
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#5D3A1A", display: "flex", minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}>
             <ChevronLeft size={22} />
           </button>
           <h1 style={{ fontSize: 17, fontWeight: 900, color: "#1a1a1a", margin: 0, flex: 1 }}>Mesajlar</h1>
@@ -36,11 +36,11 @@ export default function YPClubMesajlarPage() {
         }}>
           <div style={{
             width: 80, height: 80, borderRadius: "50%",
-            background: "linear-gradient(135deg,#F3EEFF,#EDE9FE)",
+            background: "linear-gradient(135deg,#F5F0E6,#EDE5D8)",
             display: "flex", alignItems: "center", justifyContent: "center",
             marginBottom: 20,
           }}>
-            <MessageCircle size={36} color="#6200EE" strokeWidth={1.5} />
+            <MessageCircle size={36} color="#5D3A1A" strokeWidth={1.5} />
           </div>
           <div style={{ fontSize: 19, fontWeight: 900, color: "#1a1a1a", marginBottom: 8 }}>
             Henüz mesaj yok
@@ -52,7 +52,7 @@ export default function YPClubMesajlarPage() {
             onClick={() => navigate(`${BASE}/club`)}
             style={{
               padding: "12px 28px", borderRadius: 12, border: "none",
-              background: "#6200EE", color: "#fff", fontSize: 14, fontWeight: 800,
+              background: "#5D3A1A", color: "#fff", fontSize: 14, fontWeight: 800,
               cursor: "pointer", fontFamily: "inherit",
             }}>
             Club'a Dön

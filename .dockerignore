@@ -1,0 +1,16 @@
+node_modules
+dist
+.git
+.env
+.env.*
+!.env.example
+_git_tmp
+artifacts
+attached_assets
+screenshots
+*.md
+.github
+scripts/hetzner
+client/public/images/yp-home-mockup-ref.png
+**/.DS_Store
+npm-debug.log*

@@ -11,7 +11,7 @@ import YPLayout from "@/components/yourpoodle/YPLayout";
 /* ── Palette ─────────────────────────── */
 const P    = "#5D3EBD";
 const PD   = "#4A22A0";
-const PL   = "#F3EEFF";
+const PL   = "#F5F0E6";
 const NAV  = "#1D1E9B";
 const DRK  = "#111827";
 const GT   = "#6B7280";
@@ -375,7 +375,7 @@ export default function YPOdulMerkeziPage() {
                   <div style={{ position:"relative", marginBottom:8 }}>
                     <img src={p.img} alt={p.name}
                          style={{ width:"100%", aspectRatio:"1/1", objectFit:"cover", borderRadius:12, display:"block" }}
-                         onError={e=>{ (e.target as HTMLImageElement).style.background="#F3EEFF"; }} />
+                         onError={e=>{ (e.target as HTMLImageElement).style.background="#F5F0E6"; }} />
                     {p.stockLeft > 0 && (
                       <div style={{ position:"absolute", top:6, right:6, background:"#FDF2F8", color:"#EC4899",
                                     fontSize:9, fontWeight:700, padding:"2px 6px", borderRadius:6 }}>

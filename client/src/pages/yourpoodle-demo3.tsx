@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
 /* ─── TOKENS ─── */
-const P = "#7C3AED";
+const P = "#5D3A1A";
 const PD = "#6D28D9";
 const PL = "#EDE4FF";
 const BORDER = "#E5E7EB";
@@ -336,7 +336,7 @@ function AiModal({ onClose }: any) {
         <div style={{ padding: "16px 20px", borderBottom: `1px solid ${BORDER}`,
                       display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 36, height: 36, background: `linear-gradient(135deg, ${P}, #8B5CF6)`,
+            <div style={{ width: 36, height: 36, background: `linear-gradient(135deg, ${P}, #8B5E34)`,
                           borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
                           fontSize: 18 }}>✨</div>
             <div>
@@ -554,11 +554,11 @@ export default function YourPoodleDemo3() {
           {/* AI Badge */}
           <button onClick={() => setShowAi(true)}
             style={{ position: "absolute", bottom: 20, right: 16,
-                     background: `linear-gradient(135deg, ${P}, #8B5CF6)`,
+                     background: `linear-gradient(135deg, ${P}, #8B5E34)`,
                      color: "#fff", border: "none", borderRadius: 24,
                      padding: "10px 16px", fontSize: 12, fontWeight: 700,
                      cursor: "pointer", fontFamily: "inherit",
-                     boxShadow: "0 4px 16px rgba(124,58,237,0.35)",
+                     boxShadow: "0 4px 16px rgba(93,58,26,0.35)",
                      display: "flex", alignItems: "center", gap: 6,
                      transform: "translateY(0)", transition: "transform 0.2s" }}
             onMouseOver={e => (e.currentTarget.style.transform = "translateY(-2px)")}
@@ -618,7 +618,7 @@ export default function YourPoodleDemo3() {
           <div style={{ display: "flex", gap: 12 }}>
             {/* Featured image */}
             <div style={{ flex: "0 0 140px", height: 200, borderRadius: 14, overflow: "hidden",
-                           background: "#F3EEFF" }}>
+                           background: "#F5F0E6" }}>
               <img src="/images/poodle-avatar-1.jpg" alt="Rehber"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 onError={e => { (e.target as HTMLImageElement).src =
@@ -657,7 +657,7 @@ export default function YourPoodleDemo3() {
           <div style={{ background: `linear-gradient(135deg, #F3E8FF, #EDE4FF)`,
                         borderRadius: 16, padding: "20px", display: "flex",
                         alignItems: "center", gap: 14 }}>
-            <div style={{ width: 48, height: 48, background: `linear-gradient(135deg, ${P}, #8B5CF6)`,
+            <div style={{ width: 48, height: 48, background: `linear-gradient(135deg, ${P}, #8B5E34)`,
                           borderRadius: 14, display: "flex", alignItems: "center",
                           justifyContent: "center", fontSize: 22, flexShrink: 0 }}>✨</div>
             <div style={{ flex: 1 }}>

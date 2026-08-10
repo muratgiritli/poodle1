@@ -25,7 +25,7 @@ export default function ClubHakkimizda() {
 
       {/* Mini header */}
       <div style={{ background:"#fff", borderBottom:"1px solid #E5E7EB", padding:"10px 16px", display:"flex", alignItems:"center", gap:10 }}>
-        <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#7C3AED,#A855F7)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+        <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#5D3A1A,#A67C52)", display:"flex", alignItems:"center", justifyContent:"center" }}>
           <span style={{ fontSize:18 }}>🐩</span>
         </div>
         <span style={{ fontSize:15, fontWeight:900, color:"#1A1A1A" }}>Poodle Club</span>
@@ -33,9 +33,9 @@ export default function ClubHakkimizda() {
 
       {/* Breadcrumb */}
       <nav aria-label="breadcrumb" style={{ padding:"10px 16px", display:"flex", gap:4, alignItems:"center", fontSize:12, color:"#9CA3AF", background:"#fff", borderBottom:"1px solid #F3F4F6" }}>
-        <a href="/yourpoodle" style={{ color:"#7C3AED", textDecoration:"none", fontWeight:600 }}>Ana Sayfa</a>
+        <a href="/yourpoodle" style={{ color:"#5D3A1A", textDecoration:"none", fontWeight:600 }}>Ana Sayfa</a>
         <ChevronRight size={11}/>
-        <a href="/yourpoodle/club" style={{ color:"#7C3AED", textDecoration:"none", fontWeight:600 }}>Poodle Club</a>
+        <a href="/yourpoodle/club" style={{ color:"#5D3A1A", textDecoration:"none", fontWeight:600 }}>Poodle Club</a>
         <ChevronRight size={11}/>
         <span style={{ color:"#374151", fontWeight:600 }}>Hakkımızda</span>
       </nav>
@@ -44,7 +44,7 @@ export default function ClubHakkimizda() {
         <div style={{ padding:"20px 16px 0" }}>
 
           {/* Hero */}
-          <div style={{ background:"linear-gradient(135deg,#7C3AED,#A855F7)", borderRadius:18, padding:"24px 20px", marginBottom:24, position:"relative", overflow:"hidden" }}>
+          <div style={{ background:"linear-gradient(135deg,#5D3A1A,#A67C52)", borderRadius:18, padding:"24px 20px", marginBottom:24, position:"relative", overflow:"hidden" }}>
             <div style={{ position:"absolute", top:-20, right:-20, width:100, height:100, borderRadius:"50%", background:"rgba(255,255,255,0.08)" }}/>
             <h1 style={{ fontSize:22, fontWeight:900, color:"#fff", marginBottom:6 }}>Poodle Club Nedir?</h1>
             <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.88)", lineHeight:1.6, margin:0 }}>
@@ -70,7 +70,7 @@ export default function ClubHakkimizda() {
                 ["3", "Topluluğa Katılın", "Paylaşım yapın, etkinliklere katılın, deneyim aktarın. Toy Poodle arkadaşlığı kurun."],
               ].map(([num, title, desc]) => (
                 <li key={num} style={{ display:"flex", gap:14, alignItems:"flex-start", marginBottom:16 }}>
-                  <div style={{ width:36, height:36, borderRadius:"50%", background:"#EDE8FF", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:15, fontWeight:900, color:"#7C3AED" }}>{num}</div>
+                  <div style={{ width:36, height:36, borderRadius:"50%", background:"#EDE5D8", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:15, fontWeight:900, color:"#5D3A1A" }}>{num}</div>
                   <div>
                     <div style={{ fontSize:14, fontWeight:800, color:"#1A1A1A", marginBottom:3 }}>{title}</div>
                     <div style={{ fontSize:13, color:"#6B7280", lineHeight:1.6 }}>{desc}</div>
@@ -79,7 +79,7 @@ export default function ClubHakkimizda() {
               ))}
             </ol>
             <button onClick={() => navigate("/yourpoodle/giris")}
-              style={{ width:"100%", height:48, borderRadius:12, border:"none", background:"#7C3AED", color:"#fff", fontSize:14, fontWeight:800, cursor:"pointer" }}>
+              style={{ width:"100%", height:48, borderRadius:12, border:"none", background:"#5D3A1A", color:"#fff", fontSize:14, fontWeight:800, cursor:"pointer" }}>
               Ücretsiz Katıl →
             </button>
           </section>
@@ -115,11 +115,11 @@ export default function ClubHakkimizda() {
                   <button onClick={() => setExpanded(open ? null : i)} aria-expanded={open}
                     style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 20px", background:"none", border:"none", cursor:"pointer", textAlign:"left", gap:10 }}>
                     <span style={{ fontSize:13.5, fontWeight:700, color:"#1A1A1A", lineHeight:1.4 }}>S: {s.q}</span>
-                    <span style={{ fontSize:16, color:"#7C3AED", flexShrink:0 }} aria-hidden="true">{open?"−":"+"}</span>
+                    <span style={{ fontSize:16, color:"#5D3A1A", flexShrink:0 }} aria-hidden="true">{open?"−":"+"}</span>
                   </button>
                   <div className="sss-answer" style={{ maxHeight:open?"300px":"0", padding:open?"0 20px 14px":"0 20px" }}>
                     <p style={{ fontSize:13.5, color:"#4B5563", lineHeight:1.7, margin:0 }}>
-                      <span style={{ fontWeight:700, color:"#7C3AED" }}>C: </span>{s.a}
+                      <span style={{ fontWeight:700, color:"#5D3A1A" }}>C: </span>{s.a}
                     </p>
                   </div>
                 </div>
@@ -136,12 +136,12 @@ export default function ClubHakkimizda() {
               { author:"miniaturist_can", poodle:"Coco",    text:"Royal Canin Toy Breed'den çok memnunuz. #mama #beslenme" },
             ].map(p => (
               <div key={p.author} style={{ marginBottom:10, padding:"10px 12px", background:"#F9FAFB", borderRadius:12, border:"1px solid #E5E7EB" }}>
-                <div style={{ fontSize:11, color:"#7C3AED", fontWeight:700, marginBottom:3 }}>@{p.author} · {p.poodle}</div>
+                <div style={{ fontSize:11, color:"#5D3A1A", fontWeight:700, marginBottom:3 }}>@{p.author} · {p.poodle}</div>
                 <p style={{ fontSize:13, color:"#374151", lineHeight:1.55, margin:0 }}>{p.text}</p>
               </div>
             ))}
             <button onClick={() => navigate("/yourpoodle/club")}
-              style={{ marginTop:8, width:"100%", height:42, borderRadius:12, border:"1.5px solid #E5E7EB", background:"#fff", color:"#7C3AED", fontSize:13, fontWeight:700, cursor:"pointer" }}>
+              style={{ marginTop:8, width:"100%", height:42, borderRadius:12, border:"1.5px solid #E5E7EB", background:"#fff", color:"#5D3A1A", fontSize:13, fontWeight:700, cursor:"pointer" }}>
               Tüm Paylaşımları Gör →
             </button>
           </section>
@@ -151,7 +151,7 @@ export default function ClubHakkimizda() {
         {/* Footer */}
         <footer style={{ borderTop:"1px solid #E5E7EB", padding:"16px", background:"#fff", textAlign:"center" }}>
           <div style={{ fontSize:12.5, color:"#9CA3AF", display:"flex", gap:14, justifyContent:"center", flexWrap:"wrap" }}>
-            <a href="/yourpoodle/club" style={{ color:"#7C3AED", fontWeight:700, textDecoration:"none" }}>← Club'a Dön</a>
+            <a href="/yourpoodle/club" style={{ color:"#5D3A1A", fontWeight:700, textDecoration:"none" }}>← Club'a Dön</a>
             <a href="/yourpoodle/gizlilik-politikasi" style={{ color:"#9CA3AF", textDecoration:"none" }}>Gizlilik</a>
             <a href="/yourpoodle/kullanim-sartlari" style={{ color:"#9CA3AF", textDecoration:"none" }}>Kullanım Koşulları</a>
           </div>

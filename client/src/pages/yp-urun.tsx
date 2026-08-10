@@ -144,7 +144,7 @@ export default function YPUrunPage() {
           <h1 style={{ fontSize: 20, fontWeight: 800, color: "#1a1a1a", marginBottom: 8 }}>Ürün bulunamadı</h1>
           <p style={{ fontSize: 14, color: "#888", marginBottom: 24 }}>Bu ürün mevcut değil ya da kaldırılmış olabilir.</p>
           <button onClick={() => navigate("/yourpoodle/magaza")}
-            style={{ padding: "12px 28px", borderRadius: 20, background: "#7C3AFF", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+            style={{ padding: "12px 28px", borderRadius: 20, background: "#5D3A1A", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
             Mağazaya Dön
           </button>
         </div>
@@ -167,7 +167,7 @@ export default function YPUrunPage() {
       {/* ── Mobile top bar ── */}
       <div className="yp-urun-back" style={{ background: "#fff", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #f0f0f0", position: "sticky", top: 0, zIndex: 100 }}>
         <button onClick={() => navigate("/yourpoodle/magaza")}
-          style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", color: "#7C3AFF", fontSize: 13, fontWeight: 700, padding: 0 }}>
+          style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", color: "#5D3A1A", fontSize: 13, fontWeight: 700, padding: 0 }}>
           <ChevronLeft size={16} /> Mağaza
         </button>
         <div style={{ display: "flex", gap: 8 }}>
@@ -178,7 +178,7 @@ export default function YPUrunPage() {
           <button onClick={() => navigate("/yourpoodle/magaza")} style={{ position: "relative", width: 36, height: 36, borderRadius: "50%", background: "#f5f5f5", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <ShoppingCart size={15} color="#555" />
             {cartCount > 0 && (
-              <span style={{ position: "absolute", top: 4, right: 4, width: 14, height: 14, borderRadius: "50%", background: "#7C3AFF", color: "#fff", fontSize: 8, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center" }}>{cartCount}</span>
+              <span style={{ position: "absolute", top: 4, right: 4, width: 14, height: 14, borderRadius: "50%", background: "#5D3A1A", color: "#fff", fontSize: 8, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center" }}>{cartCount}</span>
             )}
           </button>
         </div>
@@ -214,16 +214,16 @@ export default function YPUrunPage() {
 
           {/* Breadcrumb */}
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
-            <button onClick={() => navigate("/yourpoodle")} style={{ background: "none", border: "none", cursor: "pointer", color: "#7C3AFF", fontSize: 12, fontWeight: 600, padding: 0 }}>Ana Sayfa</button>
+            <button onClick={() => navigate("/yourpoodle")} style={{ background: "none", border: "none", cursor: "pointer", color: "#5D3A1A", fontSize: 12, fontWeight: 600, padding: 0 }}>Ana Sayfa</button>
             <span style={{ color: "#ccc", fontSize: 12 }}>›</span>
-            <button onClick={() => navigate("/yourpoodle/magaza")} style={{ background: "none", border: "none", cursor: "pointer", color: "#7C3AFF", fontSize: 12, fontWeight: 600, padding: 0 }}>Mağaza</button>
+            <button onClick={() => navigate("/yourpoodle/magaza")} style={{ background: "none", border: "none", cursor: "pointer", color: "#5D3A1A", fontSize: 12, fontWeight: 600, padding: 0 }}>Mağaza</button>
             <span style={{ color: "#ccc", fontSize: 12 }}>›</span>
             <span style={{ fontSize: 12, color: "#888", fontWeight: 600 }}>{product.name}</span>
           </div>
 
           {/* Brand */}
           {product.brandName && (
-            <div style={{ fontSize: 11, fontWeight: 800, color: "#7C3AFF", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: "#5D3A1A", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
               {product.brandName}
             </div>
           )}
@@ -233,7 +233,7 @@ export default function YPUrunPage() {
 
           {/* Price */}
           <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 20 }}>
-            <span style={{ fontSize: 28, fontWeight: 900, color: "#7C3AFF" }}>
+            <span style={{ fontSize: 28, fontWeight: 900, color: "#5D3A1A" }}>
               ₺{Number(product.price).toLocaleString("tr-TR", { minimumFractionDigits: 0 })}
             </span>
             {product.originalPrice && product.originalPrice > product.price && (
@@ -266,7 +266,7 @@ export default function YPUrunPage() {
                 </button>
               </div>
               <button onClick={addToCart}
-                style={{ flex: 1, height: 48, borderRadius: 12, border: "none", background: added ? "#059669" : "linear-gradient(135deg,#7C3AFF,#A855F7)", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", transition: "all 0.2s", fontFamily: "inherit" }}>
+                style={{ flex: 1, height: 48, borderRadius: 12, border: "none", background: added ? "#059669" : "linear-gradient(135deg,#5D3A1A,#A67C52)", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", transition: "all 0.2s", fontFamily: "inherit" }}>
                 {added ? "✓ Sepete Eklendi!" : "Sepete Ekle"}
               </button>
             </div>
@@ -279,9 +279,9 @@ export default function YPUrunPage() {
               { emoji: "🔒", text: "Güvenli Ödeme" },
               { emoji: "↩️", text: "14 Gün İade" },
             ].map(p => (
-              <div key={p.text} style={{ display: "flex", alignItems: "center", gap: 5, background: "#F5F3FF", borderRadius: 20, padding: "6px 12px" }}>
+              <div key={p.text} style={{ display: "flex", alignItems: "center", gap: 5, background: "#F5F0E6", borderRadius: 20, padding: "6px 12px" }}>
                 <span style={{ fontSize: 13 }}>{p.emoji}</span>
-                <span style={{ fontSize: 11.5, fontWeight: 700, color: "#7C3AFF" }}>{p.text}</span>
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: "#5D3A1A" }}>{p.text}</span>
               </div>
             ))}
           </div>
@@ -304,17 +304,17 @@ export default function YPUrunPage() {
             const hasPortionGuide = !!meta.dailyPortionGuide;
             if (!hasPills && !hasSpecialNeeds && !hasPortionGuide) return null;
             return (
-              <div style={{ marginBottom: 24, background: "#F5F0FF", borderRadius: 14, padding: "16px 18px" }}>
-                <h2 style={{ fontSize: 14, fontWeight: 800, color: "#7C3AFF", marginBottom: 12 }}>Bu mama kimler için?</h2>
+              <div style={{ marginBottom: 24, background: "#F5F0E6", borderRadius: 14, padding: "16px 18px" }}>
+                <h2 style={{ fontSize: 14, fontWeight: 800, color: "#5D3A1A", marginBottom: 12 }}>Bu mama kimler için?</h2>
                 {hasPills && (
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: (hasSpecialNeeds || hasPortionGuide) ? 12 : 0 }}>
                     {meta.breedSize && (
-                      <span style={{ background: "#EDE8FF", color: "#7C3AFF", fontSize: 12, fontWeight: 700, borderRadius: 20, padding: "4px 12px" }}>
+                      <span style={{ background: "#EDE5D8", color: "#5D3A1A", fontSize: 12, fontWeight: 700, borderRadius: 20, padding: "4px 12px" }}>
                         🐩 {meta.breedSize === "toy" ? "Toy Poodle" : meta.breedSize === "miniature" ? "Minyatür Poodle" : "Standart Poodle"}
                       </span>
                     )}
                     {product.mamaType && (
-                      <span style={{ background: "#EDE8FF", color: "#7C3AFF", fontSize: 12, fontWeight: 700, borderRadius: 20, padding: "4px 12px" }}>
+                      <span style={{ background: "#EDE5D8", color: "#5D3A1A", fontSize: 12, fontWeight: 700, borderRadius: 20, padding: "4px 12px" }}>
                         {product.mamaType === "yavru" ? "🌱 Yavru (0–12 ay)" : product.mamaType === "yasli" ? "❤️ Yaşlı (7+ yaş)" : "💪 Yetişkin (1–7 yaş)"}
                       </span>
                     )}
@@ -332,7 +332,7 @@ export default function YPUrunPage() {
                 )}
                 {hasSpecialNeeds && (
                   <div style={{ fontSize: 12.5, color: "#555", lineHeight: 1.6 }}>
-                    <span style={{ fontWeight: 700, color: "#7C3AFF" }}>Özellikler: </span>
+                    <span style={{ fontWeight: 700, color: "#5D3A1A" }}>Özellikler: </span>
                     {meta.specialNeeds!.map((n: string) =>
                       n.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())
                     ).join(", ")}
@@ -340,7 +340,7 @@ export default function YPUrunPage() {
                 )}
                 {hasPortionGuide && (
                   <div style={{ marginTop: hasSpecialNeeds ? 8 : 0, fontSize: 12.5, color: "#555" }}>
-                    <span style={{ fontWeight: 700, color: "#7C3AFF" }}>Günlük Porsiyon: </span>
+                    <span style={{ fontWeight: 700, color: "#5D3A1A" }}>Günlük Porsiyon: </span>
                     {meta.dailyPortionGuide}
                   </div>
                 )}
@@ -440,7 +440,7 @@ export default function YPUrunPage() {
             </button>
           </div>
           <button onClick={addToCart}
-            style={{ flex: 1, height: 44, borderRadius: 12, border: "none", background: added ? "#059669" : "linear-gradient(135deg,#7C3AFF,#A855F7)", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", transition: "background 0.2s", fontFamily: "inherit" }}>
+            style={{ flex: 1, height: 44, borderRadius: 12, border: "none", background: added ? "#059669" : "linear-gradient(135deg,#5D3A1A,#A67C52)", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", transition: "background 0.2s", fontFamily: "inherit" }}>
             {added ? "✓ Eklendi!" : `Sepete Ekle — ₺${(product.price * qty).toLocaleString("tr-TR")}`}
           </button>
         </div>

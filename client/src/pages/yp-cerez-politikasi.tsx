@@ -46,18 +46,18 @@ export default function YPCerezPolitikasi() {
         <p>Sitemizin sağ alt köşesindeki <strong>Çerez Tercihleri</strong> butonundan isteğe bağlı çerezleri istediğiniz zaman açıp kapatabilirsiniz.</p>
         <p>Bunun yanı sıra tarayıcı ayarlarınızdan tüm çerezleri engelleyebilirsiniz; ancak bu durumda siteyi giriş yaparak kullanmanız mümkün olmayabilir.</p>
         <ul>
-          <li><a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener noreferrer" style={{ color:"#7C3AED" }}>Chrome çerez ayarları →</a></li>
-          <li><a href="https://support.mozilla.org/tr/kb/cerezleri-silmek" target="_blank" rel="noopener noreferrer" style={{ color:"#7C3AED" }}>Firefox çerez ayarları →</a></li>
-          <li><a href="https://support.apple.com/tr-tr/guide/safari/sfri11471/mac" target="_blank" rel="noopener noreferrer" style={{ color:"#7C3AED" }}>Safari çerez ayarları →</a></li>
+          <li><a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener noreferrer" style={{ color:"#5D3A1A" }}>Chrome çerez ayarları →</a></li>
+          <li><a href="https://support.mozilla.org/tr/kb/cerezleri-silmek" target="_blank" rel="noopener noreferrer" style={{ color:"#5D3A1A" }}>Firefox çerez ayarları →</a></li>
+          <li><a href="https://support.apple.com/tr-tr/guide/safari/sfri11471/mac" target="_blank" rel="noopener noreferrer" style={{ color:"#5D3A1A" }}>Safari çerez ayarları →</a></li>
         </ul>
       </div>
 
       <div className="sp-section">
         <h2>İletişim</h2>
-        <p>Çerez kullanımıyla ilgili sorularınız için <a href="mailto:info@yourpoodle.com" style={{ color:"#7C3AED" }}>info@yourpoodle.com</a> adresine yazabilirsiniz.</p>
+        <p>Çerez kullanımıyla ilgili sorularınız için <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A" }}>info@yourpoodle.com</a> adresine yazabilirsiniz.</p>
       </div>
 
-      <a href="/yourpoodle/gizlilik-politikasi" className="sp-cta-btn" style={{ background:"#F5F0FF", color:"#7C3AED" }}>KVKK / Gizlilik Politikası →</a>
+      <a href="/yourpoodle/gizlilik-politikasi" className="sp-cta-btn" style={{ background:"#F5F0E6", color:"#5D3A1A" }}>KVKK / Gizlilik Politikası →</a>
     </YPStaticPage>
   );
 }

@@ -11,7 +11,7 @@ const DOORS = [
   {
     href: "/magaza", icon: "🛍️", label: "Mama Bul",
     desc: "Yaşına, kilosuna ve ihtiyacına uygun mamayı bul.",
-    btn: "Mama Bul", color: PUR, bg: "#F5F0FF", border: "#C4B5FD",
+    btn: "Mama Bul", color: PUR, bg: "#F5F0E6", border: "#D4C4B0",
   },
   {
     href: "/rehber", icon: "📖", label: "Poodle Rehberi",
@@ -301,7 +301,7 @@ export default function YourPoodleV4() {
                 {["Poodle profili", "Soru-cevap topluluğu", "Üyelere özel fiyatlar", "Kişisel bakım önerileri"].map(f => (
                   <div key={f} style={{ display: "flex", alignItems: "center", gap: 6,
                                         fontSize: 13, color: "rgba(255,255,255,0.85)" }}>
-                    <CheckCircle2 size={13} color="#A78BFA" />
+                    <CheckCircle2 size={13} color="#A67C52" />
                     {f}
                   </div>
                 ))}
@@ -355,7 +355,7 @@ export default function YourPoodleV4() {
           </div>
           {selectedAge && (
             <div style={{ marginTop: 20, textAlign: "center", fontSize: 14, color: "#6B7280" }}>
-              <span style={{ background: "#F5F0FF", color: PUR, fontWeight: 700, padding: "6px 16px", borderRadius: 99 }}>
+              <span style={{ background: "#F5F0E6", color: PUR, fontWeight: 700, padding: "6px 16px", borderRadius: 99 }}>
                 ✓ {selectedAge} profili seçildi — içerikler kişiselleştiriliyor
               </span>
             </div>
@@ -372,7 +372,7 @@ export default function YourPoodleV4() {
               <Link key={t} href={`/rehber/${TRENDING_SLUGS[t] ?? "#"}`}
                 style={{
                   display: "flex", alignItems: "center", gap: 8,
-                  background: i % 2 === 0 ? "#F5F0FF" : "#fff",
+                  background: i % 2 === 0 ? "#F5F0E6" : "#fff",
                   border: "1.5px solid #E9D5FF",
                   borderRadius: 12, padding: "10px 18px",
                   fontSize: 14, fontWeight: 600, color: "#374151",
@@ -384,7 +384,7 @@ export default function YourPoodleV4() {
                   (e.currentTarget as HTMLElement).style.borderColor = PUR;
                 }}
                 onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? "#F5F0FF" : "#fff";
+                  (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? "#F5F0E6" : "#fff";
                   (e.currentTarget as HTMLElement).style.color = "#374151";
                   (e.currentTarget as HTMLElement).style.borderColor = "#E9D5FF";
                 }}
@@ -408,7 +408,7 @@ export default function YourPoodleV4() {
             <Link href="/magaza"
               style={{
                 display: "flex", alignItems: "center", gap: 6,
-                background: "#F5F0FF", color: PUR,
+                background: "#F5F0E6", color: PUR,
                 fontSize: 13, fontWeight: 700, padding: "10px 20px",
                 borderRadius: 12, textDecoration: "none",
               }}>
@@ -453,7 +453,7 @@ export default function YourPoodleV4() {
                 {["Poodle profili","Soru-cevap topluluğu","Üyelere özel fiyatlar","Kişisel bakım önerileri"].map(f => (
                   <div key={f} style={{ display:"flex", alignItems:"center", gap:6,
                                         fontSize:13, color:"rgba(255,255,255,0.85)" }}>
-                    <CheckCircle2 size={13} color="#A78BFA" /> {f}
+                    <CheckCircle2 size={13} color="#A67C52" /> {f}
                   </div>
                 ))}
               </div>
@@ -495,7 +495,7 @@ export default function YourPoodleV4() {
                 background: "#fff", border: "1px solid #F3F4F6",
                 borderRadius: 18, gap: 12,
               }}>
-                <div style={{ width: 48, height: 48, borderRadius: 14, background: "#F5F0FF",
+                <div style={{ width: 48, height: 48, borderRadius: 14, background: "#F5F0E6",
                               display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Icon size={22} color={PUR} strokeWidth={1.8} />
                 </div>

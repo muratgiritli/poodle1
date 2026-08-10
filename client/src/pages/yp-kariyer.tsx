@@ -34,7 +34,7 @@ export default function YPKariyer() {
           <div key={p.title} style={{ background:"#F9FAFB", border:"1px solid #E5E7EB", borderRadius:14, padding:"18px 20px", marginBottom:12 }}>
             <div style={{ display:"flex", gap:10, flexWrap:"wrap", alignItems:"center", marginBottom:8 }}>
               <span style={{ fontSize:15, fontWeight:800, color:"#1a1a1a" }}>{p.title}</span>
-              <span style={{ fontSize:11, background:"#EDE8FF", color:"#7C3AED", borderRadius:6, padding:"2px 8px", fontWeight:700 }}>{p.type}</span>
+              <span style={{ fontSize:11, background:"#EDE5D8", color:"#5D3A1A", borderRadius:6, padding:"2px 8px", fontWeight:700 }}>{p.type}</span>
               <span style={{ fontSize:11, background:"#F0FFF4", color:"#16A34A", borderRadius:6, padding:"2px 8px", fontWeight:700 }}>📍 {p.location}</span>
             </div>
             <p style={{ fontSize:13.5, color:"#555", lineHeight:1.7, margin:0 }}>{p.desc}</p>
@@ -44,7 +44,7 @@ export default function YPKariyer() {
 
       <div className="sp-section">
         <h2>Nasıl Başvurursunuz?</h2>
-        <p>CV'nizi ve başvurmak istediğiniz pozisyonu belirterek <a href="mailto:info@yourpoodle.com" style={{ color:"#7C3AED", fontWeight:700 }}>info@yourpoodle.com</a> adresine e-posta gönderin. Uygun adaylara 5 iş günü içinde dönüş yapılır.</p>
+        <p>CV'nizi ve başvurmak istediğiniz pozisyonu belirterek <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A", fontWeight:700 }}>info@yourpoodle.com</a> adresine e-posta gönderin. Uygun adaylara 5 iş günü içinde dönüş yapılır.</p>
       </div>
 
       <a href="mailto:info@yourpoodle.com?subject=Kariyer%20Başvurusu" className="sp-cta-btn">Başvur →</a>

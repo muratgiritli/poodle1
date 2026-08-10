@@ -8,7 +8,7 @@ const PURPLE_DARK = "#4A1A8A";
 
 /* ── 4 Navigation Doors ── */
 const DOORS = [
-  { href: "/magaza",    icon: "🍖", label: "Mama",       desc: "Poodle'ına özel",   color: "#7C3AED", light: "#F5F0FF" },
+  { href: "/magaza",    icon: "🍖", label: "Mama",       desc: "Poodle'ına özel",   color: "#5D3A1A", light: "#F5F0E6" },
   { href: "/rehber",    icon: "📖", label: "Rehber",     desc: "Bakım & sağlık",    color: "#059669", light: "#ECFDF5" },
   { href: "/mama-bul",  icon: "✨", label: "AI Asistan", desc: "Anında cevap",      color: "#2563EB", light: "#EFF6FF" },
   { href: "/hizmetler", icon: "📍", label: "Hizmetler",  desc: "Yakın esnaf",       color: "#DC2626", light: "#FFF1F1" },
@@ -249,7 +249,7 @@ export default function YourPoodleV3() {
               style={{
                 display: "flex", alignItems: "center", gap: 6,
                 fontSize: 13, fontWeight: 700, color: PURPLE, textDecoration: "none",
-                background: "#F5F0FF", padding: "10px 18px", borderRadius: 12,
+                background: "#F5F0E6", padding: "10px 18px", borderRadius: 12,
                 whiteSpace: "nowrap",
               }}>
               Tümü <ArrowRight size={14} />

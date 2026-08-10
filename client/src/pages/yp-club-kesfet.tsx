@@ -16,7 +16,7 @@ function DogCard({ dog, onFollow }: { dog: Dog; onFollow: (slug: string) => void
   return (
     <div style={{ background: "#fff", borderRadius: 14, border: "1.5px solid #F0F0F0", overflow: "hidden", cursor: "pointer" }}>
       <div onClick={() => navigate(`/yourpoodle/p/${dog.slug}`)}>
-        <div style={{ width: "100%", aspectRatio: "1", background: "#F5F0FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 42 }}>
+        <div style={{ width: "100%", aspectRatio: "1", background: "#F5F0E6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 42 }}>
           {dog.avatar_url
             ? <img src={dog.avatar_url} alt={dog.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             : "🐩"
@@ -35,7 +35,7 @@ function DogCard({ dog, onFollow }: { dog: Dog; onFollow: (slug: string) => void
       </div>
       <div style={{ padding: "0 12px 12px" }}>
         <button onClick={() => onFollow(dog.slug)}
-          style={{ width: "100%", padding: "8px 0", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#7C3AED,#A855F7)", color: "#fff", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
+          style={{ width: "100%", padding: "8px 0", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#5D3A1A,#A67C52)", color: "#fff", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
           <UserPlus size={13} /> Takip Et
         </button>
       </div>
@@ -90,7 +90,7 @@ export default function YPClubKesfetPage() {
                       <img src={p.image_urls[0]} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>
                   ) : (
-                    <div style={{ aspectRatio: "1", background: "#F5F0FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36 }}>🐩</div>
+                    <div style={{ aspectRatio: "1", background: "#F5F0E6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36 }}>🐩</div>
                   )}
                   <div style={{ padding: "8px 10px" }}>
                     <div style={{ fontWeight: 700, fontSize: 12.5, color: "#1a1a1a" }}>{p.dog_name}</div>
@@ -125,7 +125,7 @@ export default function YPClubKesfetPage() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
               <h2 style={{ fontSize: 16, fontWeight: 800, color: "#1a1a1a" }}>🆕 Yeni katılan Poodle'lar</h2>
               <button onClick={() => navigate("/yourpoodle/club/kopekler")}
-                style={{ fontSize: 13, color: "#7C3AED", fontWeight: 700, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
+                style={{ fontSize: 13, color: "#5D3A1A", fontWeight: 700, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
                 Tümü →
               </button>
             </div>
@@ -143,7 +143,7 @@ export default function YPClubKesfetPage() {
             <div style={{ fontWeight: 700, fontSize: 15, color: "#555" }}>Henüz profil yok</div>
             <div style={{ fontSize: 13, marginTop: 6 }}>İlk köpek profilini oluştur!</div>
             <button onClick={() => navigate("/yourpoodle/p/olustur")}
-              style={{ marginTop: 20, padding: "12px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#7C3AED,#A855F7)", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+              style={{ marginTop: 20, padding: "12px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#5D3A1A,#A67C52)", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
               Profil Oluştur
             </button>
           </div>

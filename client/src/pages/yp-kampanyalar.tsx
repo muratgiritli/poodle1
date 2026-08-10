@@ -4,7 +4,7 @@ import YPLayout from "@/components/yourpoodle/YPLayout";
 import { MOCK_CAMPAIGNS } from "@/data/campaigns";
 import { IS_YP } from "@/lib/store";
 
-const P = "#7022C4";
+const P = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 export default function YPKampanyalarPage() {

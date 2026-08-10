@@ -5,7 +5,7 @@ import { ArrowLeft, Package, MapPin, CreditCard, Truck, FileText, RotateCcw, Hel
 import { getOrder, STEP_LABELS } from "@/data/orders";
 import { IS_YP } from "@/lib/store";
 
-const P = "#7022C4";
+const P = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 function Stepper({ step }: { step: number }) {
@@ -83,7 +83,7 @@ export default function YPSiparisDetayPage() {
               <Section icon={Package} title="Ürünler">
                 {order.items.map((item, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0", borderBottom: i < order.items.length - 1 ? "1px solid #F3F4F6" : undefined }}>
-                    <div style={{ width: 52, height: 52, borderRadius: 10, background: "#F9F5FF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
+                    <div style={{ width: 52, height: 52, borderRadius: 10, background: "#FAF7F0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
                       <img src={item.img} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => { (e.currentTarget as any).style.display = "none"; }} />
                     </div>
                     <div style={{ flex: 1 }}>
@@ -117,7 +117,7 @@ export default function YPSiparisDetayPage() {
               <Section icon={Truck} title="Kargo">
                 <p style={{ margin: "0 0 10px", fontSize: 13, color: "#374151" }}>Takip No: <strong>{order.trackingNo}</strong></p>
                 <button onClick={() => order.trackingNo && order.trackingNo !== "—" ? navigate(`/siparis-takip?orderId=${orderId}`) : showToast("Kargo bilgisi henüz eklenmedi")}
-                  style={{ padding: "8px 16px", borderRadius: 8, border: "1.5px solid " + P, background: "#F5F0FF", color: P, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                  style={{ padding: "8px 16px", borderRadius: 8, border: "1.5px solid " + P, background: "#F5F0E6", color: P, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                   Kargoyu Takip Et
                 </button>
               </Section>

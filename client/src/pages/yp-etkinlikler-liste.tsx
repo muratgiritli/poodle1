@@ -5,7 +5,7 @@ import { MapPin, Calendar } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { IS_YP } from "@/lib/store";
 
-const P = "#7022C4";
+const P = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 export default function YPEtkinliklerListePage() {
@@ -45,7 +45,7 @@ export default function YPEtkinliklerListePage() {
               {events.map((event: any) => (
                 <div key={event.id} style={{ background: "#fff", borderRadius: 18, overflow: "hidden", boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
                   {/* Color header */}
-                  <div style={{ height: 140, background: event.color ? `${event.color}33` : "linear-gradient(135deg,#7022C4,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+                  <div style={{ height: 140, background: event.color ? `${event.color}33` : "linear-gradient(135deg,#5D3A1A,#A67C52)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
                     <span style={{ fontSize: 48 }}>🐩</span>
                     <div style={{ position: "absolute", top: 12, right: 12 }}>
                       <span style={{ padding: "4px 12px", borderRadius: 9999, background: event.free ? "#10B981" : P, color: "#fff", fontSize: 12, fontWeight: 700 }}>
@@ -75,7 +75,7 @@ export default function YPEtkinliklerListePage() {
                     </div>
                     {event.slug ? (
                       <button onClick={() => navigate(`${BASE}/etkinlikler/${event.slug}`)}
-                        style={{ width: "100%", height: 42, borderRadius: 10, border: "none", background: "#F5F0FF", color: P, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                        style={{ width: "100%", height: 42, borderRadius: 10, border: "none", background: "#F5F0E6", color: P, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
                         Detayları Gör
                       </button>
                     ) : (

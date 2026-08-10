@@ -10,10 +10,10 @@ import {
 } from "lucide-react";
 
 /* ─── Palette ────────────────────────────────────────── */
-const P   = "#6B21A8";
-const PB  = "#7C3AED";
-const PL  = "#F3EEFF";
-const PBD = "#DDD6FE";
+const P   = "#5D3A1A";
+const PB  = "#5D3A1A";
+const PL  = "#F5F0E6";
+const PBD = "#E5DDD0";
 const GB  = "#E5E7EB";
 
 /* ─── Mock Data ─────────────────────────────────────── */
@@ -45,7 +45,7 @@ const ACCORDIONS = [
 ];
 
 const REVIEWS = [
-  { id:"r1", initials:"A", name:"Ayşe K.",   rating:5, color:"#7C3AED", text:"Toy Poodle'um çok sevdi, sindirim sorunu yaşamadık. Kesinlikle tavsiye ederim!", verified:true },
+  { id:"r1", initials:"A", name:"Ayşe K.",   rating:5, color:"#5D3A1A", text:"Toy Poodle'um çok sevdi, sindirim sorunu yaşamadık. Kesinlikle tavsiye ederim!", verified:true },
   { id:"r2", initials:"M", name:"Mehmet D.", rating:5, color:"#3B82F6", text:"Tüyleri parlaklaştı, enerjisi arttı. 3 kg paket ideal boyut.", verified:true },
   { id:"r3", initials:"E", name:"Elif S.",   rating:4, color:"#EC4899", text:"Hızlı kargo, ürün taze. Tek eksik biraz pahalı ama kalitesi belli.", verified:true },
 ];
@@ -505,7 +505,7 @@ export default function YPMamaUrunPage() {
             <p style={{ fontSize:16,fontWeight:700,color:"#111827",marginBottom:16 }}>Şehir Seçin</p>
             {CITIES.map(c=>(
               <button key={c} onClick={()=>{setCity(c);setShowCityModal(false);}}
-                style={{ width:"100%",background:city===c?"#F5F0FF":"#F9FAFB",
+                style={{ width:"100%",background:city===c?"#F5F0E6":"#F9FAFB",
                          border:`1.5px solid ${city===c?P:"transparent"}`,
                          borderRadius:12,padding:"13px 16px",textAlign:"left",
                          fontSize:14,fontWeight:city===c?700:500,

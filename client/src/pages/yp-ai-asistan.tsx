@@ -7,9 +7,9 @@ import {
 } from "lucide-react";
 
 /* ─────────────────────── DESIGN TOKENS ───────────────────────── */
-const P   = "#6324D6";
-const PD  = "#4C1DAA";
-const PL  = "#F3EEFF";
+const P   = "#5D3A1A";
+const PD  = "#3D2612";
+const PL  = "#F5F0E6";
 
 /* ─────────────────────── TYPES ───────────────────────────────── */
 interface Msg {
@@ -51,12 +51,12 @@ const INITIAL_AI_TEXT =
   "3 aylık bir Toy Poodle yavrusu için günlük mama miktarı; kilosuna, mamanın kalori değerine ve aktivitesine göre değişir. Kilosunu ve kullandığınız mamanın adını yazarsanız birlikte hesaplayabiliriz.";
 
 const QUICK_ACTIONS = [
-  { id:"food",     label:"Mama önerisi",      Icon:UtensilsCrossed, color:"purple",  bg:"#F3EEFF", border:"#DDD6FE", icon:P,         prompt:"Toy Poodle'uma hangi mamayı önerirsiniz?" },
+  { id:"food",     label:"Mama önerisi",      Icon:UtensilsCrossed, color:"purple",  bg:"#F5F0E6", border:"#E5DDD0", icon:P,         prompt:"Toy Poodle'uma hangi mamayı önerirsiniz?" },
   { id:"health",   label:"Sağlık sorusu",     Icon:HeartPulse,      color:"pink",    bg:"#FDF2F8", border:"#FBCFE8", icon:"#EC4899", prompt:"Toy Poodle'umun sağlığı hakkında bir sorum var." },
   { id:"potty",    label:"Tuvalet eğitimi",   Icon:Bath,            color:"blue",    bg:"#EFF6FF", border:"#BFDBFE", icon:"#3B82F6", prompt:"Toy Poodle yavruma tuvalet eğitimi nasıl verilir?" },
   { id:"grooming", label:"Tüy ve göz bakımı", Icon:Brush,           color:"teal",    bg:"#F0FDFA", border:"#99F6E4", icon:"#14B8A6", prompt:"Toy Poodle tüy ve göz bakımı nasıl yapılır?" },
   { id:"behavior", label:"Davranış ve eğitim",Icon:GraduationCap,   color:"orange",  bg:"#FFF7ED", border:"#FED7AA", icon:"#F97316", prompt:"Toy Poodle davranış ve eğitim konusunda yardım istiyorum." },
-  { id:"vaccine",  label:"Aşı ve parazit",    Icon:Syringe,         color:"lavender",bg:"#F5F3FF", border:"#DDD6FE", icon:"#7C3AED", prompt:"Toy Poodle aşı ve parazit takvimi hakkında bilgi alabilir miyim?" },
+  { id:"vaccine",  label:"Aşı ve parazit",    Icon:Syringe,         color:"lavender",bg:"#F5F0E6", border:"#E5DDD0", icon:"#5D3A1A", prompt:"Toy Poodle aşı ve parazit takvimi hakkında bilgi alabilir miyim?" },
 ];
 
 /* ─────────────────────── SUBCOMPONENTS ───────────────────────── */
@@ -75,7 +75,7 @@ function FoodCalc() {
   };
 
   return (
-    <div style={{ marginTop:12, padding:12, borderRadius:12, border:"1px solid #DDD6FE",
+    <div style={{ marginTop:12, padding:12, borderRadius:12, border:"1px solid #E5DDD0",
                   background:PL }}>
       <p style={{ fontSize:13, fontWeight:600, color:"#111827", marginBottom:10 }}>
         Hızlı hesaplama için bilgileri seçin
@@ -212,7 +212,7 @@ export default function YPAiAsistanPage() {
     <YPLayout activeLink="/yourpoodle/ai-asistan" constrain={false} hideFooter>
       <style>{`
         .yp-ai-scroll::-webkit-scrollbar { width: 3px; }
-        .yp-ai-scroll::-webkit-scrollbar-thumb { background: #DDD6FE; border-radius: 3px; }
+        .yp-ai-scroll::-webkit-scrollbar-thumb { background: #E5DDD0; border-radius: 3px; }
         .yp-qa-btn { transition: box-shadow 0.15s, transform 0.1s; }
         .yp-qa-btn:hover { box-shadow: 0 4px 12px rgba(99,36,214,0.12); }
         .yp-qa-btn:active { transform: scale(0.98); }
@@ -316,7 +316,7 @@ export default function YPAiAsistanPage() {
           {loading && (
             <div style={{ display:"flex", gap:8, marginBottom:12, padding:"0 16px" }}>
               <div style={{ width:36, height:36, borderRadius:"50%",
-                             background:"#F3EEFF", flexShrink:0, display:"flex",
+                             background:"#F5F0E6", flexShrink:0, display:"flex",
                              alignItems:"center", justifyContent:"center", fontSize:18 }}>
                 🐩
               </div>

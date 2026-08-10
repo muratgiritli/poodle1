@@ -4,7 +4,7 @@ import { exportStockMovementsPdf } from "@/lib/exportStockMovementsPdf";
 import { exportSktPdf } from "@/lib/exportSktPdf";
 import { printOrderReceipt } from "@/lib/printReceipt";
 import { STORES, type StoreGoogle } from "@shared/stores";
-import { brandify, IS_YP } from "@/lib/store";
+import { brandify, CURRENT_STORE } from "@/lib/store";
 import { isSharedRowInStoreView, confirmSharedEdit, storeCtxParam, STORE_SCOPED_SETTING_KEYS, confirmSharedSettingsSave } from "@/lib/storeScope";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,7 +96,16 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Product, BrandCategory, CrossSellSection, CrossSellItem, Order, BreedStat, StockAlert, Subcategory } from "@shared/schema";
 
-const ANIMALS = IS_YP
+/** Admin chrome for this deployment — YourPoodle even on localhost (IS_YP stays host-only for routes). */
+const YP_ADMIN =
+  CURRENT_STORE.brandWord === "YourPoodle" ||
+  CURRENT_STORE.name === "YourPoodle" ||
+  CURRENT_STORE.hostnames.some((h) => h.includes("yourpoodle"));
+const YP_P = "#5D3A1A";
+const YP_CREAM = "#F5F0E6";
+const YP_BORDER = "#E5DDD0";
+
+const ANIMALS = YP_ADMIN
   ? [{ id: "kopek", name: "Köpek", icon: Dog }]
   : [
       { id: "kedi", name: "Kedi", icon: Cat },
@@ -136,7 +145,7 @@ function AdminStoreSelector() {
           className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
             store === o.id ? "text-white shadow-sm" : "bg-muted/60 text-muted-foreground hover:bg-muted"
           }`}
-          style={store === o.id ? { backgroundColor: "#6B3480" } : {}}
+          style={store === o.id ? { backgroundColor: "#5D3A1A" } : {}}
           data-testid={`btn-store-${o.id}`}
         >
           {o.name}
@@ -202,13 +211,18 @@ function LoginForm({ onLogin }: { onLogin: () => void }) {
   });
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-2 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <Lock className="w-6 h-6 text-primary" />
-          </div>
-          <CardTitle data-testid="text-admin-login-title">Admin Paneli</CardTitle>
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: YP_CREAM }}>
+      <Card className="w-full max-w-sm border shadow-sm" style={{ borderColor: YP_BORDER }}>
+        <CardHeader className="text-center space-y-3">
+          <img
+            src="/images/brand/logo.png"
+            alt="YourPoodle"
+            className="mx-auto h-12 w-auto object-contain"
+          />
+          <CardTitle data-testid="text-admin-login-title" style={{ color: YP_P }}>
+            YourPoodle Admin
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">Yönetim paneli</p>
         </CardHeader>
         <CardContent>
           <form
@@ -242,7 +256,8 @@ function LoginForm({ onLogin }: { onLogin: () => void }) {
             )}
             <Button
               type="submit"
-              className="w-full"
+              className="w-full text-white hover:opacity-90"
+              style={{ backgroundColor: YP_P }}
               disabled={loginMutation.isPending}
               data-testid="btn-admin-login"
             >
@@ -643,7 +658,7 @@ function ProductForm({
                 type="button"
                 onClick={() => setShowNewBrand(true)}
                 className="text-xs font-medium flex items-center gap-1 hover:underline"
-                style={{ color: "#6B3480" }}
+                style={{ color: "#5D3A1A" }}
                 data-testid="btn-add-new-brand"
               >
                 <Plus className="w-3 h-3" /> Yeni Marka Ekle
@@ -687,7 +702,7 @@ function ProductForm({
                 size="sm"
                 onClick={handleAddNewBrand}
                 disabled={newBrandLoading || !newBrandName.trim()}
-                style={{ backgroundColor: "#6B3480" }}
+                style={{ backgroundColor: "#5D3A1A" }}
                 data-testid="btn-save-new-brand"
               >
                 {newBrandLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
@@ -892,7 +907,7 @@ function ProductForm({
             type="button"
             onClick={() => setVariants(prev => [...prev, { label: "", price: "", stock: "", barcode: "", skt: "" }])}
             className="text-xs font-medium flex items-center gap-1 hover:underline"
-            style={{ color: "#6B3480" }}
+            style={{ color: "#5D3A1A" }}
             data-testid="btn-add-variant"
           >
             <Plus className="w-3 h-3" /> Satır Ekle
@@ -2261,23 +2276,13 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   }, [categories]);
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <header className="sticky top-0 z-[9999] border-b bg-background">
+    <div className="min-h-screen" style={{ background: YP_CREAM }}>
+      <header className="sticky top-0 z-[9999] border-b bg-white" style={{ borderColor: YP_BORDER }}>
         <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <h1 className="text-lg sm:text-xl font-extrabold tracking-tight" data-testid="text-admin-header">
-              {IS_YP ? (
-                <>
-                  <span style={{ color: "#6B3480" }}>Your</span>
-                  <span className="text-foreground">Poodle</span>
-                </>
-              ) : (
-                <>
-                  <span style={{ color: "#6B3480" }}>JET</span>
-                  <span className="text-foreground">GO</span>
-                </>
-              )}
-              <span className="text-xs sm:text-sm font-normal text-muted-foreground ml-1 sm:ml-2">Admin</span>
+            <h1 className="text-lg sm:text-xl font-extrabold tracking-tight flex items-center gap-2" data-testid="text-admin-header">
+              <img src="/images/brand/logo.png" alt="YourPoodle" className="h-8 w-auto object-contain" />
+              <span className="text-xs sm:text-sm font-semibold tracking-wide" style={{ color: YP_P }}>Admin</span>
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -2349,33 +2354,48 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         </div>
       )}
 
-      <div className="border-b bg-background/95 backdrop-blur sticky top-[49px] sm:top-[57px] z-[9998]">
-        <div className="max-w-5xl mx-auto px-2 sm:px-4 py-1.5 sm:py-2 grid grid-cols-4 sm:grid-cols-8 gap-1 sm:gap-1.5">
-          {[
-            { key: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-3.5 h-3.5" /> },
-            { key: "yonetim", label: "Yönetim", icon: <Package className="w-3.5 h-3.5" /> },
-            { key: "kuponlar", label: "Kuponlar", icon: <Tag className="w-3.5 h-3.5" /> },
-            { key: "ziyaretci", label: "Ziyaretçi", icon: <Eye className="w-3.5 h-3.5" /> },
-            { key: "musteriler", label: "Müşteri", icon: <Users className="w-3.5 h-3.5" /> },
-            { key: "bildirim", label: "Bildirim", icon: <Bell className="w-3.5 h-3.5" /> },
-            { key: "havale", label: "Havale", icon: <Banknote className="w-3.5 h-3.5" /> },
-            { key: "banner", label: "Banner", icon: <ImageLucide className="w-3.5 h-3.5" /> },
-            ...(!IS_YP ? [{ key: "sokakcanlari", label: "Sokak Canları", icon: <Heart className="w-3.5 h-3.5" /> }] : []),
-            { key: "abone", label: "Abone", icon: <Gift className="w-3.5 h-3.5" /> },
-            { key: "yasakli", label: "Yasaklı No", icon: <Ban className="w-3.5 h-3.5" /> },
-            { key: "raporlama", label: "Raporlama", icon: <BarChart3 className="w-3.5 h-3.5" /> },
-            { key: "stoksayim", label: "Stok Sayım", icon: <ScanLine className="w-3.5 h-3.5" /> },
-            { key: "skttakip", label: "SKT Takip", icon: <Calendar className="w-3.5 h-3.5" /> },
-            { key: "yorumlar", label: "Yorumlar", icon: <MessageSquare className="w-3.5 h-3.5" /> },
-            { key: "iletisim", label: "İletişim", icon: <Mail className="w-3.5 h-3.5" /> },
-            { key: "eksik", label: "Eksik Ürünler", icon: <AlertTriangle className="w-3.5 h-3.5" /> },
-            { key: "google", label: "Google", icon: <Tag className="w-3.5 h-3.5" /> },
-            ...(!IS_YP ? [
-              { key: "merchant", label: "Merchant", icon: <ShoppingBag className="w-3.5 h-3.5" /> },
-              { key: "localfeed", label: "Local Feed", icon: <MapPin className="w-3.5 h-3.5" /> },
-            ] : []),
-            { key: "ayarlar", label: "Ayarlar", icon: <Settings className="w-3.5 h-3.5" /> },
-          ].map(tab => (
+      <div className="border-b bg-white/95 backdrop-blur sticky top-[49px] sm:top-[57px] z-[9998]" style={{ borderColor: YP_BORDER }}>
+        <div className="max-w-5xl mx-auto px-2 sm:px-4 py-1.5 sm:py-2 grid grid-cols-4 sm:grid-cols-7 gap-1 sm:gap-1.5">
+          {(YP_ADMIN
+            ? [
+                { key: "dashboard", label: "Özet", icon: <LayoutDashboard className="w-3.5 h-3.5" /> },
+                { key: "yp", label: "İçerik", icon: <Dog className="w-3.5 h-3.5" /> },
+                { key: "yonetim", label: "Mağaza", icon: <Package className="w-3.5 h-3.5" /> },
+                { key: "musteriler", label: "Müşteri", icon: <Users className="w-3.5 h-3.5" /> },
+                { key: "kuponlar", label: "Kupon", icon: <Tag className="w-3.5 h-3.5" /> },
+                { key: "banner", label: "Banner", icon: <ImageLucide className="w-3.5 h-3.5" /> },
+                { key: "bildirim", label: "Bildirim", icon: <Bell className="w-3.5 h-3.5" /> },
+                { key: "yorumlar", label: "Yorum", icon: <MessageSquare className="w-3.5 h-3.5" /> },
+                { key: "iletisim", label: "Mesaj", icon: <Mail className="w-3.5 h-3.5" /> },
+                { key: "ziyaretci", label: "Ziyaretçi", icon: <Eye className="w-3.5 h-3.5" /> },
+                { key: "raporlama", label: "Rapor", icon: <BarChart3 className="w-3.5 h-3.5" /> },
+                { key: "google", label: "Google", icon: <Tag className="w-3.5 h-3.5" /> },
+                { key: "ayarlar", label: "Ayarlar", icon: <Settings className="w-3.5 h-3.5" /> },
+              ]
+            : [
+                { key: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-3.5 h-3.5" /> },
+                { key: "yonetim", label: "Yönetim", icon: <Package className="w-3.5 h-3.5" /> },
+                { key: "kuponlar", label: "Kuponlar", icon: <Tag className="w-3.5 h-3.5" /> },
+                { key: "ziyaretci", label: "Ziyaretçi", icon: <Eye className="w-3.5 h-3.5" /> },
+                { key: "musteriler", label: "Müşteri", icon: <Users className="w-3.5 h-3.5" /> },
+                { key: "bildirim", label: "Bildirim", icon: <Bell className="w-3.5 h-3.5" /> },
+                { key: "havale", label: "Havale", icon: <Banknote className="w-3.5 h-3.5" /> },
+                { key: "banner", label: "Banner", icon: <ImageLucide className="w-3.5 h-3.5" /> },
+                { key: "sokakcanlari", label: "Sokak Canları", icon: <Heart className="w-3.5 h-3.5" /> },
+                { key: "abone", label: "Abone", icon: <Gift className="w-3.5 h-3.5" /> },
+                { key: "yasakli", label: "Yasaklı No", icon: <Ban className="w-3.5 h-3.5" /> },
+                { key: "raporlama", label: "Raporlama", icon: <BarChart3 className="w-3.5 h-3.5" /> },
+                { key: "stoksayim", label: "Stok Sayım", icon: <ScanLine className="w-3.5 h-3.5" /> },
+                { key: "skttakip", label: "SKT Takip", icon: <Calendar className="w-3.5 h-3.5" /> },
+                { key: "yorumlar", label: "Yorumlar", icon: <MessageSquare className="w-3.5 h-3.5" /> },
+                { key: "iletisim", label: "İletişim", icon: <Mail className="w-3.5 h-3.5" /> },
+                { key: "eksik", label: "Eksik Ürünler", icon: <AlertTriangle className="w-3.5 h-3.5" /> },
+                { key: "google", label: "Google", icon: <Tag className="w-3.5 h-3.5" /> },
+                { key: "merchant", label: "Merchant", icon: <ShoppingBag className="w-3.5 h-3.5" /> },
+                { key: "localfeed", label: "Local Feed", icon: <MapPin className="w-3.5 h-3.5" /> },
+                { key: "ayarlar", label: "Ayarlar", icon: <Settings className="w-3.5 h-3.5" /> },
+              ]
+          ).map(tab => (
             <button
               key={tab.key}
               onClick={() => { setActiveSection(tab.key); setYonetimSub(null); }}
@@ -2384,7 +2404,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   ? "text-white shadow-sm"
                   : "bg-muted/60 text-muted-foreground hover:bg-muted"
               }`}
-              style={activeSection === tab.key ? { backgroundColor: "#6B3480" } : {}}
+              style={activeSection === tab.key ? { backgroundColor: "#5D3A1A" } : {}}
               data-testid={`btn-section-${tab.key}`}
             >
               {tab.icon}
@@ -2404,6 +2424,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           </div>
         )}
         {activeSection === "dashboard" && <DashboardSection />}
+        {activeSection === "yp" && <YourPoodleHub />}
         {activeSection === "kuponlar" && <CouponsSection />}
         {activeSection === "ziyaretci" && <VisitorsSection />}
         {activeSection === "musteriler" && <CustomersSection />}
@@ -2426,27 +2447,42 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         {activeSection === "yonetim" && <>
           {!yonetimSub && (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3" data-testid="yonetim-buttons">
-              {[
-                { key: "kampanya", label: "Kampanya Yönetimi", icon: <Tag className="w-6 h-6" />, color: "text-purple-600" },
-                { key: "siparisler", label: "Sipariş Yönetimi", icon: <ShoppingBag className="w-6 h-6" />, color: "text-blue-600" },
-                { key: "mahalleler", label: "Mahalle Yönetimi", icon: <MapPin className="w-6 h-6" />, color: "text-green-600" },
-                { key: "kategoriler", label: "Kategoriler", icon: <Package className="w-6 h-6" />, color: "text-orange-600" },
-                { key: "altkategoriler", label: "Alt Kategori Yönetimi", icon: <ChevronRight className="w-6 h-6" />, color: "text-indigo-600" },
-                { key: "stokbildirimleri", label: "Stok Bildirimleri", icon: <Bell className="w-6 h-6" />, color: "text-red-600" },
-                { key: "urunler", label: "Ürünler", icon: <Package className="w-6 h-6" />, color: "text-cyan-600" },
-                { key: "crosssell", label: "Sıklıkla Birlikte Alınan", icon: <ShoppingBag className="w-6 h-6" />, color: "text-pink-600" },
-                { key: "kediturustats", label: "Kedi Türü İstatistikleri", icon: <BarChart3 className="w-6 h-6" />, color: "text-violet-600" },
-                { key: "kopekturustats", label: "Köpek Türü İstatistikleri", icon: <BarChart3 className="w-6 h-6" />, color: "text-blue-600" },
-                { key: "hatirlatmalar", label: "Tekrar Sipariş Hatırlatmaları", icon: <Clock className="w-6 h-6" />, color: "text-teal-600" },
-                { key: "raporlama", label: "Raporlama (Mama Stoğu, Ciro)", icon: <BarChart3 className="w-6 h-6" />, color: "text-emerald-600" },
-              ].map(item => (
+              {(YP_ADMIN
+                ? [
+                    { key: "siparisler", label: "Siparişler", icon: <ShoppingBag className="w-6 h-6" />, color: "text-[#5D3A1A]" },
+                    { key: "urunler", label: "Ürünler", icon: <Package className="w-6 h-6" />, color: "text-[#5D3A1A]" },
+                    { key: "kampanya", label: "Kampanya", icon: <Tag className="w-6 h-6" />, color: "text-[#5D3A1A]" },
+                    { key: "kategoriler", label: "Kategoriler", icon: <Package className="w-6 h-6" />, color: "text-[#8B5E34]" },
+                    { key: "altkategoriler", label: "Alt Kategoriler", icon: <ChevronRight className="w-6 h-6" />, color: "text-[#8B5E34]" },
+                    { key: "stokbildirimleri", label: "Stok Bildirimleri", icon: <Bell className="w-6 h-6" />, color: "text-[#8B5E34]" },
+                    { key: "crosssell", label: "Birlikte Alınan", icon: <ShoppingBag className="w-6 h-6" />, color: "text-[#8B5E34]" },
+                    { key: "kopekturustats", label: "Köpek İstatistikleri", icon: <BarChart3 className="w-6 h-6" />, color: "text-[#8B5E34]" },
+                    { key: "hatirlatmalar", label: "Sipariş Hatırlatma", icon: <Clock className="w-6 h-6" />, color: "text-[#8B5E34]" },
+                    { key: "raporlama", label: "Raporlar", icon: <BarChart3 className="w-6 h-6" />, color: "text-[#8B5E34]" },
+                  ]
+                : [
+                    { key: "kampanya", label: "Kampanya Yönetimi", icon: <Tag className="w-6 h-6" />, color: "text-purple-600" },
+                    { key: "siparisler", label: "Sipariş Yönetimi", icon: <ShoppingBag className="w-6 h-6" />, color: "text-blue-600" },
+                    { key: "mahalleler", label: "Mahalle Yönetimi", icon: <MapPin className="w-6 h-6" />, color: "text-green-600" },
+                    { key: "kategoriler", label: "Kategoriler", icon: <Package className="w-6 h-6" />, color: "text-orange-600" },
+                    { key: "altkategoriler", label: "Alt Kategori Yönetimi", icon: <ChevronRight className="w-6 h-6" />, color: "text-indigo-600" },
+                    { key: "stokbildirimleri", label: "Stok Bildirimleri", icon: <Bell className="w-6 h-6" />, color: "text-red-600" },
+                    { key: "urunler", label: "Ürünler", icon: <Package className="w-6 h-6" />, color: "text-cyan-600" },
+                    { key: "crosssell", label: "Sıklıkla Birlikte Alınan", icon: <ShoppingBag className="w-6 h-6" />, color: "text-pink-600" },
+                    { key: "kediturustats", label: "Kedi Türü İstatistikleri", icon: <BarChart3 className="w-6 h-6" />, color: "text-violet-600" },
+                    { key: "kopekturustats", label: "Köpek Türü İstatistikleri", icon: <BarChart3 className="w-6 h-6" />, color: "text-blue-600" },
+                    { key: "hatirlatmalar", label: "Tekrar Sipariş Hatırlatmaları", icon: <Clock className="w-6 h-6" />, color: "text-teal-600" },
+                    { key: "raporlama", label: "Raporlama (Mama Stoğu, Ciro)", icon: <BarChart3 className="w-6 h-6" />, color: "text-emerald-600" },
+                  ]
+              ).map(item => (
                 <button
                   key={item.key}
                   onClick={() => {
                     if (item.key === "raporlama") { setActiveSection("raporlama"); setYonetimSub(null); return; }
                     setYonetimSub(item.key);
                   }}
-                  className="flex flex-col items-center gap-2 p-4 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md hover:border-purple-200 transition-all text-center"
+                  className="flex flex-col items-center gap-2 p-4 rounded-2xl border bg-white shadow-sm hover:shadow-md transition-all text-center"
+                  style={{ borderColor: YP_BORDER }}
                   data-testid={`btn-yonetim-${item.key}`}
                 >
                   <div className={`${item.color}`}>{item.icon}</div>
@@ -2459,7 +2495,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           {yonetimSub && (
             <button
               onClick={() => setYonetimSub(null)}
-              className="flex items-center gap-1.5 mb-4 text-sm font-medium text-purple-700 hover:text-purple-900 transition-colors"
+              className="flex items-center gap-1.5 mb-4 text-sm font-medium transition-colors"
+              style={{ color: YP_P }}
               data-testid="btn-yonetim-back"
             >
               <ChevronRight className="w-4 h-4 rotate-180" />
@@ -2475,7 +2512,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           >
             <Tag className="w-5 h-5 text-purple-600" />
             <h2 className="text-lg font-bold" data-testid="text-section-campaign">Kampanya Yönetimi</h2>
-            <Badge className="no-default-hover-elevate no-default-active-elevate" style={{ backgroundColor: "#6B3480", color: "#fff" }} data-testid="badge-campaign-count">
+            <Badge className="no-default-hover-elevate no-default-active-elevate" style={{ backgroundColor: "#5D3A1A", color: "#fff" }} data-testid="badge-campaign-count">
               {campaignItems.filter(i => i.is_active && i.item_type === "main").length} ana / {campaignItems.filter(i => i.is_active && i.item_type === "extra").length} ek aktif
             </Badge>
             <ChevronDown className={`w-5 h-5 ml-auto transition-transform ${campaignExpanded ? "rotate-180" : ""}`} />
@@ -2988,7 +3025,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             {([
               { id: "all", label: "Tüm Siparişler" },
               { id: "yourpoodle", label: "🐩 YP Siparişleri" },
-              { id: "jetgo", label: "JetGo" },
+              { id: "jetgo", label: "YourPoodle" },
             ] as const).map((s) => (
               <button key={s.id} onClick={() => setOrderSiteFilter(s.id)}
                 className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
@@ -4804,7 +4841,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                         {(() => {
                           const ci = campaignItems.find(c => c.product_id === product.id);
                           return ci ? (
-                            <Badge className="text-[10px] no-default-hover-elevate no-default-active-elevate" style={{ backgroundColor: "#6B3480", color: "#fff" }}>
+                            <Badge className="text-[10px] no-default-hover-elevate no-default-active-elevate" style={{ backgroundColor: "#5D3A1A", color: "#fff" }}>
                               {ci.item_type === "main" ? "Kampanya Ana" : "Kampanya Ek"}
                             </Badge>
                           ) : (
@@ -5183,7 +5220,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     </div>
                     <Button
                       className="w-full"
-                      style={{ backgroundColor: "#6B3480" }}
+                      style={{ backgroundColor: "#5D3A1A" }}
                       disabled={addCampaignItemMutation.isPending || (campaignAddType === "extra" && !campaignParentProductId)}
                       onClick={() => {
                         const cp = campaignAddPrice.trim();
@@ -6692,7 +6729,7 @@ function DashboardSection() {
     <div className="space-y-5" data-testid="section-dashboard">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: "Bugün", value: `${stats.today.revenue.toLocaleString("tr-TR")} ₺`, sub: `${stats.today.orders} sipariş`, color: "#6B3480", avg: stats.today.avgBasket, change: todayVsYesterday, changeLabel: "düne göre" },
+          { label: "Bugün", value: `${stats.today.revenue.toLocaleString("tr-TR")} ₺`, sub: `${stats.today.orders} sipariş`, color: "#5D3A1A", avg: stats.today.avgBasket, change: todayVsYesterday, changeLabel: "düne göre" },
           { label: "Bu Hafta", value: `${stats.week.revenue.toLocaleString("tr-TR")} ₺`, sub: `${stats.week.orders} sipariş`, color: "#2563eb", avg: stats.week.avgBasket, change: weekVsPrev, changeLabel: "önceki haftaya göre" },
           { label: "Bu Ay", value: `${stats.month.revenue.toLocaleString("tr-TR")} ₺`, sub: `${stats.month.orders} sipariş`, color: "#16a34a", avg: stats.month.avgBasket },
           { label: "Toplam", value: `${stats.total.revenue.toLocaleString("tr-TR")} ₺`, sub: `${stats.total.orders} sipariş`, color: "#ea580c" },
@@ -7194,7 +7231,7 @@ function NotificationsSection() {
                   className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                     segment === s.key ? "text-white" : "bg-muted/60 text-muted-foreground hover:bg-muted"
                   }`}
-                  style={segment === s.key ? { backgroundColor: "#6B3480" } : {}}
+                  style={segment === s.key ? { backgroundColor: "#5D3A1A" } : {}}
                   data-testid={`btn-segment-${s.key}`}
                 >
                   {s.label}
@@ -7242,7 +7279,7 @@ function NotificationsSection() {
               ))}
             </div>
           )}
-          <Button onClick={handleSend} disabled={sending || !message.trim() || selectedPhones.length === 0} className="w-full" style={{ backgroundColor: "#6B3480" }} data-testid="btn-send-sms">
+          <Button onClick={handleSend} disabled={sending || !message.trim() || selectedPhones.length === 0} className="w-full" style={{ backgroundColor: "#5D3A1A" }} data-testid="btn-send-sms">
             {sending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
             {sending ? "Gönderiliyor..." : `${selectedPhones.length} kişiye SMS Gönder`}
           </Button>
@@ -7350,6 +7387,26 @@ function BannersSection() {
       <BreedBannersAdmin />
       <CategoryBannersAdmin />
       <BannersListSection />
+    </div>
+  );
+}
+
+/* ─── YourPoodle content hub ────────────────────────────────── */
+function YourPoodleHub() {
+  return (
+    <div className="space-y-4" data-testid="section-yp-hub">
+      <div className="rounded-2xl border bg-white p-4 sm:p-5" style={{ borderColor: YP_BORDER }}>
+        <h2 className="text-lg font-bold" style={{ color: YP_P }}>YourPoodle İçerik</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Makale, etkinlik, ürün ve abone yönetimi — vitrinle aynı marka.
+        </p>
+      </div>
+      <YPProductsCard />
+      <YPEmailSubscribersCard />
+      <YPEventRegistrationsCard />
+      <YourPoodleSettingsCard />
+      <YPArticlesCard />
+      <YPEventsCard />
     </div>
   );
 }
@@ -9116,7 +9173,7 @@ function BannedNumbersSection() {
             <Button
               onClick={() => addMutation.mutate()}
               disabled={addMutation.isPending || !phone.trim()}
-              style={{ backgroundColor: "#6B3480" }}
+              style={{ backgroundColor: "#5D3A1A" }}
               className="h-9"
               data-testid="button-add-banned"
             >
@@ -10036,7 +10093,7 @@ function LocalFeedSection() {
   if (isLoading) return <div className="p-4 text-sm text-muted-foreground">Yükleniyor...</div>;
 
   const statCards = [
-    { label: "Toplam Ürün", value: data?.total ?? 0, color: "#6B3480", testid: "stat-localfeed-total" },
+    { label: "Toplam Ürün", value: data?.total ?? 0, color: "#5D3A1A", testid: "stat-localfeed-total" },
     { label: "Stokta Var", value: data?.inStock ?? 0, color: "#16a34a", testid: "stat-localfeed-instock" },
     { label: "Stokta Yok", value: data?.outOfStock ?? 0, color: "#dc2626", testid: "stat-localfeed-outofstock" },
   ];
@@ -10237,12 +10294,16 @@ function SettingsSection() {
         <span>Ayarlar yüklenemedi. Lütfen tekrar deneyin.</span>
         <Button size="sm" variant="outline" onClick={() => refetch()} className="shrink-0">Yeniden Dene</Button>
       </div>
-      <YPProductsCard />
-      <YPEmailSubscribersCard />
-      <YPEventRegistrationsCard />
-      <YourPoodleSettingsCard />
-      <YPArticlesCard />
-      <YPEventsCard />
+      {!YP_ADMIN && (
+        <>
+          <YPProductsCard />
+          <YPEmailSubscribersCard />
+          <YPEventRegistrationsCard />
+          <YourPoodleSettingsCard />
+          <YPArticlesCard />
+          <YPEventsCard />
+        </>
+      )}
     </div>
   );
 
@@ -10256,20 +10317,26 @@ function SettingsSection() {
 
   return (
     <div className="space-y-4" data-testid="section-ayarlar">
-      <h2 className="text-lg font-bold">Puan & Besleme Ayarları</h2>
+      <h2 className="text-lg font-bold" style={{ color: YP_P }}>
+        {YP_ADMIN ? "Site & Ödeme Ayarları" : "Puan & Besleme Ayarları"}
+      </h2>
 
-      <YPProductsCard />
-      <YPEmailSubscribersCard />
-      <YPEventRegistrationsCard />
-      <YourPoodleSettingsCard />
-      <YPArticlesCard />
-      <YPEventsCard />
+      {!YP_ADMIN && (
+        <>
+          <YPProductsCard />
+          <YPEmailSubscribersCard />
+          <YPEventRegistrationsCard />
+          <YourPoodleSettingsCard />
+          <YPArticlesCard />
+          <YPEventsCard />
+        </>
+      )}
 
       {(adminStore === "all" || STORES.find(s => s.id === adminStore)?.commerce?.fulfillment === "cargo") && (
-        <Card className="border-purple-300">
+        <Card style={{ borderColor: YP_BORDER }}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
-              <Package className="w-4 h-4 text-purple-600" /> Kargo Ayarları (Şehirler Arası Satış)
+              <Package className="w-4 h-4" style={{ color: YP_P }} /> Kargo Ayarları
             </CardTitle>
           </CardHeader>
           <CardContent className="p-3 space-y-3">
@@ -10293,42 +10360,46 @@ function SettingsSection() {
         </Card>
       )}
 
-      <Card>
-        <CardContent className="pt-4 space-y-4">
-          {fields.map(f => (
-            <div key={f.key} className="flex items-start gap-3 pb-3 border-b last:border-b-0 last:pb-0">
-              <span className="text-xl mt-1">{f.icon}</span>
-              <div className="flex-1 min-w-0">
-                <Label className="text-sm font-bold">{f.label}</Label>
-                <p className="text-[11px] text-muted-foreground mt-0.5">{f.desc}</p>
-              </div>
-              <Input
-                type="number"
-                min="0"
-                max="100"
-                step="1"
-                value={form[f.key as keyof typeof form]}
-                onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))}
-                className="w-20 text-center font-bold"
-                data-testid={`input-setting-${f.key}`}
-              />
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      {!YP_ADMIN && (
+        <>
+          <Card>
+            <CardContent className="pt-4 space-y-4">
+              {fields.map(f => (
+                <div key={f.key} className="flex items-start gap-3 pb-3 border-b last:border-b-0 last:pb-0">
+                  <span className="text-xl mt-1">{f.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <Label className="text-sm font-bold">{f.label}</Label>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{f.desc}</p>
+                  </div>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={form[f.key as keyof typeof form]}
+                    onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+                    className="w-20 text-center font-bold"
+                    data-testid={`input-setting-${f.key}`}
+                  />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
 
-      <Card>
-        <CardContent className="pt-4">
-          <h3 className="text-sm font-bold mb-2">Puan Formülü Önizleme</h3>
-          <div className="bg-muted/50 rounded-lg p-3 text-xs space-y-1">
-            <p><strong>Besleme puanı:</strong> {form.pet_base_points || 1} + (seri gün ÷ {form.pet_streak_divisor || 3}), maks {form.pet_max_points || 5}</p>
-            <p><strong>Deneyim:</strong> {form.pet_base_exp || 10} + (seri gün × {form.pet_streak_exp_bonus || 2})</p>
-            <div className="border-t pt-2 mt-2">
-              <p className="text-muted-foreground">Örnek: 10. gün besleme = <strong>{Math.min(Number(form.pet_base_points || 1) + Math.floor(10 / Math.max(Number(form.pet_streak_divisor || 3), 1)), Number(form.pet_max_points || 5))} puan</strong>, {Number(form.pet_base_exp || 10) + 10 * Number(form.pet_streak_exp_bonus || 2)} XP</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <h3 className="text-sm font-bold mb-2">Puan Formülü Önizleme</h3>
+              <div className="bg-muted/50 rounded-lg p-3 text-xs space-y-1">
+                <p><strong>Besleme puanı:</strong> {form.pet_base_points || 1} + (seri gün ÷ {form.pet_streak_divisor || 3}), maks {form.pet_max_points || 5}</p>
+                <p><strong>Deneyim:</strong> {form.pet_base_exp || 10} + (seri gün × {form.pet_streak_exp_bonus || 2})</p>
+                <div className="border-t pt-2 mt-2">
+                  <p className="text-muted-foreground">Örnek: 10. gün besleme = <strong>{Math.min(Number(form.pet_base_points || 1) + Math.floor(10 / Math.max(Number(form.pet_streak_divisor || 3), 1)), Number(form.pet_max_points || 5))} puan</strong>, {Number(form.pet_base_exp || 10) + 10 * Number(form.pet_streak_exp_bonus || 2)} XP</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
 
       <Card>
         <CardContent className="pt-4 space-y-4">
@@ -10658,7 +10729,7 @@ function SettingsSection() {
         onClick={handleSave}
         disabled={saveMutation.isPending}
         className="w-full"
-        style={{ backgroundColor: "#6B3480" }}
+        style={{ backgroundColor: "#5D3A1A" }}
         data-testid="btn-save-settings"
       >
         {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
@@ -10725,7 +10796,7 @@ function MissingProductsSection() {
             key={t.key}
             onClick={() => setTab(t.key)}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${tab === t.key ? "text-white" : "bg-muted/60 text-muted-foreground hover:bg-muted"}`}
-            style={tab === t.key ? { backgroundColor: "#6B3480" } : {}}
+            style={tab === t.key ? { backgroundColor: "#5D3A1A" } : {}}
             data-testid={`btn-missing-tab-${t.key}`}
           >
             {t.label} ({t.count})
@@ -11203,7 +11274,7 @@ function ReviewManagementSection() {
       <div>
         <Label className="text-xs font-bold">Yorum</Label>
         <textarea
-          className="w-full border rounded-lg p-3 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-[#6B3480]/20"
+          className="w-full border rounded-lg p-3 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-[#5D3A1A]/20"
           rows={3}
           value={formComment}
           onChange={e => setFormComment(e.target.value)}
@@ -11224,7 +11295,7 @@ function ReviewManagementSection() {
       </div>
       <Button
         className="w-full"
-        style={{ backgroundColor: "#6B3480" }}
+        style={{ backgroundColor: "#5D3A1A" }}
         disabled={!formValid || createMutation.isPending || updateMutation.isPending}
         onClick={handleSubmit}
         data-testid="btn-save-review"
@@ -11243,7 +11314,7 @@ function ReviewManagementSection() {
           Yorum Yönetimi
           <span className="text-sm font-normal text-muted-foreground">({reviews.length})</span>
         </h2>
-        <Button size="sm" style={{ backgroundColor: "#6B3480" }} onClick={() => { resetForm(); setAddDialogOpen(true); }} data-testid="btn-add-review">
+        <Button size="sm" style={{ backgroundColor: "#5D3A1A" }} onClick={() => { resetForm(); setAddDialogOpen(true); }} data-testid="btn-add-review">
           <Plus className="w-4 h-4 mr-1" />
           Yorum Ekle
         </Button>
@@ -12006,7 +12077,7 @@ function StokSayimSection() {
                 className="flex-1 text-lg font-mono"
                 data-testid="input-barcode"
               />
-              <Button onClick={() => handleBarcodeSearch()} disabled={searching || !barcodeInput.trim()} style={{ backgroundColor: "#6B3480" }} data-testid="btn-barcode-search">
+              <Button onClick={() => handleBarcodeSearch()} disabled={searching || !barcodeInput.trim()} style={{ backgroundColor: "#5D3A1A" }} data-testid="btn-barcode-search">
                 {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
               </Button>
               <Button
@@ -12146,7 +12217,7 @@ function StokSayimSection() {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button onClick={handleUpdate} className="flex-1" style={{ backgroundColor: "#6B3480" }} data-testid="btn-save-product">
+              <Button onClick={handleUpdate} className="flex-1" style={{ backgroundColor: "#5D3A1A" }} data-testid="btn-save-product">
                 <Save className="w-4 h-4 mr-2" /> Manuel Kaydet
               </Button>
               <Button variant="outline" onClick={() => setFoundProduct(null)} data-testid="btn-cancel-edit">
@@ -12504,7 +12575,7 @@ function ReportsSection() {
     <div className="space-y-4" data-testid="section-reports">
       <div className="flex flex-wrap gap-1.5">
         {reportTabs.map(t => (
-          <button key={t.key} onClick={() => setReportTab(t.key)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${reportTab === t.key ? "text-white" : "bg-muted/60 text-muted-foreground hover:bg-muted"}`} style={reportTab === t.key ? { backgroundColor: "#6B3480" } : {}} data-testid={`btn-report-${t.key}`}>{t.label}</button>
+          <button key={t.key} onClick={() => setReportTab(t.key)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${reportTab === t.key ? "text-white" : "bg-muted/60 text-muted-foreground hover:bg-muted"}`} style={reportTab === t.key ? { backgroundColor: "#5D3A1A" } : {}} data-testid={`btn-report-${t.key}`}>{t.label}</button>
         ))}
       </div>
 
@@ -12913,6 +12984,10 @@ function BlacklistSection({ reports }: { reports: any }) {
 }
 
 export default function AdminPage() {
+  useEffect(() => {
+    document.title = "YourPoodle Admin";
+  }, []);
+
   const { data: user, isLoading, refetch } = useQuery<{ username: string } | null>({
     queryKey: ["/api/admin/me"],
     queryFn: async () => {
@@ -12928,8 +13003,8 @@ export default function AdminPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: YP_CREAM }}>
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: YP_P }} />
       </div>
     );
   }

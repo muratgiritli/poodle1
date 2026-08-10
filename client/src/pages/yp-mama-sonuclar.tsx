@@ -7,8 +7,8 @@ import {
 } from "lucide-react";
 
 /* ─── Colors ─────────────────────────── */
-const P  = "#6200EE";
-const PD = "#3D0099";
+const P  = "#5D3A1A";
+const PD = "#3D2612";
 const GB = "#E5E7EB";
 
 /* ─── Types ──────────────────────────── */
@@ -110,7 +110,7 @@ function ProductCard({ p }: { p: Product }) {
           </span>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:4,
-                      marginBottom:8, background:"#F3EEFF",
+                      marginBottom:8, background:"#F5F0E6",
                       borderRadius:8, padding:"5px 8px" }}>
           <CreditCard size={11} color={P} />
           <span style={{ fontSize:10, fontWeight:600, color:P }}>
@@ -146,7 +146,7 @@ export default function YPMamaSonuclarPage() {
         .ms-chip { transition: opacity 0.1s; }
         .ms-chip:hover { opacity: 0.85; }
         .ms-card-btn:hover { opacity: 0.9; }
-        .ms-btn-outline:hover { background: #F3EEFF !important; }
+        .ms-btn-outline:hover { background: #F5F0E6 !important; }
       `}</style>
 
       {/* ══ SCROLLABLE CONTENT ════════════════════════════ */}

@@ -6,7 +6,7 @@ import { useCustomer } from "@/contexts/CustomerContext";
 import { IS_YP } from "@/lib/store";
 
 const BASE = IS_YP ? "" : "/yourpoodle";
-const P = "#7022C4";
+const P = "#5D3A1A";
 
 interface PoodleProfile {
   name: string;
@@ -83,7 +83,7 @@ export default function YPBenimPoodleimPage() {
         {/* Back */}
         <button onClick={() => navigate(BASE || "/")}
           style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
-                   cursor:"pointer", color:"#7022C4", fontSize:14, fontWeight:600,
+                   cursor:"pointer", color:"#5D3A1A", fontSize:14, fontWeight:600,
                    fontFamily:"inherit", marginBottom:20, padding:0 }}>
           <ChevronLeft size={18} />
           Geri
@@ -101,13 +101,13 @@ export default function YPBenimPoodleimPage() {
           <div style={{ position:"relative" }}>
             <div style={{
               width:120, height:120, borderRadius:"50%",
-              background: profile.photoUrl ? "transparent" : "linear-gradient(135deg,#EDE9FE,#DDD6FE)",
+              background: profile.photoUrl ? "transparent" : "linear-gradient(135deg,#EDE5D8,#E5DDD0)",
               border:"3px solid #E5E7EB", overflow:"hidden",
               display:"flex", alignItems:"center", justifyContent:"center",
             }}>
               {profile.photoUrl
                 ? <img src={profile.photoUrl} alt="Poodle" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                : <PawPrint size={40} color="#C4B5FD" />
+                : <PawPrint size={40} color="#D4C4B0" />
               }
             </div>
             <button onClick={() => fileRef.current?.click()}
@@ -177,7 +177,7 @@ export default function YPBenimPoodleimPage() {
                   style={{
                     flex:1, padding:"10px 0", borderRadius:12, border:"1.5px solid",
                     borderColor: profile.gender === g ? P : "#E5E7EB",
-                    background: profile.gender === g ? "#F5F0FF" : "#fff",
+                    background: profile.gender === g ? "#F5F0E6" : "#fff",
                     color: profile.gender === g ? P : "#374151",
                     fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
                   }}>
@@ -241,7 +241,7 @@ export default function YPBenimPoodleimPage() {
                     display:"flex", alignItems:"center", justifyContent:"space-between",
                     padding:"12px 16px", borderRadius:12, border:"1.5px solid",
                     borderColor: profile.activityLevel === a.value ? P : "#E5E7EB",
-                    background: profile.activityLevel === a.value ? "#F5F0FF" : "#fff",
+                    background: profile.activityLevel === a.value ? "#F5F0E6" : "#fff",
                     cursor:"pointer", fontFamily:"inherit", textAlign:"left",
                     transition:"all 0.15s",
                   }}>
@@ -269,7 +269,7 @@ export default function YPBenimPoodleimPage() {
               width:"100%", padding:"14px 0", borderRadius:14, border:"none",
               background: saved ? "#10B981" : P, color:"#fff",
               fontSize:15, fontWeight:800, cursor:"pointer", fontFamily:"inherit",
-              boxShadow: `0 4px 14px rgba(112,34,196,0.3)`,
+              boxShadow: `0 4px 14px rgba(93,58,26,0.3)`,
               transition:"background 0.3s",
             }}>
             <Save size={18} />
@@ -277,7 +277,7 @@ export default function YPBenimPoodleimPage() {
           </button>
 
           {profile.name && (
-            <div style={{ background:"linear-gradient(135deg,#F5F0FF,#EDE9FE)", borderRadius:14,
+            <div style={{ background:"linear-gradient(135deg,#F5F0E6,#EDE5D8)", borderRadius:14,
                           padding:"16px 20px", textAlign:"center" }}>
               <div style={{ fontSize:32, marginBottom:6 }}>🐾</div>
               <div style={{ fontSize:16, fontWeight:800, color:"#1F2937" }}>{profile.name}</div>

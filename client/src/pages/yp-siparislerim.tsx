@@ -15,7 +15,7 @@ const BREADCRUMBS = [
 const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }> = {
   beklemede:    { label: "Beklemede",      color: "#92400E", bg: "#FEF3C7" },
   hazirlaniyor: { label: "Hazırlanıyor",   color: "#1E40AF", bg: "#DBEAFE" },
-  kargoda:      { label: "Kargoda",        color: "#5B21B6", bg: "#EDE9FE" },
+  kargoda:      { label: "Kargoda",        color: "#3D2612", bg: "#EDE5D8" },
   teslim:       { label: "Teslim Edildi",  color: "#065F46", bg: "#D1FAE5" },
   iptal:        { label: "İptal",          color: "#991B1B", bg: "#FEE2E2" },
 };
@@ -109,7 +109,7 @@ export default function YPSiparislerimPage() {
         <YPBreadcrumb items={BREADCRUMBS} />
 
         {/* Header */}
-        <section style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #5B21B6 100%)", padding: "28px 20px 24px", textAlign: "center", color: "#fff" }}>
+        <section style={{ background: "linear-gradient(135deg, #5D3A1A 0%, #3D2612 100%)", padding: "28px 20px 24px", textAlign: "center", color: "#fff" }}>
           <div style={{ fontSize: 40, marginBottom: 8 }}>📦</div>
           <h1 style={{ fontSize: 20, fontWeight: 900, marginBottom: 4 }}>Siparişlerim</h1>
           <p style={{ fontSize: 13, opacity: 0.85 }}>YourPoodle'dan verdiğiniz siparişler</p>
@@ -129,7 +129,7 @@ export default function YPSiparislerimPage() {
               </p>
               <button
                 onClick={() => navigate("/yourpoodle/magaza")}
-                style={{ height: 48, borderRadius: 14, background: "#7C3AFF", border: "none", color: "#fff", fontSize: 15, fontWeight: 800, padding: "0 28px", cursor: "pointer", fontFamily: "inherit" }}
+                style={{ height: 48, borderRadius: 14, background: "#5D3A1A", border: "none", color: "#fff", fontSize: 15, fontWeight: 800, padding: "0 28px", cursor: "pointer", fontFamily: "inherit" }}
               >
                 Mağazaya Git
               </button>
@@ -181,7 +181,7 @@ export default function YPSiparislerimPage() {
                                   style={{ width: 44, height: 44, borderRadius: 10, objectFit: "cover", flexShrink: 0, background: "#f5f5f5" }}
                                 />
                               ) : (
-                                <div style={{ width: 44, height: 44, borderRadius: 10, background: "#EDE9FE", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 20 }}>🐾</div>
+                                <div style={{ width: 44, height: 44, borderRadius: 10, background: "#EDE5D8", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 20 }}>🐾</div>
                               )}
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -191,7 +191,7 @@ export default function YPSiparislerimPage() {
                                   {item.quantity} adet × ₺{formatCurrency(item.price)}
                                 </div>
                               </div>
-                              <div style={{ fontSize: 13, fontWeight: 800, color: "#7C3AED", flexShrink: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 800, color: "#5D3A1A", flexShrink: 0 }}>
                                 ₺{formatCurrency(Number(item.price) * Number(item.quantity))}
                               </div>
                             </div>
@@ -202,9 +202,9 @@ export default function YPSiparislerimPage() {
 
                     {/* Delivery address + slot */}
                     {(order.customerAddress || order.deliverySlot) && (
-                      <div style={{ margin: "0 16px 12px", background: "#F5F3FF", borderRadius: 12, padding: "10px 14px", display: "flex", flexDirection: "column", gap: 5 }}>
+                      <div style={{ margin: "0 16px 12px", background: "#F5F0E6", borderRadius: 12, padding: "10px 14px", display: "flex", flexDirection: "column", gap: 5 }}>
                         {order.deliverySlot && (
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#5B21B6", fontWeight: 700 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#3D2612", fontWeight: 700 }}>
                             <span>🕐</span>
                             <span>Tahmini Teslimat: {order.deliverySlot}</span>
                           </div>
@@ -235,8 +235,8 @@ export default function YPSiparislerimPage() {
 
                     {/* Kargo tracking */}
                     {hasTracking && (
-                      <div style={{ margin: "0 16px 14px", background: "#EDE9FE", borderRadius: 12, padding: "10px 14px" }}>
-                        <div style={{ fontSize: 11, color: "#7C3AED", fontWeight: 700, marginBottom: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                      <div style={{ margin: "0 16px 14px", background: "#EDE5D8", borderRadius: 12, padding: "10px 14px" }}>
+                        <div style={{ fontSize: 11, color: "#5D3A1A", fontWeight: 700, marginBottom: 4, display: "flex", alignItems: "center", gap: 4 }}>
                           <Package size={12} />
                           Kargo Takibi
                         </div>
@@ -256,7 +256,7 @@ export default function YPSiparislerimPage() {
                             href={order.trackingUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 700, color: "#7C3AED", textDecoration: "none", marginTop: 2 }}
+                            style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 700, color: "#5D3A1A", textDecoration: "none", marginTop: 2 }}
                           >
                             Kargoya Git <ExternalLink size={11} />
                           </a>
@@ -269,7 +269,7 @@ export default function YPSiparislerimPage() {
                       <div style={{ padding: "0 16px 14px" }}>
                         <button
                           onClick={() => navigate(`/yourpoodle/urun/${items[0].productId}`)}
-                          style={{ width: "100%", background: "#F5F3FF", border: "none", borderRadius: 12, padding: "10px 14px", fontSize: 12, fontWeight: 700, color: "#7C3AED", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4, fontFamily: "inherit" }}
+                          style={{ width: "100%", background: "#F5F0E6", border: "none", borderRadius: 12, padding: "10px 14px", fontSize: 12, fontWeight: 700, color: "#5D3A1A", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4, fontFamily: "inherit" }}
                         >
                           Ürünü Görüntüle <ChevronRight size={13} />
                         </button>
@@ -341,7 +341,7 @@ export default function YPSiparislerimPage() {
           <div style={{ marginTop: 24, textAlign: "center" }}>
             <button
               onClick={() => navigate("/yourpoodle/profil")}
-              style={{ background: "none", border: "none", fontSize: 13, fontWeight: 700, color: "#7C3AED", cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}
+              style={{ background: "none", border: "none", fontSize: 13, fontWeight: 700, color: "#5D3A1A", cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}
             >
               ← Profile Dön
             </button>

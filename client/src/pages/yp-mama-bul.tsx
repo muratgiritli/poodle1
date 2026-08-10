@@ -20,7 +20,7 @@ const STEPS: Step[] = [
     key: "age", type: "radio", hasHero: true,
     emoji: "🐾",
     question: "Poodle'ınızın ", questionBold: "yaşı nedir?",
-    hint: "Yaşa göre besin ihtiyacı farklılaşır. Doğru seçimi birlikte yapalım. 💜",
+    hint: "Yaşa göre besin ihtiyacı farklılaşır. Doğru seçimi birlikte yapalım.",
     options: [
       { value: "puppy",  label: "Yavru (0–12 ay)",    desc: "Besin ihtiyacı yüksek, büyüme dönemi", icon: "🌱" },
       { value: "adult",  label: "Yetişkin (1–7 yaş)", desc: "Dengeli beslenme, enerji dengesi",      icon: "💪" },
@@ -153,7 +153,7 @@ const STEPS: Step[] = [
 ];
 
 const RESULT_META = [
-  { label: "En Uygun Seçim",    emoji: "🏆", color: "#7B3FE4", bg: "#EDE9FE", gradient: "linear-gradient(135deg,#7B3FE4,#8B5CF6)", reason: "Poodle'ınızın yaşı, kilosu ve ihtiyaçlarıyla birebir örtüşüyor." },
+  { label: "En Uygun Seçim",    emoji: "🏆", color: "#5D3A1A", bg: "#EDE5D8", gradient: "linear-gradient(135deg,#5D3A1A,#8B5E34)", reason: "Poodle'ınızın yaşı, kilosu ve ihtiyaçlarıyla birebir örtüşüyor." },
   { label: "Fiyat Performans",  emoji: "💚", color: "#059669", bg: "#D1FAE5", gradient: "linear-gradient(135deg,#059669,#34D399)", reason: "Kaliteli içerik, makul fiyat. Uzun süreli kullanımda tasarruf sağlar." },
   { label: "Premium Seçim",     emoji: "⭐", color: "#D97706", bg: "#FEF3C7", gradient: "linear-gradient(135deg,#D97706,#F59E0B)", reason: "En yüksek kalite standartları. İçerik açısından üstün formül." },
 ];
@@ -303,7 +303,7 @@ function PoodleIllustration() {
   return (
     <div style={{
       width: 200, height: 200, borderRadius: "50%",
-      background: "linear-gradient(135deg, #7B3FE4 0%, #9B6AF0 100%)",
+      background: "linear-gradient(135deg, #5D3A1A 0%, #A67C52 100%)",
       display: "flex", alignItems: "center", justifyContent: "center",
       flexShrink: 0, position: "relative", overflow: "hidden",
       boxShadow: "0 12px 40px rgba(123,63,228,0.28)",
@@ -332,9 +332,9 @@ function ProgressTracker({ current, total }: { current: number; total: number })
             width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 11, fontWeight: 700,
-            background: done ? "#7B3FE4" : active ? "#FAF5FF" : "#F3F0FB",
-            border: active ? "2px solid #7B3FE4" : done ? "2px solid #7B3FE4" : "2px solid #E5E0F5",
-            color: done ? "#fff" : active ? "#7B3FE4" : "#BDB5D9",
+            background: done ? "#5D3A1A" : active ? "#FAF7F0" : "#F5F0E6",
+            border: active ? "2px solid #5D3A1A" : done ? "2px solid #5D3A1A" : "2px solid #E5DDD0",
+            color: done ? "#fff" : active ? "#5D3A1A" : "#B0A69C",
             transition: "all 0.3s ease",
           }}>
             {done ? <Check size={12} strokeWidth={3} /> : i + 1}
@@ -350,11 +350,11 @@ function InfoBanner({ text }: { text: string }) {
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 10,
-      background: "#F3EFFF", borderRadius: 12,
+      background: "#F5F0E6", borderRadius: 12,
       padding: "12px 16px", marginBottom: 16,
     }}>
-      <Info size={16} color="#7B3FE4" style={{ flexShrink: 0 }} />
-      <span style={{ fontSize: 13, color: "#5B21B6", fontWeight: 500, lineHeight: 1.5 }}>{text}</span>
+      <Info size={16} color="#5D3A1A" style={{ flexShrink: 0 }} />
+      <span style={{ fontSize: 13, color: "#3D2612", fontWeight: 500, lineHeight: 1.5 }}>{text}</span>
     </div>
   );
 }
@@ -371,8 +371,8 @@ function OptionCard({
       aria-pressed={selected}
       style={{
         display: "flex", alignItems: "center", gap: 14,
-        background: selected ? "#FAF5FF" : "#fff",
-        border: `2px solid ${selected ? "#7B3FE4" : "#E5E7EB"}`,
+        background: selected ? "#FAF7F0" : "#fff",
+        border: `2px solid ${selected ? "#5D3A1A" : "#E5E7EB"}`,
         borderRadius: 16, padding: "16px 18px",
         cursor: "pointer", textAlign: "left", width: "100%",
         transition: "all 0.18s ease",
@@ -380,7 +380,7 @@ function OptionCard({
         WebkitTapHighlightColor: "transparent",
       }}
       onMouseEnter={e => {
-        if (!selected) (e.currentTarget as HTMLButtonElement).style.borderColor = "#C4B5FD";
+        if (!selected) (e.currentTarget as HTMLButtonElement).style.borderColor = "#D4C4B0";
       }}
       onMouseLeave={e => {
         if (!selected) (e.currentTarget as HTMLButtonElement).style.borderColor = "#E5E7EB";
@@ -389,7 +389,7 @@ function OptionCard({
       {opt.icon && (
         <div style={{
           width: 48, height: 48, borderRadius: 12, flexShrink: 0,
-          background: selected ? "#EDE9FE" : "#F8F5FF",
+          background: selected ? "#EDE5D8" : "#FAF7F0",
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 22, transition: "background 0.18s",
         }}>
@@ -397,11 +397,11 @@ function OptionCard({
         </div>
       )}
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: selected ? "#5B21B6" : "#1A1A2E", lineHeight: 1.3, marginBottom: opt.desc ? 3 : 0 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: selected ? "#3D2612" : "#2C2118", lineHeight: 1.3, marginBottom: opt.desc ? 3 : 0 }}>
           {opt.label}
         </div>
         {opt.desc && (
-          <div style={{ fontSize: 12, color: selected ? "#7B3FE4" : "#6B7280", lineHeight: 1.4 }}>
+          <div style={{ fontSize: 12, color: selected ? "#5D3A1A" : "#6B7280", lineHeight: 1.4 }}>
             {opt.desc}
           </div>
         )}
@@ -410,8 +410,8 @@ function OptionCard({
       <div style={{
         width: 22, height: 22, flexShrink: 0,
         borderRadius: type === "radio" ? "50%" : 6,
-        border: `2px solid ${selected ? "#7B3FE4" : "#D1D5DB"}`,
-        background: selected ? "#7B3FE4" : "#fff",
+        border: `2px solid ${selected ? "#5D3A1A" : "#D1D5DB"}`,
+        background: selected ? "#5D3A1A" : "#fff",
         display: "flex", alignItems: "center", justifyContent: "center",
         transition: "all 0.18s",
       }}>
@@ -601,7 +601,7 @@ export default function YPMamaBulPage() {
   /* ── Shared inline styles ── */
   const pageStyle: React.CSSProperties = {
     minHeight: "100svh",
-    background: "#F3EFFF",
+    background: "#F5F0E6",
     fontFamily: "'Inter', 'Plus Jakarta Sans', sans-serif",
     padding: "0 0 40px",
   };
@@ -625,7 +625,7 @@ export default function YPMamaBulPage() {
           <div style={{ ...cardStyle, padding: 0 }}>
             {/* Header */}
             <div style={{
-              background: "linear-gradient(135deg, #5B21B6 0%, #7B3FE4 50%, #A855F7 100%)",
+              background: "linear-gradient(135deg, #3D2612 0%, #5D3A1A 50%, #A67C52 100%)",
               padding: "32px 36px", position: "relative", overflow: "hidden", color: "#fff",
             }}>
               <div style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.07)" }} />
@@ -683,7 +683,7 @@ export default function YPMamaBulPage() {
                     </div>
                     <div style={{ display: "flex", gap: 14, alignItems: "flex-start", padding: "16px 16px 0" }}>
                       <div
-                        style={{ width: 80, height: 80, borderRadius: 16, background: "#F5F0FF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, cursor: "pointer" }}
+                        style={{ width: 80, height: 80, borderRadius: 16, background: "#F5F0E6", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, cursor: "pointer" }}
                         onClick={() => navigate(`/yourpoodle/urun/${prod.id}`)}
                       >
                         {prod.img
@@ -691,7 +691,7 @@ export default function YPMamaBulPage() {
                           : <span>🐾</span>}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: "#18114a", lineHeight: 1.4, marginBottom: 6, cursor: "pointer" }}
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#2C2118", lineHeight: 1.4, marginBottom: 6, cursor: "pointer" }}
                              onClick={() => navigate(`/yourpoodle/urun/${prod.id}`)}>
                           {prod.name}
                         </div>
@@ -707,7 +707,7 @@ export default function YPMamaBulPage() {
                     <div style={{ display: "flex", gap: 8, padding: "12px 16px 16px" }}>
                       <button
                         onClick={() => navigate(`/yourpoodle/urun/${prod.id}`)}
-                        style={{ flex: 1, height: 44, borderRadius: 12, background: "#F5F0FF", border: "none", fontSize: 13, fontWeight: 700, color: "#7B3FE4", cursor: "pointer", fontFamily: "inherit" }}
+                        style={{ flex: 1, height: 44, borderRadius: 12, background: "#F5F0E6", border: "none", fontSize: 13, fontWeight: 700, color: "#5D3A1A", cursor: "pointer", fontFamily: "inherit" }}
                       >
                         İncele
                       </button>
@@ -735,7 +735,7 @@ export default function YPMamaBulPage() {
               }) : (
                 <div style={{ textAlign: "center", padding: "48px 20px" }}>
                   <div style={{ fontSize: 52, marginBottom: 14 }}>🐾</div>
-                  <div style={{ fontSize: 17, fontWeight: 800, color: "#18114a", marginBottom: 8 }}>Eşleşen mama bulunamadı</div>
+                  <div style={{ fontSize: 17, fontWeight: 800, color: "#2C2118", marginBottom: 8 }}>Eşleşen mama bulunamadı</div>
                   <div style={{ fontSize: 13, color: "#999", lineHeight: 1.6 }}>
                     Seçtiğiniz kriterlere uygun, etiketlenmiş bir mama şu an mağazamızda yok.<br />
                     Ürünlere metadata eklendiğinde öneriler otomatik güncellenir.
@@ -751,8 +751,8 @@ export default function YPMamaBulPage() {
                 onClick={restart}
                 style={{
                   width: "100%", height: 50, borderRadius: 16,
-                  background: "#EDE9FE", border: "none", fontSize: 15, fontWeight: 700,
-                  color: "#7B3FE4", cursor: "pointer", fontFamily: "inherit",
+                  background: "#EDE5D8", border: "none", fontSize: 15, fontWeight: 700,
+                  color: "#5D3A1A", cursor: "pointer", fontFamily: "inherit",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 }}
               >
@@ -810,8 +810,8 @@ export default function YPMamaBulPage() {
             <div className="yp-card-header" style={{ padding: "24px 36px 0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
               <div style={{
                 display: "inline-flex", alignItems: "center", gap: 6,
-                background: "#EDE9FE", borderRadius: 99, padding: "5px 14px",
-                fontSize: 13, fontWeight: 700, color: "#7B3FE4",
+                background: "#EDE5D8", borderRadius: 99, padding: "5px 14px",
+                fontSize: 13, fontWeight: 700, color: "#5D3A1A",
               }}>
                 <span>{currentStep.emoji}</span>
                 Adım {step + 1} / {STEPS.length}
@@ -822,16 +822,16 @@ export default function YPMamaBulPage() {
             </div>
 
             {/* Mobile thin progress bar */}
-            <div className="yp-mobile-progress" style={{ margin: "12px 16px 0", height: 4, background: "#EDE9FE", borderRadius: 99 }}>
-              <div style={{ height: 4, width: `${((step + 1) / STEPS.length) * 100}%`, background: "linear-gradient(90deg, #7B3FE4, #A855F7)", borderRadius: 99, transition: "width 0.4s" }} />
+            <div className="yp-mobile-progress" style={{ margin: "12px 16px 0", height: 4, background: "#EDE5D8", borderRadius: 99 }}>
+              <div style={{ height: 4, width: `${((step + 1) / STEPS.length) * 100}%`, background: "linear-gradient(90deg, #5D3A1A, #A67C52)", borderRadius: 99, transition: "width 0.4s" }} />
             </div>
 
             {/* #34: "Geçmişten yüklendi" notice */}
             {historyLoaded && (
-              <div style={{ margin: "10px 24px 0", padding: "8px 14px", borderRadius: 10, background: "#EDE9FE", border: "1px solid #C4B5FD", fontSize: 12, color: "#5B21B6", display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ margin: "10px 24px 0", padding: "8px 14px", borderRadius: 10, background: "#EDE5D8", border: "1px solid #D4C4B0", fontSize: 12, color: "#3D2612", display: "flex", alignItems: "center", gap: 6 }}>
                 <Info size={13} style={{ flexShrink: 0 }} />
                 Geçmiş aramanızdan yüklendi — istediğiniz yanıtları değiştirebilirsiniz.
-                <button onClick={() => setHistoryLoaded(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#7B3FE4", fontSize: 16, lineHeight: 1, padding: 0 }}>×</button>
+                <button onClick={() => setHistoryLoaded(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#5D3A1A", fontSize: 16, lineHeight: 1, padding: 0 }}>×</button>
               </div>
             )}
 
@@ -842,10 +842,10 @@ export default function YPMamaBulPage() {
                 /* Hero layout: text left, poodle right */
                 <div className="yp-hero-row" style={{ display: "flex", alignItems: "center", gap: 32, marginBottom: 28 }}>
                   <div style={{ flex: 1 }}>
-                    <h2 style={{ fontSize: 28, fontWeight: 800, color: "#1A1A2E", margin: "0 0 10px", lineHeight: 1.25 }}>
+                    <h2 style={{ fontSize: 28, fontWeight: 800, color: "#2C2118", margin: "0 0 10px", lineHeight: 1.25 }}>
                       {currentStep.question}
                       {(currentStep as any).questionBold && (
-                        <em style={{ fontStyle: "normal", color: "#7B3FE4", borderBottom: "2px solid #C4B5FD" }}>
+                        <em style={{ fontStyle: "normal", color: "#5D3A1A", borderBottom: "2px solid #D4C4B0" }}>
                           {(currentStep as any).questionBold}
                         </em>
                       )}
@@ -860,10 +860,10 @@ export default function YPMamaBulPage() {
               ) : (
                 /* No-hero layout: centered text */
                 <div style={{ marginBottom: 24 }}>
-                  <h2 style={{ fontSize: 26, fontWeight: 800, color: "#1A1A2E", margin: "0 0 8px", lineHeight: 1.25 }}>
+                  <h2 style={{ fontSize: 26, fontWeight: 800, color: "#2C2118", margin: "0 0 8px", lineHeight: 1.25 }}>
                     {currentStep.question}
                     {(currentStep as any).questionBold && (
-                      <em style={{ fontStyle: "normal", color: "#7B3FE4", borderBottom: "2px solid #C4B5FD" }}>
+                      <em style={{ fontStyle: "normal", color: "#5D3A1A", borderBottom: "2px solid #D4C4B0" }}>
                         {(currentStep as any).questionBold}
                       </em>
                     )}
@@ -900,11 +900,11 @@ export default function YPMamaBulPage() {
               {step === 10 && (
                 <div style={{
                   display: "flex", alignItems: "flex-start", gap: 10,
-                  background: "#F3EFFF", borderRadius: 12, padding: "14px 16px", marginTop: 14,
-                  border: "1px solid #DDD6FE",
+                  background: "#F5F0E6", borderRadius: 12, padding: "14px 16px", marginTop: 14,
+                  border: "1px solid #E5DDD0",
                 }}>
                   <span style={{ fontSize: 18 }}>⭐</span>
-                  <span style={{ fontSize: 12, color: "#5B21B6", lineHeight: 1.6, fontWeight: 500 }}>
+                  <span style={{ fontSize: 12, color: "#3D2612", lineHeight: 1.6, fontWeight: 500 }}>
                     <strong>Önerimiz:</strong> 1–2 kg ve 3–5 kg paketleri dönüşümlü kullanarak hem tazeliği koruyabilir hem de ekonomik avantaj sağlayabilirsiniz.
                   </span>
                 </div>
@@ -919,7 +919,7 @@ export default function YPMamaBulPage() {
                 style={{
                   width: "100%", height: 52, borderRadius: 9999,
                   background: hasSelection
-                    ? "linear-gradient(135deg, #7B3FE4 0%, #A855F7 100%)"
+                    ? "linear-gradient(135deg, #5D3A1A 0%, #A67C52 100%)"
                     : "#E2E2F0",
                   border: "none", fontSize: 16, fontWeight: 800,
                   color: hasSelection ? "#fff" : "#9CA3AF",
@@ -961,7 +961,7 @@ export default function YPMamaBulPage() {
           bottom: "calc(60px + env(safe-area-inset-bottom, 0px))",
           left: 0, right: 0,
           background: "#fff",
-          borderTop: "1.5px solid #EDE9FE",
+          borderTop: "1.5px solid #EDE5D8",
           boxShadow: "0 -4px 24px rgba(123,63,228,0.12)",
           padding: "12px 16px",
           zIndex: 210,
@@ -973,7 +973,7 @@ export default function YPMamaBulPage() {
           style={{
             width: "100%", height: 52, borderRadius: 9999,
             background: hasSelection
-              ? "linear-gradient(135deg, #7B3FE4 0%, #A855F7 100%)"
+              ? "linear-gradient(135deg, #5D3A1A 0%, #A67C52 100%)"
               : "#E2E2F0",
             border: "none", fontSize: 16, fontWeight: 800,
             color: hasSelection ? "#fff" : "#9CA3AF",

@@ -61,13 +61,13 @@ const TOOLS = [
   { id:"mama",    emoji:"🍖", label:"Mama Hesaplama",    desc:"Günlük mama miktarını hesapla",    bg:"#FFF0E0", color:"#E07820" },
   { id:"su",      emoji:"💧", label:"Su Hesaplama",      desc:"Günlük su ihtiyacını hesapla",     bg:"#DBEAFE", color:"#2563EB" },
   { id:"aktivite",emoji:"🏃", label:"Aktivite Hesabı",   desc:"Günlük egzersiz ihtiyacını öğren", bg:"#CCFBF1", color:"#0D9488" },
-  { id:"yas",     emoji:"🎂", label:"Yaş Hesaplama",     desc:"Köpek yaşını insan yaşına çevir",  bg:"#F0E8FF", color:"#7C3AFF" },
+  { id:"yas",     emoji:"🎂", label:"Yaş Hesaplama",     desc:"Köpek yaşını insan yaşına çevir",  bg:"#F5F0E6", color:"#5D3A1A" },
   { id:"insanyas",emoji:"🐕", label:"İnsan Yaşı Tablosu",desc:"Karşılaştırmalı yaş tablosu",     bg:"#FFF0E0", color:"#E07820" },
   { id:"asi",     emoji:"💉", label:"Aşı Takvimi",       desc:"Aşılarını düzenli takip et",       bg:"#FFE4EC", color:"#E75480" },
   { id:"kilo",    emoji:"⚖️", label:"İdeal Kilo",        desc:"İdeal kilo aralığını öğren",       bg:"#D6F5E8", color:"#059669" },
   { id:"tiras",   emoji:"✂️", label:"Tıraş Zamanı",     desc:"Sonraki tıraş tarihini hesapla",   bg:"#FFE4EC", color:"#E75480" },
   { id:"odul",    emoji:"🦴", label:"Ödül Hesabı",       desc:"Ödül mamasının kalorisini hesapla",bg:"#FFF9C4", color:"#CA8A04" },
-  { id:"hastalik",emoji:"🩺", label:"Belirti Kontrolü",  desc:"Belirtilere göre risk değerlendir",bg:"#EDE8FF", color:"#7C3AFF" },
+  { id:"hastalik",emoji:"🩺", label:"Belirti Kontrolü",  desc:"Belirtilere göre risk değerlendir",bg:"#EDE5D8", color:"#5D3A1A" },
   { id:"dis",     emoji:"😁", label:"Diş Sağlığı",       desc:"Ağız sağlığı kontrol listesi",     bg:"#D6F5F5", color:"#0891B2" },
   { id:"diski",   emoji:"📊", label:"Dışkı Rehberi",     desc:"Rengine ve kıvamına göre kontrol", bg:"#FEFCE8", color:"#CA8A04" },
 ];
@@ -76,8 +76,8 @@ const TOOLS = [
 function ToolHeader({ emoji, title, desc, onBack }: { emoji:string; title:string; desc:string; onBack:()=>void }) {
   return (
     <div style={{ display:"flex", alignItems:"center", gap:12, padding:"16px 16px 0", marginBottom:20 }}>
-      <button onClick={onBack} style={{ background:"#F0EBFF", border:"none", borderRadius:10, width:38, height:38, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0 }}>
-        <ChevronLeft size={20} color="#7C3AFF" />
+      <button onClick={onBack} style={{ background:"#F5F0E6", border:"none", borderRadius:10, width:38, height:38, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0 }}>
+        <ChevronLeft size={20} color="#5D3A1A" />
       </button>
       <div style={{ fontSize:28 }}>{emoji}</div>
       <div>
@@ -88,7 +88,7 @@ function ToolHeader({ emoji, title, desc, onBack }: { emoji:string; title:string
   );
 }
 
-function ResultBox({ children, color="#7C3AFF", bg="#F0EBFF" }: { children:React.ReactNode; color?:string; bg?:string }) {
+function ResultBox({ children, color="#5D3A1A", bg="#F5F0E6" }: { children:React.ReactNode; color?:string; bg?:string }) {
   return (
     <div style={{ background:bg, border:`2px solid ${color}`, borderRadius:18, padding:"20px 20px", textAlign:"center" }}>
       {children}
@@ -135,7 +135,7 @@ function MamaCalculator({ onBack }: { onBack:()=>void }) {
           <label style={{ fontSize:12, fontWeight:700, color:"#555", display:"block", marginBottom:10 }}>Aktivite seviyesi</label>
           <div style={{ display:"flex", gap:8 }}>
             {[["dusuk","😴 Düşük"],["orta","🚶 Orta"],["yuksek","🏃 Yüksek"]].map(([v,l])=>(
-              <button key={v} onClick={()=>setAct(v)} style={{ flex:1, padding:"10px 4px", borderRadius:10, border:"2px solid", borderColor:act===v?"#7C3AFF":"#e8e8e8", background:act===v?"#EDE8FF":"#fff", fontSize:12, fontWeight:700, color:act===v?"#7C3AFF":"#555", cursor:"pointer", fontFamily:"Inter,sans-serif" }}>{l}</button>
+              <button key={v} onClick={()=>setAct(v)} style={{ flex:1, padding:"10px 4px", borderRadius:10, border:"2px solid", borderColor:act===v?"#5D3A1A":"#e8e8e8", background:act===v?"#EDE5D8":"#fff", fontSize:12, fontWeight:700, color:act===v?"#5D3A1A":"#555", cursor:"pointer", fontFamily:"Inter,sans-serif" }}>{l}</button>
             ))}
           </div>
         </div>
@@ -287,28 +287,28 @@ function YasHesaplama({ onBack }: { onBack:()=>void }) {
     <div style={{ padding:"0 16px", paddingBottom:32 }}>
       <ToolHeader emoji="🎂" title="Yaş Hesaplama" desc="Köpek yaşını insan yaşına çevir" onBack={onBack} />
       <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-        <div style={{ background:"#F0E8FF", borderRadius:16, padding:16 }}>
-          <label style={{ fontSize:12, fontWeight:700, color:"#7C3AFF", display:"block", marginBottom:8 }}>Poodle'ın yaşı (yıl)</label>
+        <div style={{ background:"#F5F0E6", borderRadius:16, padding:16 }}>
+          <label style={{ fontSize:12, fontWeight:700, color:"#5D3A1A", display:"block", marginBottom:8 }}>Poodle'ın yaşı (yıl)</label>
           <input type="number" value={dogAge} onChange={e=>setDogAge(e.target.value)} placeholder="Örn: 4"
-            style={{ width:"100%", height:48, borderRadius:12, border:"2px solid #7C3AFF", padding:"0 14px", fontSize:16, fontWeight:700, outline:"none", fontFamily:"Inter,sans-serif", background:"#fff" }} />
+            style={{ width:"100%", height:48, borderRadius:12, border:"2px solid #5D3A1A", padding:"0 14px", fontSize:16, fontWeight:700, outline:"none", fontFamily:"Inter,sans-serif", background:"#fff" }} />
         </div>
         <div style={{ background:"#F7F4FF", borderRadius:14, padding:14 }}>
           <div style={{ fontSize:12, color:"#555", lineHeight:1.7, fontFamily:"Inter,sans-serif" }}>
             💡 Küçük ırk formülü: 1. yıl = 15 insan yılı, 2. yıl = +9, sonraki her yıl = +4
           </div>
         </div>
-        <button onClick={calc} style={{ height:52, borderRadius:16, border:"none", background:"linear-gradient(135deg,#7C3AFF,#A78BFA)", color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>Hesapla</button>
+        <button onClick={calc} style={{ height:52, borderRadius:16, border:"none", background:"linear-gradient(135deg,#5D3A1A,#A67C52)", color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>Hesapla</button>
         {result !== null && (
-          <ResultBox color="#7C3AFF" bg="#F5F0FF">
+          <ResultBox color="#5D3A1A" bg="#F5F0E6">
             <div style={{ fontSize:13, color:"#888", marginBottom:4 }}>İnsan yaşı karşılığı</div>
-            <div style={{ fontSize:52, fontWeight:900, color:"#7C3AFF" }}>{result} yaş</div>
+            <div style={{ fontSize:52, fontWeight:900, color:"#5D3A1A" }}>{result} yaş</div>
             <div style={{ fontSize:12, color:"#888", marginTop:8, lineHeight:1.6 }}>
               {result < 20 ? "Hâlâ bir genç! Enerji dozu yüksek olabilir 🐾" :
                result < 40 ? "Genç yetişkin döneminde, en aktif çağ 🏃" :
                result < 60 ? "Olgun yetişkin, rutin kontroller önemli 🩺" :
                "Kıdemli üye! Eklem ve diyet takibi ihmal edilmemeli ❤️"}
             </div>
-            <button onClick={()=>setResult(null)} style={{ marginTop:12, display:"inline-flex", alignItems:"center", gap:6, background:"none", border:"none", color:"#7C3AFF", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
+            <button onClick={()=>setResult(null)} style={{ marginTop:12, display:"inline-flex", alignItems:"center", gap:6, background:"none", border:"none", color:"#5D3A1A", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
               <RotateCcw size={13} /> Yeniden Hesapla
             </button>
           </ResultBox>
@@ -336,15 +336,15 @@ function InsanYasTablosu({ onBack }: { onBack:()=>void }) {
         </div>
       </div>
       <div style={{ borderRadius:16, overflow:"hidden", border:"1px solid #f0f0f0" }}>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", background:"#F5F0FF", padding:"10px 0" }}>
-          <div style={{ textAlign:"center", fontSize:12, fontWeight:800, color:"#7C3AFF" }}>Köpek Yaşı</div>
-          <div style={{ textAlign:"center", fontSize:12, fontWeight:800, color:"#7C3AFF" }}>İnsan Yaşı</div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", background:"#F5F0E6", padding:"10px 0" }}>
+          <div style={{ textAlign:"center", fontSize:12, fontWeight:800, color:"#5D3A1A" }}>Köpek Yaşı</div>
+          <div style={{ textAlign:"center", fontSize:12, fontWeight:800, color:"#5D3A1A" }}>İnsan Yaşı</div>
         </div>
         {AGE_TABLE.map(([dog, human]) => (
           <button key={dog} onClick={() => setHighlight(highlight === dog ? null : dog)}
-            style={{ display:"grid", gridTemplateColumns:"1fr 1fr", width:"100%", border:"none", borderBottom:"1px solid #fafafa", padding:"12px 0", cursor:"pointer", background: highlight===dog ? "#EDE8FF" : dog % 2 === 0 ? "#fafafa" : "#fff", transition:"background 0.15s" }}>
-            <div style={{ textAlign:"center", fontSize:15, fontWeight: highlight===dog ? 900 : 600, color: highlight===dog ? "#7C3AFF" : "#333", fontFamily:"Inter,sans-serif" }}>{dog} yıl</div>
-            <div style={{ textAlign:"center", fontSize:15, fontWeight: highlight===dog ? 900 : 600, color: highlight===dog ? "#7C3AFF" : "#555", fontFamily:"Inter,sans-serif" }}>{human} yaş</div>
+            style={{ display:"grid", gridTemplateColumns:"1fr 1fr", width:"100%", border:"none", borderBottom:"1px solid #fafafa", padding:"12px 0", cursor:"pointer", background: highlight===dog ? "#EDE5D8" : dog % 2 === 0 ? "#fafafa" : "#fff", transition:"background 0.15s" }}>
+            <div style={{ textAlign:"center", fontSize:15, fontWeight: highlight===dog ? 900 : 600, color: highlight===dog ? "#5D3A1A" : "#333", fontFamily:"Inter,sans-serif" }}>{dog} yıl</div>
+            <div style={{ textAlign:"center", fontSize:15, fontWeight: highlight===dog ? 900 : 600, color: highlight===dog ? "#5D3A1A" : "#555", fontFamily:"Inter,sans-serif" }}>{human} yaş</div>
           </button>
         ))}
       </div>
@@ -612,8 +612,8 @@ function BelirtiKontrol({ onBack }: { onBack:()=>void }) {
         </p>
       </div>
 
-      <div style={{ background:"#EDE8FF", borderRadius:14, padding:12, marginBottom:16 }}>
-        <div style={{ fontSize:12, color:"#7C3AFF", lineHeight:1.7, fontFamily:"Inter,sans-serif" }}>
+      <div style={{ background:"#EDE5D8", borderRadius:14, padding:12, marginBottom:16 }}>
+        <div style={{ fontSize:12, color:"#5D3A1A", lineHeight:1.7, fontFamily:"Inter,sans-serif" }}>
           Poodle'ınızda gözlemlediğiniz belirtileri işaretleyin. <strong>!!!</strong> işareti acil duruma işaret eder.
         </div>
       </div>
@@ -935,7 +935,7 @@ export default function BilgiBankasi() {
             <div style={{ display:"flex", alignItems:"center", gap:5, padding:"10px 16px", borderBottom:"1px solid #f5f5f5", background:"#fafafa" }}>
               <button onClick={()=>navigate("/yourpoodle")} style={{ background:"none",border:"none",cursor:"pointer",color:"#888",fontSize:12,fontFamily:"Inter,sans-serif",padding:0 }}>Ana Sayfa</button>
               <ChevronRight size={12} color="#bbb"/>
-              <button onClick={closeTool} style={{ background:"none",border:"none",cursor:"pointer",color:"#7C3AFF",fontSize:12,fontFamily:"Inter,sans-serif",padding:0,fontWeight:700 }}>Bilgi Bankası</button>
+              <button onClick={closeTool} style={{ background:"none",border:"none",cursor:"pointer",color:"#5D3A1A",fontSize:12,fontFamily:"Inter,sans-serif",padding:0,fontWeight:700 }}>Bilgi Bankası</button>
               <ChevronRight size={12} color="#bbb"/>
               <span style={{ fontSize:12, color:"#333", fontWeight:700, fontFamily:"Inter,sans-serif" }}>{activeToolMeta?.label}</span>
             </div>
@@ -944,7 +944,7 @@ export default function BilgiBankasi() {
         ) : (
           <>
             {/* Hero banner */}
-            <div className="yp-hero-banner" style={{ background:"linear-gradient(135deg,#7C3AFF,#A855F7)", padding:"26px 24px 30px", position:"relative", overflow:"hidden" }}>
+            <div className="yp-hero-banner" style={{ background:"linear-gradient(135deg,#5D3A1A,#A67C52)", padding:"26px 24px 30px", position:"relative", overflow:"hidden" }}>
               <div style={{ position:"absolute", top:-30, right:-20, width:130, height:130, borderRadius:"50%", background:"rgba(255,255,255,0.08)" }} />
               <div style={{ fontSize:36, marginBottom:10 }}>⚡</div>
               <h1 style={{ fontSize:24, fontWeight:900, color:"#fff", marginBottom:5, lineHeight:1.2 }}>Poodle Bilgi Bankası</h1>
@@ -981,7 +981,7 @@ export default function BilgiBankasi() {
             <div className="bilgi-cats" style={{ display:"flex", gap:8, padding:"12px 16px", overflowX:"auto" }}>
               {TOOL_CATS.map(c => (
                 <button key={c.id} onClick={()=>{ setActiveCat(c.id); setSearch(""); }}
-                  style={{ whiteSpace:"nowrap", padding:"8px 16px", borderRadius:20, border:"2px solid", borderColor:activeCat===c.id?"#7C3AFF":"#e8e8e8", background:activeCat===c.id?"#7C3AFF":"#fff", color:activeCat===c.id?"#fff":"#555", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif", transition:"all 0.15s" }}>
+                  style={{ whiteSpace:"nowrap", padding:"8px 16px", borderRadius:20, border:"2px solid", borderColor:activeCat===c.id?"#5D3A1A":"#e8e8e8", background:activeCat===c.id?"#5D3A1A":"#fff", color:activeCat===c.id?"#fff":"#555", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif", transition:"all 0.15s" }}>
                   {c.label}
                 </button>
               ))}
@@ -994,7 +994,7 @@ export default function BilgiBankasi() {
                   <div style={{ fontSize:40, marginBottom:12 }}>🔍</div>
                   <div style={{ fontSize:15, fontWeight:700, color:"#555", marginBottom:6 }}>Araç bulunamadı</div>
                   <div style={{ fontSize:13 }}>"{search}" ile eşleşen araç yok.</div>
-                  <button onClick={() => { setSearch(""); setActiveCat("all"); }} style={{ marginTop:16, padding:"10px 24px", borderRadius:20, background:"#7C3AFF", color:"#fff", border:"none", cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"Inter,sans-serif" }}>Tümünü Göster</button>
+                  <button onClick={() => { setSearch(""); setActiveCat("all"); }} style={{ marginTop:16, padding:"10px 24px", borderRadius:20, background:"#5D3A1A", color:"#fff", border:"none", cursor:"pointer", fontSize:13, fontWeight:700, fontFamily:"Inter,sans-serif" }}>Tümünü Göster</button>
                 </div>
               ) : (
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"20px 8px", paddingBottom:12 }} className="yp-tools-grid">
@@ -1023,7 +1023,7 @@ export default function BilgiBankasi() {
               <ul aria-label="Tüm poodle araçları" style={{ listStyle:"none", padding:0, margin:0, display:"flex", flexDirection:"column", gap:6 }}>
                 {TOOLS.map(t => (
                   <li key={t.id} style={{ fontSize:12.5, color:"#444", lineHeight:1.5 }}>
-                    <button onClick={()=>openTool(t.id)} style={{ background:"none",border:"none",cursor:"pointer",textAlign:"left",padding:0,color:"#7C3AFF",fontWeight:700,fontFamily:"Inter,sans-serif",fontSize:12.5 }}>
+                    <button onClick={()=>openTool(t.id)} style={{ background:"none",border:"none",cursor:"pointer",textAlign:"left",padding:0,color:"#5D3A1A",fontWeight:700,fontFamily:"Inter,sans-serif",fontSize:12.5 }}>
                       {t.emoji} {t.label}
                     </button>{" "}— {t.desc}
                   </li>

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { MapPin, Phone, Clock, Mail, MessageCircle } from "lucide-react";
 
-const P = "#7022C4";
+const P = "#5D3A1A";
 
 const HOURS = [
   { day: "Pazartesi", hours: "09:00 – 20:00" },
@@ -30,7 +30,7 @@ export default function YPAtakumMagazaPage() {
               <h2 style={{ fontSize: 17, fontWeight: 800, color: "#111827", margin: "0 0 20px" }}>Adres ve İletişim</h2>
 
               <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 16 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: "#F5F0FF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: "#F5F0E6", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <MapPin size={18} color={P} />
                 </div>
                 <div>
@@ -40,7 +40,7 @@ export default function YPAtakumMagazaPage() {
               </div>
 
               <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 16 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: "#F5F0FF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: "#F5F0E6", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <Phone size={18} color={P} />
                 </div>
                 <div>
@@ -50,7 +50,7 @@ export default function YPAtakumMagazaPage() {
               </div>
 
               <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 24 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: "#F5F0FF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: "#F5F0E6", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <Mail size={18} color={P} />
                 </div>
                 <div>

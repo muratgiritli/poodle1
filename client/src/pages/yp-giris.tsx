@@ -14,7 +14,7 @@ const BASE = IS_YP ? "" : "/yourpoodle";
 const P      = "#4B2BD6";
 const PD     = "#3E27B3";
 const PLIGHT = "#F3F0FF";
-const PBADGE = "#EDE9FE";
+const PBADGE = "#EDE5D8";
 const GB     = "#E5E7EB";
 
 /* ── Phone formatter ── */
@@ -273,7 +273,7 @@ export default function YPGirisPage() {
                 aria-disabled={loading || !canSend}
                 style={{
                   width:"100%", marginTop:14,
-                  background: (loading || !canSend) ? "#C4B5FD" : P,
+                  background: (loading || !canSend) ? "#D4C4B0" : P,
                   color:"#fff", border:"none", borderRadius:12, padding:"14px 0",
                   fontSize:15, fontWeight:600,
                   cursor: (loading || !canSend) ? "not-allowed" : "pointer",

@@ -2,7 +2,7 @@ import { useState } from "react";
 
 const P = "#5A2D91";
 const PD = "#3D1A6E";
-const PL = "#F3EEFF";
+const PL = "#F5F0E6";
 
 /* ── DATA ── */
 const PRODUCTS = [
@@ -175,7 +175,7 @@ export default function YourPoodleDemo2() {
 
         {/* ════════ BANNER / HERO ════════ */}
         <div style={{ padding: "14px 12px 0" }}>
-          <div style={{ background: `linear-gradient(135deg, ${PD} 0%, ${P} 55%, #8B5CF6 100%)`,
+          <div style={{ background: `linear-gradient(135deg, ${PD} 0%, ${P} 55%, #8B5E34 100%)`,
                         borderRadius: 20, padding: "26px 20px 0",
                         position: "relative", overflow: "hidden", minHeight: 210 }}>
             {/* bg blobs */}
@@ -271,7 +271,7 @@ export default function YourPoodleDemo2() {
             {GUIDES.map((g, i) => (
               <div key={g.title} style={{
                 display: "flex", alignItems: "center", gap: 12, padding: "14px 14px",
-                borderBottom: i < GUIDES.length - 1 ? "1px solid #F5F0FF" : "none",
+                borderBottom: i < GUIDES.length - 1 ? "1px solid #F5F0E6" : "none",
                 cursor: "pointer",
               }}>
                 <div style={{ width: 60, height: 60, borderRadius: 12, overflow: "hidden",
@@ -295,7 +295,7 @@ export default function YourPoodleDemo2() {
                   </div>
                 </div>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-                  stroke="#C4B5FD" strokeWidth="2.5">
+                  stroke="#D4C4B0" strokeWidth="2.5">
                   <polyline points="9 18 15 12 9 6"/>
                 </svg>
               </div>

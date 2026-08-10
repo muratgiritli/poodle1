@@ -4,7 +4,7 @@ import YPLayout from "@/components/yourpoodle/YPLayout";
 import { ChevronLeft, Scissors, Calendar } from "lucide-react";
 import { IS_YP } from "@/lib/store";
 
-const P = "#7022C4";
+const P = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 const TIRAS_ARALIGI: Record<string, number> = {
@@ -38,7 +38,7 @@ export default function YPTirasTakvimiPage() {
 
   return (
     <YPLayout constrain={false}>
-      <div style={{ minHeight: "100vh", background: "#F5F3FF", paddingBottom: 48 }}>
+      <div style={{ minHeight: "100vh", background: "#F5F0E6", paddingBottom: 48 }}>
         <div style={{ maxWidth: 440, margin: "0 auto", padding: "24px 20px 0" }}>
           <button onClick={() => navigate(`${BASE}/araclar`)}
             style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", color: "#6B7280", fontSize: 13, fontWeight: 600, padding: 0, fontFamily: "inherit", marginBottom: 20 }}>
@@ -72,7 +72,7 @@ export default function YPTirasTakvimiPage() {
               <div style={{ marginTop: 24, paddingTop: 24, borderTop: "1px solid #F3F4F6" }}>
                 <p style={{ fontSize: 14, fontWeight: 700, color: "#374151", margin: "0 0 14px" }}>Sonraki bakım tarihleri ({TIRAS_LABELS[tirasType]})</p>
                 {result.map((date, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: i === 0 ? "#F5F0FF" : "#F9F9FB", borderRadius: 10, marginBottom: 8 }}>
+                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: i === 0 ? "#F5F0E6" : "#F9F9FB", borderRadius: 10, marginBottom: 8 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <Calendar size={14} color={i === 0 ? P : "#9CA3AF"} />
                       <span style={{ fontSize: 14, color: i === 0 ? P : "#374151", fontWeight: i === 0 ? 700 : 400 }}>{date}</span>
@@ -81,7 +81,7 @@ export default function YPTirasTakvimiPage() {
                   </div>
                 ))}
                 <button onClick={() => alert("Takvime ekle özelliği yakında!")}
-                  style={{ marginTop: 12, width: "100%", height: 44, borderRadius: 12, border: "1.5px solid " + P, background: "#F5F0FF", color: P, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                  style={{ marginTop: 12, width: "100%", height: 44, borderRadius: 12, border: "1.5px solid " + P, background: "#F5F0E6", color: P, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
                   <Calendar size={15} /> Takvime Ekle
                 </button>
               </div>

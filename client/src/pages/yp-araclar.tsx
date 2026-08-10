@@ -3,13 +3,13 @@ import { useLocation } from "wouter";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { IS_YP } from "@/lib/store";
 
-const P = "#7022C4";
+const P = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 const TOOLS = [
   { emoji: "🍽️", title: "Mama Hesaplama", desc: "Günlük mama miktarını hesaplayın", href: `${BASE}/araclar/mama-hesaplama`, bg: "#FFF7ED" },
   { emoji: "🎂", title: "Yaş Hesaplama", desc: "Poodle yaşını insan yaşına çevirin", href: `${BASE}/araclar/yas-hesaplama`, bg: "#F0FDF4" },
-  { emoji: "✂️", title: "Tıraş Takvimi", desc: "Bakım takviminizi oluşturun", href: `${BASE}/araclar/tiras-takvimi`, bg: "#F5F3FF" },
+  { emoji: "✂️", title: "Tıraş Takvimi", desc: "Bakım takviminizi oluşturun", href: `${BASE}/araclar/tiras-takvimi`, bg: "#F5F0E6" },
 ];
 
 export default function YPAraclarPage() {

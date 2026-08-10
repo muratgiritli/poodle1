@@ -10,7 +10,7 @@ export default function NotFound() {
       padding: "24px 20px", fontFamily: "'Inter',sans-serif", textAlign: "center",
     }}>
       <div style={{ fontSize: 80, marginBottom: 16, lineHeight: 1 }}>🐾</div>
-      <div style={{ fontSize: 72, fontWeight: 900, color: "#DDD5FF", lineHeight: 1, marginBottom: 8 }}>404</div>
+      <div style={{ fontSize: 72, fontWeight: 900, color: "#E5DDD0", lineHeight: 1, marginBottom: 8 }}>404</div>
       <h1 style={{ fontSize: 24, fontWeight: 900, color: "#1a1a1a", marginBottom: 10, lineHeight: 1.3 }}>
         Aradığınız sayfayı bulamadık
       </h1>
@@ -22,7 +22,7 @@ export default function NotFound() {
         <button
           onClick={() => navigate("/yourpoodle")}
           style={{
-            height: 52, borderRadius: 14, background: "#7C3AFF", border: "none",
+            height: 52, borderRadius: 14, background: "#5D3A1A", border: "none",
             fontSize: 15, fontWeight: 800, color: "#fff", cursor: "pointer",
             fontFamily: "'Inter',sans-serif",
           }}
@@ -33,7 +33,7 @@ export default function NotFound() {
           onClick={() => navigate("/yourpoodle/rehber")}
           style={{
             height: 52, borderRadius: 14, background: "#F5F0FF", border: "none",
-            fontSize: 15, fontWeight: 700, color: "#7C3AFF", cursor: "pointer",
+            fontSize: 15, fontWeight: 700, color: "#5D3A1A", cursor: "pointer",
             fontFamily: "'Inter',sans-serif",
           }}
         >
@@ -42,8 +42,8 @@ export default function NotFound() {
         <button
           onClick={() => navigate("/yourpoodle/ai-asistan")}
           style={{
-            height: 52, borderRadius: 14, background: "#fff", border: "2px solid #DDD5FF",
-            fontSize: 15, fontWeight: 700, color: "#7C3AFF", cursor: "pointer",
+            height: 52, borderRadius: 14, background: "#fff", border: "2px solid #E5DDD0",
+            fontSize: 15, fontWeight: 700, color: "#5D3A1A", cursor: "pointer",
             fontFamily: "'Inter',sans-serif",
           }}
         >

@@ -45,10 +45,10 @@ export default function YPUluslararasiKargo() {
 
       <div className="sp-section">
         <h2>İletişim</h2>
-        <p>Uluslararası sipariş için yardım almak üzere <a href="mailto:info@yourpoodle.com" style={{ color:"#7C3AED" }}>info@yourpoodle.com</a> adresine yazabilirsiniz. Yanıt süresi 24–48 saattir.</p>
+        <p>Uluslararası sipariş için yardım almak üzere <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A" }}>info@yourpoodle.com</a> adresine yazabilirsiniz. Yanıt süresi 24–48 saattir.</p>
       </div>
 
-      <a href="/yourpoodle/kargo" className="sp-cta-btn" style={{ background:"#F5F0FF", color:"#7C3AED" }}>← Yurt İçi Kargo</a>
+      <a href="/yourpoodle/kargo" className="sp-cta-btn" style={{ background:"#F5F0E6", color:"#5D3A1A" }}>← Yurt İçi Kargo</a>
     </YPStaticPage>
   );
 }

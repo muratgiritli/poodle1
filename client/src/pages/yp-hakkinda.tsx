@@ -60,7 +60,7 @@ export default function YPHakkindaPage() {
       <YPBreadcrumb items={BREADCRUMBS} />
 
       {/* ── Hero ───────────────────────────────────────────────────────── */}
-      <section style={{ background: "linear-gradient(135deg, #7C3AFF 0%, #5B21B6 100%)", padding: "48px 20px 40px", textAlign: "center", color: "#fff" }}>
+      <section style={{ background: "linear-gradient(135deg, #5D3A1A 0%, #3D2612 100%)", padding: "48px 20px 40px", textAlign: "center", color: "#fff" }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>🐾</div>
         <h1 style={{ fontSize: 26, fontWeight: 900, lineHeight: 1.3, marginBottom: 14 }}>
           YourPoodle Hakkında
@@ -82,8 +82,8 @@ export default function YPHakkindaPage() {
               Genel "köpek bakımı" rehberleri çoğu zaman yetersiz kalır.
             </p>
           </div>
-          <div style={{ background: "#EDE8FF", borderRadius: 16, padding: "20px" }}>
-            <p style={{ fontSize: 14, color: "#5B21B6", lineHeight: 1.8, margin: 0, fontWeight: 600 }}>
+          <div style={{ background: "#EDE5D8", borderRadius: 16, padding: "20px" }}>
+            <p style={{ fontSize: 14, color: "#3D2612", lineHeight: 1.8, margin: 0, fontWeight: 600 }}>
               YourPoodle, tüm bu boşluğu doldurmak için tasarlandı: Dünya genelindeki poodle sahiplerine güvenilir, derinlemesine içerik, pratik araçlar ve kapsamlı bir mağaza sunmak.
             </p>
           </div>
@@ -104,7 +104,7 @@ export default function YPHakkindaPage() {
               <div style={{ fontSize: 36, flexShrink: 0 }}>{member.emoji}</div>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: "#1a1a1a", marginBottom: 2 }}>{member.name}</div>
-                <div style={{ fontSize: 12, color: "#7C3AFF", fontWeight: 700, marginBottom: 8 }}>{member.title}</div>
+                <div style={{ fontSize: 12, color: "#5D3A1A", fontWeight: 700, marginBottom: 8 }}>{member.title}</div>
                 <p style={{ fontSize: 13, color: "#555", lineHeight: 1.7, margin: 0 }}>{member.bio}</p>
               </div>
             </article>
@@ -148,7 +148,7 @@ export default function YPHakkindaPage() {
               <span style={{ fontSize: 22 }}>📧</span>
               <div>
                 <div style={{ fontSize: 12, color: "#999", fontWeight: 600 }}>E-posta</div>
-                <a href="mailto:info@yourpoodle.com" style={{ fontSize: 14, fontWeight: 700, color: "#7C3AFF", textDecoration: "none" }}>info@yourpoodle.com</a>
+                <a href="mailto:info@yourpoodle.com" style={{ fontSize: 14, fontWeight: 700, color: "#5D3A1A", textDecoration: "none" }}>info@yourpoodle.com</a>
               </div>
             </div>
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -183,7 +183,7 @@ export default function YPHakkindaPage() {
             <button
               key={href}
               onClick={() => navigate(href)}
-              style={{ fontSize: 12, color: "#7C3AFF", background: "#F3F0FF", border: "none", borderRadius: 20, padding: "6px 14px", cursor: "pointer", fontWeight: 600 }}
+              style={{ fontSize: 12, color: "#5D3A1A", background: "#F3F0FF", border: "none", borderRadius: 20, padding: "6px 14px", cursor: "pointer", fontWeight: 600 }}
             >
               {label}
             </button>

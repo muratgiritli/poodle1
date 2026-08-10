@@ -45,8 +45,8 @@ export default function YPKargo() {
         <h2>Sipariş Takibi</h2>
         <p>Siparişiniz kargoya verildikten sonra tarafınıza SMS ve e-posta ile takip numarası gönderilir. Takip numarasını kargo firmasının web sitesinde sorgulayabilirsiniz.</p>
         <ul>
-          <li><a href="https://www.yurticikargo.com/tr/online-islemler/gonderi-sorgula" target="_blank" rel="noopener noreferrer" style={{ color:"#7C3AED" }}>Yurtiçi Kargo Sorgula →</a></li>
-          <li><a href="https://www.mngkargo.com.tr/gonderi-sorgula" target="_blank" rel="noopener noreferrer" style={{ color:"#7C3AED" }}>MNG Kargo Sorgula →</a></li>
+          <li><a href="https://www.yurticikargo.com/tr/online-islemler/gonderi-sorgula" target="_blank" rel="noopener noreferrer" style={{ color:"#5D3A1A" }}>Yurtiçi Kargo Sorgula →</a></li>
+          <li><a href="https://www.mngkargo.com.tr/gonderi-sorgula" target="_blank" rel="noopener noreferrer" style={{ color:"#5D3A1A" }}>MNG Kargo Sorgula →</a></li>
         </ul>
       </div>
 
@@ -57,12 +57,12 @@ export default function YPKargo() {
 
       <div className="sp-section">
         <h2>Teslimat Sorunları</h2>
-        <p>Paketiniz hasarlı ya da eksik teslim edildiyse kargo teslim tutanağına not düşün ve <a href="mailto:info@yourpoodle.com" style={{ color:"#7C3AED" }}>info@yourpoodle.com</a> adresine fotoğrafla birlikte bildirin. 24 saat içinde dönüş yapılır.</p>
+        <p>Paketiniz hasarlı ya da eksik teslim edildiyse kargo teslim tutanağına not düşün ve <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A" }}>info@yourpoodle.com</a> adresine fotoğrafla birlikte bildirin. 24 saat içinde dönüş yapılır.</p>
       </div>
 
       <div style={{ display:"flex", gap:12, flexWrap:"wrap" }}>
-        <a href="/yourpoodle/sss" className="sp-cta-btn" style={{ background:"#F5F0FF", color:"#7C3AED" }}>Sık Sorulan Sorular →</a>
-        <a href="/yourpoodle/iade" className="sp-cta-btn" style={{ background:"#F5F0FF", color:"#7C3AED" }}>İade & Değişim →</a>
+        <a href="/yourpoodle/sss" className="sp-cta-btn" style={{ background:"#F5F0E6", color:"#5D3A1A" }}>Sık Sorulan Sorular →</a>
+        <a href="/yourpoodle/iade" className="sp-cta-btn" style={{ background:"#F5F0E6", color:"#5D3A1A" }}>İade & Değişim →</a>
       </div>
     </YPStaticPage>
   );

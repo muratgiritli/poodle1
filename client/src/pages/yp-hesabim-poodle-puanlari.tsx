@@ -11,7 +11,7 @@ import YPLayout from "@/components/yourpoodle/YPLayout";
 /* ── Palette ─────────────────────────── */
 const P    = "#5D3EBD";
 const PD   = "#4A22A0";
-const PL   = "#F3EEFF";
+const PL   = "#F5F0E6";
 const NAV  = "#1D1E9B";
 const DRK  = "#111827";
 const GT   = "#6B7280";
@@ -256,7 +256,7 @@ export default function YPPoodlePuanlariPage() {
               <div style={{ fontSize:24, fontWeight:800, color:"#fff", lineHeight:1.1 }}>
                 {balance.toLocaleString("tr-TR")} <span style={{ fontSize:14, fontWeight:600 }}>PoodlePuan</span>
               </div>
-              <div style={{ fontSize:11, color:"#C4B5FD", marginTop:4 }}>
+              <div style={{ fontSize:11, color:"#D4C4B0", marginTop:4 }}>
                 {(balance / 10).toLocaleString("tr-TR", { minimumFractionDigits:2 })} TL indirim değerinde
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:6 }}>

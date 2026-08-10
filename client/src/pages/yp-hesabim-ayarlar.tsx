@@ -12,7 +12,7 @@ import { useCustomer } from "@/contexts/CustomerContext";
 
 /* ── Palette ─────────────────────────── */
 const P   = "#4B2BD6";
-const PL  = "#F3EEFF";
+const PL  = "#F5F0E6";
 const NAV = "#1D1E9B";
 const GT  = "#6B7280";
 const DRK = "#111827";

@@ -31,7 +31,8 @@ export const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
   max: 5,
   idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 10_000,
+  // Keep local startup responsive when Postgres is not running.
+  connectionTimeoutMillis: process.env.NODE_ENV === "production" ? 10_000 : 2_000,
   keepAlive: true,
   allowExitOnIdle: false,
 });

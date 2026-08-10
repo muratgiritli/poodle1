@@ -4,7 +4,7 @@ import YPLayout from "@/components/yourpoodle/YPLayout";
 import { Heart, Target, Users, Award } from "lucide-react";
 import { IS_YP } from "@/lib/store";
 
-const P = "#7022C4";
+const P = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 const STATS = [
@@ -29,7 +29,7 @@ export default function YPHakkimizdaPage() {
     <YPLayout constrain={false}>
       <div style={{ minHeight: "100vh", background: "#FAFAFA", paddingBottom: 48 }}>
         {/* Hero */}
-        <div style={{ background: "linear-gradient(135deg,#7022C4,#A855F7)", padding: "56px 20px", textAlign: "center" }}>
+        <div style={{ background: "linear-gradient(135deg,#5D3A1A,#A67C52)", padding: "56px 20px", textAlign: "center" }}>
           <div style={{ fontSize: 56, marginBottom: 16 }}>🐾</div>
           <h1 style={{ fontSize: 30, fontWeight: 900, color: "#fff", margin: "0 0 12px" }}>Hakkımızda</h1>
           <p style={{ color: "rgba(255,255,255,0.85)", fontSize: 16, maxWidth: 520, margin: "0 auto", lineHeight: 1.6 }}>
@@ -41,7 +41,7 @@ export default function YPHakkimizdaPage() {
           {/* Story */}
           <div style={{ background: "#fff", borderRadius: 20, padding: "28px 32px", marginBottom: 24, boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: "#F5F0FF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "#F5F0E6", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Heart size={18} color={P} />
               </div>
               <h2 style={{ fontSize: 18, fontWeight: 800, color: "#111827", margin: 0 }}>Hikâyemiz</h2>
@@ -54,7 +54,7 @@ export default function YPHakkimizdaPage() {
           {/* Mission */}
           <div style={{ background: "#fff", borderRadius: 20, padding: "28px 32px", marginBottom: 24, boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: "#F5F0FF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "#F5F0E6", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Target size={18} color={P} />
               </div>
               <h2 style={{ fontSize: 18, fontWeight: 800, color: "#111827", margin: 0 }}>Misyonumuz</h2>
@@ -78,14 +78,14 @@ export default function YPHakkimizdaPage() {
           {/* Team */}
           <div style={{ background: "#fff", borderRadius: 20, padding: "28px 32px", marginBottom: 28, boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: "#F5F0FF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "#F5F0E6", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Users size={18} color={P} />
               </div>
               <h2 style={{ fontSize: 18, fontWeight: 800, color: "#111827", margin: 0 }}>Ekibimiz</h2>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 16 }}>
               {TEAM.map(t => (
-                <div key={t.name} style={{ textAlign: "center", padding: "20px 12px", background: "#F9F5FF", borderRadius: 14 }}>
+                <div key={t.name} style={{ textAlign: "center", padding: "20px 12px", background: "#FAF7F0", borderRadius: 14 }}>
                   <div style={{ fontSize: 40, marginBottom: 10 }}>{t.emoji}</div>
                   <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14, color: "#111827" }}>{t.name}</p>
                   <p style={{ margin: 0, fontSize: 12, color: "#6B7280" }}>{t.role}</p>

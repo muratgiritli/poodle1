@@ -6,7 +6,7 @@ import { getEvent } from "@/data/events";
 import { IS_YP } from "@/lib/store";
 import { useCustomer } from "@/contexts/CustomerContext";
 
-const P = "#7022C4";
+const P = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 interface DbEvent {
@@ -138,7 +138,7 @@ export default function YPEtkinlikDetayPage() {
           </button>
 
           {/* Hero */}
-          <div style={{ height: 240, borderRadius: 20, background: dbEvent ? `linear-gradient(135deg,${dbEvent.color},#A855F7,#EC4899)` : "linear-gradient(135deg,#7022C4,#A855F7,#EC4899)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24, position: "relative" }}>
+          <div style={{ height: 240, borderRadius: 20, background: dbEvent ? `linear-gradient(135deg,${dbEvent.color},#A67C52,#EC4899)` : "linear-gradient(135deg,#5D3A1A,#A67C52,#EC4899)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24, position: "relative" }}>
             <span style={{ fontSize: 64 }}>🐩</span>
             {price !== "free" && (
               <div style={{ position: "absolute", top: 16, right: 16, padding: "6px 14px", borderRadius: 9999, background: "#fff", color: P, fontSize: 14, fontWeight: 700 }}>
@@ -181,7 +181,7 @@ export default function YPEtkinlikDetayPage() {
               <p style={{ margin: "0 0 10px", fontWeight: 700, fontSize: 14, color: "#111827" }}>Katılımcılar</p>
               <div style={{ display: "flex", alignItems: "center", gap: -4 }}>
                 {AVATARS.map((a, i) => (
-                  <div key={i} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#7022C4,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, border: "2px solid #fff", marginLeft: i > 0 ? -8 : 0 }}>
+                  <div key={i} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#5D3A1A,#A67C52)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, border: "2px solid #fff", marginLeft: i > 0 ? -8 : 0 }}>
                     {a}
                   </div>
                 ))}

@@ -15,14 +15,14 @@ export default function YPOzelTasarim() {
       breadcrumb={[{ label:"Ana Sayfa", href:"/yourpoodle" }, { label:"Mağaza", href:"/yourpoodle/magaza" }, { label:"Özel Tasarım" }]}
     >
       {/* Hero */}
-      <div style={{ background:"linear-gradient(135deg,#7C3AED,#A855F7,#EC4899)", borderRadius:18, padding:"28px 24px", marginBottom:32, color:"#fff" }}>
+      <div style={{ background:"linear-gradient(135deg,#5D3A1A,#A67C52,#EC4899)", borderRadius:18, padding:"28px 24px", marginBottom:32, color:"#fff" }}>
         <div style={{ fontSize:11, fontWeight:800, letterSpacing:"0.1em", color:"rgba(255,255,255,0.7)", marginBottom:6 }}>SADECE YOURPOODLE'DA</div>
         <h2 style={{ fontSize:22, fontWeight:900, marginBottom:8, padding:0, border:"none", color:"#fff" }}>Poodle'ınıza Özel Ürünler</h2>
         <p style={{ fontSize:14, lineHeight:1.6, color:"rgba(255,255,255,0.88)", margin:"0 0 20px" }}>
           Adı işlenmiş, rengi seçilmiş, bedeni ölçülmüş — tamamen sizin için üretilen poodle aksesuarları.
         </p>
         <a href="mailto:info@yourpoodle.com?subject=Özel%20Tasarım%20Talebi"
-          style={{ display:"inline-flex", alignItems:"center", gap:8, height:46, padding:"0 22px", borderRadius:12, background:"#fff", color:"#7C3AED", fontSize:14, fontWeight:800, textDecoration:"none", fontFamily:"Inter,sans-serif" }}>
+          style={{ display:"inline-flex", alignItems:"center", gap:8, height:46, padding:"0 22px", borderRadius:12, background:"#fff", color:"#5D3A1A", fontSize:14, fontWeight:800, textDecoration:"none", fontFamily:"Inter,sans-serif" }}>
           Talep Oluştur →
         </a>
       </div>
@@ -43,7 +43,7 @@ export default function YPOzelTasarim() {
       <div className="sp-section">
         <h2>Sipariş Süreci</h2>
         <ol>
-          <li><strong>Talep gönderin:</strong> <a href="mailto:info@yourpoodle.com?subject=Özel%20Tasarım%20Talebi" style={{ color:"#7C3AED" }}>info@yourpoodle.com</a> adresine ürün türü, renk, beden ve varsa özel not gönderin.</li>
+          <li><strong>Talep gönderin:</strong> <a href="mailto:info@yourpoodle.com?subject=Özel%20Tasarım%20Talebi" style={{ color:"#5D3A1A" }}>info@yourpoodle.com</a> adresine ürün türü, renk, beden ve varsa özel not gönderin.</li>
           <li><strong>Fiyat teklifi alın:</strong> 24 saat içinde kişiselleştirilmiş fiyat teklifi gönderilir.</li>
           <li><strong>Onaylayın ve ödeme yapın:</strong> Ödeme bağlantısı e-posta ile iletilir.</li>
           <li><strong>Üretim ve kargo:</strong> Üretim süresi 3–7 iş günü; tamamlandığında kargoya verilir.</li>

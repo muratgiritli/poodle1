@@ -31,7 +31,10 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
         <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
           <h2 className="text-xl font-bold text-gray-900 mb-2">Bir hata oluştu</h2>
           <p className="text-gray-500 mb-4 text-sm">Sayfa yüklenirken bir sorun oluştu.</p>
-          <button onClick={() => { this.setState({ hasError: false }); window.location.href = "/"; }} className="px-4 py-2 bg-[#6B3480] text-white rounded-lg font-medium text-sm" data-testid="btn-error-home">Ana Sayfaya Dön</button>
+          {this.state.errorMsg ? (
+            <pre className="text-left text-xs text-red-700 bg-red-50 border border-red-100 rounded-lg p-3 mb-4 max-w-lg w-full overflow-auto whitespace-pre-wrap">{this.state.errorMsg}</pre>
+          ) : null}
+          <button onClick={() => { this.setState({ hasError: false }); window.location.href = "/"; }} className="px-4 py-2 bg-[#5D3A1A] text-white rounded-lg font-medium text-sm" data-testid="btn-error-home">Ana Sayfaya Dön</button>
         </div>
       );
     }

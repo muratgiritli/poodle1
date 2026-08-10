@@ -5,7 +5,7 @@ import { CheckCircle, Copy, Package, MapPin, ArrowRight } from "lucide-react";
 import { getOrder, STEP_LABELS } from "@/data/orders";
 import { IS_YP } from "@/lib/store";
 
-const P = "#7022C4", G = "#10B981";
+const P = "#5D3A1A", G = "#10B981";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 export default function YPSiparisOnayPage() {
@@ -26,9 +26,9 @@ export default function YPSiparisOnayPage() {
 
   return (
     <YPLayout constrain={false}>
-      <div style={{ minHeight: "100vh", background: "#F9F5FF", paddingBottom: 48 }}>
+      <div style={{ minHeight: "100vh", background: "#FAF7F0", paddingBottom: 48 }}>
         {/* Subtle confetti strip */}
-        <div style={{ height: 6, background: `linear-gradient(90deg,${P},#A855F7,#EC4899,${G})` }} />
+        <div style={{ height: 6, background: `linear-gradient(90deg,${P},#A67C52,#EC4899,${G})` }} />
 
         <div style={{ maxWidth: 560, margin: "0 auto", padding: "32px 20px" }}>
           {/* Success badge */}
@@ -61,7 +61,7 @@ export default function YPSiparisOnayPage() {
             </div>
 
             {/* Address */}
-            <div style={{ marginTop: 16, padding: "12px 14px", background: "#F9F5FF", borderRadius: 10 }}>
+            <div style={{ marginTop: 16, padding: "12px 14px", background: "#FAF7F0", borderRadius: 10 }}>
               <div style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
                 <MapPin size={14} color={P} style={{ marginTop: 2, flexShrink: 0 }} />
                 <span style={{ fontSize: 13, color: "#374151", lineHeight: 1.5 }}>
@@ -74,7 +74,7 @@ export default function YPSiparisOnayPage() {
           </div>
 
           {/* PoodlePuan badge */}
-          <div style={{ background: "linear-gradient(135deg,#7022C4,#A855F7)", borderRadius: 14, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+          <div style={{ background: "linear-gradient(135deg,#5D3A1A,#A67C52)", borderRadius: 14, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
             <span style={{ fontSize: 32 }}>🐾</span>
             <div>
               <p style={{ margin: 0, color: "#fff", fontWeight: 800, fontSize: 16 }}>+{order.poodlePuan} PoodlePuan kazandınız!</p>

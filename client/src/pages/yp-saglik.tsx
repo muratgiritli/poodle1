@@ -13,7 +13,7 @@ const CATS = ["Tümü", "Genel Sağlık", "Ortopedi", "Davranış", "Önleyici B
 const CAT_STYLE: Record<string, { bg: string; color: string }> = {
   "Genel Sağlık":    { bg: "#FFF1F2", color: "#EF4444" },
   "Ortopedi":        { bg: "#FFF7ED", color: "#EA580C" },
-  "Davranış":        { bg: "#FDF4FF", color: "#9333EA" },
+  "Davranış":        { bg: "#FAF7F0", color: "#8B5E34" },
   "Önleyici Bakım":  { bg: "#F0FDF4", color: "#16A34A" },
   "Ağız Sağlığı":    { bg: "#EFF6FF", color: "#2563EB" },
   "Göz Sağlığı":     { bg: "#F0F9FF", color: "#0369A1" },

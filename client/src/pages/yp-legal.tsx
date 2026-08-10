@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 
-const P = "#7022C4";
+const P = "#5D3A1A";
 const DATE = "Son güncelleme: 24 Temmuz 2026";
 
 export type LegalVariant = "kvkk" | "gizlilik" | "kullanim-sartlari" | "mesafeli-satis";

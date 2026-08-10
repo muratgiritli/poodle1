@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { Mail, Phone, MapPin, MessageCircle } from "lucide-react";
 
-const P = "#7022C4";
+const P = "#5D3A1A";
 
 export default function YPIletisimPage() {
   useEffect(() => { document.title = "İletişim | YourPoodle"; }, []);
@@ -121,7 +121,7 @@ export default function YPIletisimPage() {
             <div style={{ flex: "1 1 220px" }}>
               {CONTACT_INFO.map(({ Icon, label, value, href }) => (
                 <div key={label} style={{ background: "#fff", borderRadius: 14, padding: "16px 18px", marginBottom: 12, boxShadow: "0 1px 6px rgba(0,0,0,0.05)", display: "flex", gap: 12, alignItems: "center" }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 10, background: "#F5F0FF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 10, background: "#F5F0E6", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     <Icon size={18} color={P} />
                   </div>
                   <div>

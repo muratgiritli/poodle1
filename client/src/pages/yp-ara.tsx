@@ -7,7 +7,7 @@ import { useCart } from "@/contexts/CartContext";
 import { searchArticles, searchPosts, POPULAR_SEARCHES } from "@/data/searchResults";
 import { IS_YP } from "@/lib/store";
 
-const P    = "#6200EE";
+const P    = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 type Tab = "tumü" | "urunler" | "rehber" | "club";
@@ -32,7 +32,7 @@ function Toast({ message, visible }: { message: string; visible: boolean }) {
       zIndex:9999, pointerEvents:"none", opacity:visible?1:0, transition:"opacity 0.3s",
     }}>
       <div style={{
-        background:"#1A0052", color:"#fff", padding:"10px 22px", borderRadius:999,
+        background:"#3D2612", color:"#fff", padding:"10px 22px", borderRadius:999,
         fontSize:13, fontWeight:500, whiteSpace:"nowrap", boxShadow:"0 4px 16px rgba(0,0,0,0.25)",
       }}>
         {message}
@@ -83,7 +83,7 @@ function ProductCard({
         boxShadow:"0 1px 4px rgba(0,0,0,0.06)", cursor:"pointer",
         transition:"box-shadow 0.15s, transform 0.15s",
       }}
-      onMouseEnter={e => { e.currentTarget.style.boxShadow="0 4px 12px rgba(98,0,238,0.10)"; e.currentTarget.style.transform="translateY(-1px)"; }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow="0 4px 12px rgba(93,58,26,0.10)"; e.currentTarget.style.transform="translateY(-1px)"; }}
       onMouseLeave={e => { e.currentTarget.style.boxShadow="0 1px 4px rgba(0,0,0,0.06)"; e.currentTarget.style.transform="translateY(0)"; }}
     >
       {/* Image */}
@@ -277,7 +277,7 @@ export default function YPAraPage() {
                   style={{
                     flexShrink:0, padding:"8px 18px", borderRadius:9999,
                     border:"1.5px solid", borderColor: tab===t.key ? P : "#E5E7EB",
-                    background: tab===t.key ? "#F5F0FF" : "#fff",
+                    background: tab===t.key ? "#F5F0E6" : "#fff",
                     color: tab===t.key ? P : "#6B7280",
                     fontSize:13, fontWeight: tab===t.key ? 700 : 500,
                     cursor:"pointer", fontFamily:"inherit",
@@ -369,7 +369,7 @@ export default function YPAraPage() {
                       <div key={a.slug} onClick={() => navigate(`${BASE}/rehber/${a.category}/${a.slug}`)}
                         style={{ background:"#fff", borderRadius:14, padding:"16px 18px",
                                  cursor:"pointer", boxShadow:"0 1px 6px rgba(0,0,0,0.05)" }}>
-                        <span style={{ fontSize:11, fontWeight:700, color:P, background:"#F5F0FF",
+                        <span style={{ fontSize:11, fontWeight:700, color:P, background:"#F5F0E6",
                                        padding:"2px 8px", borderRadius:9999 }}>
                           {a.categoryLabel}
                         </span>

@@ -205,7 +205,11 @@ async function createNotification(pool: Pool, opts: {
 
 /* ─── Main export ────────────────────────────────────── */
 export async function registerDogRoutes(app: Express, pool: Pool) {
-  await migrate(pool);
+  try {
+    await migrate(pool);
+  } catch (e: any) {
+    console.warn("[local] Skipping dogs migrate (DB unavailable):", e?.code || e?.message);
+  }
 
   // ── Check slug availability ─────────────────────────
   app.get("/api/dogs/check-slug/:slug", async (req, res) => {

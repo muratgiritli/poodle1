@@ -70,7 +70,7 @@ export default function Etkinlikler() {
       <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"Inter,sans-serif", paddingBottom:32 }}>
 
         {/* Hero banner */}
-        <div className="etk-hero" style={{ background:"linear-gradient(135deg,#7C3AFF,#9B59FF)", padding:"24px 20px 28px", position:"relative", overflow:"hidden" }}>
+        <div className="etk-hero" style={{ background:"linear-gradient(135deg,#5D3A1A,#9B59FF)", padding:"24px 20px 28px", position:"relative", overflow:"hidden" }}>
           <div style={{ position:"absolute", top:-30, right:-30, width:120, height:120, borderRadius:"50%", background:"rgba(255,255,255,0.07)" }} />
           <div style={{ fontSize:11, fontWeight:800, color:"rgba(255,255,255,0.65)", letterSpacing:"0.1em", marginBottom:4 }}>YourPoodle</div>
           <div style={{ fontSize:22, fontWeight:900, color:"#fff", marginBottom:6 }}>📅 Etkinlikler</div>
@@ -110,7 +110,7 @@ export default function Etkinlikler() {
           <div style={{ padding:"14px 16px 0", display:"flex", gap:8, overflowX:"auto" }}>
             {types.map(t => (
               <button key={t} onClick={() => setFilter(t)}
-                style={{ flexShrink:0, padding:"7px 16px", borderRadius:20, border:"1.5px solid", borderColor:filter===t?"#7C3AFF":"#e8e8e8", background:filter===t?"#7C3AFF":"#fff", color:filter===t?"#fff":"#555", fontSize:12.5, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
+                style={{ flexShrink:0, padding:"7px 16px", borderRadius:20, border:"1.5px solid", borderColor:filter===t?"#5D3A1A":"#e8e8e8", background:filter===t?"#5D3A1A":"#fff", color:filter===t?"#fff":"#555", fontSize:12.5, fontWeight:700, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
                 {t}
               </button>
             ))}
@@ -141,14 +141,14 @@ export default function Etkinlikler() {
             {filtered.map((ev:any) => (
               <div key={ev.id||ev.title} className="ev-card" onClick={() => handleCardClick(ev)} style={{ background:"#fff", borderRadius:18, boxShadow:"0 2px 16px rgba(0,0,0,0.07)", overflow:"hidden", cursor:"pointer" }}>
                 <div style={{ display:"flex", alignItems:"stretch" }}>
-                  <div style={{ width:72, flexShrink:0, background:(ev.color||"#7C3AFF")+"22", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"16px 8px" }}>
-                    <div style={{ fontSize:22, fontWeight:900, color:ev.color||"#7C3AFF", lineHeight:1 }}>{ev.day}</div>
-                    <div style={{ fontSize:10, fontWeight:800, color:ev.color||"#7C3AFF" }}>{ev.month}</div>
-                    <div style={{ fontSize:9, color:ev.color||"#7C3AFF", opacity:0.7, marginTop:2 }}>{ev.year||""}</div>
+                  <div style={{ width:72, flexShrink:0, background:(ev.color||"#5D3A1A")+"22", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"16px 8px" }}>
+                    <div style={{ fontSize:22, fontWeight:900, color:ev.color||"#5D3A1A", lineHeight:1 }}>{ev.day}</div>
+                    <div style={{ fontSize:10, fontWeight:800, color:ev.color||"#5D3A1A" }}>{ev.month}</div>
+                    <div style={{ fontSize:9, color:ev.color||"#5D3A1A", opacity:0.7, marginTop:2 }}>{ev.year||""}</div>
                   </div>
                   <div style={{ flex:1, padding:"14px 14px 14px 12px" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
-                      {ev.type && <span style={{ fontSize:10, fontWeight:800, background:(ev.color||"#7C3AFF")+"22", color:ev.color||"#7C3AFF", borderRadius:6, padding:"2px 8px" }}>{ev.type}</span>}
+                      {ev.type && <span style={{ fontSize:10, fontWeight:800, background:(ev.color||"#5D3A1A")+"22", color:ev.color||"#5D3A1A", borderRadius:6, padding:"2px 8px" }}>{ev.type}</span>}
                       {ev.free && <span style={{ fontSize:10, fontWeight:800, background:"#DCFCE7", color:"#16A34A", borderRadius:6, padding:"2px 8px" }}>ÜCRETSİZ</span>}
                     </div>
                     <div style={{ fontSize:14, fontWeight:800, color:"#1a1a1a", lineHeight:1.35, marginBottom:6, fontFamily:"Inter,sans-serif" }}>{ev.title}</div>
@@ -162,7 +162,7 @@ export default function Etkinlikler() {
                   <div style={{ borderTop:"1px solid #f5f5f5", padding:"10px 14px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                     <span style={{ fontSize:12, color:"#888", fontFamily:"Inter,sans-serif" }}>Katılmak için üye ol</span>
                     <button onClick={(e) => { e.stopPropagation(); navigate("/yourpoodle/giris"); }}
-                      style={{ padding:"6px 14px", borderRadius:10, border:"none", background:"#7C3AFF", color:"#fff", fontSize:12, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>Üye Ol</button>
+                      style={{ padding:"6px 14px", borderRadius:10, border:"none", background:"#5D3A1A", color:"#fff", fontSize:12, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>Üye Ol</button>
                   </div>
                 )}
                 {isLoggedIn && (() => {
@@ -172,7 +172,7 @@ export default function Etkinlikler() {
                       <button
                         onClick={(e) => { e.stopPropagation(); registerMutation.mutate({ eventId: ev.id, join: !joined }); }}
                         disabled={registerMutation.isPending}
-                        style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:10, border:`1.5px solid ${joined ? "#16A34A" : "#7C3AFF"}`, background: joined ? "#DCFCE7" : "#7C3AFF", color: joined ? "#16A34A" : "#fff", fontSize:13, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
+                        style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:10, border:`1.5px solid ${joined ? "#16A34A" : "#5D3A1A"}`, background: joined ? "#DCFCE7" : "#5D3A1A", color: joined ? "#16A34A" : "#fff", fontSize:13, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
                         {joined ? <><Check size={14} /> Katılıyorum</> : <><Calendar size={14} /> Katılacağım</>}
                       </button>
                       {joined && (
@@ -203,14 +203,14 @@ export default function Etkinlikler() {
               <div style={{ width:40, height:4, borderRadius:2, background:"#E5E7EB", margin:"-12px auto 20px", display:"block" }} />
               {/* Date + color strip */}
               <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:16 }}>
-                <div style={{ width:60, height:60, borderRadius:14, background:(selectedEvent.color||"#7C3AFF")+"22", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                  <div style={{ fontSize:22, fontWeight:900, color:selectedEvent.color||"#7C3AFF", lineHeight:1 }}>{selectedEvent.day}</div>
-                  <div style={{ fontSize:10, fontWeight:800, color:selectedEvent.color||"#7C3AFF" }}>{selectedEvent.month}</div>
-                  <div style={{ fontSize:9, color:selectedEvent.color||"#7C3AFF", opacity:0.7 }}>{selectedEvent.year||""}</div>
+                <div style={{ width:60, height:60, borderRadius:14, background:(selectedEvent.color||"#5D3A1A")+"22", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                  <div style={{ fontSize:22, fontWeight:900, color:selectedEvent.color||"#5D3A1A", lineHeight:1 }}>{selectedEvent.day}</div>
+                  <div style={{ fontSize:10, fontWeight:800, color:selectedEvent.color||"#5D3A1A" }}>{selectedEvent.month}</div>
+                  <div style={{ fontSize:9, color:selectedEvent.color||"#5D3A1A", opacity:0.7 }}>{selectedEvent.year||""}</div>
                 </div>
                 <div>
                   <div style={{ display:"flex", gap:6, marginBottom:5, flexWrap:"wrap" }}>
-                    {selectedEvent.type && <span style={{ fontSize:10, fontWeight:800, background:(selectedEvent.color||"#7C3AFF")+"22", color:selectedEvent.color||"#7C3AFF", borderRadius:6, padding:"2px 8px" }}>{selectedEvent.type}</span>}
+                    {selectedEvent.type && <span style={{ fontSize:10, fontWeight:800, background:(selectedEvent.color||"#5D3A1A")+"22", color:selectedEvent.color||"#5D3A1A", borderRadius:6, padding:"2px 8px" }}>{selectedEvent.type}</span>}
                     {selectedEvent.free && <span style={{ fontSize:10, fontWeight:800, background:"#DCFCE7", color:"#16A34A", borderRadius:6, padding:"2px 8px" }}>ÜCRETSİZ</span>}
                   </div>
                   <div style={{ fontSize:18, fontWeight:900, color:"#1a1a1a", lineHeight:1.3, fontFamily:"Inter,sans-serif" }}>{selectedEvent.title}</div>
@@ -223,7 +223,7 @@ export default function Etkinlikler() {
               {/* Details */}
               <div style={{ background:"#F9FAFB", borderRadius:12, padding:"12px 14px", marginBottom:16, display:"flex", flexDirection:"column", gap:8 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  <MapPin size={14} color="#7C3AFF" />
+                  <MapPin size={14} color="#5D3A1A" />
                   <span style={{ fontSize:13, color:"#374151", fontFamily:"Inter,sans-serif" }}>{selectedEvent.location}</span>
                 </div>
                 {selectedEvent.time && (
@@ -248,13 +248,13 @@ export default function Etkinlikler() {
                   <button
                     onClick={() => registerMutation.mutate({ eventId: selectedEvent.id, join: !joined })}
                     disabled={registerMutation.isPending}
-                    style={{ width:"100%", height:50, borderRadius:14, border:`1.5px solid ${joined ? "#16A34A" : "#7C3AFF"}`, background: joined ? "#DCFCE7" : "#7C3AFF", color: joined ? "#16A34A" : "#fff", fontSize:15, fontWeight:800, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8, fontFamily:"Inter,sans-serif" }}>
+                    style={{ width:"100%", height:50, borderRadius:14, border:`1.5px solid ${joined ? "#16A34A" : "#5D3A1A"}`, background: joined ? "#DCFCE7" : "#5D3A1A", color: joined ? "#16A34A" : "#fff", fontSize:15, fontWeight:800, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8, fontFamily:"Inter,sans-serif" }}>
                     {joined ? <><Check size={16} /> Katılıyorum — İptal Et</> : <><Calendar size={16} /> Katılacağım</>}
                   </button>
                 );
               })() : (
                 <button onClick={() => { setSelectedEvent(null); navigate("/yourpoodle/giris"); }}
-                  style={{ width:"100%", height:50, borderRadius:14, border:"none", background:"#7C3AFF", color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
+                  style={{ width:"100%", height:50, borderRadius:14, border:"none", background:"#5D3A1A", color:"#fff", fontSize:15, fontWeight:800, cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
                   Katılmak için Üye Ol
                 </button>
               )}
@@ -263,12 +263,12 @@ export default function Etkinlikler() {
         )}
 
         {/* Submit event CTA */}
-        <div style={{ margin:"24px 16px", background:"#F5F0FF", borderRadius:18, padding:"20px", textAlign:"center" }}>
+        <div style={{ margin:"24px 16px", background:"#F5F0E6", borderRadius:18, padding:"20px", textAlign:"center" }}>
           <div style={{ fontSize:24, marginBottom:8 }}>🎉</div>
           <div style={{ fontSize:15, fontWeight:800, color:"#1a1a1a", marginBottom:6 }}>Etkinlik Düzenlemek İster misiniz?</div>
           <p style={{ fontSize:12, color:"#888", lineHeight:1.6, marginBottom:16 }}>Poodle topluluğu için etkinlik organize edin, duyurunuzu yayınlayalım.</p>
           <button onClick={() => navigate(isLoggedIn ? "/hesabim" : "/yourpoodle/giris")}
-            style={{ height:44, borderRadius:12, border:"none", background:"#7C3AFF", color:"#fff", fontSize:13, fontWeight:800, padding:"0 24px", cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
+            style={{ height:44, borderRadius:12, border:"none", background:"#5D3A1A", color:"#fff", fontSize:13, fontWeight:800, padding:"0 24px", cursor:"pointer", fontFamily:"Inter,sans-serif" }}>
             Bize Ulaşın
           </button>
         </div>

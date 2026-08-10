@@ -4,7 +4,7 @@ import { useLocation, useSearch } from "wouter";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 
 /* ── Design tokens ── */
-const P  = "#6200EE";
+const P  = "#5D3A1A";
 const GB = "#E5E7EB";
 
 /* ── Slug maps: item label → { category, slug } or { externalPath } ── */
@@ -88,8 +88,8 @@ const SECTIONS: GuideSection[] = [
     items:["Tuvalet Eğitimi","İsmini Öğretme","Temel Komutlar","Isırmayı Bırakma","Havlama Kontrolü","Tasma ile Yürüme","Sosyalleşme Eğitimi","Yalnız Kalma Eğitimi","Ödülle Eğitim","Seyahat ve Araba Eğitimi"],
   },
   {
-    id:"araclar", name:"Araçlar", icon:Calculator, iconColor:"#6200EE", badgeColor:"#6200EE",
-    headerBg:"#F3EEFF", headerBorder:"#DDD6FE", numberBg:"#6200EE",
+    id:"araclar", name:"Araçlar", icon:Calculator, iconColor:"#5D3A1A", badgeColor:"#5D3A1A",
+    headerBg:"#F5F0E6", headerBorder:"#E5DDD0", numberBg:"#5D3A1A",
     items:["Günlük Mama Hesaplayıcı","Su İhtiyacı Hesaplayıcı","İdeal Kilo Takibi","Köpek Yaşı Hesaplayıcı","Aşı Takvimi Oluştur","Parazit Hatırlatıcısı","Bakım Takvimi","Mama Karşılaştırma","Belirli Rehberi","Seyahat Kontrol Listesi"],
   },
 ];

@@ -7,7 +7,7 @@ import { MOCK_SEARCH_PRODUCTS } from "@/data/searchResults";
 import { IS_YP } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 
-const P = "#7022C4";
+const P = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
 const FAV_KEY = "yp_rehber_favorites";
 
@@ -121,7 +121,7 @@ export default function YPRehberMakalePage() {
           </div>
 
           {/* Hero image */}
-          <div style={{ height: 220, borderRadius: 18, background: "linear-gradient(135deg,#7022C4,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 32, position: "relative", overflow: "hidden" }}>
+          <div style={{ height: 220, borderRadius: 18, background: "linear-gradient(135deg,#5D3A1A,#A67C52)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 32, position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <span style={{ fontSize: 64, opacity: 0.4 }}>🐾</span>
             </div>
@@ -132,7 +132,7 @@ export default function YPRehberMakalePage() {
           <div style={{ maxWidth: 680, margin: "0 auto" }}>
             {article.body.map((block, i) => (
               block.isTip ? (
-                <div key={i} style={{ background: "#F5F0FF", border: "2px solid #A855F7", borderRadius: 12, padding: "14px 18px", margin: "24px 0", fontSize: 14, color: "#374151", lineHeight: 1.6 }}>
+                <div key={i} style={{ background: "#F5F0E6", border: "2px solid #A67C52", borderRadius: 12, padding: "14px 18px", margin: "24px 0", fontSize: 14, color: "#374151", lineHeight: 1.6 }}>
                   {block.text}
                 </div>
               ) : (
@@ -151,7 +151,7 @@ export default function YPRehberMakalePage() {
               {MOCK_SEARCH_PRODUCTS.slice(0, 3).map(p => (
                 <div key={p.id} onClick={() => navigate(`${BASE}/urun/${p.id}`)}
                   style={{ flexShrink: 0, width: 160, background: "#fff", borderRadius: 14, overflow: "hidden", cursor: "pointer", boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
-                  <div style={{ height: 120, background: "#F9F5FF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ height: 120, background: "#FAF7F0", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <img src={p.img} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => { (e.currentTarget as any).style.display = "none"; }} />
                   </div>
                   <div style={{ padding: "10px 12px" }}>
@@ -170,7 +170,7 @@ export default function YPRehberMakalePage() {
               {MOCK_ARTICLES.filter(a => a.slug !== article.slug).slice(0, 3).map(a => (
                 <div key={a.slug} onClick={() => navigate(`${BASE}/rehber/${a.category}/${a.slug}`)}
                   style={{ background: "#fff", borderRadius: 14, padding: "16px 18px", cursor: "pointer", boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: P, background: "#F5F0FF", padding: "2px 8px", borderRadius: 9999 }}>{a.categoryLabel}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: P, background: "#F5F0E6", padding: "2px 8px", borderRadius: 9999 }}>{a.categoryLabel}</span>
                   <p style={{ margin: "8px 0 4px", fontWeight: 700, color: "#111827", fontSize: 14 }}>{a.title}</p>
                   <p style={{ margin: 0, fontSize: 12, color: "#9CA3AF" }}>{a.readTime} dk okuma</p>
                 </div>
@@ -204,7 +204,7 @@ export default function YPRehberMakalePage() {
               height: 44,
               borderRadius: 12,
               border: isFavorited ? `1.5px solid ${P}` : "1.5px solid #E5E7EB",
-              background: isFavorited ? "#F5F0FF" : "#fff",
+              background: isFavorited ? "#F5F0E6" : "#fff",
               color: isFavorited ? P : "#374151",
               fontSize: 14,
               fontWeight: 600,

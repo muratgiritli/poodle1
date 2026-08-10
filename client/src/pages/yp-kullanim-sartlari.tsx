@@ -114,11 +114,11 @@ export default function YPKullanimSartlari() {
             <p>Bu Şartlar Türk Hukuku'na tabidir. Uyuşmazlıklarda İstanbul Mahkemeleri ve İcra Daireleri yetkilidir.</p>
           </div>
 
-          <div className="tos-section" style={{ background:"#F5F0FF", borderRadius:16, padding:"20px", border:"none" }}>
+          <div className="tos-section" style={{ background:"#F5F0E6", borderRadius:16, padding:"20px", border:"none" }}>
             <h2 style={{ border:"none", paddingTop:0 }}>İletişim</h2>
             <p>Kullanım şartları hakkında sorularınız için:</p>
             <ul style={{ marginTop:8 }}>
-              <li><strong>E-posta:</strong> <a href="mailto:info@yourpoodle.com" style={{ color:"#7C3AFF" }}>info@yourpoodle.com</a></li>
+              <li><strong>E-posta:</strong> <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A" }}>info@yourpoodle.com</a></li>
               <li><strong>Platform:</strong> YourPoodle / Sizpa Yazılım ve Teknoloji A.Ş.</li>
             </ul>
           </div>

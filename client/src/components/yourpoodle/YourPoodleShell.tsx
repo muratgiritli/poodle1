@@ -84,7 +84,7 @@ export default function YourPoodleShell({ children, activeTab = "home" }: Props)
             {navItem("guide", <Users className="h-[22px] w-[22px]" strokeWidth={2.5} />, "Club", "/yourpoodle/rehber")}
             <Link href="/yourpoodle">
               <div className="flex flex-col items-center justify-center w-16 -mt-8 cursor-pointer">
-                <div className="bg-purple-600 text-white p-4 rounded-full shadow-[0_8px_20px_rgba(124,58,237,0.4)]">
+                <div className="bg-purple-600 text-white p-4 rounded-full shadow-[0_8px_20px_rgba(93,58,26,0.4)]">
                   <ShoppingCart className="h-6 w-6" strokeWidth={2.5} />
                 </div>
               </div>

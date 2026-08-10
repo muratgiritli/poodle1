@@ -48,7 +48,7 @@ export default function YPCookieBanner() {
             Siteyi daha iyi hale getirmek için çerezler kullanıyoruz.{" "}
             <button
               onClick={() => setShowDetail(!showDetail)}
-              style={{ background: "none", border: "none", color: "#7C3AFF", fontWeight: 700, cursor: "pointer", padding: 0, fontSize: 12.5, fontFamily: "'Inter',sans-serif" }}
+              style={{ background: "none", border: "none", color: "#5D3A1A", fontWeight: 700, cursor: "pointer", padding: 0, fontSize: 12.5, fontFamily: "'Inter',sans-serif" }}
             >
               {showDetail ? "Gizle ↑" : "Detaylar →"}
             </button>
@@ -71,7 +71,7 @@ export default function YPCookieBanner() {
         <button
           onClick={() => accept("all")}
           style={{
-            height: 48, borderRadius: 12, background: "#7C3AFF", color: "#fff",
+            height: 48, borderRadius: 12, background: "#5D3A1A", color: "#fff",
             border: "none", fontSize: 14, fontWeight: 800, cursor: "pointer",
             fontFamily: "'Inter',sans-serif",
           }}
@@ -84,7 +84,7 @@ export default function YPCookieBanner() {
             onClick={() => accept("required")}
             style={{
               flex: 1, height: 44, borderRadius: 12, background: "#F5F0FF",
-              color: "#7C3AFF", border: "1.5px solid #DDD5FF",
+              color: "#5D3A1A", border: "1.5px solid #E5DDD0",
               fontSize: 13, fontWeight: 700, cursor: "pointer",
               fontFamily: "'Inter',sans-serif",
             }}
@@ -109,8 +109,8 @@ export default function YPCookieBanner() {
 
       <p style={{ marginTop: 10, fontSize: 11, color: "#aaa", textAlign: "center", lineHeight: 1.4 }}>
         KVKK kapsamında kişisel verileriniz korunmaktadır.{" "}
-        <a href="/kvkk" style={{ color: "#7C3AFF", textDecoration: "none" }}>KVKK Aydınlatma Metni</a>{" "}·{" "}
-        <a href="/cerez-politikasi" style={{ color: "#7C3AFF", textDecoration: "none" }}>Çerez Politikası</a>
+        <a href="/kvkk" style={{ color: "#5D3A1A", textDecoration: "none" }}>KVKK Aydınlatma Metni</a>{" "}·{" "}
+        <a href="/cerez-politikasi" style={{ color: "#5D3A1A", textDecoration: "none" }}>Çerez Politikası</a>
       </p>
     </div>
   );

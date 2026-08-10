@@ -5,7 +5,7 @@ import { Heart, MessageCircle, Share2, Bookmark, ArrowLeft, MoreHorizontal, Send
 import { getPost, MOCK_POSTS } from "@/data/clubPosts";
 import { IS_YP } from "@/lib/store";
 
-const P = "#7022C4";
+const P = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 export default function YPGonderiDetayPage() {
@@ -72,7 +72,7 @@ export default function YPGonderiDetayPage() {
 
           <div style={{ display: "flex", gap: 0, width: "100%", flexWrap: "wrap", background: "#fff", borderRadius: 20, overflow: "hidden", boxShadow: "0 2px 16px rgba(0,0,0,0.08)" }}>
             {/* Image */}
-            <div style={{ flex: "1 1 340px", minHeight: 300, background: "linear-gradient(135deg,#7022C4,#A855F7,#EC4899)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ flex: "1 1 340px", minHeight: 300, background: "linear-gradient(135deg,#5D3A1A,#A67C52,#EC4899)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <span style={{ fontSize: 80 }}>{post.avatar}</span>
             </div>
 
@@ -81,7 +81,7 @@ export default function YPGonderiDetayPage() {
               {/* Author row */}
               <div style={{ padding: "16px 20px", borderBottom: "1px solid #F3F4F6", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#F5F0FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>{post.avatar}</div>
+                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#F5F0E6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>{post.avatar}</div>
                   <div>
                     <button onClick={() => navigate(`${BASE}/club/profil/${post.username}`)}
                       style={{ background: "none", border: "none", cursor: "pointer", fontWeight: 700, fontSize: 14, color: "#111827", padding: 0, fontFamily: "inherit" }}>
@@ -92,7 +92,7 @@ export default function YPGonderiDetayPage() {
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button onClick={() => setFollowing(f => !f)}
-                    style={{ padding: "6px 14px", borderRadius: 8, border: `1.5px solid ${P}`, background: following ? P : "#F5F0FF", color: following ? "#fff" : P, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                    style={{ padding: "6px 14px", borderRadius: 8, border: `1.5px solid ${P}`, background: following ? P : "#F5F0E6", color: following ? "#fff" : P, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
                     {following ? "Takip Ediliyor" : "Takip Et"}
                   </button>
                   <button style={{ background: "none", border: "none", cursor: "pointer", color: "#9CA3AF" }}>
@@ -159,7 +159,7 @@ export default function YPGonderiDetayPage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
               {MOCK_POSTS.filter(p => p.id !== post.id).map(p => (
                 <div key={p.id} onClick={() => navigate(`${BASE}/club/gonderi/${p.id}`)}
-                  style={{ aspectRatio: "1", borderRadius: 12, background: "linear-gradient(135deg,#7022C4,#A855F7)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 36 }}>
+                  style={{ aspectRatio: "1", borderRadius: 12, background: "linear-gradient(135deg,#5D3A1A,#A67C52)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 36 }}>
                   {p.avatar}
                 </div>
               ))}

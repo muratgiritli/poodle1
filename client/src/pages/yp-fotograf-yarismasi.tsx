@@ -9,7 +9,7 @@ export default function YPFotografYarismasi() {
       breadcrumb={[{ label:"Ana Sayfa", href:"/yourpoodle" }, { label:"Club", href:"/yourpoodle/club" }, { label:"Fotoğraf Yarışması" }]}
     >
       {/* Hero */}
-      <div style={{ background:"linear-gradient(135deg,#7C3AED,#A855F7)", borderRadius:18, padding:"24px 20px", marginBottom:32, position:"relative", overflow:"hidden" }}>
+      <div style={{ background:"linear-gradient(135deg,#5D3A1A,#A67C52)", borderRadius:18, padding:"24px 20px", marginBottom:32, position:"relative", overflow:"hidden" }}>
         <div style={{ position:"absolute", top:-20, right:-20, width:100, height:100, borderRadius:"50%", background:"rgba(255,255,255,0.08)" }}/>
         <div style={{ fontSize:11, fontWeight:800, color:"rgba(255,255,255,0.65)", letterSpacing:"0.1em", marginBottom:6 }}>AKTİF YARIŞMA</div>
         <h2 style={{ fontSize:20, fontWeight:900, color:"#fff", marginBottom:8, padding:0, border:"none" }}>Sonbahar Poodle Fotoğraf Yarışması 2026</h2>

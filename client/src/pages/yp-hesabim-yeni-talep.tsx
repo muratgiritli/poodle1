@@ -10,7 +10,7 @@ import YPLayout from "@/components/yourpoodle/YPLayout";
 
 /* ── Palette ─────────────────────────── */
 const P   = "#4B2BD6";
-const PL  = "#F3EEFF";
+const PL  = "#F5F0E6";
 const NAV = "#1D1E9B";
 const DRK = "#111827";
 const GT  = "#6B7280";
@@ -424,7 +424,7 @@ export default function YPYeniTalepPage() {
 
             {/* Upload zone */}
             <div style={{
-              border:"2px dashed #C4B5FD", borderRadius:16, padding:"14px",
+              border:"2px dashed #D4C4B0", borderRadius:16, padding:"14px",
               display:"flex", alignItems:"center", gap:12, justifyContent:"space-between",
             }}>
               <div style={{ display:"flex", alignItems:"center", gap:12, flex:1 }}>

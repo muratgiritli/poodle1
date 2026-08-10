@@ -5,7 +5,7 @@ import { ChevronRight } from "lucide-react";
 import { MOCK_SEARCH_PRODUCTS } from "@/data/searchResults";
 import { IS_YP } from "@/lib/store";
 
-const P = "#7022C4";
+const P = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 const BRAND_MAP: Record<string, { name: string; desc: string; logo: string }> = {
@@ -37,8 +37,8 @@ export default function YPMarkaSayfasiPage() {
           </div>
 
           {/* Brand header */}
-          <div style={{ background: "linear-gradient(135deg,#F5F0FF,#EDE9FE)", borderRadius: 18, padding: "28px 24px", marginBottom: 28, display: "flex", gap: 20, alignItems: "center" }}>
-            <div style={{ width: 72, height: 72, borderRadius: 16, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, flexShrink: 0, boxShadow: "0 2px 12px rgba(112,34,196,0.12)" }}>
+          <div style={{ background: "linear-gradient(135deg,#F5F0E6,#EDE5D8)", borderRadius: 18, padding: "28px 24px", marginBottom: 28, display: "flex", gap: 20, alignItems: "center" }}>
+            <div style={{ width: 72, height: 72, borderRadius: 16, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, flexShrink: 0, boxShadow: "0 2px 12px rgba(93,58,26,0.12)" }}>
               {brand.logo}
             </div>
             <div>
@@ -53,7 +53,7 @@ export default function YPMarkaSayfasiPage() {
             {products.map(p => (
               <div key={p.id} onClick={() => navigate(`${BASE}/urun/${p.id}`)}
                 style={{ background: "#fff", borderRadius: 14, overflow: "hidden", cursor: "pointer", boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
-                <div style={{ height: 150, background: "#F9F5FF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ height: 150, background: "#FAF7F0", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <img src={p.img} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => { (e.currentTarget as any).style.display = "none"; }} />
                 </div>
                 <div style={{ padding: "12px 14px" }}>

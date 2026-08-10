@@ -59,7 +59,7 @@ function ProductCard({ p, badge }: { p: typeof FOOD[0] & { spec?: string; badge?
     <div style={{ background: "#fff", borderRadius: 14, overflow: "hidden",
                   boxShadow: "0 1px 8px rgba(90,45,145,0.10)", border: "1px solid #F0EBF8",
                   display: "flex", flexDirection: "column" }}>
-      <div style={{ position: "relative", background: "#F8F5FF", aspectRatio: "1/1" }}>
+      <div style={{ position: "relative", background: "#FAF7F0", aspectRatio: "1/1" }}>
         <img src={p.img} alt={p.name}
           style={{ width: "100%", height: "100%", objectFit: "contain", padding: 10 }}
           onError={e => { (e.target as HTMLImageElement).style.opacity = "0"; }} />
@@ -392,7 +392,7 @@ export default function YourPoodleDemo() {
                         marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="#A78BFA" strokeWidth="2">
+                stroke="#A67C52" strokeWidth="2">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
               </svg>
               <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>256-bit SSL ile güvenli alışveriş</span>
