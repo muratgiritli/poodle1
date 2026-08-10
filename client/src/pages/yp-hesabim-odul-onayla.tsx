@@ -94,7 +94,7 @@ function TermsModal({ onClose, onAccept }: { onClose:()=>void; onAccept:()=>void
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.5)", zIndex:9998,
                   display:"flex", alignItems:"flex-end", justifyContent:"center" }}>
       <div style={{ background:"#fff", borderRadius:"20px 20px 0 0", padding:"24px 20px 40px",
-                    width:"100%", maxWidth:480, maxHeight:"80vh", display:"flex", flexDirection:"column" }}>
+                    width:"100%", maxWidth: "var(--yp-shell-max)", maxHeight:"80vh", display:"flex", flexDirection:"column" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
           <span style={{ fontSize:16, fontWeight:700, color:DRK }}>PoodlePuan Ödül Kullanım Koşulları</span>
           <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer" }}>

@@ -41,7 +41,7 @@ const SECTIONS = [
     items: [
       { q: "Club üyeliği ücretli mi?", a: "Hayır, tamamen ücretsizdir. Kayıt için yalnızca telefon numaranız yeterlidir." },
       { q: "Şifremi unuttum, ne yapmalıyım?", a: "Giriş ekranındaki 'Şifremi Unuttum' linkine tıklayın veya telefon numaranızla OTP ile giriş yapın." },
-      { q: "Hesabımı nasıl silebilirim?", a: "info@yourpoodle.com adresine e-posta göndererek hesap silme talebinde bulunabilirsiniz. Verileriniz 30 gün içinde silinir." },
+      { q: "Hesabımı nasıl silebilirim?", a: "info@sizpa.com adresine e-posta göndererek hesap silme talebinde bulunabilirsiniz. Verileriniz 30 gün içinde silinir." },
     ],
   },
   {
@@ -97,7 +97,7 @@ export default function YPSSS() {
     >
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <p style={{ fontSize:14, color:"#555", lineHeight:1.75, marginBottom:28 }}>
-        Aradığınızı bulamazsanız <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A", fontWeight:700 }}>info@yourpoodle.com</a> adresinden bize ulaşabilirsiniz.
+        Aradığınızı bulamazsanız <a href="mailto:info@sizpa.com" style={{ color:"#5D3A1A", fontWeight:700 }}>info@sizpa.com</a> adresinden bize ulaşabilirsiniz.
       </p>
       {SECTIONS.map(s => (
         <div key={s.title} className="sp-section">

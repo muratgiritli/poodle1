@@ -183,7 +183,7 @@ export default function YPOdulMerkeziPage() {
       {toast && <Toast msg={toast} onClose={()=>setToast(null)} />}
       {filterOpen && (
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.5)", zIndex:9998, display:"flex", alignItems:"flex-end", justifyContent:"center" }}>
-          <div style={{ background:"#fff", borderRadius:"20px 20px 0 0", padding:"24px 20px 40px", width:"100%", maxWidth:480 }}>
+          <div style={{ background:"#fff", borderRadius:"20px 20px 0 0", padding:"24px 20px 40px", width:"100%", maxWidth: "var(--yp-shell-max)" }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
               <span style={{ fontSize:16, fontWeight:700, color:DRK }}>Filtrele</span>
               <button onClick={()=>setFilterOpen(false)} style={{ background:"none", border:"none", cursor:"pointer" }}><X size={20} color={GT}/></button>
@@ -550,7 +550,7 @@ export default function YPOdulMerkeziPage() {
       {/* ── STICKY EXPIRY BAR ── */}
       <div style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:4000,
                     display:"flex", justifyContent:"center", pointerEvents:"none" }}>
-        <div style={{ maxWidth:480, width:"100%", pointerEvents:"all" }}>
+        <div style={{ maxWidth: "var(--yp-shell-max)", width:"100%", pointerEvents:"all" }}>
           <div style={{ background:"#FFF7ED", borderTop:"1px solid #FED7AA",
                         borderRadius:"20px 20px 0 0", padding:"12px 16px",
                         display:"flex", alignItems:"center", gap:10 }}>

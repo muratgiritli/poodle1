@@ -57,7 +57,7 @@ export default function YPKargo() {
 
       <div className="sp-section">
         <h2>Teslimat Sorunları</h2>
-        <p>Paketiniz hasarlı ya da eksik teslim edildiyse kargo teslim tutanağına not düşün ve <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A" }}>info@yourpoodle.com</a> adresine fotoğrafla birlikte bildirin. 24 saat içinde dönüş yapılır.</p>
+        <p>Paketiniz hasarlı ya da eksik teslim edildiyse kargo teslim tutanağına not düşün ve <a href="mailto:info@sizpa.com" style={{ color:"#5D3A1A" }}>info@sizpa.com</a> adresine fotoğrafla birlikte bildirin. 24 saat içinde dönüş yapılır.</p>
       </div>
 
       <div style={{ display:"flex", gap:12, flexWrap:"wrap" }}>

@@ -11,11 +11,11 @@ const CONTENT: Record<LegalVariant, { title: string; pageTitle: string; sections
     title: "KVKK Aydınlatma Metni",
     pageTitle: "KVKK | YourPoodle",
     sections: [
-      { heading: "Veri Sorumlusu", text: "YourPoodle (SİZPA Bilişim Ltd. Şti.), 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında veri sorumlusu sıfatıyla hareket etmektedir. İletişim: info@yourpoodle.com" },
+      { heading: "Veri Sorumlusu", text: "YourPoodle (SİZPA Bilişim Ltd. Şti.), 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında veri sorumlusu sıfatıyla hareket etmektedir. İletişim: info@sizpa.com" },
       { heading: "İşlenen Kişisel Veriler", text: "Ad-soyad, e-posta adresi, telefon numarası, teslimat adresi, sipariş geçmişi, çerez verileri ve Poodle profilinize ilişkin bilgiler işlenmektedir." },
       { heading: "İşleme Amaçları", text: "Kişisel verileriniz; sipariş yönetimi, üyelik hizmetleri, müşteri desteği, kargo ve lojistik operasyonları, yasal yükümlülüklerin yerine getirilmesi ve güvenliğin sağlanması amaçlarıyla işlenmektedir." },
       { heading: "Aktarım", text: "Verileriniz; kargo firmaları, ödeme altyapı sağlayıcıları ve yasal zorunluluk halinde resmi makamlarla paylaşılabilir. Üçüncü taraflara pazarlama amaçlı satış yapılmamaktadır." },
-      { heading: "Haklarınız", text: "KVKK'nın 11. maddesi kapsamında verilerinize erişme, düzeltme, silme, işlemeye itiraz etme ve veri taşınabilirliği haklarına sahipsiniz. Başvurular için: info@yourpoodle.com" },
+      { heading: "Haklarınız", text: "KVKK'nın 11. maddesi kapsamında verilerinize erişme, düzeltme, silme, işlemeye itiraz etme ve veri taşınabilirliği haklarına sahipsiniz. Başvurular için: info@sizpa.com" },
     ],
   },
   gizlilik: {
@@ -26,7 +26,7 @@ const CONTENT: Record<LegalVariant, { title: string; pageTitle: string; sections
       { heading: "Çerezler", text: "Hizmetlerimizi geliştirmek ve kişiselleştirilmiş içerik sunmak için çerezler kullanılmaktadır. Tarayıcı ayarlarınızdan çerez tercihlerinizi yönetebilirsiniz." },
       { heading: "Veri Güvenliği", text: "SSL şifrelemesi, düzenli güvenlik denetimleri ve erişim kontrolleri ile kişisel verilerinizin güvenliği sağlanmaktadır." },
       { heading: "Üçüncü Taraflar", text: "Google Analytics ve ödeme işlemcileri gibi hizmet sağlayıcılarıyla minimum veri paylaşımı yapılmaktadır. Bu sağlayıcılar kendi gizlilik politikalarına tabidir." },
-      { heading: "İletişim", text: "Gizlilik politikasına ilişkin sorularınız için: info@yourpoodle.com" },
+      { heading: "İletişim", text: "Gizlilik politikasına ilişkin sorularınız için: info@sizpa.com" },
     ],
   },
   "kullanim-sartlari": {
@@ -34,21 +34,21 @@ const CONTENT: Record<LegalVariant, { title: string; pageTitle: string; sections
     pageTitle: "Kullanım Şartları | YourPoodle",
     sections: [
       { heading: "Kabul", text: "YourPoodle platformunu kullanarak bu kullanım şartlarını kabul etmiş sayılırsınız. Şartları kabul etmiyorsanız platforma erişimden vazgeçiniz." },
-      { heading: "Hesap Sorumluluğu", text: "Hesap güvenliğinizden siz sorumlusunuz. Şüpheli aktivite fark ettiğinizde info@yourpoodle.com adresine bildirin. Hesabınızı başkasıyla paylaşmayın." },
+      { heading: "Hesap Sorumluluğu", text: "Hesap güvenliğinizden siz sorumlusunuz. Şüpheli aktivite fark ettiğinizde info@sizpa.com adresine bildirin. Hesabınızı başkasıyla paylaşmayın." },
       { heading: "İçerik Kullanımı", text: "Platformdaki tüm içerikler (görseller, metinler, marka unsurları) YourPoodle'a aittir. İzinsiz kopyalanması ve dağıtılması yasaktır." },
       { heading: "Topluluk Kuralları", text: "Club bölümünde paylaşılan içerikler Türk hukukuna ve YourPoodle topluluk kurallarına uygun olmalıdır. Nefret söylemi, spam ve yanıltıcı içerik yasaktır." },
-      { heading: "Hesap Silme", text: "Hesabınızı dilediğiniz zaman info@yourpoodle.com adresine yazarak silebilirsiniz. Talepler 30 gün içinde işleme alınır." },
+      { heading: "Hesap Silme", text: "Hesabınızı dilediğiniz zaman info@sizpa.com adresine yazarak silebilirsiniz. Talepler 30 gün içinde işleme alınır." },
     ],
   },
   "mesafeli-satis": {
     title: "Mesafeli Satış Sözleşmesi",
     pageTitle: "Mesafeli Satış Sözleşmesi | YourPoodle",
     sections: [
-      { heading: "Satıcı Bilgileri", text: "SİZPA Bilişim Ltd. Şti. | Adres: Cumhuriyet Mah. Atatürk Bulvarı No:42, Atakum/Samsun | Tel: 0362 000 12 34 | E-posta: info@yourpoodle.com" },
+      { heading: "Satıcı Bilgileri", text: "SİZPA Bilişim Ltd. Şti. | Adres: Cumhuriyet Mah. Atatürk Bulvarı No:42, Atakum/Samsun | Tel: 0362 000 12 34 | E-posta: info@sizpa.com" },
       { heading: "Sipariş ve Ödeme", text: "Siparişler onaylandıktan sonra hazırlanmaya başlanır. Ödeme, sipariş sırasında kapıda (nakit/kart) veya havale/EFT ile gerçekleştirilir. Fiyatlara KDV dahildir." },
       { heading: "Teslimat", text: "Siparişler, onay tarihinden itibaren 2-4 iş günü içinde teslim edilir. 299₺ ve üzeri siparişlerde kargo ücretsizdir; 299₺ altı siparişlere kargo ücreti uygulanır." },
       { heading: "Cayma Hakkı", text: "Ürün tesliminden itibaren 14 gün içinde herhangi bir gerekçe göstermeksizin cayma hakkınızı kullanabilirsiniz. İade kargo ücreti alıcıya aittir. Açılmış, kullanılmış veya bozulmuş ürünler iade kabul edilmez." },
-      { heading: "Şikâyet", text: "Tüketici şikâyetleri için önce info@yourpoodle.com üzerinden iletişime geçiniz. Çözüme kavuşamayan başvurular için Tüketici Hakem Heyeti'ne başvurabilirsiniz." },
+      { heading: "Şikâyet", text: "Tüketici şikâyetleri için önce info@sizpa.com üzerinden iletişime geçiniz. Çözüme kavuşamayan başvurular için Tüketici Hakem Heyeti'ne başvurabilirsiniz." },
     ],
   },
 };

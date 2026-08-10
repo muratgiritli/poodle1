@@ -89,7 +89,7 @@ export default function YPTalepDetayPage() {
         </div>
       )}
 
-      <div style={{ maxWidth:480, margin:"0 auto", fontFamily:"'Inter',-apple-system,sans-serif",
+      <div style={{ maxWidth: "var(--yp-shell-max)", margin:"0 auto", fontFamily:"'Inter',-apple-system,sans-serif",
                     background:GBG, minHeight:"100vh", color:DRK, paddingBottom:0 }}>
 
         {/* ── BREADCRUMB ── */}

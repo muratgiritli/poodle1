@@ -15,7 +15,7 @@ export default function YPIade() {
       <div className="sp-section">
         <h2>İade Adımları</h2>
         <ol>
-          <li><strong>Talep oluşturun:</strong> <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A" }}>info@yourpoodle.com</a> adresine sipariş numaranızı ve iade gerekçenizi yazın.</li>
+          <li><strong>Talep oluşturun:</strong> <a href="mailto:info@sizpa.com" style={{ color:"#5D3A1A" }}>info@sizpa.com</a> adresine sipariş numaranızı ve iade gerekçenizi yazın.</li>
           <li><strong>Kargo kodunu alın:</strong> 24 saat içinde size ücretsiz iade kargo kodu gönderilir.</li>
           <li><strong>Ürünü paketleyin:</strong> Orijinal ambalajında, tüm aksesuarlarıyla birlikte paketleyin.</li>
           <li><strong>Kargoya verin:</strong> Kargo koduyla herhangi bir Yurtiçi Kargo şubesine teslim edin.</li>
@@ -41,11 +41,11 @@ export default function YPIade() {
 
       <div className="sp-section">
         <h2>Hasarlı / Hatalı Ürün</h2>
-        <p>Hasarlı veya yanlış ürün geldiyse iade kargo ücreti tamamen tarafımıza aittir. Fotoğraflı bildirim için <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A" }}>info@yourpoodle.com</a> adresine yazın; aynı gün çözüm üretilir.</p>
+        <p>Hasarlı veya yanlış ürün geldiyse iade kargo ücreti tamamen tarafımıza aittir. Fotoğraflı bildirim için <a href="mailto:info@sizpa.com" style={{ color:"#5D3A1A" }}>info@sizpa.com</a> adresine yazın; aynı gün çözüm üretilir.</p>
       </div>
 
       <div style={{ display:"flex", gap:12, flexWrap:"wrap" }}>
-        <a href="mailto:info@yourpoodle.com" className="sp-cta-btn">İade Talebi Oluştur</a>
+        <a href="mailto:info@sizpa.com" className="sp-cta-btn">İade Talebi Oluştur</a>
         <a href="/yourpoodle/mesafeli-satis" className="sp-cta-btn" style={{ background:"#F5F0E6", color:"#5D3A1A" }}>Mesafeli Satış Sözleşmesi →</a>
       </div>
     </YPStaticPage>

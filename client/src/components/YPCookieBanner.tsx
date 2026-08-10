@@ -35,7 +35,7 @@ export default function YPCookieBanner() {
       style={{
         position: "fixed", bottom: 80, left: 12, right: 12, zIndex: 9999,
         background: "#fff", borderRadius: 20, padding: "20px 18px",
-        boxShadow: "0 8px 40px rgba(0,0,0,0.18)", maxWidth: 480,
+        boxShadow: "0 8px 40px rgba(0,0,0,0.18)", maxWidth: "var(--yp-shell-max)",
         margin: "0 auto",
         fontFamily: "'Inter',sans-serif",
       }}

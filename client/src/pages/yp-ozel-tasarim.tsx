@@ -21,7 +21,7 @@ export default function YPOzelTasarim() {
         <p style={{ fontSize:14, lineHeight:1.6, color:"rgba(255,255,255,0.88)", margin:"0 0 20px" }}>
           Adı işlenmiş, rengi seçilmiş, bedeni ölçülmüş — tamamen sizin için üretilen poodle aksesuarları.
         </p>
-        <a href="mailto:info@yourpoodle.com?subject=Özel%20Tasarım%20Talebi"
+        <a href="mailto:info@sizpa.com?subject=Özel%20Tasarım%20Talebi"
           style={{ display:"inline-flex", alignItems:"center", gap:8, height:46, padding:"0 22px", borderRadius:12, background:"#fff", color:"#5D3A1A", fontSize:14, fontWeight:800, textDecoration:"none", fontFamily:"Inter,sans-serif" }}>
           Talep Oluştur →
         </a>
@@ -43,7 +43,7 @@ export default function YPOzelTasarim() {
       <div className="sp-section">
         <h2>Sipariş Süreci</h2>
         <ol>
-          <li><strong>Talep gönderin:</strong> <a href="mailto:info@yourpoodle.com?subject=Özel%20Tasarım%20Talebi" style={{ color:"#5D3A1A" }}>info@yourpoodle.com</a> adresine ürün türü, renk, beden ve varsa özel not gönderin.</li>
+          <li><strong>Talep gönderin:</strong> <a href="mailto:info@sizpa.com?subject=Özel%20Tasarım%20Talebi" style={{ color:"#5D3A1A" }}>info@sizpa.com</a> adresine ürün türü, renk, beden ve varsa özel not gönderin.</li>
           <li><strong>Fiyat teklifi alın:</strong> 24 saat içinde kişiselleştirilmiş fiyat teklifi gönderilir.</li>
           <li><strong>Onaylayın ve ödeme yapın:</strong> Ödeme bağlantısı e-posta ile iletilir.</li>
           <li><strong>Üretim ve kargo:</strong> Üretim süresi 3–7 iş günü; tamamlandığında kargoya verilir.</li>
@@ -57,7 +57,7 @@ export default function YPOzelTasarim() {
         <p><strong>İade edilebilir mi?</strong><br/>Kişiselleştirilmiş ürünler üretim başlamadan iptal edilebilir; üretim başladıktan sonra iade kabul edilmez.</p>
       </div>
 
-      <a href="mailto:info@yourpoodle.com?subject=Özel%20Tasarım%20Talebi" className="sp-cta-btn">Talep Oluştur</a>
+      <a href="mailto:info@sizpa.com?subject=Özel%20Tasarım%20Talebi" className="sp-cta-btn">Talep Oluştur</a>
     </YPStaticPage>
   );
 }

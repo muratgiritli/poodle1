@@ -67,7 +67,7 @@ export default function YPDogEditPage({ routeSlug }: { routeSlug?: string }) {
 
   return (
     <YPLayout activeLink="/yourpoodle/club" constrain={false}>
-      <div style={{ maxWidth: 480, margin: "0 auto", paddingBottom: 80 }}>
+      <div style={{ maxWidth: "var(--yp-shell-max)", margin: "0 auto", paddingBottom: 80 }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", padding: "12px 16px", borderBottom: "1px solid #f0f0f0", background: "#fff", position: "sticky", top: 60, zIndex: 50 }}>
           <button onClick={() => navigate(`/yourpoodle/p/${routeSlug}`)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
@@ -187,7 +187,7 @@ export default function YPDogEditPage({ routeSlug }: { routeSlug?: string }) {
           )}
         </div>
 
-        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#fff", borderTop: "1px solid #f0f0f0", padding: "12px 20px", maxWidth: 480, margin: "0 auto", zIndex: 100 }}>
+        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#fff", borderTop: "1px solid #f0f0f0", padding: "12px 20px", maxWidth: "var(--yp-shell-max)", margin: "0 auto", zIndex: 100 }}>
           <button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}
             style={{ width: "100%", height: 50, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#5D3A1A,#A67C52)", color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
             <Save size={18} /> {saveMutation.isPending ? "Kaydediliyor..." : "Kaydet"}

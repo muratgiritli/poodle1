@@ -25,7 +25,7 @@ export default function YPUluslararasiKargo() {
             <tr><td>Avustralya / Asya</td><td>Avustralya, Japonya, Singapur</td><td>8–15 iş günü</td></tr>
           </tbody>
         </table>
-        <p style={{ marginTop:10, fontSize:13, color:"#888" }}>Listede olmayan ülkeler için info@yourpoodle.com adresinden bilgi alabilirsiniz.</p>
+        <p style={{ marginTop:10, fontSize:13, color:"#888" }}>Listede olmayan ülkeler için info@sizpa.com adresinden bilgi alabilirsiniz.</p>
       </div>
 
       <div className="sp-section">
@@ -45,7 +45,7 @@ export default function YPUluslararasiKargo() {
 
       <div className="sp-section">
         <h2>İletişim</h2>
-        <p>Uluslararası sipariş için yardım almak üzere <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A" }}>info@yourpoodle.com</a> adresine yazabilirsiniz. Yanıt süresi 24–48 saattir.</p>
+        <p>Uluslararası sipariş için yardım almak üzere <a href="mailto:info@sizpa.com" style={{ color:"#5D3A1A" }}>info@sizpa.com</a> adresine yazabilirsiniz. Yanıt süresi 24–48 saattir.</p>
       </div>
 
       <a href="/yourpoodle/kargo" className="sp-cta-btn" style={{ background:"#F5F0E6", color:"#5D3A1A" }}>← Yurt İçi Kargo</a>

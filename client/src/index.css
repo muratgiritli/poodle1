@@ -2,6 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
+/* YourPoodle responsive shells — mobile stays narrow, tablet/desktop widen */
+:root {
+  --yp-shell-max: 100%;
+  --yp-read-max: 100%;
+}
+@media (min-width: 640px) {
+  :root {
+    --yp-shell-max: 640px;
+    --yp-read-max: 640px;
+  }
+}
+@media (min-width: 768px) {
+  :root {
+    --yp-shell-max: 760px;
+    --yp-read-max: 720px;
+  }
+}
+@media (min-width: 1024px) {
+  :root {
+    --yp-shell-max: 1120px;
+    --yp-read-max: 860px;
+  }
+}
+@media (min-width: 1280px) {
+  :root {
+    --yp-shell-max: 1200px;
+    --yp-read-max: 920px;
+  }
+}
+
+.yp-shell {
+  width: 100%;
+  max-width: var(--yp-shell-max);
+  margin-left: auto;
+  margin-right: auto;
+}
+.yp-read {
+  width: 100%;
+  max-width: var(--yp-read-max);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Bottom nav: mobile only */
+@media (min-width: 768px) {
+  .yp-btm-nav-root { display: none !important; }
+  .yp-btm-nav-spacer { display: none !important; }
+}
+
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 

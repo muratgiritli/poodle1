@@ -138,7 +138,7 @@ export default function YourPoodleV5() {
         display:"flex", justifyContent:"center",
       }}>
         <div style={{
-          width:"100%", maxWidth:430,
+          width:"100%", maxWidth: "var(--yp-shell-max)",
           background:"#FAFAFA", position:"relative",
           minHeight:"100dvh",
         }}>

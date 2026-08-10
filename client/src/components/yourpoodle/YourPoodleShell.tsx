@@ -51,7 +51,7 @@ export default function YourPoodleShell({ children, activeTab = "home" }: Props)
 
   return (
     <div className="w-full min-h-screen flex justify-center" style={{ background: "#FAF7FF", fontFamily: "'Nunito', sans-serif" }}>
-      <div className="w-full max-w-[430px] min-h-screen relative pb-28 shadow-2xl" style={{ background: "#FAF7FF" }}>
+      <div className="yp-shell w-full min-h-screen relative pb-28 md:shadow-none shadow-2xl" style={{ background: "#FAF7FF" }}>
 
         {/* STICKY HEADER */}
         <header className="sticky top-0 z-40 bg-white shadow-sm">
@@ -78,7 +78,7 @@ export default function YourPoodleShell({ children, activeTab = "home" }: Props)
         {children}
 
         {/* FIXED BOTTOM NAV */}
-        <div className="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.08)] z-50">
+        <div className="yp-btm-nav-root fixed bottom-0 left-0 right-0 yp-shell mx-auto bg-white rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.08)] z-50">
           <div className="flex justify-around items-center h-20 px-2 pb-2">
             {navItem("home", <Home className="h-[22px] w-[22px]" strokeWidth={2.5} />, "Home", "/yourpoodle")}
             {navItem("guide", <Users className="h-[22px] w-[22px]" strokeWidth={2.5} />, "Club", "/yourpoodle/rehber")}

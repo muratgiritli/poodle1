@@ -292,7 +292,7 @@ export default function YPHesabimFavorilerimPage() {
   return (
     <YPLayout activeLink="" constrain={false}>
       <div style={{
-        maxWidth: 480, margin: "0 auto",
+        maxWidth: "var(--yp-shell-max)", margin: "0 auto",
         fontFamily: "'Inter',-apple-system,sans-serif",
         color: DRK, background: GBG, minHeight: "100vh", paddingBottom: 90,
       }}>
@@ -583,7 +583,7 @@ export default function YPHesabimFavorilerimPage() {
       {/* ── STICKY BOTTOM BAR ── */}
       <div style={{
         position: "fixed", bottom: 60, left: "50%", transform: "translateX(-50%)",
-        width: "100%", maxWidth: 480,
+        width: "100%", maxWidth: "var(--yp-shell-max)",
         background: "#fff", borderTop: `1px solid ${GB}`,
         boxShadow: "0 -4px 16px rgba(0,0,0,0.08)",
         display: "flex", alignItems: "center", justifyContent: "space-between",

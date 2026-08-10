@@ -52,7 +52,7 @@ export default function YPSiparisTakipPage() {
   return (
     <YPLayout constrain={false}>
       <div style={{ minHeight: "100vh", background: "#FAF7F0", paddingBottom: 48 }}>
-        <div style={{ maxWidth: 480, margin: "0 auto", padding: "32px 20px" }}>
+        <div style={{ maxWidth: "var(--yp-shell-max)", margin: "0 auto", padding: "32px 20px" }}>
           <div style={{ textAlign: "center", marginBottom: 32 }}>
             <div style={{ width: 64, height: 64, borderRadius: "50%", background: P, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
               <Package size={32} color="#fff" />

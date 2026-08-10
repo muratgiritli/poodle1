@@ -55,7 +55,7 @@ export default function YPAtakumMagazaPage() {
                 </div>
                 <div>
                   <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: "#111827" }}>E-posta</p>
-                  <a href="mailto:info@yourpoodle.com" style={{ color: "#6B7280", fontSize: 13, textDecoration: "none" }}>info@yourpoodle.com</a>
+                  <a href="mailto:info@sizpa.com" style={{ color: "#6B7280", fontSize: 13, textDecoration: "none" }}>info@sizpa.com</a>
                 </div>
               </div>
 

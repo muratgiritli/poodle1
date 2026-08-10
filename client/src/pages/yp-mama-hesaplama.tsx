@@ -38,7 +38,7 @@ export default function YPMamaHesaplamaPage() {
   return (
     <YPLayout constrain={false}>
       <div style={{ minHeight: "100vh", background: "#FFF7ED", paddingBottom: 48 }}>
-        <div style={{ maxWidth: 440, margin: "0 auto", padding: "24px 20px 0" }}>
+        <div style={{ maxWidth: "var(--yp-shell-max)", margin: "0 auto", padding: "24px 20px 0" }}>
           <button onClick={() => navigate(`${BASE}/araclar`)}
             style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", color: "#6B7280", fontSize: 13, fontWeight: 600, padding: 0, fontFamily: "inherit", marginBottom: 20 }}>
             <ChevronLeft size={16} /> Araçlar

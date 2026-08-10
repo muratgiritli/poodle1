@@ -148,7 +148,7 @@ function EditProfileModal({ name, onSave, onClose }: {
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.5)",
                   display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:9999 }}>
       <div style={{ background:"#fff", borderRadius:"20px 20px 0 0",
-                    padding:"24px 20px 36px", width:"100%", maxWidth:480 }}>
+                    padding:"24px 20px 36px", width:"100%", maxWidth: "var(--yp-shell-max)" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
           <span style={{ fontSize:17, fontWeight:700, color:DRK }}>Profili Düzenle</span>
           <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer" }}>
@@ -191,7 +191,7 @@ function AddEmailModal({ onSave, onClose }: {
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.5)",
                   display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:9999 }}>
       <div style={{ background:"#fff", borderRadius:"20px 20px 0 0",
-                    padding:"24px 20px 36px", width:"100%", maxWidth:480 }}>
+                    padding:"24px 20px 36px", width:"100%", maxWidth: "var(--yp-shell-max)" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
           <span style={{ fontSize:17, fontWeight:700, color:DRK }}>E-posta Ekle</span>
           <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer" }}>
@@ -327,7 +327,7 @@ export default function YPHesabimAyarlarPage() {
       )}
 
       <div style={{
-        maxWidth:480, margin:"0 auto",
+        maxWidth: "var(--yp-shell-max)", margin:"0 auto",
         fontFamily:"'Inter',-apple-system,sans-serif",
         background:GBG, minHeight:"100vh", color:DRK, paddingBottom:24,
       }}>

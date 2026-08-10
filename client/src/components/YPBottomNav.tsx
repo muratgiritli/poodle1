@@ -104,8 +104,9 @@ export default function YPBottomNav() {
 
   return (
     <>
-      <div style={{ height: 68 }} />
+      <div className="yp-btm-nav-spacer" style={{ height: 68 }} />
       <nav
+        className="yp-btm-nav-root yp-btm-nav"
         aria-label="Alt menü"
         style={{
           position: "fixed",
@@ -124,7 +125,7 @@ export default function YPBottomNav() {
         <div
           style={{
             width: "100%",
-            maxWidth: 430,
+            maxWidth: "var(--yp-shell-max)",
             margin: "0 auto",
             display: "flex",
             alignItems: "stretch",

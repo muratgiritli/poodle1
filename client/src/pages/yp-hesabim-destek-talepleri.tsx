@@ -155,7 +155,7 @@ function CreateTicketModal({ onClose, onSubmit }: {
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.5)",
                   display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:9999 }}>
       <div style={{ background:"#fff", borderRadius:"20px 20px 0 0",
-                    padding:"24px 20px 40px", width:"100%", maxWidth:480 }}>
+                    padding:"24px 20px 40px", width:"100%", maxWidth: "var(--yp-shell-max)" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
           <span style={{ fontSize:16, fontWeight:700, color:DRK }}>Yeni Talep Oluştur</span>
           <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer" }}>
@@ -251,7 +251,7 @@ export default function YPDestekTalepleriPage() {
 
   return (
     <YPLayout activeLink="club" constrain={false}>
-      <div style={{ maxWidth:480, margin:"0 auto", background:GBG, minHeight:"100vh", fontFamily:"Inter, sans-serif" }}>
+      <div style={{ maxWidth: "var(--yp-shell-max)", margin:"0 auto", background:GBG, minHeight:"100vh", fontFamily:"Inter, sans-serif" }}>
 
         {/* ── BREADCRUMB ── */}
         <div style={{ padding:"14px 16px 0" }}>

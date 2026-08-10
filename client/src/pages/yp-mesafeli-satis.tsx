@@ -14,7 +14,7 @@ export default function YPMesafeliSatis() {
         <ul>
           <li>Unvan: Sizpa Yazılım ve Teknoloji A.Ş.</li>
           <li>Adres: Yenimahalle Atatürk 3. Kısım Blv. No:113/A, Samsun</li>
-          <li>E-posta: <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A" }}>info@yourpoodle.com</a></li>
+          <li>E-posta: <a href="mailto:info@sizpa.com" style={{ color:"#5D3A1A" }}>info@sizpa.com</a></li>
           <li>Telefon: 0 850 840 3959</li>
         </ul>
         <p style={{ marginTop:12 }}><strong>Alıcı:</strong> Sipariş sırasında beyan edilen ad, adres ve iletişim bilgilerine sahip gerçek veya tüzel kişi.</p>
@@ -38,7 +38,7 @@ export default function YPMesafeliSatis() {
       <div className="sp-section">
         <h2>Madde 5 — Cayma Hakkı</h2>
         <p>Alıcı, ürünü teslim aldığı tarihten itibaren <strong>14 (on dört) gün</strong> içinde herhangi bir gerekçe göstermeksizin ve cezai şart ödemeksizin sözleşmeden cayma hakkına sahiptir.</p>
-        <p>Cayma hakkının kullanılması için <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A" }}>info@yourpoodle.com</a> adresine yazılı bildirimde bulunulması yeterlidir.</p>
+        <p>Cayma hakkının kullanılması için <a href="mailto:info@sizpa.com" style={{ color:"#5D3A1A" }}>info@sizpa.com</a> adresine yazılı bildirimde bulunulması yeterlidir.</p>
         <p><strong>Cayma hakkı kullanılamayan durumlar:</strong></p>
         <ul>
           <li>Ambalajı açılmış, kullanılmış mama veya hijyen ürünleri</li>

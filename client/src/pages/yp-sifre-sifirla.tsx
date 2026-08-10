@@ -36,7 +36,7 @@ export default function YPSifreSifirlaPage() {
   return (
     <YPLayout authMode constrain={false}>
       <div style={{ minHeight: "100vh", background: "#FAF7F0", paddingBottom: 48 }}>
-        <div style={{ maxWidth: 440, margin: "0 auto", padding: "40px 20px 0" }}>
+        <div style={{ maxWidth: "var(--yp-shell-max)", margin: "0 auto", padding: "40px 20px 0" }}>
           <div style={{ background: "#fff", borderRadius: 20, padding: 32, boxShadow: "0 2px 16px rgba(0,0,0,0.08)" }}>
             <div style={{ textAlign: "center", marginBottom: 28 }}>
               <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#F5F0E6", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>

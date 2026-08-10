@@ -44,10 +44,10 @@ export default function YPKariyer() {
 
       <div className="sp-section">
         <h2>Nasıl Başvurursunuz?</h2>
-        <p>CV'nizi ve başvurmak istediğiniz pozisyonu belirterek <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A", fontWeight:700 }}>info@yourpoodle.com</a> adresine e-posta gönderin. Uygun adaylara 5 iş günü içinde dönüş yapılır.</p>
+        <p>CV'nizi ve başvurmak istediğiniz pozisyonu belirterek <a href="mailto:info@sizpa.com" style={{ color:"#5D3A1A", fontWeight:700 }}>info@sizpa.com</a> adresine e-posta gönderin. Uygun adaylara 5 iş günü içinde dönüş yapılır.</p>
       </div>
 
-      <a href="mailto:info@yourpoodle.com?subject=Kariyer%20Başvurusu" className="sp-cta-btn">Başvur →</a>
+      <a href="mailto:info@sizpa.com?subject=Kariyer%20Başvurusu" className="sp-cta-btn">Başvur →</a>
     </YPStaticPage>
   );
 }

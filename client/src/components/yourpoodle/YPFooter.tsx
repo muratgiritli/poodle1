@@ -1,55 +1,58 @@
 import { Truck, RefreshCcw, ShieldCheck, CreditCard, MapPin, Phone, Mail, Clock, Instagram, Facebook, Youtube, Twitter } from "lucide-react";
+import { IS_YP } from "@/lib/store";
+
+const B = IS_YP ? "" : "/yourpoodle";
 
 const TRUST = [
-  { Icon: Truck,       title: "Hızlı Kargo",    sub: "Hızlı kargoya verilir" },
-  { Icon: RefreshCcw,  title: "Kolay İade",      sub: "14 gün ücretsiz iade" },
-  { Icon: ShieldCheck, title: "Güvenli Ödeme",   sub: "256-bit SSL şifreleme" },
-  { Icon: CreditCard,  title: "Taksit İmkânı",   sub: "3 taksit seçeneği" },
+  { Icon: Truck,       title: "Hızlı Kargo",    sub: "Hızlı kargoya verilir", href: `${B}/teslimat-iade` },
+  { Icon: RefreshCcw,  title: "Kolay İade",      sub: "14 gün ücretsiz iade", href: `${B}/iade` },
+  { Icon: ShieldCheck, title: "Güvenli Ödeme",   sub: "256-bit SSL şifreleme", href: `${B}/ssl` },
+  { Icon: CreditCard,  title: "Taksit İmkânı",   sub: "3 taksit seçeneği", href: `${B}/odeme-kartlari` },
 ];
 
 const COLUMNS = [
   {
     title: "Kurumsal",
     links: [
-      { label: "Hakkımızda",          href: "/yourpoodle/hakkinda" },
-      { label: "Kariyer",             href: "/yourpoodle/kariyer" },
-      { label: "Bayi Başvurusu",      href: "/yourpoodle/bayi-basvurusu" },
-      { label: "Fotoğraf Yarışması",  href: "/yourpoodle/club?tab=poodlem" },
+      { label: "Hakkımızda",               href: `${B}/hakkimizda` },
+      { label: "SSL Sertifikası",          href: `${B}/ssl` },
+      { label: "Teslimat ve İade Şartları", href: `${B}/teslimat-iade` },
+      { label: "Gizlilik Sözleşmesi",      href: `${B}/gizlilik-politikasi` },
+      { label: "Mesafeli Satış Sözleşmesi", href: `${B}/mesafeli-satis` },
+      { label: "Kariyer",                  href: `${B}/kariyer` },
     ],
   },
   {
     title: "Mağaza",
     links: [
-      { label: "Tüm Ürünler",        href: "/yourpoodle/magaza" },
-      { label: "Kuru Mamalar",        href: "/yourpoodle/kuru-mama" },
-      { label: "Yaş Mamalar",         href: "/yourpoodle/kategori/yas-mama" },
-      { label: "Oyuncaklar",          href: "/yourpoodle/kategori/oyuncaklar" },
-      { label: "Bakım & Sağlık",      href: "/yourpoodle/kategori/bakim-saglik" },
-      { label: "Taşıma & Kulübeler",  href: "/yourpoodle/kategori/tasima-cantalari" },
+      { label: "Tüm Ürünler",        href: `${B}/magaza` },
+      { label: "Kuru Mamalar",        href: `${B}/kuru-mama` },
+      { label: "Yaş Mamalar",         href: `${B}/kategori/yas-mama` },
+      { label: "Oyuncaklar",          href: `${B}/kategori/oyuncaklar` },
+      { label: "Bakım & Sağlık",      href: `${B}/kategori/bakim-saglik` },
+      { label: "Taşıma & Kulübeler",  href: `${B}/kategori/tasima-cantalari` },
     ],
   },
   {
     title: "Destek",
     links: [
-      { label: "Sık Sorulan Sorular",  href: "/yourpoodle/sss" },
-      { label: "Kargo ve Teslimat",    href: "/yourpoodle/kargo" },
-      { label: "İade ve Değişim",      href: "/yourpoodle/iade" },
-      { label: "Güvenli Alışveriş",    href: "/yourpoodle/guvenli-alisveris" },
-      { label: "KVKK / Gizlilik",      href: "/yourpoodle/gizlilik-politikasi" },
-      { label: "Kullanım Koşulları",   href: "/yourpoodle/kullanim-sartlari" },
-      { label: "Çerez Politikası",     href: "/yourpoodle/cerez-politikasi" },
-      { label: "Mesafeli Satış Sözl.", href: "/yourpoodle/mesafeli-satis" },
+      { label: "Sık Sorulan Sorular",  href: `${B}/sss` },
+      { label: "Kargo ve Teslimat",    href: `${B}/kargo` },
+      { label: "İade ve Değişim",      href: `${B}/iade` },
+      { label: "Güvenli Alışveriş",    href: `${B}/guvenli-alisveris` },
+      { label: "Kullanım Koşulları",   href: `${B}/kullanim-sartlari` },
+      { label: "Çerez Politikası",     href: `${B}/cerez-politikasi` },
     ],
   },
   {
     title: "Topluluk",
     links: [
-      { label: "Topluluk Akışı",   href: "/yourpoodle/club?tab=akis" },
-      { label: "Köpek Dizini",     href: "/yourpoodle/club/kopekler" },
-      { label: "YourPoodle Club",  href: "/yourpoodle/club" },
-      { label: "Sağlık Asistanı",  href: "/yourpoodle/ai-asistan" },
-      { label: "Poodle Rehberi",   href: "/yourpoodle/rehber" },
-      { label: "Etkinlikler",      href: "/yourpoodle/etkinlikler" },
+      { label: "Topluluk Akışı",   href: `${B}/club?tab=akis` },
+      { label: "Köpek Dizini",     href: `${B}/club/kopekler` },
+      { label: "YourPoodle Club",  href: `${B}/club` },
+      { label: "Sağlık Asistanı",  href: `${B}/ai-asistan` },
+      { label: "Poodle Rehberi",   href: `${B}/rehber` },
+      { label: "Etkinlikler",      href: `${B}/etkinlikler` },
     ],
   },
 ];
@@ -63,7 +66,7 @@ const SOCIALS = [
 
 const CONTACT = [
   { Icon: Phone,  content: "0 850 840 3959", href: "tel:+908508403959" },
-  { Icon: Mail,   content: "info@yourpoodle.com",  href: "mailto:info@yourpoodle.com" },
+  { Icon: Mail,   content: "info@sizpa.com",  href: "mailto:info@sizpa.com" },
   { Icon: Clock,  content: "Hft. içi & Hft. sonu 09:00 – 22:00", href: undefined },
   { Icon: MapPin, content: "Türkiye geneline hızlı teslimat", href: undefined },
 ];
@@ -74,7 +77,7 @@ const orgSchema = {
   "name": "YourPoodle",
   "url": "https://www.yourpoodle.com",
   "telephone": "+908508403959",
-  "email": "info@yourpoodle.com",
+  "email": "info@sizpa.com",
   "address": {
     "@type": "PostalAddress",
     "streetAddress": "Yenimahalle Atatürk 3. Kısım Blv. No:113/A",
@@ -104,19 +107,19 @@ export default function YPFooter() {
       <div className="border-b border-gray-800">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {TRUST.map(({ Icon, title, sub }) => (
-              <div key={title} className="flex items-center gap-3">
+            {TRUST.map(({ Icon, title, sub, href }) => (
+              <a key={title} href={href} className="flex items-center gap-3 hover:opacity-90 transition-opacity">
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: "rgb(45,27,105)" }}
+                  style={{ background: "#3D2612" }}
                 >
-                  <Icon size={18} style={{ color: "rgb(167,139,250)" }} strokeWidth={2} />
+                  <Icon size={18} style={{ color: "#A67C52" }} strokeWidth={2} />
                 </div>
                 <div>
                   <p className="text-[12px] font-bold text-white leading-tight">{title}</p>
                   <p className="text-[11px] text-gray-500 leading-tight mt-0.5">{sub}</p>
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         </div>
@@ -130,7 +133,7 @@ export default function YPFooter() {
           <div className="md:col-span-2 flex flex-col gap-5">
 
             {/* Logo */}
-            <a href="/yourpoodle" className="flex items-center w-fit">
+            <a href={B || "/"} className="flex items-center w-fit">
               <img
                 src="/images/brand/logo.png"
                 alt="YourPoodle"
@@ -168,7 +171,7 @@ export default function YPFooter() {
                     size={14}
                     strokeWidth={2}
                     className="mt-0.5 flex-shrink-0"
-                    style={{ color: "rgb(167,139,250)" }}
+                    style={{ color: "#A67C52" }}
                   />
                   {href ? (
                     <a
@@ -224,21 +227,27 @@ export default function YPFooter() {
 
           {/* Payment badges */}
           <div className="flex gap-2 flex-wrap justify-center">
-            {["VISA", "MC", "Troy", "İyzico"].map(badge => (
-              <span
-                key={badge}
-                className="px-2.5 py-1 rounded-md text-[10px] font-bold text-gray-400"
+            {[
+              { label: "VISA", href: `${B}/odeme-kartlari` },
+              { label: "MC", href: `${B}/odeme-kartlari` },
+              { label: "Troy", href: `${B}/odeme-kartlari` },
+              { label: "İyzico", href: `${B}/iyzico` },
+            ].map(badge => (
+              <a
+                key={badge.label}
+                href={badge.href}
+                className="px-2.5 py-1 rounded-md text-[10px] font-bold text-gray-400 hover:text-white transition-colors"
                 style={{
                   background: "rgb(17,24,39)",
                   border: "1px solid rgb(31,41,55)",
                 }}
               >
-                {badge}
-              </span>
+                {badge.label}
+              </a>
             ))}
-            {/* SSL badge */}
-            <span
-              className="px-2.5 py-1 rounded-md text-[10px] font-bold flex items-center gap-1"
+            <a
+              href={`${B}/ssl`}
+              className="px-2.5 py-1 rounded-md text-[10px] font-bold flex items-center gap-1 hover:opacity-90"
               style={{
                 background: "rgb(27,58,45)",
                 color: "rgb(52,211,153)",
@@ -247,7 +256,7 @@ export default function YPFooter() {
             >
               <ShieldCheck size={12} strokeWidth={2.5} />
               SSL
-            </span>
+            </a>
           </div>
         </div>
       </div>

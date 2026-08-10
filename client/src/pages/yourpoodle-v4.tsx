@@ -446,7 +446,7 @@ export default function YourPoodleV4() {
                            marginBottom:10, lineHeight:1.2 }}>
                 Topluluğa katıl,<br />farkı hisset
               </h3>
-              <p style={{ fontSize:14, color:"rgba(255,255,255,0.75)", marginBottom:22, maxWidth:400 }}>
+              <p style={{ fontSize:14, color:"rgba(255,255,255,0.75)", marginBottom:22, maxWidth: "var(--yp-read-max)" }}>
                 Poodle profilini oluştur, özel indirimlerden ve kişisel önerilerden yararlan.
               </p>
               <div style={{ display:"flex", gap:20, flexWrap:"wrap", marginBottom:28 }}>

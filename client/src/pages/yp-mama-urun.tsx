@@ -469,7 +469,7 @@ export default function YPMamaUrunPage() {
       {/* ══ STICKY BOTTOM BAR ════════════════════════════ */}
       <div style={{ position:"fixed", bottom:72, left:0, right:0, zIndex:50,
                     display:"flex", justifyContent:"center", pointerEvents:"none" }}>
-        <div style={{ maxWidth:480, width:"100%", background:"#fff",
+        <div style={{ maxWidth: "var(--yp-shell-max)", width:"100%", background:"#fff",
                       borderTop:`1px solid ${GB}`, padding:"12px 16px",
                       display:"flex", alignItems:"center",
                       justifyContent:"space-between",
@@ -499,7 +499,7 @@ export default function YPMamaUrunPage() {
         <div style={{ position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"flex-end",
                       justifyContent:"center",background:"rgba(0,0,0,0.5)" }}
           onClick={()=>setShowCityModal(false)}>
-          <div style={{ maxWidth:480,width:"100%",background:"#fff",borderRadius:"20px 20px 0 0",
+          <div style={{ maxWidth: "var(--yp-shell-max)",width:"100%",background:"#fff",borderRadius:"20px 20px 0 0",
                         padding:"24px 20px 40px" }}
             onClick={e=>e.stopPropagation()}>
             <p style={{ fontSize:16,fontWeight:700,color:"#111827",marginBottom:16 }}>Şehir Seçin</p>

@@ -1,4 +1,4 @@
-Contact: mailto:info@yourpoodle.com
+Contact: mailto:info@sizpa.com
 Contact: tel:+908508403959
 Expires: 2027-07-18T00:00:00.000Z
 Preferred-Languages: tr, en

@@ -281,7 +281,7 @@ export default function YPOdemePage() {
           </div>
 
           {/* Gate content */}
-          <div style={{ maxWidth: 400, margin: "0 auto", padding: "48px 24px 40px", textAlign: "center" }}>
+          <div style={{ maxWidth: "var(--yp-read-max)", margin: "0 auto", padding: "48px 24px 40px", textAlign: "center" }}>
             <div style={{ fontSize: 52, marginBottom: 16 }}>🔒</div>
             <h2 style={{ fontSize: 20, fontWeight: 900, color: "#1a1a1a", margin: "0 0 10px" }}>
               Siparişi tamamlamak için giriş yapın

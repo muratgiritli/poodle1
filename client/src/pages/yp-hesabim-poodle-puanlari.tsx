@@ -87,7 +87,7 @@ function UsePointsModal({ onClose, navigate }: { onClose:()=>void; navigate:(p:s
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.5)",
                   display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:9999 }}>
       <div style={{ background:"#fff", borderRadius:"20px 20px 0 0",
-                    padding:"24px 20px 40px", width:"100%", maxWidth:480 }}>
+                    padding:"24px 20px 40px", width:"100%", maxWidth: "var(--yp-shell-max)" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
           <span style={{ fontSize:17, fontWeight:700, color:DRK }}>Puan Kullan</span>
           <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer" }}>
@@ -132,7 +132,7 @@ function HowToEarnModal({ onClose }: { onClose:()=>void }) {
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.5)",
                   display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:9999 }}>
       <div style={{ background:"#fff", borderRadius:"20px 20px 0 0",
-                    padding:"24px 20px 40px", width:"100%", maxWidth:480 }}>
+                    padding:"24px 20px 40px", width:"100%", maxWidth: "var(--yp-shell-max)" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
           <span style={{ fontSize:17, fontWeight:700, color:DRK }}>Nasıl Puan Kazanırım?</span>
           <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer" }}>

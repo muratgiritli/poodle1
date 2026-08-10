@@ -116,7 +116,7 @@ export default function YPLayout({
 
         /* ── Responsive page wrappers ──────────────────────── */
         /* Account inner: mobile 480px, desktop 860px */
-        .yp-acct { max-width: 480px; margin: 0 auto; width: 100%; }
+        .yp-acct { max-width: var(--yp-shell-max); margin: 0 auto; width: 100%; }
 
         /* Cat grid: mobile flex-col, desktop 2-col */
         .yp-cat-grid { display: flex; flex-direction: column; }
@@ -125,23 +125,24 @@ export default function YPLayout({
         .yp-section-grid { }
 
         /* Content columns: max 480px centered on mobile/tablet (key tablet fix) */
-        .yp-pw          { max-width: 480px; margin: 0 auto; }
-        .yp-feed-center { max-width: 480px; margin: 0 auto; }
-        .yp-ai-center   { max-width: 480px; margin: 0 auto; }
+        .yp-pw          { max-width: var(--yp-shell-max); margin: 0 auto; }
+        .yp-feed-center { max-width: var(--yp-shell-max); margin: 0 auto; }
+        .yp-ai-center   { max-width: var(--yp-shell-max); margin: 0 auto; }
 
         /* Sticky AI input: mobile offset for bottom nav, desktop flush */
-        @media (min-width: 900px) {
+        @media (min-width: 768px) {
           .yp-ai-sticky-bar { bottom: 0 !important; }
           .yp-ai-scroll     { padding-bottom: 0 !important; }
         }
 
-        @media (min-width: 900px) {
+        /* Tablet + desktop chrome */
+        @media (min-width: 768px) {
           .yp-desktop-hdr      { display: block !important; }
           .yp-mobile-hdr       { display: none !important; }
           .yp-btm-nav          { display: none !important; }
           .yp-mobile-cat-strip { display: none !important; }
           .yp-page-body        { padding-bottom: 48px !important; }
-          .yp-constrain   { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+          .yp-constrain   { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
           .yp-art-grid    { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 14px !important; }
           .yp-3col-grid   { display: grid !important; grid-template-columns: 1fr 1fr 1fr !important; gap: 14px !important; }
           .yp-prod-grid   { grid-template-columns: repeat(4,1fr) !important; }

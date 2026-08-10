@@ -54,7 +54,7 @@ export default function YPCerezPolitikasi() {
 
       <div className="sp-section">
         <h2>İletişim</h2>
-        <p>Çerez kullanımıyla ilgili sorularınız için <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A" }}>info@yourpoodle.com</a> adresine yazabilirsiniz.</p>
+        <p>Çerez kullanımıyla ilgili sorularınız için <a href="mailto:info@sizpa.com" style={{ color:"#5D3A1A" }}>info@sizpa.com</a> adresine yazabilirsiniz.</p>
       </div>
 
       <a href="/yourpoodle/gizlilik-politikasi" className="sp-cta-btn" style={{ background:"#F5F0E6", color:"#5D3A1A" }}>KVKK / Gizlilik Politikası →</a>

@@ -56,7 +56,7 @@ export default function YPGuvenliAlisveris() {
 
       <div className="sp-section">
         <h2>Alıcı Güvencesi</h2>
-        <p>Siparişiniz hasarlı veya yanlış geldiyse tüm masraflar tarafımıza aittir. <strong>14 gün koşulsuz iade</strong> hakkınız mevcuttur. Sorun yaşadığınızda <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A" }}>info@yourpoodle.com</a> adresine yazın.</p>
+        <p>Siparişiniz hasarlı veya yanlış geldiyse tüm masraflar tarafımıza aittir. <strong>14 gün koşulsuz iade</strong> hakkınız mevcuttur. Sorun yaşadığınızda <a href="mailto:info@sizpa.com" style={{ color:"#5D3A1A" }}>info@sizpa.com</a> adresine yazın.</p>
       </div>
 
       <a href="/yourpoodle/gizlilik-politikasi" className="sp-cta-btn" style={{ background:"#F5F0E6", color:"#5D3A1A" }}>KVKK / Gizlilik Politikası →</a>

@@ -5264,7 +5264,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     if (rateLimit(`register:${ip}`, 5, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla kayıt denemesi. Lütfen daha sonra tekrar deneyin." });
     }
-    const { phone, password, name, address } = req.body;
+    const { phone, password, name, address, email } = req.body;
     if (!phone || !password || !name) {
       return res.status(400).json({ message: "Telefon, şifre ve ad soyad gerekli" });
     }
@@ -5287,19 +5287,32 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     if (address && (typeof address !== "string" || address.length > 500)) {
       return res.status(400).json({ message: "Adres çok uzun (max 500 karakter)" });
     }
+    let emailNorm: string | null = null;
+    if (email !== undefined && email !== null && email !== "") {
+      if (typeof email !== "string" || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim()) || email.trim().length > 200) {
+        return res.status(400).json({ message: "Geçerli bir e-posta girin" });
+      }
+      emailNorm = email.trim().toLowerCase();
+    }
     const existing = await storage.getCustomerByPhone(normalized);
     if (existing) {
       return res.status(409).json({ message: "Bu telefon numarası zaten kayıtlı" });
     }
     const hashed = await bcrypt.hash(password, 10);
-    const customer = await storage.createCustomer({ phone: normalized, password: hashed, name: name.trim(), address: address?.trim() || null });
+    const customer = await storage.createCustomer({
+      phone: normalized,
+      password: hashed,
+      name: name.trim(),
+      address: address?.trim() || null,
+      email: emailNorm,
+    });
     (req.session as any).customerId = customer.id;
     req.session.save((err) => {
       if (err) {
         console.error("Session save error:", err);
         return res.status(500).json({ message: "Oturum kaydedilemedi" });
       }
-      res.status(201).json({ id: customer.id, phone: customer.phone, name: customer.name, address: customer.address });
+      res.status(201).json({ id: customer.id, phone: customer.phone, name: customer.name, address: customer.address, email: customer.email });
     });
   });
 

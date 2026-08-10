@@ -245,7 +245,7 @@ export default function YourPoodleV2Page() {
         .v2-doors      { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
         .v2-hero-inner { display:flex; flex-direction:column; gap:16px; padding:40px 24px 32px; text-align:center; align-items:center; }
         .v2-tagline    { font-size:clamp(22px,4vw,42px); font-weight:900; color:#111827; line-height:1.2; letter-spacing:-0.5px; }
-        .v2-sub        { font-size:15px; color:#6B7280; max-width:480px; line-height:1.65; }
+        .v2-sub        { font-size:15px; color:#6B7280; max-width: var(--yp-shell-max); line-height:1.65; }
 
         @media(min-width:640px)  { .v2-doors { grid-template-columns:repeat(3,1fr); } }
         @media(min-width:900px)  {

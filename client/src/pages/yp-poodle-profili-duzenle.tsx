@@ -219,7 +219,7 @@ export default function YPPoodleProfilDuzenlePage() {
         onChange={handlePhotoChange} />
 
       <div style={{
-        maxWidth: 480, margin: "0 auto", paddingBottom: 100,
+        maxWidth: "var(--yp-shell-max)", margin: "0 auto", paddingBottom: 100,
         fontFamily: "'Inter',-apple-system,sans-serif", color: DARK,
       }}>
 
@@ -732,7 +732,7 @@ export default function YPPoodleProfilDuzenlePage() {
       {/* ════════════ STICKY BOTTOM BAR ════════════ */}
       <div style={{
         position: "fixed", bottom: 72, left: "50%", transform: "translateX(-50%)",
-        width: "100%", maxWidth: 480, background: "#fff",
+        width: "100%", maxWidth: "var(--yp-shell-max)", background: "#fff",
         borderTop: `1px solid ${GB}`,
         boxShadow: "0 -4px 16px rgba(0,0,0,0.08)",
         display: "flex", alignItems: "center", justifyContent: "space-between",

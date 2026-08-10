@@ -159,7 +159,7 @@ export default function YPDegerlendirPage() {
 
   return (
     <YPLayout activeLink="club" constrain={false}>
-      <div style={{ maxWidth:480, margin:"0 auto", background:"#F9F9FB",
+      <div style={{ maxWidth: "var(--yp-shell-max)", margin:"0 auto", background:"#F9F9FB",
                     minHeight:"100vh", fontFamily:"Inter, sans-serif" }}>
 
         {/* ── BREADCRUMB ── */}

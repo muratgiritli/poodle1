@@ -217,7 +217,7 @@ export default function YPHesabimSiparislerimPage() {
   return (
     <YPLayout activeLink="" constrain={false}>
       <div style={{
-        maxWidth: 480, margin: "0 auto",
+        maxWidth: "var(--yp-shell-max)", margin: "0 auto",
         fontFamily: "'Inter',-apple-system,sans-serif",
         color: DRK, background: GBG, minHeight: "100vh", paddingBottom: 80,
       }}>

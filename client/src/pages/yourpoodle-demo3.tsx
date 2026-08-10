@@ -159,7 +159,7 @@ function SearchModal({ q, setQ, onClose, products }: any) {
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 10000,
                   display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: 0 }}
          onClick={onClose}>
-      <div style={{ background: "#fff", width: "100%", maxWidth: 430, padding: "16px",
+      <div style={{ background: "#fff", width: "100%", maxWidth: "var(--yp-shell-max)", padding: "16px",
                     borderRadius: "0 0 20px 20px", boxShadow: "0 8px 30px rgba(0,0,0,0.15)" }}
            onClick={e => e.stopPropagation()}>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -330,7 +330,7 @@ function AiModal({ onClose }: any) {
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 10000,
                   display: "flex", alignItems: "flex-end", justifyContent: "center" }}
          onClick={onClose}>
-      <div style={{ background: "#fff", width: "100%", maxWidth: 430, borderRadius: "20px 20px 0 0",
+      <div style={{ background: "#fff", width: "100%", maxWidth: "var(--yp-shell-max)", borderRadius: "20px 20px 0 0",
                     height: "60vh", display: "flex", flexDirection: "column" }}
            onClick={e => e.stopPropagation()}>
         <div style={{ padding: "16px 20px", borderBottom: `1px solid ${BORDER}`,
@@ -445,7 +445,7 @@ export default function YourPoodleDemo3() {
         html { scroll-behavior: smooth; }
       `}</style>
 
-      <div style={{ width: "100%", maxWidth: 430, background: "#fff", minHeight: "100dvh",
+      <div style={{ width: "100%", maxWidth: "var(--yp-shell-max)", background: "#fff", minHeight: "100dvh",
                     position: "relative", boxShadow: "0 0 40px rgba(0,0,0,0.07)" }}>
 
         {/* ═══ ANNOUNCEMENT BAR ═══ */}

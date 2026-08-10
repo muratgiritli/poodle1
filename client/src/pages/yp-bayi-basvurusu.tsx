@@ -17,7 +17,7 @@ export default function YPBayiBasvurusu() {
     const body = encodeURIComponent(
       `Ad: ${form.ad}\nE-posta: ${form.email}\nŞehir: ${form.sehir}\nMağaza/İşletme: ${form.magaza}\n\nMesaj:\n${form.mesaj}`
     );
-    window.location.href = `mailto:info@yourpoodle.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:info@sizpa.com?subject=${subject}&body=${body}`;
     setTimeout(() => setStatus("ok"), 800);
   };
 
@@ -86,7 +86,7 @@ export default function YPBayiBasvurusu() {
 
       <div className="sp-section">
         <h2>İletişim</h2>
-        <p>Bayi programı hakkında daha fazla bilgi almak için <a href="mailto:info@yourpoodle.com" style={{ color:"#5D3A1A", fontWeight:700 }}>info@yourpoodle.com</a> adresine yazabilirsiniz.</p>
+        <p>Bayi programı hakkında daha fazla bilgi almak için <a href="mailto:info@sizpa.com" style={{ color:"#5D3A1A", fontWeight:700 }}>info@sizpa.com</a> adresine yazabilirsiniz.</p>
       </div>
     </YPStaticPage>
   );

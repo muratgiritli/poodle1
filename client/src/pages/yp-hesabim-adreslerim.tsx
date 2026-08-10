@@ -315,7 +315,7 @@ function DeleteModal({
     }}>
       <div style={{
         background: "#fff", borderRadius: "20px 20px 0 0", padding: "24px 20px 36px",
-        width: "100%", maxWidth: 480,
+        width: "100%", maxWidth: "var(--yp-shell-max)",
       }}>
         <div style={{ fontSize: 17, fontWeight: 700, color: DRK, marginBottom: 10 }}>
           Adresi Sil
@@ -668,7 +668,7 @@ export default function YPHesabimAdreslerimPage() {
       )}
 
       <div style={{
-        maxWidth: 480, margin: "0 auto",
+        maxWidth: "var(--yp-shell-max)", margin: "0 auto",
         fontFamily: "'Inter',-apple-system,sans-serif",
         color: DRK, background: GBG, minHeight: "100vh", paddingBottom: 30,
       }}>

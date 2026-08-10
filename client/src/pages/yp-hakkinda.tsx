@@ -52,7 +52,7 @@ export default function YPHakkindaPage() {
         "name": "YourPoodle",
         "url": "https://www.yourpoodle.com",
         "description": "Toy Poodle sahipleri için Türkiye'nin 81 iline hızlı kargo yapan uzman e-ticaret ve topluluk platformu.",
-        "email": "info@yourpoodle.com",
+        "email": "info@sizpa.com",
         "areaServed": "TR",
         "address": { "@type": "PostalAddress", "streetAddress": "Yenimahalle Atatürk 3. Kısım Blv. No:113/A", "addressLocality": "Samsun", "postalCode": "55200", "addressCountry": "TR" }
       }) }} />
@@ -148,7 +148,7 @@ export default function YPHakkindaPage() {
               <span style={{ fontSize: 22 }}>📧</span>
               <div>
                 <div style={{ fontSize: 12, color: "#999", fontWeight: 600 }}>E-posta</div>
-                <a href="mailto:info@yourpoodle.com" style={{ fontSize: 14, fontWeight: 700, color: "#5D3A1A", textDecoration: "none" }}>info@yourpoodle.com</a>
+                <a href="mailto:info@sizpa.com" style={{ fontSize: 14, fontWeight: 700, color: "#5D3A1A", textDecoration: "none" }}>info@sizpa.com</a>
               </div>
             </div>
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>

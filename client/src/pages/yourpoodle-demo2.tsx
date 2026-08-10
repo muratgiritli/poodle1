@@ -125,7 +125,7 @@ export default function YourPoodleDemo2() {
     <div style={{ minHeight: "100dvh", background: "#EDEBF5",
                   display: "flex", justifyContent: "center",
                   fontFamily: "system-ui, -apple-system, sans-serif" }}>
-      <div style={{ width: "100%", maxWidth: 430, background: "#FAFAFA", minHeight: "100dvh" }}>
+      <div style={{ width: "100%", maxWidth: "var(--yp-shell-max)", background: "#FAFAFA", minHeight: "100dvh" }}>
 
         {/* ════════ HEADER ════════ */}
         <header style={{ position: "sticky", top: 0, zIndex: 999,

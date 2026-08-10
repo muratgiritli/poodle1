@@ -116,7 +116,7 @@ export default function YPDogCreatePage() {
 
   return (
     <YPLayout activeLink="/yourpoodle/club" constrain={false}>
-      <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 80px" }}>
+      <div style={{ maxWidth: "var(--yp-shell-max)", margin: "0 auto", padding: "0 0 80px" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", padding: "12px 16px", borderBottom: "1px solid #f0f0f0", background: "#fff", position: "sticky", top: 60, zIndex: 50 }}>
           <button onClick={() => step > 0 ? setStep(s => s - 1) : navigate("/yourpoodle/club")}
@@ -302,7 +302,7 @@ export default function YPDogCreatePage() {
         </div>
 
         {/* Footer nav */}
-        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#fff", borderTop: "1px solid #f0f0f0", padding: "12px 20px", display: "flex", gap: 10, maxWidth: 480, margin: "0 auto", zIndex: 100 }}>
+        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#fff", borderTop: "1px solid #f0f0f0", padding: "12px 20px", display: "flex", gap: 10, maxWidth: "var(--yp-shell-max)", margin: "0 auto", zIndex: 100 }}>
           {step < STEPS.length - 1 ? (
             <>
               <button onClick={() => setStep(s => s - 1)} disabled={step === 0}

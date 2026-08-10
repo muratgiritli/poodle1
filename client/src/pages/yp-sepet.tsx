@@ -51,7 +51,7 @@ function AddressModal({ onSelect, onClose }: { onSelect:(s:string)=>void; onClos
     <div style={{ position:"fixed",inset:0,zIndex:200,display:"flex",alignItems:"flex-end",
                   justifyContent:"center",background:"rgba(0,0,0,0.5)" }}
       onClick={onClose}>
-      <div style={{ maxWidth:480,width:"100%",background:"#fff",borderRadius:"20px 20px 0 0",
+      <div style={{ maxWidth: "var(--yp-shell-max)",width:"100%",background:"#fff",borderRadius:"20px 20px 0 0",
                     padding:"24px 20px 36px" }}
         onClick={e=>e.stopPropagation()}>
         <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20 }}>
@@ -515,7 +515,7 @@ export default function YPSepetPage() {
       {/* ══ STICKY BOTTOM BAR ════════════════════════════════ */}
       <div style={{ position:"fixed",bottom:72,left:0,right:0,zIndex:50,
                     display:"flex",justifyContent:"center",pointerEvents:"none" }}>
-        <div style={{ maxWidth:480,width:"100%",background:"#fff",
+        <div style={{ maxWidth: "var(--yp-shell-max)",width:"100%",background:"#fff",
                       borderTop:`1px solid ${GB}`,
                       display:"flex",alignItems:"center",justifyContent:"space-between",
                       padding:"12px 16px",boxShadow:"0 -4px 16px rgba(0,0,0,0.08)",

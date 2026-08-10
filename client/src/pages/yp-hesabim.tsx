@@ -738,7 +738,7 @@ function BottomNav() {
   ];
   return (
     <nav style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
-                  width: "100%", maxWidth: 480, background: "#fff",
+                  width: "100%", maxWidth: "var(--yp-shell-max)", background: "#fff",
                   borderTop: "1px solid #f0f0f0", boxShadow: "0 -4px 20px rgba(0,0,0,0.08)",
                   height: 72, display: "flex", alignItems: "center", zIndex: 200,
                   padding: "0 4px", paddingBottom: "env(safe-area-inset-bottom,0px)" }}>

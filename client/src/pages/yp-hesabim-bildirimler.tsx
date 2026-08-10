@@ -134,7 +134,7 @@ function SettingsModal({ onClose, onSave }: { onClose: () => void; onSave: () =>
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.5)",
                   display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:9999 }}>
       <div style={{ background:"#fff", borderRadius:"20px 20px 0 0",
-                    padding:"24px 20px 36px", width:"100%", maxWidth:480 }}>
+                    padding:"24px 20px 36px", width:"100%", maxWidth: "var(--yp-shell-max)" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
           <span style={{ fontSize:17, fontWeight:700, color:DRK }}>Bildirim Ayarları</span>
           <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer" }}>
@@ -346,7 +346,7 @@ export default function YPHesabimBildirimlerPage() {
       )}
 
       <div style={{
-        maxWidth:480, margin:"0 auto",
+        maxWidth: "var(--yp-shell-max)", margin:"0 auto",
         fontFamily:"'Inter',-apple-system,sans-serif",
         background:"#fff", minHeight:"100vh", color:DRK,
       }}>

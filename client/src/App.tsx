@@ -127,6 +127,10 @@ const YPUluslararasiKargoPage   = lazy(() => import("@/pages/yp-uluslararasi-kar
 const YPIadePage                = lazy(() => import("@/pages/yp-iade"));
 const YPGuvenliAlisverisPage    = lazy(() => import("@/pages/yp-guvenli-alisveris"));
 const YPMesafeliSatisPage       = lazy(() => import("@/pages/yp-mesafeli-satis"));
+const YPSslPage                 = lazy(() => import("@/pages/yp-ssl"));
+const YPOdemeKartlariPage       = lazy(() => import("@/pages/yp-odeme-kartlari"));
+const YPIyzicoPage              = lazy(() => import("@/pages/yp-iyzico"));
+const YPTeslimatIadePage        = lazy(() => import("@/pages/yp-teslimat-iade"));
 const YPCerezPolitikasiPage     = lazy(() => import("@/pages/yp-cerez-politikasi"));
 const YPKariyerPage             = lazy(() => import("@/pages/yp-kariyer"));
 const YPBayiBasvurusuPage       = lazy(() => import("@/pages/yp-bayi-basvurusu"));
@@ -308,6 +312,7 @@ function Router() {
           {(params) => <YPKategoriPage routeSlug={params?.slug} />}
         </Route>
         <Route path="/yourpoodle/giris"          component={YPGirisPage} />
+        <Route path="/yourpoodle/uye-ol"         component={YPUyeOlPage} />
         <Route path="/yourpoodle/topluluk"       component={YPToplulukPage} />
         <Route path="/yourpoodle/mama"           component={YPMamaPage} />
         <Route path="/yourpoodle/egitim"       component={YPEgitimPage} />
@@ -336,6 +341,11 @@ function Router() {
         <Route path="/yourpoodle/iade"                 component={YPIadePage} />
         <Route path="/yourpoodle/guvenli-alisveris"    component={YPGuvenliAlisverisPage} />
         <Route path="/yourpoodle/mesafeli-satis"       component={YPMesafeliSatisPage} />
+        <Route path="/yourpoodle/ssl"                  component={YPSslPage} />
+        <Route path="/yourpoodle/odeme-kartlari"       component={YPOdemeKartlariPage} />
+        <Route path="/yourpoodle/iyzico"               component={YPIyzicoPage} />
+        <Route path="/yourpoodle/teslimat-iade"        component={YPTeslimatIadePage} />
+        <Route path="/yourpoodle/hakkimizda"           component={YPHakkimizdaPage} />
         <Route path="/yourpoodle/cerez-politikasi"     component={YPCerezPolitikasiPage} />
         <Route path="/yourpoodle/hizmetler"             component={YPHizmetlerPage} />
         <Route path="/yourpoodle/benim-poodleim"       component={YPBenimPoodleimPage} />
@@ -425,6 +435,16 @@ function Router() {
         <Route path="/kampanyalar"           component={YPKampanyalarPage} />
         <Route path="/hakkimizda"            component={YPHakkimizdaPage} />
         <Route path="/iletisim"              component={YPIletisimPage} />
+        <Route path="/ssl"                   component={YPSslPage} />
+        <Route path="/odeme-kartlari"        component={YPOdemeKartlariPage} />
+        <Route path="/iyzico"                component={YPIyzicoPage} />
+        <Route path="/teslimat-iade">
+          {() => IS_YP ? <YPTeslimatIadePage /> : <TeslimatIadePage />}
+        </Route>
+        <Route path="/gizlilik-politikasi"   component={YPGizlilikPolitikasiPage} />
+        <Route path="/guvenli-alisveris"     component={YPGuvenliAlisverisPage} />
+        <Route path="/iade"                  component={YPIadePage} />
+        <Route path="/kargo"                 component={YPKargoPage} />
         {/* Legal — canonical */}
         <Route path="/kullanim-sartlari">
           {() => <YPLegalPage variant="kullanim-sartlari" />}
@@ -434,9 +454,10 @@ function Router() {
         </Route>
         {/* Physical store */}
         <Route path="/magazalar/atakum"      component={YPAtakumMagazaPage} />
-        <Route path="/teslimat-iade" component={TeslimatIadePage} />
         <Route path="/gizlilik-sozlesmesi" component={GizlilikSozlesmesiPage} />
-        <Route path="/mesafeli-satis" component={MesafeliSatisSozlesmesiPage} />
+        <Route path="/mesafeli-satis">
+          {() => IS_YP ? <YPMesafeliSatisPage /> : <MesafeliSatisSozlesmesiPage />}
+        </Route>
         <Route path="/:slug" component={SeoPage} />
         <Route component={NotFound} />
       </Switch>

@@ -51,7 +51,7 @@ function LiveSupportModal({ onClose, showToast }: { onClose:()=>void; showToast:
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.5)",
                   display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:9999 }}>
       <div style={{ background:"#fff", borderRadius:"20px 20px 0 0",
-                    padding:"24px 20px 36px", width:"100%", maxWidth:480 }}>
+                    padding:"24px 20px 36px", width:"100%", maxWidth: "var(--yp-shell-max)" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
           <span style={{ fontSize:17, fontWeight:700, color:DRK }}>Canlı Destek</span>
           <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer" }}>
@@ -122,7 +122,7 @@ export default function YPHesabimYardimPage() {
       {/* Live Support Modal */}
       {liveOpen && <LiveSupportModal onClose={() => setLiveOpen(false)} showToast={showToast} />}
 
-      <div style={{ maxWidth:480, margin:"0 auto", fontFamily:"'Inter',-apple-system,sans-serif",
+      <div style={{ maxWidth: "var(--yp-shell-max)", margin:"0 auto", fontFamily:"'Inter',-apple-system,sans-serif",
                     background:"#fff", minHeight:"100vh", color:DRK, paddingBottom:0 }}>
 
         {/* ── PAGE HEADER ── */}

@@ -5,7 +5,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 
 export const staticCSS = `
-  .sp-wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 72px; font-family: Inter, sans-serif; }
+  .sp-wrap { max-width: var(--yp-read-max); margin: 0 auto; padding: 32px 20px 72px; font-family: Inter, sans-serif; width: 100%; }
+  @media (min-width: 768px) { .sp-wrap { padding: 40px 32px 80px; } }
+  @media (min-width: 1024px) { .sp-wrap { padding: 48px 40px 96px; } }
   .sp-section { margin-bottom: 32px; }
   .sp-section h2 { font-size: 17px; font-weight: 800; color: #1a1a1a; margin-bottom: 10px; padding-top: 8px; border-top: 1px solid #f0f0f0; }
   .sp-section p, .sp-section li { font-size: 14px; color: #555; line-height: 1.75; }
@@ -16,8 +18,7 @@ export const staticCSS = `
   .sp-table th { background: #F5F0E6; color: #5D3A1A; font-weight: 700; }
   .sp-alert { background: #FFF7ED; border: 1.5px solid #FED7AA; border-radius: 12px; padding: 14px 16px; margin-bottom: 20px; font-size: 13.5px; color: #92400E; line-height: 1.6; }
   .sp-cta-btn { display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 24px; border-radius: 14px; border: none; background: #5D3A1A; color: #fff; font-size: 14px; font-weight: 800; cursor: pointer; text-decoration: none; font-family: Inter, sans-serif; }
-  .sp-cta-btn:hover { background: #6D28D9; }
-  @media (min-width: 768px) { .sp-wrap { padding: 48px 32px 80px; } }
+  .sp-cta-btn:hover { background: #3D2612; }
 `;
 
 interface Crumb { label: string; href?: string; }

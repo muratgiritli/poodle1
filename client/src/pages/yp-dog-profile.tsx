@@ -233,7 +233,7 @@ export default function YPDogProfilePage({ routeSlug }: { routeSlug?: string }) 
         .dog-photo-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px; }
       `}</style>
 
-      <div style={{ maxWidth: 480, margin: "0 auto" }}>
+      <div style={{ maxWidth: "var(--yp-shell-max)", margin: "0 auto" }}>
         {/* Top bar */}
         <div style={{ display: "flex", alignItems: "center", padding: "12px 16px", borderBottom: "1px solid #f0f0f0", background: "#fff", position: "sticky", top: 60, zIndex: 50 }}>
           <button onClick={() => navigate("/yourpoodle/club")} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
