@@ -4207,6 +4207,200 @@ test("GET /google-merchant.xml: returns 200 application/xml with seeded product 
   }
 });
 
+// ── Online payment gateway: env-var-only credential path ─────────────────────
+//
+// Verifies that Replit Secrets (env vars) are sufficient to make online card
+// orders accepted by POST /api/orders even when the DB flags are "0" and the
+// DB credential fields are empty. This is the primary "secrets→active" path.
+// We test both iyzico (2 vars) and Tosla (3 vars).
+
+test("online order accepted via IYZICO env-var credentials even with DB disabled", async () => {
+  // Clear DB credentials + disable iyzico at DB level for this test.
+  const backupIyzicoEnabled = (await pool.query("SELECT value FROM app_settings WHERE key='payment_iyzico_enabled'")).rows[0]?.value ?? null;
+  const backupIyzicoKey     = (await pool.query("SELECT value FROM app_settings WHERE key='iyzico_api_key'")).rows[0]?.value ?? null;
+  const backupIyzicoSecret  = (await pool.query("SELECT value FROM app_settings WHERE key='iyzico_secret_key'")).rows[0]?.value ?? null;
+
+  await setSetting("payment_iyzico_enabled", "0");
+  await setSetting("iyzico_api_key", "");
+  await setSetting("iyzico_secret_key", "");
+
+  // Inject env vars (simulating Replit Secrets) — cleared after the test.
+  process.env.IYZICO_API_KEY    = "sandbox_test_api_key";
+  process.env.IYZICO_SECRET_KEY = "sandbox_test_secret_key";
+
+  try {
+    // Use a unique XFF to avoid the per-IP order rate-limiter shared bucket.
+    const res = await postAsCustomerXff("/api/orders", JETGO_HOST,
+      { ...orderPayload(), paymentMethod: "online" }, "10.220.0.1");
+    ids.orders.push(res.body?.id);
+    assert.equal(res.status, 201,
+      `Expected 201 (order created via iyzico env-var creds), got ${res.status}: ${JSON.stringify(res.body)}`);
+    const row = await pool.query(
+      "SELECT payment_status FROM orders WHERE id = $1", [res.body.id]);
+    assert.equal(row.rows[0]?.payment_status, "pending",
+      "Online card order must start with payment_status='pending'");
+  } finally {
+    // Restore env
+    delete process.env.IYZICO_API_KEY;
+    delete process.env.IYZICO_SECRET_KEY;
+    // Restore DB settings
+    if (backupIyzicoEnabled !== null) await setSetting("payment_iyzico_enabled", backupIyzicoEnabled);
+    if (backupIyzicoKey     !== null) await setSetting("iyzico_api_key",          backupIyzicoKey);
+    if (backupIyzicoSecret  !== null) await setSetting("iyzico_secret_key",       backupIyzicoSecret);
+  }
+});
+
+test("online order accepted via Tosla env-var credentials (all 3 required) even with DB disabled", async () => {
+  // Clear DB credentials + disable Tosla at DB level for this test.
+  const backupEnabled = (await pool.query("SELECT value FROM app_settings WHERE key='payment_tosla_enabled'")).rows[0]?.value ?? null;
+  const backupCid     = (await pool.query("SELECT value FROM app_settings WHERE key='tosla_client_id'")).rows[0]?.value ?? null;
+  const backupUser    = (await pool.query("SELECT value FROM app_settings WHERE key='tosla_api_user'")).rows[0]?.value ?? null;
+  const backupPass    = (await pool.query("SELECT value FROM app_settings WHERE key='tosla_api_pass'")).rows[0]?.value ?? null;
+
+  await setSetting("payment_tosla_enabled", "0");
+  await setSetting("tosla_client_id", "");
+  await setSetting("tosla_api_user", "");
+  await setSetting("tosla_api_pass", "");
+
+  // Inject all three required Tosla env vars.
+  process.env.TOSLA_CLIENT_ID     = "sandbox_client_id";
+  process.env.TOSLA_CLIENT_SECRET = "sandbox_client_secret";
+  process.env.TOSLA_API_USER      = "sandbox_api_user";
+
+  try {
+    const res = await postAsCustomerXff("/api/orders", JETGO_HOST,
+      { ...orderPayload(), paymentMethod: "online" }, "10.220.0.2");
+    ids.orders.push(res.body?.id);
+    assert.equal(res.status, 201,
+      `Expected 201 (order created via Tosla env-var creds), got ${res.status}: ${JSON.stringify(res.body)}`);
+    const row = await pool.query(
+      "SELECT payment_status FROM orders WHERE id = $1", [res.body.id]);
+    assert.equal(row.rows[0]?.payment_status, "pending",
+      "Online card order must start with payment_status='pending'");
+  } finally {
+    delete process.env.TOSLA_CLIENT_ID;
+    delete process.env.TOSLA_CLIENT_SECRET;
+    delete process.env.TOSLA_API_USER;
+    if (backupEnabled !== null) await setSetting("payment_tosla_enabled", backupEnabled);
+    if (backupCid     !== null) await setSetting("tosla_client_id",        backupCid);
+    if (backupUser    !== null) await setSetting("tosla_api_user",          backupUser);
+    if (backupPass    !== null) await setSetting("tosla_api_pass",          backupPass);
+  }
+});
+
+test("public-settings shows payment_iyzico_enabled=1 when IYZICO env vars set but DB disabled", async () => {
+  const backupEnabled = (await pool.query("SELECT value FROM app_settings WHERE key='payment_iyzico_enabled'")).rows[0]?.value ?? null;
+  const backupKey     = (await pool.query("SELECT value FROM app_settings WHERE key='iyzico_api_key'")).rows[0]?.value ?? null;
+  const backupSecret  = (await pool.query("SELECT value FROM app_settings WHERE key='iyzico_secret_key'")).rows[0]?.value ?? null;
+
+  await setSetting("payment_iyzico_enabled", "0");
+  await setSetting("iyzico_api_key", "");
+  await setSetting("iyzico_secret_key", "");
+
+  process.env.IYZICO_API_KEY    = "sandbox_test_api_key";
+  process.env.IYZICO_SECRET_KEY = "sandbox_test_secret_key";
+
+  try {
+    const { status, body } = await get("/api/public-settings", JETGO_HOST);
+    assert.equal(status, 200, "public-settings must return 200");
+    assert.ok(
+      body.payment_iyzico_enabled && body.payment_iyzico_enabled !== "0" && body.payment_iyzico_enabled !== "false",
+      `Expected payment_iyzico_enabled to be truthy when IYZICO env vars are set; got: ${JSON.stringify(body.payment_iyzico_enabled)}`
+    );
+  } finally {
+    delete process.env.IYZICO_API_KEY;
+    delete process.env.IYZICO_SECRET_KEY;
+    if (backupEnabled !== null) await setSetting("payment_iyzico_enabled", backupEnabled);
+    if (backupKey     !== null) await setSetting("iyzico_api_key",          backupKey);
+    if (backupSecret  !== null) await setSetting("iyzico_secret_key",       backupSecret);
+  }
+});
+
+test("public-settings shows payment_tosla_enabled=1 when all TOSLA env vars set but DB disabled", async () => {
+  const backupEnabled = (await pool.query("SELECT value FROM app_settings WHERE key='payment_tosla_enabled'")).rows[0]?.value ?? null;
+  const backupCid     = (await pool.query("SELECT value FROM app_settings WHERE key='tosla_client_id'")).rows[0]?.value ?? null;
+  const backupUser    = (await pool.query("SELECT value FROM app_settings WHERE key='tosla_api_user'")).rows[0]?.value ?? null;
+  const backupPass    = (await pool.query("SELECT value FROM app_settings WHERE key='tosla_api_pass'")).rows[0]?.value ?? null;
+
+  await setSetting("payment_tosla_enabled", "0");
+  await setSetting("tosla_client_id", "");
+  await setSetting("tosla_api_user", "");
+  await setSetting("tosla_api_pass", "");
+
+  process.env.TOSLA_CLIENT_ID     = "sandbox_client_id";
+  process.env.TOSLA_CLIENT_SECRET = "sandbox_client_secret";
+  process.env.TOSLA_API_USER      = "sandbox_api_user";
+
+  try {
+    const { status, body } = await get("/api/public-settings", JETGO_HOST);
+    assert.equal(status, 200, "public-settings must return 200");
+    assert.ok(
+      body.payment_tosla_enabled && body.payment_tosla_enabled !== "0" && body.payment_tosla_enabled !== "false",
+      `Expected payment_tosla_enabled to be truthy when all TOSLA env vars are set; got: ${JSON.stringify(body.payment_tosla_enabled)}`
+    );
+    // Only 2 of 3 Tosla env vars → should NOT auto-enable
+    delete process.env.TOSLA_API_USER;
+    await setSetting("payment_tosla_enabled", "0");
+    const { body: body2 } = await get("/api/public-settings", JETGO_HOST);
+    assert.ok(
+      !body2.payment_tosla_enabled || body2.payment_tosla_enabled === "0" || body2.payment_tosla_enabled === "false",
+      `Expected payment_tosla_enabled to be falsy with only 2 TOSLA env vars; got: ${JSON.stringify(body2.payment_tosla_enabled)}`
+    );
+  } finally {
+    delete process.env.TOSLA_CLIENT_ID;
+    delete process.env.TOSLA_CLIENT_SECRET;
+    delete process.env.TOSLA_API_USER;
+    if (backupEnabled !== null) await setSetting("payment_tosla_enabled", backupEnabled);
+    if (backupCid     !== null) await setSetting("tosla_client_id",        backupCid);
+    if (backupUser    !== null) await setSetting("tosla_api_user",          backupUser);
+    if (backupPass    !== null) await setSetting("tosla_api_pass",          backupPass);
+  }
+});
+
+test("online order rejected when no DB or env-var credentials are configured", async () => {
+  // Clear ALL online-card credentials from DB and env.
+  const backupToslaEnabled  = (await pool.query("SELECT value FROM app_settings WHERE key='payment_tosla_enabled'")).rows[0]?.value ?? null;
+  const backupIyzicoEnabled = (await pool.query("SELECT value FROM app_settings WHERE key='payment_iyzico_enabled'")).rows[0]?.value ?? null;
+  const backupCid    = (await pool.query("SELECT value FROM app_settings WHERE key='tosla_client_id'")).rows[0]?.value ?? null;
+  const backupUser   = (await pool.query("SELECT value FROM app_settings WHERE key='tosla_api_user'")).rows[0]?.value ?? null;
+  const backupPass   = (await pool.query("SELECT value FROM app_settings WHERE key='tosla_api_pass'")).rows[0]?.value ?? null;
+  const backupIKey   = (await pool.query("SELECT value FROM app_settings WHERE key='iyzico_api_key'")).rows[0]?.value ?? null;
+  const backupISec   = (await pool.query("SELECT value FROM app_settings WHERE key='iyzico_secret_key'")).rows[0]?.value ?? null;
+
+  await setSetting("payment_tosla_enabled", "0");
+  await setSetting("payment_iyzico_enabled", "0");
+  await setSetting("tosla_client_id", "");
+  await setSetting("tosla_api_user", "");
+  await setSetting("tosla_api_pass", "");
+  await setSetting("iyzico_api_key", "");
+  await setSetting("iyzico_secret_key", "");
+
+  // Ensure no env vars override
+  const savedEnv: Record<string, string | undefined> = {};
+  for (const k of ["TOSLA_CLIENT_ID","TOSLA_CLIENT_SECRET","TOSLA_API_USER","IYZICO_API_KEY","IYZICO_SECRET_KEY"]) {
+    savedEnv[k] = process.env[k];
+    delete process.env[k];
+  }
+
+  try {
+    const res = await postAsCustomerXff("/api/orders", JETGO_HOST,
+      { ...orderPayload(), paymentMethod: "online" }, "10.220.0.3");
+    assert.equal(res.status, 400,
+      `Expected 400 (no gateway configured), got ${res.status}: ${JSON.stringify(res.body)}`);
+  } finally {
+    for (const [k, v] of Object.entries(savedEnv)) {
+      if (v !== undefined) process.env[k] = v; else delete process.env[k];
+    }
+    if (backupToslaEnabled  !== null) await setSetting("payment_tosla_enabled",  backupToslaEnabled);
+    if (backupIyzicoEnabled !== null) await setSetting("payment_iyzico_enabled", backupIyzicoEnabled);
+    if (backupCid  !== null) await setSetting("tosla_client_id",  backupCid);
+    if (backupUser !== null) await setSetting("tosla_api_user",   backupUser);
+    if (backupPass !== null) await setSetting("tosla_api_pass",   backupPass);
+    if (backupIKey !== null) await setSetting("iyzico_api_key",   backupIKey);
+    if (backupISec !== null) await setSetting("iyzico_secret_key",backupISec);
+  }
+});
+
 // ── seedYasMamaProducts idempotence: no duplicate products on re-seed ─────────
 //
 // Calls seedYasMamaProducts() twice and asserts the second call is a no-op.

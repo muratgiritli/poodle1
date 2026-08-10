@@ -3110,12 +3110,30 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       // Ödeme yöntemi açma/kapama anahtarları domaine özeldir (resolveSettings,
       // önekli değer yoksa ortak "all" değerine düşer). Tosla/iyzico API bilgileri
       // tüm domainler için ortak kalır.
+      // Replit Secrets (env vars) DB ayarlarını override eder — getToslaConfig /
+      // getIyzicoConfig ile aynı mantık.
       const pmMap = await resolveSettings([
         'payment_nakit_enabled', 'payment_pos_enabled', 'payment_qr_enabled', 'payment_eft_enabled',
         'payment_tosla_enabled', 'payment_iyzico_enabled',
         'tosla_client_id', 'tosla_api_user', 'tosla_api_pass',
         'iyzico_api_key', 'iyzico_secret_key',
       ], reqStore(req).id);
+      // Apply env-var overlays (mirrors getToslaConfig / getIyzicoConfig)
+      if (process.env.TOSLA_CLIENT_ID) pmMap.tosla_client_id = process.env.TOSLA_CLIENT_ID;
+      if (process.env.TOSLA_API_USER) pmMap.tosla_api_user = process.env.TOSLA_API_USER;
+      if (process.env.TOSLA_CLIENT_SECRET) pmMap.tosla_api_pass = process.env.TOSLA_CLIENT_SECRET;
+      if (process.env.IYZICO_API_KEY) pmMap.iyzico_api_key = process.env.IYZICO_API_KEY;
+      if (process.env.IYZICO_SECRET_KEY) pmMap.iyzico_secret_key = process.env.IYZICO_SECRET_KEY;
+      // If env-var credentials supply a fully configured gateway, treat it as enabled
+      // even when the DB flag is "0".
+      if (process.env.TOSLA_CLIENT_ID && process.env.TOSLA_CLIENT_SECRET && process.env.TOSLA_API_USER &&
+          (!pmMap.payment_tosla_enabled || pmMap.payment_tosla_enabled === "0")) {
+        pmMap.payment_tosla_enabled = "1";
+      }
+      if (process.env.IYZICO_API_KEY && process.env.IYZICO_SECRET_KEY &&
+          (!pmMap.payment_iyzico_enabled || pmMap.payment_iyzico_enabled === "0")) {
+        pmMap.payment_iyzico_enabled = "1";
+      }
       const isOn = (k: string) => pmMap[k] !== "0" && pmMap[k] !== "false" && pmMap[k] !== undefined;
       const pm = String(orderData.paymentMethod || "").toLowerCase();
       const isOnlineCard = /tosla|iyzico|online/.test(pm);
@@ -3568,11 +3586,24 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
 
   // Tosla API bilgileri tüm domainler için ortak; payment_tosla_enabled domaine
   // özeldir (resolveSettings önekli değer yoksa ortak değere düşer).
+  // Eğer TOSLA_CLIENT_ID / TOSLA_CLIENT_SECRET / TOSLA_API_USER env değişkenleri
+  // tanımlıysa bunlar DB ayarlarının üzerine yazar (Replit Secrets desteği).
   async function getToslaConfig(store: string = "all"): Promise<Record<string, string>> {
-    return await resolveSettings(
+    const cfg = await resolveSettings(
       ['tosla_client_id', 'tosla_api_user', 'tosla_api_pass', 'tosla_base_url', 'payment_tosla_enabled'],
       store
     );
+    if (process.env.TOSLA_CLIENT_ID) cfg.tosla_client_id = process.env.TOSLA_CLIENT_ID;
+    if (process.env.TOSLA_API_USER) cfg.tosla_api_user = process.env.TOSLA_API_USER;
+    if (process.env.TOSLA_CLIENT_SECRET) cfg.tosla_api_pass = process.env.TOSLA_CLIENT_SECRET;
+    if (process.env.TOSLA_BASE_URL) cfg.tosla_base_url = process.env.TOSLA_BASE_URL;
+    // Env var ile credential verilmişse admin panelindeki "0" değerini bypass et.
+    // Tosla için üç credential da gerekli (client_id + api_pass + api_user).
+    if (process.env.TOSLA_CLIENT_ID && process.env.TOSLA_CLIENT_SECRET && process.env.TOSLA_API_USER &&
+        (!cfg.payment_tosla_enabled || cfg.payment_tosla_enabled === "0")) {
+      cfg.payment_tosla_enabled = "1";
+    }
+    return cfg;
   }
 
   function toslaOrigin(cfg: Record<string, string>) {
@@ -4131,11 +4162,22 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   // ============ IYZICO PAYMENT ============
   // İyzico API bilgileri tüm domainler için ortak; payment_iyzico_enabled domaine
   // özeldir (resolveSettings önekli değer yoksa ortak değere düşer).
+  // Eğer IYZICO_API_KEY / IYZICO_SECRET_KEY env değişkenleri tanımlıysa bunlar
+  // DB ayarlarının üzerine yazar (Replit Secrets desteği).
   async function getIyzicoConfig(store: string = "all"): Promise<Record<string, string>> {
-    return await resolveSettings(
+    const cfg = await resolveSettings(
       ['iyzico_api_key', 'iyzico_secret_key', 'iyzico_base_url', 'payment_iyzico_enabled'],
       store
     );
+    if (process.env.IYZICO_API_KEY) cfg.iyzico_api_key = process.env.IYZICO_API_KEY;
+    if (process.env.IYZICO_SECRET_KEY) cfg.iyzico_secret_key = process.env.IYZICO_SECRET_KEY;
+    if (process.env.IYZICO_BASE_URL) cfg.iyzico_base_url = process.env.IYZICO_BASE_URL;
+    // Env var ile credential verilmişse admin panelindeki "0" değerini bypass et
+    if (process.env.IYZICO_API_KEY && process.env.IYZICO_SECRET_KEY &&
+        (!cfg.payment_iyzico_enabled || cfg.payment_iyzico_enabled === "0")) {
+      cfg.payment_iyzico_enabled = "1";
+    }
+    return cfg;
   }
 
   function buildIyzicoClient(cfg: Record<string, string>) {
@@ -4615,6 +4657,18 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         "yp_daily_tip", "yp_poodle_name", "yp_poodle_city", "yp_poodle_desc", "yp_poodle_img",
       ];
       const settings = await resolveSettings(keys, publicStoreId(req));
+
+      // Env-var override: if Replit Secrets supply a fully-configured gateway,
+      // expose it as enabled regardless of the DB flag — mirrors the order-gate
+      // and gateway-init logic so the checkout UI stays consistent.
+      if (process.env.TOSLA_CLIENT_ID && process.env.TOSLA_CLIENT_SECRET && process.env.TOSLA_API_USER &&
+          (!settings.payment_tosla_enabled || settings.payment_tosla_enabled === "0")) {
+        settings.payment_tosla_enabled = "1";
+      }
+      if (process.env.IYZICO_API_KEY && process.env.IYZICO_SECRET_KEY &&
+          (!settings.payment_iyzico_enabled || settings.payment_iyzico_enabled === "0")) {
+        settings.payment_iyzico_enabled = "1";
+      }
 
       // Safety guard: disable EFT if IBAN is missing or still the test placeholder
       const iban = settings.bank_iban || "";
