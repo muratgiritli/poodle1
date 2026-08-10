@@ -6,6 +6,8 @@ JETGO is a pet shop quick ordering application built with React/TypeScript, desi
 ## User Preferences
 I prefer iterative development with clear communication on significant changes. Please ask before making major architectural modifications or adding new external dependencies. For code, I appreciate clean, maintainable TypeScript with a focus on functional components where appropriate. When explaining concepts, use straightforward language, avoiding overly technical jargon.
 
+**Language:** Always respond in Turkish.
+
 ## System Architecture
 The application employs a modern web architecture:
 - **Frontend**: React and TypeScript, utilizing `shadcn/ui`, Tailwind CSS, and `framer-motion` for animations, providing a clean, modern, and responsive design.
