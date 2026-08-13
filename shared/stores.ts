@@ -135,6 +135,7 @@ export interface StoreConfig {
 }
 
 const jetgo: StoreConfig = {
+  // Legacy internal id (orders.sourceSite, admin filters). Display name is YourPoodle.
   id: "jetgo",
   hostnames: ["yourpoodle.com", "www.yourpoodle.com"],
   name: "YourPoodle",
@@ -154,9 +155,9 @@ const jetgo: StoreConfig = {
   slogan: "Dünyanın En Kapsamlı Toy Poodle Platformu",
   social: [],
   theme: {
-    primary: "203 89% 53%",
-    topBar: "#6B3480",
-    navBar: "#7c4dff",
+    primary: "25 56% 23%",
+    topBar: "#5D3A1A",
+    navBar: "#5D3A1A",
   },
   seo: {
     title: "Toy Poodle Rehberi, Bakımı ve Mama Seçimi | YourPoodle",

@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { MapPin, Phone, Clock, Mail, MessageCircle } from "lucide-react";
+import { YP_COMPANY } from "@/lib/yp-company";
 
 const P = "#5D3A1A";
+const WA_DIGITS = YP_COMPANY.phoneTel.replace(/\D/g, "");
 
 const HOURS = [
   { day: "Pazartesi", hours: "09:00 – 20:00" },
@@ -45,7 +47,7 @@ export default function YPAtakumMagazaPage() {
                 </div>
                 <div>
                   <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: "#111827" }}>Telefon</p>
-                  <a href="tel:+903620001234" style={{ color: "#6B7280", fontSize: 13, textDecoration: "none" }}>0362 000 12 34</a>
+                  <a href={`tel:${YP_COMPANY.phoneTel}`} style={{ color: "#6B7280", fontSize: 13, textDecoration: "none" }}>{YP_COMPANY.phoneTel}</a>
                 </div>
               </div>
 
@@ -60,11 +62,11 @@ export default function YPAtakumMagazaPage() {
               </div>
 
               <div style={{ display: "flex", gap: 10 }}>
-                <a href="https://wa.me/905320001234" target="_blank" rel="noreferrer"
+                <a href={`https://wa.me/${WA_DIGITS}`} target="_blank" rel="noreferrer"
                   style={{ flex: 1, height: 44, borderRadius: 10, border: "none", background: "#25D366", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, textDecoration: "none" }}>
                   <MessageCircle size={16} /> WhatsApp
                 </a>
-                <a href="tel:+903620001234"
+                <a href={`tel:${YP_COMPANY.phoneTel}`}
                   style={{ flex: 1, height: 44, borderRadius: 10, border: "none", background: "#2563EB", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, textDecoration: "none" }}>
                   <Phone size={16} /> Ara
                 </a>

@@ -11,8 +11,11 @@ import { TESLIMAT_MAHALLELERI } from "@/lib/data";
 import { apiRequest } from "@/lib/queryClient";
 import { useStore } from "@/lib/store";
 import { PROVINCE_NAMES, districtsOf } from "@shared/turkeyLocations";
+import { safeInternalPath } from "@/lib/safe-redirect";
 
 type Step = "phone" | "otp" | "register";
+
+const EMPTY_OTP = ["", "", "", "", "", ""];
 
 export default function AuthPage() {
   const searchStr = useSearch();
@@ -20,7 +23,7 @@ export default function AuthPage() {
   const store = useStore();
   const isCargo = store.commerce.fulfillment === "cargo";
   const [phone, setPhone] = useState("");
-  const [otpCode, setOtpCode] = useState(["", "", "", ""]);
+  const [otpCode, setOtpCode] = useState([...EMPTY_OTP]);
   const [name, setName] = useState("");
   const [adresDetay, setAdresDetay] = useState("");
   const [mahalle, setMahalle] = useState("");
@@ -32,18 +35,18 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<Step>("phone");
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [isExistingUser, setIsExistingUser] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [autoVerifying, setAutoVerifying] = useState(false);
   const { loginWithOtp, isLoggedIn } = useCustomer();
   const [, setLocation] = useLocation();
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const verifyingRef = useRef(false);
+  const postLoginPath = () =>
+    safeInternalPath(new URLSearchParams(searchStr).get("redirect"), "/hesabim");
 
   useEffect(() => {
     if (isLoggedIn) {
-      const params = new URLSearchParams(searchStr);
-      setLocation(params.get("redirect") || "/hesabim");
+      setLocation(postLoginPath());
     }
   }, [isLoggedIn]);
 
@@ -77,22 +80,16 @@ export default function AuthPage() {
     setFormErrors({});
     setLoading(true);
     try {
-      let deviceToken: string | undefined;
-      try {
-        const tokens = JSON.parse(localStorage.getItem("jetgo_trusted_devices") || "{}");
-        deviceToken = tokens[normalized];
-      } catch {}
-      const res = await apiRequest("POST", "/api/otp/send", { phone: normalized, deviceToken });
+      const res = await apiRequest("POST", "/api/otp/send", { phone: normalized });
       const data = await res.json();
       if (data.trustedLogin && data.customer) {
-        setLocation(new URLSearchParams(window.location.search).get("redirect") || "/");
+        setLocation(postLoginPath());
         window.location.reload();
         return;
       }
-      setIsExistingUser(data.isExisting);
       setStep("otp");
       setCountdown(180);
-      setOtpCode(["", "", "", ""]);
+      setOtpCode([...EMPTY_OTP]);
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
     } catch (err: any) {
       let msg = "SMS gönderilemedi";
@@ -108,11 +105,11 @@ export default function AuthPage() {
     const newCode = [...otpCode];
     if (value.length > 1) {
       const digits = value.replace(/\D/g, "").split("");
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 6; i++) {
         newCode[i] = digits[i] || "";
       }
       setOtpCode(newCode);
-      const lastFilledIndex = Math.min(digits.length - 1, 3);
+      const lastFilledIndex = Math.min(digits.length - 1, 5);
       otpRefs.current[lastFilledIndex]?.focus();
       if (newCode.every(d => d !== "") && !verifyingRef.current) {
         verifyingRef.current = true;
@@ -122,7 +119,7 @@ export default function AuthPage() {
     }
     newCode[index] = value;
     setOtpCode(newCode);
-    if (value && index < 3) {
+    if (value && index < 5) {
       otpRefs.current[index + 1]?.focus();
     }
     if (newCode.every(d => d !== "") && !verifyingRef.current) {
@@ -145,11 +142,12 @@ export default function AuthPage() {
       .then((otp: any) => {
         if (otp?.code) {
           const digits = otp.code.replace(/\D/g, "");
-          if (digits.length === 4) {
-            setOtpCode(digits.split(""));
+          if (digits.length >= 6) {
+            const six = digits.slice(0, 6);
+            setOtpCode(six.split(""));
             if (!verifyingRef.current) {
               verifyingRef.current = true;
-              setTimeout(() => autoVerify(digits), 150);
+              setTimeout(() => autoVerify(six), 150);
             }
           }
         }
@@ -168,8 +166,7 @@ export default function AuthPage() {
       if (data?.requiresRegistration) {
         setStep("register");
       } else {
-        const params = new URLSearchParams(window.location.search);
-        setLocation(params.get("redirect") || "/");
+        setLocation(postLoginPath());
       }
     } catch (err: any) {
       let msg = "Doğrulama kodu hatalı";
@@ -183,14 +180,14 @@ export default function AuthPage() {
   };
 
   const autoVerify = (code: string) => {
-    if (code.length === 4) doVerify(code);
+    if (code.length === 6) doVerify(code);
     else verifyingRef.current = false;
   };
 
   const verifyOtp = async () => {
     const code = otpCode.join("");
-    if (code.length !== 4) {
-      setFormErrors({ otp: "4 haneli kodu girin" });
+    if (code.length !== 6) {
+      setFormErrors({ otp: "6 haneli kodu girin" });
       return;
     }
     doVerify(code);
@@ -218,8 +215,7 @@ export default function AuthPage() {
     try {
       await loginWithOtp(normalized, code, name.trim(), fullAddress || undefined);
       if (!isCargo && mahalle) localStorage.setItem("jet55_mahalle", mahalle);
-      const params = new URLSearchParams(window.location.search);
-      setLocation(params.get("redirect") || "/");
+      setLocation(postLoginPath());
     } catch (err: any) {
       let msg = "Bir hata oluştu";
       try { msg = JSON.parse(err.message.replace(/^\d+:\s*/, "")).message; } catch {}
@@ -247,7 +243,7 @@ export default function AuthPage() {
             {step === "phone" && (isRegisterTab
               ? "Hızlı sipariş için üye olun — telefonunuza SMS kodu göndereceğiz"
               : "Telefon numaranıza SMS ile doğrulama kodu göndereceğiz")}
-            {step === "otp" && `+90 ${phone} numarasına gönderilen 4 haneli kodu girin`}
+            {step === "otp" && `+90 ${phone} numarasına gönderilen 6 haneli kodu girin`}
             {step === "register" && "Sipariş için bilgilerinizi girin"}
           </p>
         </div>
@@ -294,11 +290,9 @@ export default function AuthPage() {
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-purple-50 border border-purple-100">
                   <ShieldCheck className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
                   <div className="text-xs text-purple-700 space-y-1">
-                    <div>+90 {phone} numarasına 4 haneli doğrulama kodu gönderildi</div>
+                    <div>+90 {phone} numarasına 6 haneli doğrulama kodu gönderildi</div>
                     <div className="font-medium" data-testid="text-otp-info">
-                      {isExistingUser
-                        ? "Bu numara kayıtlı. Kodu doğruladıktan sonra otomatik giriş yapılacaktır."
-                        : "Bu numara kayıtlı değil. Kodu doğruladıktan sonra üyelik bilgilerinizi tamamlayacaksınız."}
+                      Kodu doğruladıktan sonra giriş yapılır veya yeni üyelik bilgileriniz istenir.
                     </div>
                   </div>
                 </div>
@@ -339,7 +333,7 @@ export default function AuthPage() {
                 <Button
                   onClick={verifyOtp}
                   className="w-full"
-                  disabled={loading || otpCode.join("").length !== 4}
+                  disabled={loading || otpCode.join("").length !== 6}
                   style={{ backgroundColor: "#6B3480" }}
                   data-testid="btn-verify-otp"
                 >
@@ -351,7 +345,7 @@ export default function AuthPage() {
                   <button
                     type="button"
                     className="text-xs text-muted-foreground hover:underline flex items-center gap-1"
-                    onClick={() => { setStep("phone"); setFormErrors({}); setOtpCode(["", "", "", ""]); }}
+                    onClick={() => { setStep("phone"); setFormErrors({}); setOtpCode([...EMPTY_OTP]); }}
                     data-testid="btn-back-phone"
                   >
                     <ArrowLeft className="w-3 h-3" /> Numarayı Değiştir

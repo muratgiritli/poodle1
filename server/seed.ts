@@ -502,6 +502,62 @@ async function seedDeliveryNeighborhoods() {
   console.log(`Seeded ${NEIGHBORHOODS.length} delivery neighborhoods.`);
 }
 
+/* ─── YourPoodle Kuru Mama demo seed ───────────────────────────────────── */
+async function seedKuruMamaDemo(): Promise<void> {
+  try {
+    let [bc] = await db.select().from(brandCategories).where(
+      and(
+        eq(brandCategories.animal, "kopek"),
+        eq(brandCategories.subcategory, "kopek-kuru-mama"),
+        eq(brandCategories.brandSlug, "yourpoodle-kuru")
+      )
+    );
+    if (!bc) {
+      [bc] = await db.insert(brandCategories).values({
+        brandName: "YourPoodle Mama",
+        brandSlug: "yourpoodle-kuru",
+        animal: "kopek",
+        subcategory: "kopek-kuru-mama",
+      }).returning();
+    }
+
+    const KURU = [
+      { barcode: "8681234567401", name: "Toy Poodle Yetişkin Kuru Mama 2 kg", price: 649, originalPrice: 799, stock: 40, mamaType: "yetiskin", imgUrl: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?auto=format&fit=crop&w=600&q=80" },
+      { barcode: "8681234567402", name: "Yavru Poodle Kuru Mama 1.5 kg", price: 589, originalPrice: 699, stock: 35, mamaType: "yavru", imgUrl: "https://images.unsplash.com/photo-1568640347023-a616a30bc3bd?auto=format&fit=crop&w=600&q=80" },
+      { barcode: "8681234567403", name: "Yaşlı Poodle Hafif Kuru Mama 2 kg", price: 679, originalPrice: 849, stock: 25, mamaType: "yasli", imgUrl: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=600&q=80" },
+      { barcode: "8681234567404", name: "Hypoallergenic Kuzu Kuru Mama 3 kg", price: 899, originalPrice: 1099, stock: 20, mamaType: "yetiskin", imgUrl: "https://images.unsplash.com/photo-1623387641038-cef311724b25?auto=format&fit=crop&w=600&q=80" },
+      { barcode: "8681234567405", name: "Somomlu Küçük Irk Mama 2 kg", price: 729, originalPrice: 899, stock: 30, mamaType: "yetiskin", imgUrl: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=600&q=80" },
+      { barcode: "8681234567406", name: "Tahılsız Yetişkin Mama 1 kg", price: 449, originalPrice: 549, stock: 50, mamaType: "yetiskin", imgUrl: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=600&q=80" },
+    ];
+
+    for (const p of KURU) {
+      const exists = await pool.query(`SELECT id FROM products WHERE barcode = $1 LIMIT 1`, [p.barcode]);
+      if (exists.rows.length > 0) {
+        await pool.query(
+          `UPDATE products SET mama_type = COALESCE(mama_type, $1), is_active = true WHERE barcode = $2`,
+          [p.mamaType, p.barcode]
+        );
+        continue;
+      }
+      const [inserted] = await db.insert(products).values({
+        name: p.name, price: p.price, originalPrice: p.originalPrice,
+        stock: p.stock, barcode: p.barcode, brandCategoryId: bc.id,
+        img: p.imgUrl, mamaType: p.mamaType as any,
+      }).returning();
+
+      try {
+        const localPath = await downloadAndSaveImage(p.imgUrl, inserted.id);
+        if (localPath) {
+          await pool.query(`UPDATE products SET img = $1 WHERE id = $2`, [localPath, inserted.id]);
+        }
+      } catch { /* keep remote img */ }
+    }
+    console.log("YourPoodle kuru mama demo products seeded.");
+  } catch (e: any) {
+    console.error("[seedKuruMamaDemo]", e?.message);
+  }
+}
+
 /* ─── YourPoodle Taşıma Çantaları seed ─────────────────────────────────── */
 async function seedTasimaProducts(): Promise<void> {
   try {
@@ -930,11 +986,10 @@ export async function seedDatabase() {
   await cleanupOrphanBrandCategories();
   await seedDeliveryNeighborhoods();
 
-  // Empty catalog mode for YourPoodle — do not re-seed demo products.
+  // Empty catalog only when explicitly requested (prod can set YP_EMPTY_CATALOG=1).
   const skipProducts =
     process.env.YP_EMPTY_CATALOG === "1" ||
-    process.env.SKIP_PRODUCT_SEED === "1" ||
-    true; // YourPoodle: catalog starts empty; admin will add products
+    process.env.SKIP_PRODUCT_SEED === "1";
 
   if (skipProducts) {
     console.log("[seed] Skipping product/brand product seeds (empty catalog)");
@@ -943,6 +998,7 @@ export async function seedDatabase() {
     await seedYasMamaProducts();
     await seedTasimaProducts();
     await seedMamaSuKabiProducts();
+    await seedKuruMamaDemo();
     console.log("Checking database for missing brand data...");
 
     for (const brand of ALL_BRAND_DATA) {
@@ -1102,6 +1158,117 @@ async function seedYPMamaMetadata(): Promise<void> {
       WHERE name ILIKE '%Reflex Plus%' AND is_active = true
     `, [REFLEX_DESC, JSON.stringify(REFLEX_META)]);
     console.log("YP: Reflex Plus metadata seeded");
+
+    // YourPoodle Mama kuru — Mama Bul soru alanlarıyla hizalı metadata
+    const YP_KURU: Array<{ barcode: string; skt: string; desc: string; meta: Record<string, unknown> }> = [
+      {
+        barcode: "8681234567406",
+        skt: "08.2027",
+        desc: `<p>Tahılsız Yetişkin Mama, Toy ve Minyatür Poodle'lar için tahılsız formülle üretilmiştir. Mama Bul profiline göre yetişkin, küçük ırk ve tahıl hassasiyeti olan köpekler için uygundur.</p>`,
+        meta: {
+          age: "adult", weight: "toy", neutered: "yes", activity: "medium", weight_goal: "maintain",
+          allergy: "grain", digestion: "sensitive", coat: "none",
+          protein: ["chicken"], budget: ["mid"], package: ["small"],
+          proteinType: "chicken", grainFree: true, breedSize: "toy", budgetTier: "mid",
+          allergens: [], specialNeeds: ["hassas-sindirim", "tuy-bakimi"],
+          ingredients: "Tavuk eti unu, tatlı patates, bezelye, tavuk yağı, mercimek, keten tohumu, kurutulmuş pancar posası, salmon oil, vitamin ve mineral premiksi, yucca schidigera ekstraktı.",
+          nutritionalAnalysis: { protein: 28, fat: 14, fiber: 3.5, ash: 7, moisture: 9 },
+          dailyPortionGuide: "2 kg: 45–55 g/gün · 3 kg: 60–70 g/gün · 4 kg: 75–85 g/gün",
+        },
+      },
+      {
+        barcode: "8681234567401",
+        skt: "09.2027",
+        desc: `<p>Toy Poodle Yetişkin Kuru Mama, 10 ay+ Toy Poodle'ların günlük besin ihtiyacı için formüle edilmiştir.</p>`,
+        meta: {
+          age: "adult", weight: "toy", neutered: "yes", activity: "medium", weight_goal: "maintain",
+          allergy: "none", digestion: "none", coat: "none",
+          protein: ["chicken"], budget: ["mid"], package: ["medium"],
+          proteinType: "chicken", grainFree: false, breedSize: "toy", budgetTier: "mid",
+          allergens: [], specialNeeds: ["tuy-bakimi", "dis-sagligi"],
+          benefits: [
+            { title: "Irklara özel beslenme", desc: "Toy Poodle yetişkin formülü" },
+            { title: "Özel tasarlanan mama taneleri", desc: "Küçük çeneye uygun granül" },
+            { title: "Tüy sağlığı", desc: "Omega destekli parlak tüy" },
+          ],
+          ingredients: "Tavuk eti, pirinç, mısır, tavuk yağı, pancar posası, balık yağı, vitamin ve mineral karışımı.",
+          nutritionalAnalysis: { protein: 27, fat: 15, fiber: 2.5, ash: 7.2, moisture: 8 },
+          dailyPortionGuide: "2 kg: 50 g/gün · 3 kg: 68 g/gün · 4 kg: 82 g/gün",
+        },
+      },
+      {
+        barcode: "8681234567402",
+        skt: "10.2027",
+        desc: `<p>Yavru Poodle Kuru Mama, büyüme dönemindeki yavrular için yüksek protein ve destekleyici formül.</p>`,
+        meta: {
+          age: "puppy", weight: "toy", neutered: "no", activity: "high", weight_goal: "gain",
+          allergy: "none", digestion: "none", coat: "none",
+          protein: ["chicken"], budget: ["mid"], package: ["small"],
+          proteinType: "chicken", grainFree: false, breedSize: "toy", budgetTier: "mid",
+          allergens: [], specialNeeds: ["buyume-gelisim", "bagisiklik-guclendirme"],
+          ingredients: "Tavuk eti unu, pirinç, tavuk yağı, balık yağı, prebiyotik lifler, vitamin-mineral premiksi.",
+          nutritionalAnalysis: { protein: 30, fat: 18, fiber: 2.2, ash: 7.8, moisture: 8 },
+          dailyPortionGuide: "2–4 ay: 55–95 g/gün · 4–10 ay: 60–100 g/gün",
+        },
+      },
+      {
+        barcode: "8681234567403",
+        skt: "07.2027",
+        desc: `<p>Yaşlı Poodle Hafif Kuru Mama, 7+ yaş poodle'lar için düşük kalorili formül.</p>`,
+        meta: {
+          age: "senior", weight: "toy", neutered: "yes", activity: "low", weight_goal: "lose",
+          allergy: "none", digestion: "sensitive", coat: "dull",
+          protein: ["chicken"], budget: ["mid"], package: ["medium"],
+          proteinType: "chicken", grainFree: false, breedSize: "toy", budgetTier: "mid",
+          allergens: [], specialNeeds: ["eklem-destegi", "kilo-kontrolu"],
+          ingredients: "Tavuk eti, pirinç, yulaf, pancar posası, glukozamin, kondroitin, vitamin-mineral premiksi.",
+          nutritionalAnalysis: { protein: 24, fat: 10, fiber: 4, ash: 7, moisture: 9 },
+          dailyPortionGuide: "2–3 kg: 40–55 g/gün · 3–5 kg: 55–70 g/gün",
+        },
+      },
+      {
+        barcode: "8681234567404",
+        skt: "11.2027",
+        desc: `<p>Hypoallergenic Kuzu Kuru Mama, protein alerjisi riski olan küçük ırklar için kuzu proteinli formül.</p>`,
+        meta: {
+          age: "adult", weight: "mini", neutered: "yes", activity: "medium", weight_goal: "maintain",
+          allergy: "chicken", digestion: "sensitive", coat: "scratch",
+          protein: ["lamb"], budget: ["premium"], package: ["medium"],
+          proteinType: "lamb", grainFree: false, breedSize: "mini", budgetTier: "premium",
+          allergens: ["tahil"], specialNeeds: ["hipoalerjenik", "deri-sagligi"],
+          ingredients: "Kuzu eti unu, pirinç, patates, kuzu yağı, bezelye lifi, vitamin ve mineral premiksi.",
+          nutritionalAnalysis: { protein: 26, fat: 14, fiber: 3, ash: 7.5, moisture: 8 },
+          dailyPortionGuide: "4–6 kg: 80–110 g/gün · 6–9 kg: 110–140 g/gün",
+        },
+      },
+      {
+        barcode: "8681234567405",
+        skt: "12.2027",
+        desc: `<p>Somonlu Küçük Irk Mama, Omega-3 zengin somon proteini ile tüy ve deri desteği sağlar.</p>`,
+        meta: {
+          age: "adult", weight: "toy", neutered: "yes", activity: "medium", weight_goal: "maintain",
+          allergy: "chicken", digestion: "none", coat: "shedding",
+          protein: ["salmon"], budget: ["mid"], package: ["medium"],
+          proteinType: "salmon", grainFree: false, breedSize: "toy", budgetTier: "mid",
+          allergens: ["balik"], specialNeeds: ["tuy-bakimi", "deri-sagligi"],
+          ingredients: "Somon, pirinç, balık yağı, patates, pancar posası, vitamin-mineral premiksi.",
+          nutritionalAnalysis: { protein: 27, fat: 15, fiber: 2.8, ash: 7, moisture: 8.5 },
+          dailyPortionGuide: "2–4 kg: 55–85 g/gün",
+        },
+      },
+    ];
+
+    for (const item of YP_KURU) {
+      await pool.query(
+        `UPDATE products SET
+           skt = COALESCE(NULLIF(skt, ''), $1),
+           long_description = $2,
+           mama_metadata = $3
+         WHERE barcode = $4`,
+        [item.skt, item.desc, JSON.stringify(item.meta), item.barcode]
+      );
+    }
+    console.log("YP: YourPoodle Mama kuru metadata seeded");
 
     console.log("YP mama metadata seeding complete!");
   } catch (e) {

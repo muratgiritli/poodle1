@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import {
   ChevronLeft, CheckCircle, X, Trash2,
-  CreditCard, Truck, MapPin, ChevronRight, Tag,
+  Truck, MapPin, ChevronRight, Tag,
   Lock, ShieldCheck, Plus, Minus, ShoppingCart,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
@@ -10,28 +10,28 @@ import { useCustomer } from "@/contexts/CustomerContext";
 import { IS_YP } from "@/lib/store";
 import { useCart } from "@/contexts/CartContext";
 import { useQuery } from "@tanstack/react-query";
+import { goBack } from "@/lib/goBack";
+import { saveCheckoutDraft } from "@/lib/checkout-draft";
+import { useSurchargeRate, surchargeLabel } from "@/hooks/useSurchargeRate";
+import { resolveYpShipping, ypCardSurcharge, type DeliveryNeighborhood } from "@/lib/yp-shipping";
+import PaymentCardLogos from "@/components/yourpoodle/PaymentCardLogos";
 
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 /* ─── Palette ──────────────────────────── */
-const P   = "#4A2ED1";
-const PB  = "#3B59FF";
+const P   = "#5D3A1A";
+const PB  = "#3D2612";
 const PL  = "#F5F0E6";
 const PBD = "#E5DDD0";
 const GB  = "#E5E7EB";
 
-/* ─── Types ────────────────────────────── */
-interface DeliveryOption { id: string; title: string; price: number; subtitle: string; }
-
-const DELIVERY_OPTIONS: DeliveryOption[] = [
-  { id:"standard", title:"Standart Teslimat — Ücretsiz", price:0,  subtitle:"Aynı gün / Ertesi gün teslimat" },
-  { id:"express",  title:"Hızlı Teslimat — 79 TL",       price:79, subtitle:"Öncelikli teslimat" },
-];
-
 function fmt(n: number) { return n.toLocaleString("tr-TR"); }
 
 
-function AddressModal({ onSelect, onClose }: { onSelect:(s:string)=>void; onClose:()=>void }) {
+function AddressModal({ onSelect, onClose }: {
+  onSelect: (a: { id: number; label: string; text: string; city?: string; district?: string }) => void;
+  onClose: () => void;
+}) {
   const [, navigate] = useLocation();
   const [sel, setSel] = useState<string | null>(null);
   const [addresses, setAddresses] = useState<any[]>([]);
@@ -62,9 +62,21 @@ function AddressModal({ onSelect, onClose }: { onSelect:(s:string)=>void; onClos
         </div>
         {loading && <p style={{ textAlign:"center",color:"#9CA3AF",padding:"20px 0" }}>Yükleniyor…</p>}
         {!loading && addresses.length === 0 && (
-          <p style={{ textAlign:"center",color:"#6B7280",padding:"16px 0" }}>
-            Kayıtlı adresiniz yok. Hesabınızdan yeni adres ekleyin.
-          </p>
+          <div style={{ textAlign: "center", padding: "8px 0 16px" }}>
+            <p style={{ color: "#6B7280", marginBottom: 12, fontSize: 13, lineHeight: 1.5 }}>
+              Kayıtlı adresin yok. Ödeme sayfasında teslimat adresini girebilirsin.
+            </p>
+            <button
+              onClick={onClose}
+              style={{
+                width: "100%", background: P, border: "none", color: "#fff",
+                borderRadius: 12, padding: "12px 0", fontSize: 14, fontWeight: 700,
+                cursor: "pointer", fontFamily: "inherit", marginBottom: 8,
+              }}
+            >
+              Tamam, ödemede gireceğim
+            </button>
+          </div>
         )}
         {addresses.map(a=>(
           <div key={a.id} onClick={()=>setSel(String(a.id))}
@@ -83,7 +95,7 @@ function AddressModal({ onSelect, onClose }: { onSelect:(s:string)=>void; onClos
             </div>
           </div>
         ))}
-        <button onClick={()=>navigate("/hesabim/adreslerim")}
+        <button onClick={()=>navigate(`${BASE}/hesabim/adresler?yeni=1`)}
           style={{ width:"100%",background:"none",border:`1.5px dashed ${GB}`,
                    borderRadius:10,padding:"10px 0",fontSize:13,color:"#6B7280",
                    cursor:"pointer",marginBottom:16,fontFamily:"inherit" }}>
@@ -91,7 +103,25 @@ function AddressModal({ onSelect, onClose }: { onSelect:(s:string)=>void; onClos
         </button>
         <button
           disabled={!selected}
-          onClick={()=>{ if(!selected) return; onSelect(`${selected.label || "Adres"} — ${[selected.district, selected.city].filter(Boolean).join(", ") || selected.detail || ""}`); onClose(); }}
+          onClick={()=>{ if(!selected) return;
+            const street = String(selected.detail || selected.address || "")
+              .replace(/^[^\n]*·[^\n]*\n?/, "").trim();
+            let city = String(selected.city || "");
+            let district = String(selected.district || "");
+            if (district.includes("·")) {
+              const [d, c] = district.split("·").map((x: string) => x.trim());
+              district = d || "";
+              if (c) city = city || c;
+            }
+            onSelect({
+              id: Number(selected.id),
+              label: String(selected.label || "Adres"),
+              text: street,
+              city,
+              district,
+            });
+            onClose();
+          }}
           style={{ width:"100%",background:selected?P:"#D1D5DB",color:"#fff",border:"none",borderRadius:12,
                    padding:"13px 0",fontSize:14,fontWeight:700,cursor:selected?"pointer":"default",fontFamily:"inherit" }}>
           Kaydet
@@ -121,7 +151,7 @@ export default function YPSepetPage() {
 
   /* Fetch product catalog to resolve basket IDs → product details */
   const { data: allProducts = [] } = useQuery<any[]>({
-    queryKey: ["/api/products"],
+    queryKey: ["/api/yp-products"],
     staleTime: 60_000,
   });
 
@@ -136,27 +166,39 @@ export default function YPSepetPage() {
     .filter(Boolean) as { id: string; product: any; quantity: number }[];
 
   const [showBanner, setShowBanner]     = useState(true);
-  const [deliveryId, setDeliveryId]     = useState("standard");
-  const [address, setAddress]           = useState<string|null>(null);
+  const [address, setAddress]           = useState<{ id: number; label: string; text: string; city?: string; district?: string } | null>(null);
   const [showAddrModal, setShowAddrModal] = useState(false);
   const [couponInput, setCouponInput]   = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<{discount:number;label:string}|null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number; label: string; freeShipping?: boolean }|null>(null);
   const [toastMsg, setToastMsg]         = useState<string|null>(null);
+
+  const surchargeRate = useSurchargeRate();
+  const { data: deliveryNeighborhoods = [] } = useQuery<DeliveryNeighborhood[]>({
+    queryKey: ["/api/delivery-neighborhoods"],
+    staleTime: 60_000,
+  });
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(()=>setToastMsg(null), 2500);
   };
 
-  const delivery      = DELIVERY_OPTIONS.find(d=>d.id===deliveryId)!;
   const saleSubtotal  = items.reduce((s, i) => s + i.product.price * i.quantity, 0);
   const origSubtotal  = items.reduce((s, i) => s + (i.product.originalPrice ?? i.product.price) * i.quantity, 0);
   const productDiscount  = Math.max(0, origSubtotal - saleSubtotal);
-  const shippingCost  = delivery.price === 0 ? 0 : (saleSubtotal >= 500 ? 0 : delivery.price);
+  const addressBlob = useMemo(
+    () => [address?.text, address?.district, address?.city].filter(Boolean).join(", "),
+    [address],
+  );
+  const shipInfo = useMemo(
+    () => resolveYpShipping(saleSubtotal, addressBlob, deliveryNeighborhoods),
+    [saleSubtotal, addressBlob, deliveryNeighborhoods],
+  );
+  const shippingCost  = appliedCoupon?.freeShipping ? 0 : shipInfo.shipping;
   const couponDiscount   = appliedCoupon?.discount ?? 0;
-  const total         = saleSubtotal + shippingCost - couponDiscount;
-  const installAmt    = (total / 3).toFixed(2).replace(".", ",");
-  const freeShipPct   = Math.min((saleSubtotal / 500) * 100, 100);
+  const cardSurcharge = ypCardSurcharge(saleSubtotal, surchargeRate);
+  const total         = Math.max(0, saleSubtotal + shippingCost - couponDiscount + cardSurcharge);
+  const freeShipPct   = Math.min((saleSubtotal / shipInfo.freeLimit) * 100, 100);
   const itemCount     = items.reduce((s, i) => s + i.quantity, 0);
 
   const handleQty = (id: string, delta: number) => cartUpdate(id, delta);
@@ -176,11 +218,17 @@ export default function YPSepetPage() {
       const res = await fetch("/api/coupons/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ code: upper, subtotal: saleSubtotal }),
       });
       const data = await res.json();
       if (data.valid) {
-        setAppliedCoupon({ discount: data.discountAmount, label: `${upper} — ${data.message}` });
+        setAppliedCoupon({
+          code: upper,
+          discount: data.discountAmount,
+          label: `${upper} — ${data.message}`,
+          freeShipping: !!data.freeShipping || data.discountType === "free_shipping",
+        });
         showToast("Kupon uygulandı ✓");
       } else {
         showToast(data.message || "Geçersiz kupon kodu");
@@ -191,9 +239,27 @@ export default function YPSepetPage() {
   };
 
   const proceedToPayment = () => {
-    if (!isLoggedIn) { navigate(`${BASE}/giris?returnTo=${encodeURIComponent(`${BASE}/sepet`)}`); return; }
-    if(!address){ showToast("Lütfen teslimat adresi seçin"); setShowAddrModal(true); return; }
-    navigate("/odeme");
+    // Draft önce kaydedilir — giriş redirect'inde kupon/adres kaybolmasın
+    saveCheckoutDraft({
+      couponCode: appliedCoupon?.code,
+      couponDiscount: appliedCoupon?.discount ?? 0,
+      couponLabel: appliedCoupon?.label,
+      couponFreeShipping: !!appliedCoupon?.freeShipping,
+      deliveryId: "standard",
+      deliveryPrice: shippingCost,
+      ...(address ? {
+        addressId: address.id,
+        addressLabel: address.label,
+        addressText: address.text,
+        city: address.city,
+        district: address.district,
+      } : {}),
+    });
+    if (!isLoggedIn) {
+      navigate(`${BASE}/giris?returnTo=${encodeURIComponent(`${BASE}/odeme`)}`);
+      return;
+    }
+    navigate(`${BASE}/odeme`);
   };
 
   /* ── EMPTY STATE ── */
@@ -229,7 +295,7 @@ export default function YPSepetPage() {
                     display:"flex", alignItems:"center", justifyContent:"space-between",
                     borderBottom:`1px solid ${GB}` }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <button onClick={()=>navigate(-1 as any)} aria-label="Geri"
+          <button onClick={()=>goBack(navigate, "/")} aria-label="Geri"
             style={{ width:32,height:32,border:"none",background:"none",cursor:"pointer",
                      display:"flex",alignItems:"center",justifyContent:"center",
                      color:"#374151",padding:0 }}>
@@ -348,15 +414,19 @@ export default function YPSepetPage() {
           </div>
         ))}
 
-        {/* ══ INSTALLMENT BANNER ═══════════════════════════ */}
-        <div style={{ margin:"0 16px 12px",background:PL,borderRadius:14,padding:"12px 16px",
-                      display:"flex",alignItems:"center",gap:12 }}>
-          <CreditCard size={18} color={P} style={{ flexShrink:0 }} />
-          <div>
-            <p style={{ fontSize:11,fontWeight:600,color:"#374151" }}>Peşin fiyatına 3 taksit</p>
-            <p style={{ fontSize:14,fontWeight:800,color:P }}>3 × {installAmt} TL</p>
+        {/* ══ CARD SURCHARGE NOTE ══════════════════════════ */}
+        {cardSurcharge > 0 && (
+          <div style={{ margin:"0 16px 12px",background:PL,borderRadius:14,padding:"12px 16px",
+                        display:"flex",alignItems:"center",gap:12 }}>
+            <ShieldCheck size={18} color={P} style={{ flexShrink:0 }} />
+            <div>
+              <p style={{ fontSize:11,fontWeight:600,color:"#374151" }}>Online kart ödemesi</p>
+              <p style={{ fontSize:13,fontWeight:700,color:P }}>
+                İşlem farkı {surchargeLabel(surchargeRate)} · +{fmt(cardSurcharge)} TL (toplama dahil)
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ══ SHIPPING PROGRESS ════════════════════════════ */}
         <div style={{ margin:"0 16px 12px",background:"#fff",borderRadius:14,
@@ -364,47 +434,51 @@ export default function YPSepetPage() {
           <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:10 }}>
             <Truck size={18} color={PB} />
             <span style={{ fontSize:13,fontWeight:700,color:"#111827" }}>
-              {freeShipPct>=100?"Ücretsiz kargo kazandınız!":`Ücretsiz kargoya ${fmt(500-saleSubtotal)} TL kaldı`}
+              {freeShipPct>=100
+                ? "Ücretsiz kargo kazandınız!"
+                : `Ücretsiz kargoya ${fmt(Math.max(0, shipInfo.freeLimit - saleSubtotal))} TL kaldı`}
             </span>
           </div>
           <div style={{ width:"100%",height:8,background:"#F3F4F6",borderRadius:999,overflow:"hidden" }}>
             <div style={{ width:`${freeShipPct}%`,height:"100%",background:PB,borderRadius:999,transition:"width 0.4s" }} />
           </div>
-          <p style={{ fontSize:11,color:"#9CA3AF",marginTop:8 }}>500 TL üzeri siparişlerde kargo ücretsiz</p>
+          <p style={{ fontSize:11,color:"#9CA3AF",marginTop:8 }}>
+            {shipInfo.matched
+              ? `${shipInfo.matched.name}: ${fmt(shipInfo.freeLimit)} TL üzeri ücretsiz (aksi halde ${fmt(shipInfo.fee)} TL)`
+              : `${fmt(shipInfo.freeLimit)} TL üzeri ücretsiz kargo (altı ${fmt(shipInfo.fee)} TL)`}
+          </p>
         </div>
 
-        {/* ══ DELIVERY OPTIONS ═════════════════════════════ */}
+        {/* ══ DELIVERY ═════════════════════════════════════ */}
         <div style={{ margin:"0 16px 12px" }}>
-          <p style={{ fontSize:13,fontWeight:700,color:"#111827",marginBottom:10 }}>Teslimat Seçenekleri</p>
-          <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-            {DELIVERY_OPTIONS.map(opt=>{
-              const sel = deliveryId===opt.id;
-              return (
-                <button key={opt.id} onClick={()=>setDeliveryId(opt.id)}
-                  style={{ display:"flex",alignItems:"center",gap:12,padding:"12px 14px",
-                           borderRadius:12,border:`2px solid ${sel?P:GB}`,
-                           background:sel?"#FAFAFF":"#fff",cursor:"pointer",
-                           textAlign:"left",width:"100%",fontFamily:"inherit" }}>
-                  <div style={{ width:18,height:18,borderRadius:"50%",border:`2px solid ${sel?P:"#D1D5DB"}`,
-                                display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                    {sel && <div style={{ width:9,height:9,borderRadius:"50%",background:P }} />}
-                  </div>
-                  <div>
-                    <p style={{ fontSize:13,fontWeight:600,color:"#111827" }}>{opt.title}</p>
-                    <p style={{ fontSize:11,color:"#9CA3AF",marginTop:2 }}>{opt.subtitle}</p>
-                  </div>
-                </button>
-              );
-            })}
+          <p style={{ fontSize:13,fontWeight:700,color:"#111827",marginBottom:10 }}>Teslimat</p>
+          <div style={{ display:"flex",alignItems:"center",gap:12,padding:"12px 14px",
+                        borderRadius:12,border:`2px solid ${P}`,background:"#FAFAFF" }}>
+            <Truck size={18} color={P} style={{ flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize:13,fontWeight:600,color:"#111827" }}>
+                Standart Teslimat — {shippingCost === 0 ? "Ücretsiz" : `${fmt(shippingCost)} TL`}
+              </p>
+              <p style={{ fontSize:11,color:"#9CA3AF",marginTop:2 }}>
+                Adres / bölgeye göre hesaplanır · ödeme sayfasında kesinleşir
+              </p>
+            </div>
           </div>
-          {/* Address picker */}
+          {/* Address — optional here; required on payment page */}
           <button onClick={()=>setShowAddrModal(true)}
             style={{ display:"flex",alignItems:"center",justifyContent:"space-between",
                      width:"100%",marginTop:10,background:"#F9FAFB",border:`1px solid ${GB}`,
                      borderRadius:12,padding:"13px 16px",cursor:"pointer",fontFamily:"inherit" }}>
-            <div style={{ display:"flex",alignItems:"center",gap:8 }}>
+            <div style={{ display:"flex",alignItems:"center",gap:8, textAlign: "left" }}>
               <MapPin size={17} color={P} />
-              <span style={{ fontSize:13,color:"#374151" }}>{address ?? "Teslimat adresinizi seçin"}</span>
+              <div>
+                <span style={{ fontSize:13,color:"#374151", display: "block" }}>
+                  {address ? `${address.label} — ${address.text}` : "Teslimat adresi (opsiyonel)"}
+                </span>
+                {!address && (
+                  <span style={{ fontSize:11, color:"#9CA3AF" }}>Ödeme sayfasında da girebilirsin</span>
+                )}
+              </div>
             </div>
             <ChevronRight size={17} color="#9CA3AF" />
           </button>
@@ -466,14 +540,19 @@ export default function YPSepetPage() {
                 {couponDiscount>0?`-${fmt(couponDiscount)} TL`:"0 TL"}
               </span>
             </div>
+            {cardSurcharge > 0 && (
+              <div style={{ display:"flex",justifyContent:"space-between" }}>
+                <span style={{ fontSize:13,color:"#374151" }}>Kart işlem farkı ({surchargeLabel(surchargeRate)})</span>
+                <span style={{ fontSize:13,color:"#374151" }}>+{fmt(cardSurcharge)} TL</span>
+              </div>
+            )}
           </div>
           <div style={{ height:1,background:"#F3F4F6",margin:"14px 0" }} />
           <div style={{ display:"flex",justifyContent:"space-between",alignItems:"baseline" }}>
             <span style={{ fontSize:14,fontWeight:700,color:"#111827" }}>Toplam</span>
             <span style={{ fontSize:24,fontWeight:800,color:PB }}>{fmt(total)} TL</span>
           </div>
-          <p style={{ fontSize:11,color:"#9CA3AF",marginTop:3 }}>KDV dahil</p>
-          <p style={{ fontSize:11,color:"#9CA3AF",marginTop:4 }}>3 taksit seçeneği: 3 x {installAmt} TL</p>
+          <p style={{ fontSize:11,color:"#9CA3AF",marginTop:3 }}>KDV dahil · online kart ile ödeme</p>
         </div>
 
         {/* ══ PAYMENT SECTION ══════════════════════════════ */}
@@ -489,14 +568,7 @@ export default function YPSepetPage() {
             <ShieldCheck size={14} color={PB} />
             <span style={{ fontSize:12,color:"#9CA3AF" }}>256-bit SSL ile güvenli ödeme</span>
           </div>
-          <div style={{ display:"flex",justifyContent:"center",gap:8 }}>
-            {["VISA","Mastercard","troy"].map(logo=>(
-              <div key={logo} style={{ background:"#fff",border:`1px solid ${GB}`,borderRadius:8,
-                                       padding:"5px 12px",fontSize:12,fontWeight:800,color:"#374151" }}>
-                {logo}
-              </div>
-            ))}
-          </div>
+          <PaymentCardLogos height={30} />
           <button onClick={()=>navigate("/yourpoodle/magaza")}
             style={{ width:"100%",background:"#fff",border:`2px solid ${P}`,borderRadius:14,
                      padding:"13px 0",fontSize:14,fontWeight:700,color:P,cursor:"pointer",fontFamily:"inherit" }}>

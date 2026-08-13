@@ -1,16 +1,18 @@
 // Route: /hesabim/yardim/yeni-talep
-import { useState, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, Headphones, PackageOpen, RefreshCw, PackageX,
   Truck, Clock, Repeat, MoreHorizontal, Check, Bell, Phone,
-  Camera, FileText, X, ShieldCheck,
+  Camera, FileText, X,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import { goBack } from "@/lib/goBack";
+import { apiRequest } from "@/lib/queryClient";
+import { SUPPORT_BRAND as P, SUPPORT_BRAND_LIGHT as PL } from "@/lib/support-api";
 
 /* ── Palette ─────────────────────────── */
-const P   = "#4B2BD6";
-const PL  = "#F5F0E6";
 const NAV = "#1D1E9B";
 const DRK = "#111827";
 const GT  = "#6B7280";
@@ -59,30 +61,123 @@ const ISSUES = [
   { id:"other",    label:"Diğer",            Icon:MoreHorizontal,},
 ] as const;
 
-/* ── Orders ──────────────────────────── */
-const ORDERS = [
-  { id:"ord-1", num:"YP-20260723", date:"23 Temmuz 2026", count:2, price:"1.338 TL", status:"Teslim Edildi",
-    thumbs:[
-      "https://images.unsplash.com/photo-1589924691995-400dc9e7c8b0?w=48&h=48&fit=crop",
-      "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=48&h=48&fit=crop",
-    ],
-  },
-  { id:"ord-2", num:"YP-20260715", date:"15 Temmuz 2026", count:1, price:"449 TL", status:"Teslim Edildi",
-    thumbs:["https://images.unsplash.com/photo-1544568100-847a948583b9?w=48&h=48&fit=crop"],
-  },
-];
+const TOPIC_LABELS: Record<string, string> = {
+  order: "Sipariş ve Teslimat",
+  payment: "Ödeme ve Taksit",
+  product: "Ürün Bilgisi",
+  club: "Club ve Hesap",
+  membership: "Üyelik",
+  other: "Diğer",
+};
+
+const ISSUE_LABELS: Record<string, string> = {
+  missing: "Eksik Ürün",
+  wrong: "Yanlış Ürün",
+  damaged: "Hasarlı Ürün",
+  delay: "Kargo Gecikmesi",
+  return: "İade / Değişim",
+  other: "Diğer",
+};
+
+type OrderRow = {
+  id: number | string;
+  status: string;
+  grandTotal: number | string;
+  createdAt: string;
+  items: Array<{ name?: string; productName?: string; img?: string | null }>;
+};
 
 /* ── Preloaded files ─────────────────── */
 type UFile = { id:string; name:string; size:string; type:"image"|"pdf"; previewUrl?:string; };
-const PRELOADED: UFile[] = [
-  { id:"file-1", name:"paket.jpg",  size:"412 KB", type:"image",
-    previewUrl:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=80&h=80&fit=crop" },
-  { id:"file-2", name:"fatura.pdf", size:"186 KB", type:"pdf" },
-];
+
+/* ── KVKK Aydınlatma Modal ───────────── */
+const AYDINLATMA_SECTIONS = [
+  {
+    heading: "1. Veri Sorumlusu",
+    text: "Destek talebiniz kapsamında paylaştığınız kişisel veriler, veri sorumlusu sıfatıyla Sizpa İnternet Tic. Ltd. Şti. (YourPoodle) tarafından işlenmektedir. İletişim: info@sizpa.com",
+  },
+  {
+    heading: "2. İşlenen Veriler",
+    text: "Ad-soyad, üyelik iletişim bilgileriniz, sipariş numarası ve sipariş bilgileri, talep konusu ve açıklamanız, yüklediğiniz fotoğraf/belge ekleri, tercih ettiğiniz iletişim yöntemi (uygulama bildirimi, telefon, SMS) ve talebin takibi için gerekli teknik kayıtlar işlenebilir.",
+  },
+  {
+    heading: "3. İşleme Amacı",
+    text: "Verileriniz; destek talebinizin alınması, incelenmesi, yanıtlanması, iade/değişim veya şikâyet süreçlerinin yürütülmesi, müşteri memnuniyetinin sağlanması ve yasal yükümlülüklerin yerine getirilmesi amacıyla işlenir.",
+  },
+  {
+    heading: "4. Hukuki Dayanak",
+    text: "İşleme; 6698 sayılı KVKK’nın 5. maddesi kapsamında sözleşmenin ifası, hukuki yükümlülük, meşru menfaat ve gerekli hallerde açık rızanıza dayanır. Destek talebi formundaki onay, talebinizin incelenmesi için gerekli bilgilerin işlenmesine ilişkin rızanızı ifade eder.",
+  },
+  {
+    heading: "5. Aktarım",
+    text: "Talebin çözümü için gerekli olduğu ölçüde kargo firmaları, ödeme/iade altyapı sağlayıcıları veya yasal zorunluluk halinde yetkili kamu kurumlarıyla sınırlı veri paylaşımı yapılabilir. Verileriniz pazarlama amacıyla üçüncü kişilere satılmaz.",
+  },
+  {
+    heading: "6. Saklama Süresi",
+    text: "Destek talebi kayıtları, talebin kapanmasından sonra yasal saklama süreleri ve olası uyuşmazlıkların takibi için makul süre boyunca muhafaza edilir; süre sonunda silinir veya anonimleştirilir. Yüklediğiniz ekler yalnızca talep süreciyle sınırlı kullanılır.",
+  },
+  {
+    heading: "7. Haklarınız",
+    text: "KVKK’nın 11. maddesi uyarınca verilerinize erişme, düzeltme, silme, işlemeyi kısıtlama, itiraz etme ve zararınızın giderilmesini talep etme haklarına sahipsiniz. Başvurularınızı info@sizpa.com adresine iletebilirsiniz. Ayrıntılı metin için Gizlilik Politikası sayfamızı inceleyebilirsiniz.",
+  },
+] as const;
+
+function AydinlatmaModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="aydinlatma-title"
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 9999,
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: "#fff", borderRadius: "20px 20px 0 0",
+          padding: "24px 20px 28px", width: "100%", maxWidth: "var(--yp-shell-max)",
+          maxHeight: "85vh", display: "flex", flexDirection: "column",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <span id="aydinlatma-title" style={{ fontSize: 16, fontWeight: 700, color: DRK }}>
+            KVKK Aydınlatma Metni
+          </span>
+          <button type="button" onClick={onClose} aria-label="Kapat"
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+            <X size={20} color={GT} />
+          </button>
+        </div>
+        <p style={{ fontSize: 11, color: GT, margin: "0 0 14px", lineHeight: 1.5 }}>
+          Destek talebi kapsamında kişisel verilerinizin işlenmesine ilişkin bilgilendirme
+          (6698 sayılı KVKK). Son güncelleme: 12 Ağustos 2026.
+        </p>
+        <div style={{ overflowY: "auto", flex: 1, fontSize: 12, color: "#4B5563", lineHeight: 1.7, marginBottom: 16 }}>
+          {AYDINLATMA_SECTIONS.map(s => (
+            <div key={s.heading} style={{ marginBottom: 14 }}>
+              <div style={{ fontWeight: 700, color: DRK, marginBottom: 4 }}>{s.heading}</div>
+              <p style={{ margin: 0 }}>{s.text}</p>
+            </div>
+          ))}
+        </div>
+        <button type="button" onClick={onClose}
+          style={{
+            width: "100%", background: P, color: "#fff", border: "none", borderRadius: 12,
+            padding: "14px 0", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+          }}>
+          Anladım
+        </button>
+      </div>
+    </div>
+  );
+}
 
 /* ── Order Picker Modal ──────────────── */
-function OrderPickerModal({ selected, onSelect, onClose }:{
-  selected:string; onSelect:(id:string)=>void; onClose:()=>void;
+function OrderPickerModal({ orders, selected, onSelect, onClose }:{
+  orders: OrderRow[]; selected:string; onSelect:(id:string)=>void; onClose:()=>void;
 }) {
   return (
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.5)",
@@ -95,32 +190,47 @@ function OrderPickerModal({ selected, onSelect, onClose }:{
             <X size={20} color={GT} />
           </button>
         </div>
+        {orders.length === 0 ? (
+          <div style={{ fontSize:13, color:GT, textAlign:"center", padding:"16px 0" }}>
+            Henüz siparişiniz yok.
+          </div>
+        ) : (
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-          {ORDERS.map(o => (
-            <button key={o.id} onClick={() => { onSelect(o.id); onClose(); }}
+          {orders.map(o => {
+            const oid = String(o.id);
+            const thumbs = o.items?.slice(0, 2).map(i => i.img).filter(Boolean) as string[];
+            return (
+            <button key={oid} onClick={() => { onSelect(oid); onClose(); }}
               style={{
                 display:"flex", alignItems:"center", gap:12, padding:"14px",
-                border:`1.5px solid ${o.id === selected ? P : GB}`,
-                borderRadius:14, background: o.id === selected ? PL : "#fff",
+                border:`1.5px solid ${oid === selected ? P : GB}`,
+                borderRadius:14, background: oid === selected ? PL : "#fff",
                 cursor:"pointer", fontFamily:"inherit", textAlign:"left",
               }}>
               <div style={{ display:"flex", marginRight:4 }}>
-                {o.thumbs.map((t,i) => (
+                {thumbs.length > 0 ? thumbs.map((t,i) => (
                   <img key={i} src={t} alt="" style={{
                     width:38, height:38, borderRadius:8, objectFit:"cover",
                     border:"2px solid #fff", marginLeft: i>0 ? -10 : 0,
                   }} />
-                ))}
+                )) : (
+                  <div style={{ width:38, height:38, borderRadius:8, background:PL }} />
+                )}
               </div>
               <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:13, fontWeight:700, color:DRK }}>Sipariş #{o.num}</div>
-                <div style={{ fontSize:11, color:GT }}>{o.date} · {o.count} ürün</div>
-                <div style={{ fontSize:13, fontWeight:700, color:P }}>{o.price}</div>
+                <div style={{ fontSize:13, fontWeight:700, color:DRK }}>Sipariş #{o.id}</div>
+                <div style={{ fontSize:11, color:GT }}>
+                  {new Date(o.createdAt).toLocaleDateString("tr-TR")} · {o.items?.length ?? 0} ürün
+                </div>
+                <div style={{ fontSize:13, fontWeight:700, color:P }}>
+                  {Number(o.grandTotal || 0).toLocaleString("tr-TR")} TL
+                </div>
               </div>
-              <RadioDot selected={o.id === selected} />
+              <RadioDot selected={oid === selected} />
             </button>
-          ))}
+          );})}
         </div>
+        )}
       </div>
     </div>
   );
@@ -160,19 +270,28 @@ function SuccessModal({ ticketNo, onClose }:{ ticketNo:string; onClose:()=>void;
 ════════════════════════════ */
 export default function YPYeniTalepPage() {
   const [, navigate] = useLocation();
+  const queryClient = useQueryClient();
+
+  const { data: orders = [] } = useQuery<OrderRow[]>({
+    queryKey: ["/api/customer/orders"],
+    queryFn: async () => {
+      const r = await fetch("/api/customer/orders", { credentials: "include" });
+      if (!r.ok) return [];
+      return r.json();
+    },
+  });
 
   const [topic,     setTopic]     = useState("order");
   const [issue,     setIssue]     = useState("missing");
-  const [orderId,   setOrderId]   = useState("ord-1");
-  const [title,     setTitle]     = useState("Siparişimde bir ürün eksik geldi");
-  const [desc,      setDesc]      = useState(
-    "Kargo paketimi teslim aldım ancak Buharlı Masaj Tarağı paket içerisinden çıkmadı. Kontrol edilmesini rica ederim."
-  );
-  const [files,     setFiles]     = useState<UFile[]>(PRELOADED);
+  const [orderId,   setOrderId]   = useState("");
+  const [title,     setTitle]     = useState("");
+  const [desc,      setDesc]      = useState("");
+  const [files,     setFiles]     = useState<UFile[]>([]);
   const [contact,   setContact]   = useState<"app"|"phone">("app");
   const [sms,       setSms]       = useState(true);
-  const [consent,   setConsent]   = useState(true);
+  const [consent,   setConsent]   = useState(false);
   const [orderOpen, setOrderOpen] = useState(false);
+  const [aydinlatmaOpen, setAydinlatmaOpen] = useState(false);
   const [success,   setSuccess]   = useState(false);
   const [ticketNo,  setTicketNo]  = useState("");
   const [errors,    setErrors]    = useState<Record<string,string>>({});
@@ -180,9 +299,13 @@ export default function YPYeniTalepPage() {
 
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const showToast = (m:string) => { setToast(m); setTimeout(()=>setToast(""),2200); };
+  const effectiveOrderId = orderId || (orders[0] ? String(orders[0].id) : "");
+  const selectedOrder = useMemo(
+    () => orders.find(o => String(o.id) === effectiveOrderId) ?? orders[0] ?? null,
+    [orders, effectiveOrderId],
+  );
 
-  const selectedOrder = ORDERS.find(o => o.id === orderId)!;
+  const showToast = (m:string) => { setToast(m); setTimeout(()=>setToast(""),2200); };
 
   const addFiles = (list: FileList | null) => {
     if (!list) return;
@@ -214,12 +337,30 @@ export default function YPYeniTalepPage() {
     return Object.keys(errs).length === 0;
   };
 
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      const category = `${TOPIC_LABELS[topic] ?? topic} · ${ISSUE_LABELS[issue] ?? issue}`;
+      const res = await apiRequest("POST", "/api/customer/support-tickets", {
+        subject: title.trim(),
+        category,
+        body: `${desc.trim()}${contact === "phone" ? "\n\nİletişim: Telefon" : ""}${sms ? "\nSMS bildirimi: Evet" : ""}`,
+        ...(effectiveOrderId ? { orderId: effectiveOrderId } : {}),
+      });
+      return res.json() as Promise<{ id: string }>;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/customer/support-tickets"] });
+      setTicketNo(String(data.id));
+      setSuccess(true);
+    },
+    onError: (err: Error) => {
+      showToast(err.message.replace(/^\d+:\s*/, "") || "Talep gönderilemedi");
+    },
+  });
+
   const submit = () => {
     if (!validate()) return;
-    const no = `#YP-${4820 + Math.floor(Math.random()*10) + 2}`;
-    setTicketNo(no);
-    setSuccess(true);
-    showToast("Destek talebiniz oluşturuldu ✓");
+    createMutation.mutate();
   };
 
   return (
@@ -236,14 +377,17 @@ export default function YPYeniTalepPage() {
 
       {/* Order Picker */}
       {orderOpen && (
-        <OrderPickerModal selected={orderId}
+        <OrderPickerModal orders={orders} selected={effectiveOrderId}
           onSelect={setOrderId} onClose={() => setOrderOpen(false)} />
       )}
 
-      {/* Success Modal */}
+      {aydinlatmaOpen && (
+        <AydinlatmaModal onClose={() => setAydinlatmaOpen(false)} />
+      )}
+
       {success && (
         <SuccessModal ticketNo={ticketNo}
-          onClose={() => { setSuccess(false); navigate("/hesabim/yardim"); }} />
+          onClose={() => { setSuccess(false); navigate(`/hesabim/yardim/talep/${ticketNo}`); }} />
       )}
 
       <div style={{ maxWidth: "var(--yp-shell-max)", margin:"0 auto", fontFamily:"'Inter',-apple-system,sans-serif",
@@ -253,7 +397,7 @@ export default function YPYeniTalepPage() {
         <div style={{ padding:"14px 16px 12px", background:"#fff",
                       borderBottom:`1px solid ${GB}`, marginBottom:10 }}>
           <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:12, flexWrap:"wrap" as any }}>
-            <button onClick={() => navigate("/hesabim/yardim")}
+            <button onClick={() => goBack(navigate, "/hesabim/yardim")}
               style={{ background:"none", border:"none", cursor:"pointer", padding:0, display:"flex" }}>
               <ArrowLeft size={16} color={P} />
             </button>
@@ -341,51 +485,57 @@ export default function YPYeniTalepPage() {
             </div>
           </div>
 
-          {/* ── SECTION 2: SİPARİŞ SEÇİMİ ── */}
+          {topic === "order" && (
           <div style={{ marginBottom:20 }}>
             <div style={{ fontSize:14, fontWeight:700, color:DRK, marginBottom:12 }}>
               2. Siparişinizi Seçin
             </div>
+            {!selectedOrder ? (
+              <div style={{ border:`1px solid ${GB}`, borderRadius:16, padding:"20px 14px", textAlign:"center", color:GT, fontSize:13 }}>
+                İlişkilendirmek için önce bir sipariş vermeniz gerekir.
+              </div>
+            ) : (
             <div style={{ border:`1px solid ${GB}`, borderRadius:16, padding:"14px" }}>
               <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                {/* Thumbnails */}
                 <div style={{ display:"flex", flexShrink:0 }}>
-                  {selectedOrder.thumbs.map((t,i) => (
-                    <img key={i} src={t} alt="" style={{
+                  {(selectedOrder.items ?? []).slice(0, 2).map((item, i) => item.img ? (
+                    <img key={i} src={item.img} alt="" style={{
                       width:44, height:44, borderRadius:10, objectFit:"cover",
                       border:"2px solid #fff", marginLeft: i>0 ? -12 : 0,
                     }} />
-                  ))}
+                  ) : null)}
                 </div>
-                {/* Info */}
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontSize:13, fontWeight:700, color:DRK }}>
-                    Sipariş #{selectedOrder.num}
+                    Sipariş #{selectedOrder.id}
                   </div>
                   <div style={{ fontSize:11, color:GT, marginTop:2 }}>
-                    {selectedOrder.date} · {selectedOrder.count} ürün
+                    {new Date(selectedOrder.createdAt).toLocaleDateString("tr-TR")} · {selectedOrder.items?.length ?? 0} ürün
                   </div>
                   <div style={{ fontSize:13, fontWeight:700, color:P, marginTop:2 }}>
-                    {selectedOrder.price}
+                    {Number(selectedOrder.grandTotal || 0).toLocaleString("tr-TR")} TL
                   </div>
                 </div>
-                {/* Right */}
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6, flexShrink:0 }}>
                   <span style={{ fontSize:10, fontWeight:700, color:"#16A34A",
                                  background:"#DCFCE7", padding:"3px 8px", borderRadius:999 }}>
                     {selectedOrder.status}
                   </span>
                   <RadioDot selected={true} />
+                  {orders.length > 1 && (
                   <button onClick={() => setOrderOpen(true)}
                     style={{ fontSize:10, fontWeight:700, color:P, border:`1px solid ${P}`,
                              background:"#fff", borderRadius:8, padding:"4px 8px",
                              cursor:"pointer", fontFamily:"inherit" }}>
                     Değiştir
                   </button>
+                  )}
                 </div>
               </div>
             </div>
+            )}
           </div>
+          )}
 
           {/* ── SECTION 3: SORUN AÇIKLAMASI ── */}
           <div style={{ marginBottom:20 }}>
@@ -541,25 +691,31 @@ export default function YPYeniTalepPage() {
                        accentColor:P, cursor:"pointer" }} />
             <label htmlFor="consent-cb" style={{ fontSize:12, color:"#4B5563", lineHeight:1.5, cursor:"pointer" }}>
               Destek talebinin incelenmesi için paylaştığım bilgilerin işlenmesini kabul ediyorum.{" "}
-              <a href="#" onClick={e => { e.preventDefault(); alert("KVKK Aydınlatma Metni"); }}
-                style={{ color:P, fontWeight:700, textDecoration:"underline" }}>
+              <button
+                type="button"
+                onClick={e => { e.preventDefault(); e.stopPropagation(); setAydinlatmaOpen(true); }}
+                style={{
+                  background: "none", border: "none", padding: 0, color: P, fontWeight: 700,
+                  textDecoration: "underline", cursor: "pointer", fontSize: "inherit",
+                  fontFamily: "inherit",
+                }}
+              >
                 Aydınlatma Metni
-              </a>
+              </button>
             </label>
           </div>
           {errors.consent && <div style={{ fontSize:11, color:"#DC2626", marginBottom:8 }}>{errors.consent}</div>}
 
           {/* ── BUTTONS ── */}
           <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:16 }}>
-            <button onClick={submit}
+            <button onClick={submit} disabled={createMutation.isPending}
               style={{
                 width:"100%", padding:"14px 0", borderRadius:14,
-                background: consent ? P : "#9CA3AF",
+                background: createMutation.isPending ? "#9CA3AF" : P,
                 border:"none", fontSize:14, fontWeight:700, color:"#fff",
-                cursor: consent ? "pointer" : "not-allowed", fontFamily:"inherit",
-                opacity: consent ? 1 : 0.6,
+                cursor: createMutation.isPending ? "not-allowed" : "pointer", fontFamily:"inherit",
               }}>
-              Talebi Gönder
+              {createMutation.isPending ? "Gönderiliyor..." : "Talebi Gönder"}
             </button>
             <button onClick={() => navigate("/hesabim/yardim")}
               style={{
@@ -572,20 +728,6 @@ export default function YPYeniTalepPage() {
             </button>
           </div>
 
-          {/* ── TRUST BANNER ── */}
-          <div style={{
-            background:"#EFF6FF", border:"1px solid #BFDBFE",
-            borderRadius:16, padding:"14px",
-            display:"flex", alignItems:"flex-start", gap:12, marginBottom:24,
-          }}>
-            <ShieldCheck size={22} color="#3B82F6" style={{ flexShrink:0, marginTop:1 }} />
-            <div>
-              <div style={{ fontSize:13, fontWeight:700, color:DRK }}>Bilgileriniz güvende</div>
-              <div style={{ fontSize:11, color:GT, marginTop:3, lineHeight:1.5 }}>
-                Paylaştığınız dosyalar yalnızca destek talebiniz için kullanılır.
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* ── FOOTER ── */}

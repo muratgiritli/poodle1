@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { ChevronLeft } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import { goBack } from "@/lib/goBack";
 
 const CSS = `
   .tos-wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 64px; font-family: Inter, sans-serif; }
@@ -32,7 +33,7 @@ export default function YPKullanimSartlari() {
       <style>{CSS}</style>
       <main>
         <div className="tos-wrap">
-          <button onClick={() => navigate(-1 as any)}
+          <button onClick={() => goBack(navigate, "/")}
             style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none", cursor:"pointer", color:"#888", fontSize:13, fontWeight:600, fontFamily:"Inter,sans-serif", marginBottom:28, padding:0 }}>
             <ChevronLeft size={16} /> Geri Dön
           </button>
@@ -43,7 +44,7 @@ export default function YPKullanimSartlari() {
           <div className="tos-section">
             <h2>1. Genel</h2>
             <p>
-              Bu Kullanım Şartları ("Şartlar"), YourPoodle platformunu ("<strong>Platform</strong>") işleten <strong>Sizpa Yazılım ve Teknoloji A.Ş.</strong> ("Şirket", "biz") ile platformu kullanan gerçek kişiler ("Kullanıcı", "siz") arasındaki hukuki ilişkiyi düzenler.
+              Bu Kullanım Şartları ("Şartlar"), YourPoodle platformunu ("<strong>Platform</strong>") işleten <strong>Sizpa İnternet Tic. Ltd. Şti.</strong> ("Şirket", "biz") ile platformu kullanan gerçek kişiler ("Kullanıcı", "siz") arasındaki hukuki ilişkiyi düzenler.
             </p>
             <p style={{ marginTop:10 }}>
               Platforma erişerek veya platformu kullanarak bu Şartları kabul etmiş sayılırsınız. Şartları kabul etmiyorsanız platformu kullanmayın.
@@ -77,7 +78,7 @@ export default function YPKullanimSartlari() {
           <div className="tos-section">
             <h2>4. Fikri Mülkiyet</h2>
             <ul>
-              <li>Platform'un tasarımı, kodu ve özgün içerikleri Sizpa Yazılım A.Ş.'ye aittir.</li>
+              <li>Platform'un tasarımı, kodu ve özgün içerikleri Sizpa İnternet Tic. Ltd. Şti.'ye aittir.</li>
               <li>Kullanıcılar paylaştıkları içeriklerin telif hakkına sahip olduğunu beyan eder; bu içeriklerin lisansını bize ücretsiz, dünya genelinde ve süresiz olarak verir.</li>
               <li>Başkalarına ait içerikleri izinsiz paylaşmak yasaktır.</li>
             </ul>
@@ -119,7 +120,7 @@ export default function YPKullanimSartlari() {
             <p>Kullanım şartları hakkında sorularınız için:</p>
             <ul style={{ marginTop:8 }}>
               <li><strong>E-posta:</strong> <a href="mailto:info@sizpa.com" style={{ color:"#5D3A1A" }}>info@sizpa.com</a></li>
-              <li><strong>Platform:</strong> YourPoodle / Sizpa Yazılım ve Teknoloji A.Ş.</li>
+              <li><strong>Platform:</strong> YourPoodle / Sizpa İnternet Tic. Ltd. Şti.</li>
             </ul>
           </div>
         </div>

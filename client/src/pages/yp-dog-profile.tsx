@@ -6,6 +6,7 @@ import { ChevronLeft, Share2, Grid3X3, Info, Heart, MessageCircle, Plus, Scale, 
 import { apiRequest } from "@/lib/queryClient";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { useCustomer } from "@/contexts/CustomerContext";
+import { goBack } from "@/lib/goBack";
 
 interface Dog {
   id: number; slug: string; name: string; breed: string; gender: string;
@@ -236,7 +237,7 @@ export default function YPDogProfilePage({ routeSlug }: { routeSlug?: string }) 
       <div style={{ maxWidth: "var(--yp-shell-max)", margin: "0 auto" }}>
         {/* Top bar */}
         <div style={{ display: "flex", alignItems: "center", padding: "12px 16px", borderBottom: "1px solid #f0f0f0", background: "#fff", position: "sticky", top: 60, zIndex: 50 }}>
-          <button onClick={() => navigate("/yourpoodle/club")} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+          <button onClick={() => goBack(navigate, "/yourpoodle/club")} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
             <ChevronLeft size={22} color="#333" />
           </button>
           <div style={{ flex: 1, textAlign: "center", fontSize: 15, fontWeight: 800, color: "#1a1a1a" }}>

@@ -6,6 +6,12 @@ import { printOrderReceipt } from "@/lib/printReceipt";
 import { STORES, type StoreGoogle } from "@shared/stores";
 import { brandify, CURRENT_STORE } from "@/lib/store";
 import { isSharedRowInStoreView, confirmSharedEdit, storeCtxParam, STORE_SCOPED_SETTING_KEYS, confirmSharedSettingsSave } from "@/lib/storeScope";
+import {
+  getCategorySchema,
+  attrsFromMetadata,
+  metadataFromAttrs,
+  type AttrField,
+} from "@/lib/yp-product-attrs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -90,10 +96,14 @@ import {
   Truck,
   Copy,
   Ban,
+  ShieldCheck,
+  RotateCcw,
 } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { GUIDE_ARTICLE_OPTIONS } from "@/data/articles";
+import AnalyticsHub from "@/components/admin/AnalyticsHub";
 import type { Product, BrandCategory, CrossSellSection, CrossSellItem, Order, BreedStat, StockAlert, Subcategory } from "@shared/schema";
 
 /** Admin chrome for this deployment — YourPoodle even on localhost (IS_YP stays host-only for routes). */
@@ -274,6 +284,68 @@ function LoginForm({ onLogin }: { onLogin: () => void }) {
   );
 }
 
+/** Forced password change when default / flagged credentials are in use */
+function ForcePasswordChange({ onDone }: { onDone: () => void }) {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+  const { toast } = useToast();
+
+  const mut = useMutation({
+    mutationFn: async () => {
+      if (newPassword.length < 12) throw new Error("Yeni şifre en az 12 karakter olmalı");
+      if (newPassword !== confirm) throw new Error("Şifreler eşleşmiyor");
+      const res = await apiRequest("POST", "/api/admin/change-password", { currentPassword, newPassword });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j?.message || "Şifre değiştirilemedi");
+      }
+    },
+    onSuccess: () => {
+      toast({ title: "Şifre güncellendi" });
+      onDone();
+    },
+    onError: (e: any) => setError(e?.message || "Hata"),
+  });
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: YP_CREAM }}>
+      <Card className="w-full max-w-sm border shadow-sm" style={{ borderColor: YP_BORDER }}>
+        <CardHeader>
+          <CardTitle style={{ color: YP_P }}>Şifre Değiştirme Zorunlu</CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            Güvenlik nedeniyle varsayılan veya işaretlenmiş şifreyi değiştirmelisiniz (min. 12 karakter).
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="space-y-1">
+            <Label>Mevcut şifre</Label>
+            <Input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <Label>Yeni şifre</Label>
+            <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <Label>Yeni şifre (tekrar)</Label>
+            <Input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <Button
+            className="w-full text-white"
+            style={{ backgroundColor: YP_P }}
+            disabled={mut.isPending}
+            onClick={() => mut.mutate()}
+          >
+            {mut.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Şifreyi Kaydet"}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 function BrandTag({ brand, count, onDelete, onUpdate }: { brand: any; count: number; onDelete: () => void; onUpdate: (name: string) => void }) {
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(brand.brandName);
@@ -339,9 +411,9 @@ function BrandTag({ brand, count, onDelete, onUpdate }: { brand: any; count: num
   );
 }
 
-// jetgomarket'e özel: bir ürüne nakit dışı ödeme farkı yüzdesi tanımlar. Kendi
-// GET/PATCH uç noktalarını kullanır (app_settings jetgo:product_surcharge_overrides).
-// Sadece adminStore === "jetgo" iken render edilir; diğer 8 mağaza hiç görmez.
+// YourPoodle mağaza bağlamına özel: nakit dışı ödeme farkı yüzdesi.
+// GET/PATCH uç noktaları app_settings jetgo:product_surcharge_overrides anahtarını kullanır
+// (store id legacy: "jetgo"). Sadece adminStore === "jetgo" iken render edilir.
 function JetgoProductSurcharge({ productId, store }: { productId: number; store: string }) {
   const { toast } = useToast();
   // adminStoreId() reads the store from ?store= (GET) / body.store (PATCH), so we
@@ -448,6 +520,9 @@ function ProductForm({
   const [skt, setSkt] = useState(product?.skt || "");
   const [img, setImg] = useState(product?.img || "");
   const [stock, setStock] = useState(product?.stock?.toString() ?? "10");
+  const [criticalStock, setCriticalStock] = useState(
+    (product as any)?.criticalStock != null ? String((product as any).criticalStock) : "5"
+  );
   const [barcode, setBarcode] = useState(product?.barcode || "");
   const [costPrice, setCostPrice] = useState(product?.costPrice?.toString() || "");
   const [mamaType, setMamaType] = useState(product?.mamaType || "");
@@ -482,7 +557,20 @@ function ProductForm({
   const [mamaAshPct, setMamaAshPct] = useState(existingMama?.nutritionalAnalysis?.ash?.toString() || "");
   const [mamaMoisturePct, setMamaMoisturePct] = useState(existingMama?.nutritionalAnalysis?.moisture?.toString() || "");
   const [mamaDailyPortionGuide, setMamaDailyPortionGuide] = useState(existingMama?.dailyPortionGuide || "");
-  const [showMamaSection, setShowMamaSection] = useState(false);
+  const [showMamaSection, setShowMamaSection] = useState(true);
+  const catSchema = useMemo(() => getCategorySchema(selectedSubcategory), [selectedSubcategory]);
+  const [catAttrs, setCatAttrs] = useState<Record<string, string>>(() =>
+    attrsFromMetadata(existingMama as any, getCategorySchema(existingCat?.subcategory))
+  );
+
+  // Alt kategori değişince şemaya göre form alanlarını sıfırla / yeniden yükle
+  useEffect(() => {
+    setCatAttrs(attrsFromMetadata(existingMama as any, getCategorySchema(selectedSubcategory)));
+  }, [selectedSubcategory]);
+
+  const setCatAttr = (key: string, value: string) => {
+    setCatAttrs((prev) => ({ ...prev, [key]: value }));
+  };
 
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -553,12 +641,13 @@ function ProductForm({
           price: effectivePrice,
           originalPrice: originalPrice ? parseFloat(originalPrice) : null,
           costPrice: costPrice ? parseFloat(costPrice) : null,
-          skt: skt || null,
+          skt: catSchema.showSkt ? (skt || null) : null,
           img: img || null,
           brandCategoryId: parseInt(brandCategoryId),
           stock: parseInt(stock) || 0,
+          criticalStock: criticalStock !== "" ? parseInt(criticalStock) : 5,
           barcode: barcode.trim() || null,
-          mamaType: mamaType || null,
+          mamaType: catSchema.showMamaType ? (mamaType || null) : null,
           hiddenPaymentMethods: hiddenPays,
           longDescription: longDescription.trim() || null,
           metaTitle: metaTitle.trim() || null,
@@ -577,21 +666,18 @@ function ProductForm({
             })
             .filter(v => v.label && !isNaN(v.price) && v.price > 0),
           mamaMetadata: (() => {
-            const meta: Record<string, any> = {};
-            if (mamaBreedSize) meta.breedSize = mamaBreedSize;
-            if (mamaProteinType) meta.proteinType = mamaProteinType;
-            if (mamaGrainFree !== "") meta.grainFree = mamaGrainFree;
-            if (mamaBudgetTier) meta.budgetTier = mamaBudgetTier;
-            if (mamaSpecialNeeds.length > 0) meta.specialNeeds = mamaSpecialNeeds;
-            const na: Record<string, number> = {};
-            const _p = parseFloat(mamaProteinPct); if (mamaProteinPct !== "" && !isNaN(_p)) na.protein = _p;
-            const _f = parseFloat(mamaFatPct); if (mamaFatPct !== "" && !isNaN(_f)) na.fat = _f;
-            const _fi = parseFloat(mamaFiberPct); if (mamaFiberPct !== "" && !isNaN(_fi)) na.fiber = _fi;
-            const _a = parseFloat(mamaAshPct); if (mamaAshPct !== "" && !isNaN(_a)) na.ash = _a;
-            const _m = parseFloat(mamaMoisturePct); if (mamaMoisturePct !== "" && !isNaN(_m)) na.moisture = _m;
-            if (Object.keys(na).length > 0) meta.nutritionalAnalysis = na;
-            if (mamaDailyPortionGuide.trim()) meta.dailyPortionGuide = mamaDailyPortionGuide.trim();
-            return Object.keys(meta).length > 0 ? meta : null;
+            const fromCat = metadataFromAttrs(catAttrs, catSchema) || {};
+            if (catSchema.showNutrition) {
+              const na: Record<string, number> = {};
+              const _p = parseFloat(mamaProteinPct); if (mamaProteinPct !== "" && !isNaN(_p)) na.protein = _p;
+              const _f = parseFloat(mamaFatPct); if (mamaFatPct !== "" && !isNaN(_f)) na.fat = _f;
+              const _fi = parseFloat(mamaFiberPct); if (mamaFiberPct !== "" && !isNaN(_fi)) na.fiber = _fi;
+              const _a = parseFloat(mamaAshPct); if (mamaAshPct !== "" && !isNaN(_a)) na.ash = _a;
+              const _m = parseFloat(mamaMoisturePct); if (mamaMoisturePct !== "" && !isNaN(_m)) na.moisture = _m;
+              if (Object.keys(na).length > 0) fromCat.nutritionalAnalysis = na;
+              if (mamaSpecialNeeds.length > 0) fromCat.specialNeeds = mamaSpecialNeeds;
+            }
+            return Object.keys(fromCat).length > 0 ? fromCat : null;
           })(),
         });
       }}
@@ -777,14 +863,26 @@ function ProductForm({
           )}
         </div>
       )}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-2">
-          <Label>SKT</Label>
-          <Input value={skt} onChange={(e) => setSkt(e.target.value)} placeholder="03.2027" data-testid="input-product-skt" />
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {catSchema.showSkt ? (
+          <div className="space-y-2">
+            <Label>SKT</Label>
+            <Input value={skt} onChange={(e) => setSkt(e.target.value)} placeholder="03.2027" data-testid="input-product-skt" />
+            <p className="text-[10px] text-muted-foreground">Bu kategoride son kullanma tarihi kullanılır.</p>
+          </div>
+        ) : (
+          <div className="space-y-2 rounded-lg border border-dashed p-3 bg-muted/20">
+            <Label className="text-muted-foreground">SKT yok</Label>
+            <p className="text-[11px] text-muted-foreground">Bu kategori ({catSchema.label}) için SKT girilmez.</p>
+          </div>
+        )}
         <div className="space-y-2">
           <Label>Stok</Label>
           <Input type="number" min="0" value={stock} onChange={(e) => setStock(e.target.value)} data-testid="input-product-stock" />
+        </div>
+        <div className="space-y-2">
+          <Label>Kritik Stok</Label>
+          <Input type="number" min="0" value={criticalStock} onChange={(e) => setCriticalStock(e.target.value)} data-testid="input-product-critical-stock" />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
@@ -792,26 +890,33 @@ function ProductForm({
           <Label>Barkod Numarası</Label>
           <Input value={barcode} onChange={(e) => setBarcode(e.target.value)} placeholder="8690000000000" className="font-mono" data-testid="input-product-barcode" />
         </div>
-        <div className="space-y-2">
-          <Label>Mama Türü</Label>
-          <Select value={mamaType || "none"} onValueChange={(v) => setMamaType(v === "none" ? "" : v)}>
-            <SelectTrigger data-testid="select-mama-type">
-              <SelectValue placeholder="Seçiniz (opsiyonel)" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Seçim Yok</SelectItem>
-              <SelectItem value="yavru">Yavru</SelectItem>
-              <SelectItem value="yetiskin">Yetişkin</SelectItem>
-              <SelectItem value="kisir">Kısır</SelectItem>
-              <SelectItem value="yasli">Yaşlı</SelectItem>
-              <SelectItem value="ozel-seri">Özel Seri</SelectItem>
-              <SelectItem value="veteriner">Veteriner</SelectItem>
-              <SelectItem value="hipoalerjenik">Hipoalerjenik</SelectItem>
-              <SelectItem value="mini-irk">Mini Irk</SelectItem>
-              <SelectItem value="buyuk-irk">Büyük Irk</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {catSchema.showMamaType ? (
+          <div className="space-y-2">
+            <Label>Mama Türü</Label>
+            <Select value={mamaType || "none"} onValueChange={(v) => setMamaType(v === "none" ? "" : v)}>
+              <SelectTrigger data-testid="select-mama-type">
+                <SelectValue placeholder="Seçiniz (opsiyonel)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Seçim Yok</SelectItem>
+                <SelectItem value="yavru">Yavru</SelectItem>
+                <SelectItem value="yetiskin">Yetişkin</SelectItem>
+                <SelectItem value="kisir">Kısır</SelectItem>
+                <SelectItem value="yasli">Yaşlı</SelectItem>
+                <SelectItem value="ozel-seri">Özel Seri</SelectItem>
+                <SelectItem value="veteriner">Veteriner</SelectItem>
+                <SelectItem value="hipoalerjenik">Hipoalerjenik</SelectItem>
+                <SelectItem value="mini-irk">Mini Irk</SelectItem>
+                <SelectItem value="buyuk-irk">Büyük Irk</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        ) : (
+          <div className="space-y-2 rounded-lg border border-dashed p-3 bg-muted/20">
+            <Label className="text-muted-foreground">Mama türü yok</Label>
+            <p className="text-[11px] text-muted-foreground">Mama dışı kategoride bu alan kullanılmaz.</p>
+          </div>
+        )}
       </div>
       <div className="space-y-2 border rounded-lg p-3 bg-muted/30">
         <Label className="text-xs font-bold">Bu üründe gizlenecek ödeme yöntemleri</Label>
@@ -1030,7 +1135,7 @@ function ProductForm({
         </div>
       </div>
 
-      {/* Mama Metadata (YP) */}
+      {/* Kategoriye göre ürün özellikleri */}
       <div className="border-t pt-4 mt-2 space-y-3">
         <button
           type="button"
@@ -1038,132 +1143,114 @@ function ProductForm({
           onClick={() => setShowMamaSection((v) => !v)}
         >
           <span>{showMamaSection ? "▼" : "▶"}</span>
-          <span>Mama Metadata (YP)</span>
-          <span className="text-xs font-normal text-muted-foreground ml-1">— protein, ırk boyutu, porsiyon rehberi</span>
+          <span>{catSchema.label}</span>
+          <span className="text-xs font-normal text-muted-foreground ml-1">
+            — alt kategoriye göre alanlar ({selectedSubcategory || "seçilmedi"})
+          </span>
         </button>
         {showMamaSection && (
-          <div className="space-y-4 pl-1">
+          <div className="space-y-3 pl-1">
+            {!selectedSubcategory && (
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2">
+                Önce alt kategori seçin; özellik alanları ona göre değişir.
+              </p>
+            )}
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Irk Boyutu</Label>
-                <Select
-                  value={mamaBreedSize || "__none__"}
-                  onValueChange={(v) => setMamaBreedSize(v === "__none__" ? "" : v)}
-                >
-                  <SelectTrigger className="h-8 text-sm">
-                    <SelectValue placeholder="Seçin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">— Belirtilmedi —</SelectItem>
-                    <SelectItem value="toy">Toy (Mini)</SelectItem>
-                    <SelectItem value="miniature">Küçük Irk</SelectItem>
-                    <SelectItem value="standard">Standart Irk</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Bütçe Seviyesi</Label>
-                <Select
-                  value={mamaBudgetTier || "__none__"}
-                  onValueChange={(v) => setMamaBudgetTier(v === "__none__" ? "" : v)}
-                >
-                  <SelectTrigger className="h-8 text-sm">
-                    <SelectValue placeholder="Seçin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">— Belirtilmedi —</SelectItem>
-                    <SelectItem value="ekonomik">Ekonomik</SelectItem>
-                    <SelectItem value="orta">Orta</SelectItem>
-                    <SelectItem value="premium">Premium</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Protein Tipi</Label>
-                <Input
-                  value={mamaProteinType}
-                  onChange={(e) => setMamaProteinType(e.target.value)}
-                  placeholder="Örn: tavuk, somon, kuzu"
-                  className="h-8 text-sm"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Tahılsız mı?</Label>
-                <Select
-                  value={mamaGrainFree === "" ? "__none__" : mamaGrainFree ? "yes" : "no"}
-                  onValueChange={(v) => setMamaGrainFree(v === "__none__" ? "" : v === "yes")}
-                >
-                  <SelectTrigger className="h-8 text-sm">
-                    <SelectValue placeholder="Seçin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">— Belirtilmedi —</SelectItem>
-                    <SelectItem value="yes">Evet (Tahılsız)</SelectItem>
-                    <SelectItem value="no">Hayır (Tahıllı)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <Label className="text-xs">Özel İhtiyaçlar (virgülle ayırın)</Label>
-              <Input
-                value={mamaSpecialNeeds.join(", ")}
-                onChange={(e) =>
-                  setMamaSpecialNeeds(
-                    e.target.value
-                      .split(",")
-                      .map((s) => s.trim())
-                      .filter(Boolean)
-                  )
+              {catSchema.fields.map((field: AttrField) => {
+                const val = catAttrs[field.key] || "";
+                if (field.type === "select") {
+                  return (
+                    <div key={field.key} className="space-y-1">
+                      <Label className="text-xs">{field.label}</Label>
+                      <Select
+                        value={val || "__none__"}
+                        onValueChange={(v) => setCatAttr(field.key, v === "__none__" ? "" : v)}
+                      >
+                        <SelectTrigger className="h-8 text-sm" data-testid={`select-attr-${field.key}`}>
+                          <SelectValue placeholder="Seçin" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">— Belirtilmedi —</SelectItem>
+                          {(field.options || []).map((o) => (
+                            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  );
                 }
-                placeholder="Örn: hassas sindirim, eklem sağlığı, tüy bakımı"
-                className="h-8 text-sm"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs font-semibold">Besin Analizi (%)</Label>
-              <div className="grid grid-cols-5 gap-2">
-                {(
-                  [
-                    { label: "Protein", val: mamaProteinPct, set: setMamaProteinPct },
-                    { label: "Yağ", val: mamaFatPct, set: setMamaFatPct },
-                    { label: "Lif", val: mamaFiberPct, set: setMamaFiberPct },
-                    { label: "Kül", val: mamaAshPct, set: setMamaAshPct },
-                    { label: "Nem", val: mamaMoisturePct, set: setMamaMoisturePct },
-                  ] as const
-                ).map(({ label, val, set }) => (
-                  <div key={label} className="space-y-1">
-                    <Label className="text-[10px]">{label}</Label>
+                if (field.type === "multiselect") {
+                  const selected = new Set(val ? val.split(",").filter(Boolean) : []);
+                  return (
+                    <div key={field.key} className="space-y-1 col-span-2">
+                      <Label className="text-xs">{field.label}</Label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(field.options || []).map((o) => {
+                          const on = selected.has(o.value);
+                          return (
+                            <button
+                              key={o.value}
+                              type="button"
+                              onClick={() => {
+                                const next = new Set(selected);
+                                if (on) next.delete(o.value); else next.add(o.value);
+                                setCatAttr(field.key, Array.from(next).join(","));
+                              }}
+                              className={`text-[11px] px-2 py-1 rounded-full border ${on ? "bg-primary text-primary-foreground border-primary" : "bg-background"}`}
+                            >
+                              {o.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div key={field.key} className={`space-y-1 ${field.key.includes("Desc") || field.key === "ingredients" || field.key === "dailyPortionGuide" || field.key === "dimensions" ? "col-span-2" : ""}`}>
+                    <Label className="text-xs">{field.label}</Label>
                     <Input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="100"
                       value={val}
-                      onChange={(e) => set(e.target.value)}
-                      placeholder="0"
-                      className="h-8 text-xs"
+                      onChange={(e) => setCatAttr(field.key, e.target.value)}
+                      placeholder={field.placeholder || ""}
+                      className="h-8 text-sm"
+                      data-testid={`input-attr-${field.key}`}
                     />
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
 
-            <div className="space-y-1">
-              <Label className="text-xs">Günlük Porsiyon Rehberi</Label>
-              <Textarea
-                value={mamaDailyPortionGuide}
-                onChange={(e) => setMamaDailyPortionGuide(e.target.value)}
-                rows={3}
-                placeholder="Örn: 3 kg köpek için günde 2 öğün, her öğün 60g..."
-                className="text-sm"
-              />
-            </div>
+            {catSchema.showNutrition && (
+              <div className="space-y-2 pt-2 border-t">
+                <Label className="text-xs font-semibold">Besin Analizi (%)</Label>
+                <div className="grid grid-cols-5 gap-2">
+                  {(
+                    [
+                      { label: "Protein", val: mamaProteinPct, set: setMamaProteinPct },
+                      { label: "Yağ", val: mamaFatPct, set: setMamaFatPct },
+                      { label: "Lif", val: mamaFiberPct, set: setMamaFiberPct },
+                      { label: "Kül", val: mamaAshPct, set: setMamaAshPct },
+                      { label: "Nem", val: mamaMoisturePct, set: setMamaMoisturePct },
+                    ] as const
+                  ).map(({ label, val, set }) => (
+                    <div key={label} className="space-y-1">
+                      <Label className="text-[10px]">{label}</Label>
+                      <Input type="number" step="0.1" min="0" max="100" value={val} onChange={(e) => set(e.target.value)} placeholder="0" className="h-8 text-xs" />
+                    </div>
+                  ))}
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Özel ihtiyaçlar (virgülle)</Label>
+                  <Input
+                    value={mamaSpecialNeeds.join(", ")}
+                    onChange={(e) => setMamaSpecialNeeds(e.target.value.split(",").map((s) => s.trim()).filter(Boolean))}
+                    placeholder="hassas sindirim, tüy bakımı..."
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -1312,7 +1399,44 @@ function CategoryForm({
   );
 }
 
-function AdminDashboard({ onLogout }: { onLogout: () => void }) {
+const SECTION_PERMS: Record<string, string[]> = {
+  dashboard: [],
+  yp: ["products.read", "products.write", "club.moderate", "settings.write"],
+  yonetim: ["products.read", "products.write", "orders.read", "orders.update"],
+  musteriler: ["customers.read", "customers.write"],
+  kuponlar: ["settings.write"],
+  banner: ["settings.write"],
+  bildirim: ["settings.write"],
+  yorumlar: ["products.read", "products.write"],
+  iletisim: ["customers.read"],
+  ziyaretci: ["audit.read", "finance.read"],
+  stoksayim: ["products.read", "products.write"],
+  odeme: ["orders.read", "finance.read"],
+  iade: ["orders.read", "orders.update"],
+  staff: ["staff.manage"],
+  audit: ["audit.read"],
+  raporlama: ["finance.read", "products.read"],
+  google: ["settings.write"],
+  ayarlar: ["settings.write"],
+  havale: ["orders.read", "orders.update"],
+  sokakcanlari: ["products.write", "settings.write"],
+  abone: ["customers.read"],
+  yasakli: ["customers.write", "settings.write"],
+  skttakip: ["products.read"],
+  eksik: ["products.read"],
+  merchant: ["settings.write"],
+  localfeed: ["settings.write"],
+};
+
+function AdminDashboard({ onLogout, permissions = [], role }: { onLogout: () => void; permissions?: string[]; role?: string }) {
+  const can = (perm: string) => permissions.includes(perm) || role === "super_admin";
+  const canAny = (...perms: string[]) => perms.length === 0 || perms.some((p) => can(p)) || role === "super_admin";
+  const canSection = (key: string) => {
+    const need = SECTION_PERMS[key];
+    if (!need || need.length === 0) return true;
+    return canAny(...need);
+  };
+
   const { toast } = useToast();
   const { store: adminStore } = useAdminStore();
   const { allSubs, byAnimal: subcategoriesByAnimal } = useSubcategories();
@@ -1381,6 +1505,12 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [nhDistrictFilter, setNhDistrictFilter] = useState<string>("all");
   const [activeSection, setActiveSection] = useState<string>("yonetim");
   const [yonetimSub, setYonetimSub] = useState<string | null>(null);
+  useEffect(() => {
+    if (!canSection(activeSection)) {
+      const fallback = ["dashboard", "yonetim", "yp", "musteriler", "raporlama"].find((k) => canSection(k)) || "dashboard";
+      setActiveSection(fallback);
+    }
+  }, [activeSection, permissions, role]);
   const [notificationEnabled, setNotificationEnabled] = useState(true);
   const [newOrderAlert, setNewOrderAlert] = useState<{id: number; customerName: string; grandTotal: number; paymentMethod: string} | null>(null);
   const [autoPrintEnabled, setAutoPrintEnabled] = useState<boolean>(() => {
@@ -2368,6 +2498,11 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 { key: "yorumlar", label: "Yorum", icon: <MessageSquare className="w-3.5 h-3.5" /> },
                 { key: "iletisim", label: "Mesaj", icon: <Mail className="w-3.5 h-3.5" /> },
                 { key: "ziyaretci", label: "Ziyaretçi", icon: <Eye className="w-3.5 h-3.5" /> },
+                { key: "stoksayim", label: "Stok", icon: <ScanLine className="w-3.5 h-3.5" /> },
+                { key: "odeme", label: "Ödeme", icon: <Banknote className="w-3.5 h-3.5" /> },
+                { key: "iade", label: "İade", icon: <RotateCcw className="w-3.5 h-3.5" /> },
+                { key: "staff", label: "Personel", icon: <ShieldCheck className="w-3.5 h-3.5" /> },
+                { key: "audit", label: "Log", icon: <ShieldCheck className="w-3.5 h-3.5" /> },
                 { key: "raporlama", label: "Rapor", icon: <BarChart3 className="w-3.5 h-3.5" /> },
                 { key: "google", label: "Google", icon: <Tag className="w-3.5 h-3.5" /> },
                 { key: "ayarlar", label: "Ayarlar", icon: <Settings className="w-3.5 h-3.5" /> },
@@ -2395,7 +2530,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 { key: "localfeed", label: "Local Feed", icon: <MapPin className="w-3.5 h-3.5" /> },
                 { key: "ayarlar", label: "Ayarlar", icon: <Settings className="w-3.5 h-3.5" /> },
               ]
-          ).map(tab => (
+          ).filter(tab => canSection(tab.key)).map(tab => (
             <button
               key={tab.key}
               onClick={() => { setActiveSection(tab.key); setYonetimSub(null); }}
@@ -2426,7 +2561,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         {activeSection === "dashboard" && <DashboardSection />}
         {activeSection === "yp" && <YourPoodleHub />}
         {activeSection === "kuponlar" && <CouponsSection />}
-        {activeSection === "ziyaretci" && <VisitorsSection />}
+        {activeSection === "ziyaretci" && <ZiyaretciSection />}
         {activeSection === "musteriler" && <CustomersSection />}
         {activeSection === "bildirim" && <NotificationsSection />}
         {activeSection === "havale" && <BankTransferAdminSection />}
@@ -2437,10 +2572,15 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         {activeSection === "raporlama" && <ReportsSection />}
         {activeSection === "stoksayim" && <StokSayimSection />}
         {activeSection === "skttakip" && <SktTakipSection />}
+        {activeSection === "odeme" && <PaymentsAdminSection />}
+        {activeSection === "iade" && <RefundsAdminSection />}
+        {activeSection === "staff" && <StaffAdminSection />}
+        {activeSection === "audit" && <AuditLogsSection />}
         {activeSection === "yorumlar" && <ReviewManagementSection />}
         {activeSection === "iletisim" && <ContactMessagesSection />}
         {activeSection === "eksik" && <MissingProductsSection />}
         {activeSection === "google" && <GoogleTagsSection />}
+        {activeSection === "google" && <SeoRedirectsCard />}
         {activeSection === "merchant" && <MerchantSection />}
         {activeSection === "localfeed" && <LocalFeedSection />}
         {activeSection === "ayarlar" && <SettingsSection />}
@@ -2452,6 +2592,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     { key: "siparisler", label: "Siparişler", icon: <ShoppingBag className="w-6 h-6" />, color: "text-[#5D3A1A]" },
                     { key: "urunler", label: "Ürünler", icon: <Package className="w-6 h-6" />, color: "text-[#5D3A1A]" },
                     { key: "kampanya", label: "Kampanya", icon: <Tag className="w-6 h-6" />, color: "text-[#5D3A1A]" },
+                    { key: "mahalleler", label: "Mahalle / Kargo", icon: <MapPin className="w-6 h-6" />, color: "text-[#5D3A1A]" },
                     { key: "kategoriler", label: "Kategoriler", icon: <Package className="w-6 h-6" />, color: "text-[#8B5E34]" },
                     { key: "altkategoriler", label: "Alt Kategoriler", icon: <ChevronRight className="w-6 h-6" />, color: "text-[#8B5E34]" },
                     { key: "stokbildirimleri", label: "Stok Bildirimleri", icon: <Bell className="w-6 h-6" />, color: "text-[#8B5E34]" },
@@ -2461,7 +2602,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     { key: "raporlama", label: "Raporlar", icon: <BarChart3 className="w-6 h-6" />, color: "text-[#8B5E34]" },
                   ]
                 : [
-                    { key: "kampanya", label: "Kampanya Yönetimi", icon: <Tag className="w-6 h-6" />, color: "text-purple-600" },
+                    { key: "kampanya", label: "Kampanya Yönetimi", icon: <Tag className="w-6 h-6" />, color: "text-amber-800" },
                     { key: "siparisler", label: "Sipariş Yönetimi", icon: <ShoppingBag className="w-6 h-6" />, color: "text-blue-600" },
                     { key: "mahalleler", label: "Mahalle Yönetimi", icon: <MapPin className="w-6 h-6" />, color: "text-green-600" },
                     { key: "kategoriler", label: "Kategoriler", icon: <Package className="w-6 h-6" />, color: "text-orange-600" },
@@ -2469,7 +2610,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     { key: "stokbildirimleri", label: "Stok Bildirimleri", icon: <Bell className="w-6 h-6" />, color: "text-red-600" },
                     { key: "urunler", label: "Ürünler", icon: <Package className="w-6 h-6" />, color: "text-cyan-600" },
                     { key: "crosssell", label: "Sıklıkla Birlikte Alınan", icon: <ShoppingBag className="w-6 h-6" />, color: "text-pink-600" },
-                    { key: "kediturustats", label: "Kedi Türü İstatistikleri", icon: <BarChart3 className="w-6 h-6" />, color: "text-violet-600" },
+                    { key: "kediturustats", label: "Kedi Türü İstatistikleri", icon: <BarChart3 className="w-6 h-6" />, color: "text-amber-800" },
                     { key: "kopekturustats", label: "Köpek Türü İstatistikleri", icon: <BarChart3 className="w-6 h-6" />, color: "text-blue-600" },
                     { key: "hatirlatmalar", label: "Tekrar Sipariş Hatırlatmaları", icon: <Clock className="w-6 h-6" />, color: "text-teal-600" },
                     { key: "raporlama", label: "Raporlama (Mama Stoğu, Ciro)", icon: <BarChart3 className="w-6 h-6" />, color: "text-emerald-600" },
@@ -2510,7 +2651,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             className="flex items-center gap-2 mb-4 w-full text-left"
             data-testid="btn-toggle-campaign"
           >
-            <Tag className="w-5 h-5 text-purple-600" />
+            <Tag className="w-5 h-5 text-amber-800" />
             <h2 className="text-lg font-bold" data-testid="text-section-campaign">Kampanya Yönetimi</h2>
             <Badge className="no-default-hover-elevate no-default-active-elevate" style={{ backgroundColor: "#5D3A1A", color: "#fff" }} data-testid="badge-campaign-count">
               {campaignItems.filter(i => i.is_active && i.item_type === "main").length} ana / {campaignItems.filter(i => i.is_active && i.item_type === "extra").length} ek aktif
@@ -2565,7 +2706,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     .sort((a, b) => a.sort_order - b.sort_order);
                   return (
                     <div key={mainItem.id} className="rounded-xl border bg-white overflow-hidden">
-                      <div className="bg-purple-600 text-white px-3 sm:px-4 py-2 sm:py-3 flex items-center gap-2">
+                      <div className="bg-amber-800 text-white px-3 sm:px-4 py-2 sm:py-3 flex items-center gap-2">
                         <Tag className="w-4 h-4" />
                         <span className="font-bold text-sm sm:text-base">Ana Ürün</span>
                         <span className="ml-auto text-xs sm:text-sm opacity-90">{extras.length} sıklıkla alınan</span>
@@ -2592,13 +2733,13 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                           <div className="flex items-center gap-2 mt-1 flex-wrap">
                             <span className="text-xs text-gray-500">Normal: {mainItem.price} TL</span>
                             <div className="flex items-center gap-1">
-                              <span className="text-xs text-purple-600 font-bold">Kampanya:</span>
+                              <span className="text-xs text-amber-800 font-bold">Kampanya:</span>
                               <input
                                 type="number"
                                 step="0.01"
                                 placeholder="Fiyat"
                                 defaultValue={mainItem.campaign_price || ""}
-                                className="w-24 h-7 text-xs border-2 border-purple-300 rounded px-1.5 text-purple-700 font-bold focus:ring-1 focus:ring-purple-400 outline-none"
+                                className="w-24 h-7 text-xs border-2 border-amber-300 rounded px-1.5 text-amber-900 font-bold focus:ring-1 focus:ring-amber-400 outline-none"
                                 data-testid={`input-campaign-price-${mainItem.id}`}
                                 onKeyDown={(e) => {
                                   if (e.key === "Enter") {
@@ -2607,10 +2748,10 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                   }
                                 }}
                               />
-                              <span className="text-xs text-purple-600 font-bold">TL</span>
+                              <span className="text-xs text-amber-800 font-bold">TL</span>
                               <button
                                 type="button"
-                                className="ml-1 px-2 h-7 rounded bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-bold disabled:opacity-50"
+                                className="ml-1 px-2 h-7 rounded bg-amber-800 hover:bg-amber-900 text-white text-[11px] font-bold disabled:opacity-50"
                                 data-testid={`btn-save-campaign-price-${mainItem.id}`}
                                 disabled={toggleCampaignItemMutation.isPending}
                                 onClick={() => {
@@ -2782,7 +2923,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   return (
                     <div className="space-y-3 flex-1 overflow-hidden flex flex-col">
                       {parentProduct && (
-                        <div className="flex items-center gap-3 p-2 bg-purple-50 rounded-lg border border-purple-200">
+                        <div className="flex items-center gap-3 p-2 bg-amber-50 rounded-lg border border-amber-200">
                           {parentProduct.img ? (
                             <img src={parentProduct.img} alt="" className="w-10 h-10 rounded-lg object-cover border" />
                           ) : (
@@ -2792,7 +2933,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                           )}
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-bold truncate">{parentProduct.name}</p>
-                            <p className="text-[10px] text-purple-600">Ana Ürün</p>
+                            <p className="text-[10px] text-amber-800">Ana Ürün</p>
                           </div>
                         </div>
                       )}
@@ -2921,7 +3062,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               {([
                 { key: "gelen" as const, label: "Gelen", statuses: ["yeni"] },
                 { key: "bekleyen" as const, label: "Bekleyen", statuses: ["onaylandi", "hazirlaniyor"] },
-                { key: "giden" as const, label: "Giden", statuses: ["kargoda", "tamamlandi", "iptal"] },
+                { key: "giden" as const, label: "Giden", statuses: ["kargoda", "tamamlandi", "iptal", "iade_talebi", "iade_edildi"] },
               ]).map((tab) => {
                 const count = allOrders.filter((o) => tab.statuses.includes(o.status)).length;
                 return (
@@ -3019,12 +3160,11 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               ))}
             </div>
           )}
-          {/* YP Platform filter — always visible */}
+          {/* Platform filter — store id is legacy "jetgo", display YourPoodle */}
           <div className="flex items-center gap-2 mb-4 flex-wrap overflow-x-auto">
             <span className="text-xs text-muted-foreground shrink-0">Platform:</span>
             {([
               { id: "all", label: "Tüm Siparişler" },
-              { id: "yourpoodle", label: "🐩 YP Siparişleri" },
               { id: "jetgo", label: "YourPoodle" },
             ] as const).map((s) => (
               <button key={s.id} onClick={() => setOrderSiteFilter(s.id)}
@@ -3046,7 +3186,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             const tabStatuses: Record<string, string[]> = {
               gelen: ["yeni"],
               bekleyen: ["onaylandi", "hazirlaniyor"],
-              giden: ["kargoda", "tamamlandi", "iptal"],
+              giden: ["kargoda", "tamamlandi", "iptal", "iade_talebi", "iade_edildi"],
             };
             const filteredOrders = allOrders
               .filter((o) => tabStatuses[orderTab]?.includes(o.status))
@@ -3065,7 +3205,10 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               })
               .filter((o) => {
                 if (orderSiteFilter === "all") return true;
-                return ((o as any).sourceSite || "jetgo") === orderSiteFilter;
+                const site = (o as any).sourceSite || "jetgo";
+                // Legacy: some rows may say yourpoodle; treat as same store as jetgo
+                if (orderSiteFilter === "jetgo") return site === "jetgo" || site === "yourpoodle";
+                return site === orderSiteFilter;
               })
               .filter((o) => {
                 if (!orderSearchPhone) return true;
@@ -3094,6 +3237,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               hazirlaniyor: "#FF9800",
               kargoda: "#9C27B0",
               tamamlandi: "#4CAF50",
+              iade_talebi: "#F59E0B",
+              iade_edildi: "#78716C",
               iptal: "#F44336",
             };
             const statusLabels: Record<string, string> = {
@@ -3102,6 +3247,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               hazirlaniyor: "Hazırlanıyor",
               kargoda: "Kargoda",
               tamamlandi: "Tamamlandı",
+              iade_talebi: "İade Talebi",
+              iade_edildi: "İade Edildi",
               iptal: "İptal",
             };
 
@@ -3184,6 +3331,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                               <SelectItem value="hazirlaniyor">Hazırlanıyor</SelectItem>
                               <SelectItem value="kargoda">Kargoda</SelectItem>
                               <SelectItem value="tamamlandi">Tamamlandı</SelectItem>
+                              <SelectItem value="iade_talebi">İade Talebi</SelectItem>
+                              <SelectItem value="iade_edildi">İade Edildi</SelectItem>
                               <SelectItem value="iptal">İptal</SelectItem>
                             </SelectContent>
                           </Select>
@@ -3483,7 +3632,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     if (st?.commerce?.fulfillment !== "cargo") return null;
                     return (
                       <div className="border-t pt-3 space-y-2" data-testid="section-detail-tracking">
-                        <div className="flex items-center gap-1.5 text-sm font-semibold text-purple-700">
+                        <div className="flex items-center gap-1.5 text-sm font-semibold text-amber-900">
                           <Truck className="w-4 h-4" />
                           Kargo Takip
                         </div>
@@ -3519,7 +3668,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                               href={(order as any).trackingUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-xs text-purple-700 underline"
+                              className="text-xs text-amber-900 underline"
                               data-testid="link-admin-tracking"
                             >
                               Kargoyu Takip Et →
@@ -3555,9 +3704,38 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                         <SelectItem value="hazirlaniyor">Hazırlanıyor</SelectItem>
                         <SelectItem value="kargoda">Kargoda</SelectItem>
                         <SelectItem value="tamamlandi">Tamamlandı</SelectItem>
+                        <SelectItem value="iade_talebi">İade Talebi</SelectItem>
+                        <SelectItem value="iade_edildi">İade Edildi</SelectItem>
                         <SelectItem value="iptal">İptal</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  <div className="border-t pt-3 space-y-2">
+                    <Label className="text-sm text-muted-foreground">Admin notu</Label>
+                    <Textarea
+                      className="text-sm min-h-[72px]"
+                      defaultValue={(order as any).adminNote || ""}
+                      placeholder="İç not (müşteri görmez)"
+                      id={`admin-note-${order.id}`}
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        const el = document.getElementById(`admin-note-${order.id}`) as HTMLTextAreaElement | null;
+                        const adminNote = el?.value || "";
+                        try {
+                          await apiRequest("PATCH", `/api/admin/orders/${order.id}/admin-note`, { adminNote });
+                          setOrderDetailDialog({ ...order, adminNote } as any);
+                          toast({ title: "Admin notu kaydedildi" });
+                        } catch {
+                          toast({ title: "Not kaydedilemedi", variant: "destructive" });
+                        }
+                      }}
+                    >
+                      Notu Kaydet
+                    </Button>
                   </div>
 
                   <Button
@@ -4124,7 +4302,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                       <div className="flex items-center gap-2 shrink-0">
                         {!alert.isNotified && (
                           <a
-                            href={`https://wa.me/90${alert.phone.replace(/\D/g, "").replace(/^0/, "")}?text=${encodeURIComponent(brandify(`Merhaba ${alert.customerName}, ilgilendiginiz "${alert.productName}" urunu tekrar stoklarimizda! Siparis vermek icin JETGO'i ziyaret edin.`))}`}
+                            href={`https://wa.me/90${alert.phone.replace(/\D/g, "").replace(/^0/, "")}?text=${encodeURIComponent(brandify(`Merhaba ${alert.customerName}, ilgilendiginiz "${alert.productName}" urunu tekrar stoklarimizda! Siparis vermek icin YourPoodle'i ziyaret edin.`))}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium text-white"
@@ -4242,7 +4420,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 <button
                   key={f.id}
                   onClick={() => setQuickFilter(quickFilter === f.id ? "none" : f.id)}
-                  className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${quickFilter === f.id ? "bg-purple-100 border-purple-400 text-purple-800" : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"}`}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${quickFilter === f.id ? "bg-amber-100 border-amber-400 text-amber-900" : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"}`}
                   data-testid={`btn-quick-filter-${f.id}`}
                 >
                   {f.icon} {f.label}
@@ -4849,7 +5027,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                             variant="outline"
                             size="icon"
                             title="Kampanyaya Ekle"
-                            className="border-purple-300 text-purple-600 hover:bg-purple-50"
+                            className="border-amber-300 text-amber-800 hover:bg-amber-50"
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
@@ -5136,7 +5314,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  <Tag className="w-5 h-5 text-purple-600" />
+                  <Tag className="w-5 h-5 text-amber-800" />
                   Kampanyaya Ekle
                 </DialogTitle>
               </DialogHeader>
@@ -5145,7 +5323,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 if (!p) return <p>Ürün bulunamadı</p>;
                 return (
                   <div className="space-y-4">
-                    <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                    <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
                       {p.img ? (
                         <img src={p.img} alt="" className="w-14 h-14 rounded-lg object-cover border" />
                       ) : (
@@ -5155,7 +5333,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold truncate">{p.name}</p>
-                        <p className="text-sm text-purple-700 font-semibold mt-0.5">{p.price} TL</p>
+                        <p className="text-sm text-amber-900 font-semibold mt-0.5">{p.price} TL</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
@@ -6553,7 +6731,7 @@ function ReorderRemindersSection() {
   const overdue = pending.filter((r: any) => new Date(r.reorderDate) <= now);
 
   const buildWhatsAppLink = (r: any) => {
-    const msg = brandify(`Merhaba ${r.customerName || ""}!\n\nDaha önce aldığınız *${r.productName}* mamayı yakında bitirmiş olabilirsiniz.\n\nYeni sipariş vermek ister misiniz?\n\nJETGO - Hızlı Sipariş`);
+    const msg = brandify(`Merhaba ${r.customerName || ""}!\n\nDaha önce aldığınız *${r.productName}* mamayı yakında bitirmiş olabilirsiniz.\n\nYeni sipariş vermek ister misiniz?\n\nYourPoodle - Hızlı Sipariş`);
     return `https://wa.me/${r.customerPhone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(msg)}`;
   };
 
@@ -6756,8 +6934,17 @@ function DashboardSection() {
         <Card><CardContent className="p-3"><p className="text-xs text-muted-foreground">Bekleyen Sipariş</p><p className="text-2xl font-bold text-amber-600">{stats.pending}</p></CardContent></Card>
         <Card><CardContent className="p-3"><p className="text-xs text-muted-foreground">Tamamlanan</p><p className="text-2xl font-bold text-green-600">{stats.completed}</p></CardContent></Card>
         <Card><CardContent className="p-3"><p className="text-xs text-muted-foreground">Toplam Müşteri</p><p className="text-2xl font-bold text-blue-600">{stats.total.customers}</p></CardContent></Card>
-        <Card><CardContent className="p-3"><p className="text-xs text-muted-foreground">Aktif Ürün</p><p className="text-2xl font-bold text-purple-600">{stats.total.products}</p></CardContent></Card>
+        <Card><CardContent className="p-3"><p className="text-xs text-muted-foreground">Aktif Ürün</p><p className="text-2xl font-bold text-amber-800">{stats.total.products}</p></CardContent></Card>
       </div>
+
+      {stats.yp && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Card><CardContent className="p-3"><p className="text-xs text-muted-foreground">Mama Bul (toplam)</p><p className="text-xl font-bold" style={{ color: YP_P }}>{stats.yp.mamaBulUses}</p><p className="text-[10px] text-muted-foreground">bugün {stats.yp.mamaBulToday}</p></CardContent></Card>
+          <Card><CardContent className="p-3"><p className="text-xs text-muted-foreground">AI mesaj</p><p className="text-xl font-bold text-indigo-700">{stats.yp.aiMessages}</p><p className="text-[10px] text-muted-foreground">bugün {stats.yp.aiMessagesToday}</p></CardContent></Card>
+          <Card><CardContent className="p-3"><p className="text-xs text-muted-foreground">Club aktif (30g)</p><p className="text-xl font-bold text-teal-700">{stats.yp.clubActiveUsers30d}</p><p className="text-[10px] text-muted-foreground">{stats.yp.clubPosts30d} gönderi</p></CardContent></Card>
+          <Card><CardContent className="p-3"><p className="text-xs text-muted-foreground">Yorum / yeni üye</p><p className="text-xl font-bold text-rose-700">{stats.yp.newReviews}</p><p className="text-[10px] text-muted-foreground">bu ay +{stats.yp.newCustomersMonth} müşteri</p></CardContent></Card>
+        </div>
+      )}
 
       <Card>
         <CardHeader className="pb-2">
@@ -6813,7 +7000,7 @@ function DashboardSection() {
                     size="sm"
                     variant="ghost"
                     className="h-6 px-2 text-[10px] text-blue-600 shrink-0"
-                    onClick={() => { setSmsTarget({ phone: c.phone, name: c.name }); setSmsText(brandify(`Merhaba ${c.name}, sizi özledik! 🐾 JETGO'da yeni ürünler sizi bekliyor. Hemen sipariş verin, kapınıza getirelim! jetgomarket.com`)); }}
+                    onClick={() => { setSmsTarget({ phone: c.phone, name: c.name }); setSmsText(brandify(`Merhaba ${c.name}, sizi özledik! 🐾 YourPoodle'da yeni ürünler sizi bekliyor. Hemen sipariş verin, kapınıza getirelim! yourpoodle.com`)); }}
                     data-testid={`btn-remind-${c.id}`}
                   >
                     <Send className="w-3 h-3 mr-0.5" /> SMS
@@ -7012,6 +7199,7 @@ function CustomersSection() {
 
                   {isExpanded && (
                     <div className="mt-3 pt-3 border-t space-y-3" data-testid={`detail-customer-${c.id}`}>
+                      <Customer360Panel customerId={c.id} fallback={c} />
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div className="flex items-center gap-1.5">
                           <User className="w-3.5 h-3.5 text-muted-foreground" />
@@ -7143,12 +7331,47 @@ function NotificationsSection() {
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ sent: number; failed: number } | null>(null);
   const [segment, setSegment] = useState<string>("all");
+  const [apiSegmentCustomers, setApiSegmentCustomers] = useState<any[] | null>(null);
+  const [apiSegmentLoading, setApiSegmentLoading] = useState(false);
+  const [pushTitle, setPushTitle] = useState("");
+  const [pushBody, setPushBody] = useState("");
+  const [pushSegment, setPushSegment] = useState("all");
+  const [pushLoading, setPushLoading] = useState(false);
+  const [pushResult, setPushResult] = useState<{ sent: number; failed: number } | null>(null);
   const { toast } = useToast();
   const { store: adminStore } = useAdminStore();
 
   const catMap = useMemo(() => new Map(categories.map(c => [c.id, c])), [categories]);
 
+  const ypApiSegments = useMemo(
+    () => new Set(["yp_buyers", "yp_no_order", "club_active", "mama_bul", "recent_buyers_30d", "push_subscribers"]),
+    []
+  );
+
+  useEffect(() => {
+    if (!ypApiSegments.has(segment)) {
+      setApiSegmentCustomers(null);
+      return;
+    }
+    let cancelled = false;
+    setApiSegmentLoading(true);
+    fetch(`/api/admin/segments/${segment}`, { credentials: "include" })
+      .then(r => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        setApiSegmentCustomers(Array.isArray(data.customers) ? data.customers : []);
+      })
+      .catch(() => {
+        if (!cancelled) setApiSegmentCustomers([]);
+      })
+      .finally(() => {
+        if (!cancelled) setApiSegmentLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [segment, ypApiSegments]);
+
   const segmentedCustomers = useMemo(() => {
+    if (ypApiSegments.has(segment)) return apiSegmentCustomers || [];
     if (segment === "all") return customers;
     if (segment === "blacklisted") return customers.filter((c: any) => c.is_blacklisted || c.isBlacklisted);
 
@@ -7169,7 +7392,7 @@ function NotificationsSection() {
       }
     }
     return customers.filter((c: any) => customerPhonesWithAnimal.has(c.phone));
-  }, [segment, customers, orders, allProducts, catMap]);
+  }, [segment, customers, orders, allProducts, catMap, apiSegmentCustomers, ypApiSegments]);
 
   const handleSegmentChange = (val: string) => {
     setSegment(val);
@@ -7182,7 +7405,7 @@ function NotificationsSection() {
       setSelectedPhones([]);
       setSelectAll(false);
     } else {
-      setSelectedPhones(segmentedCustomers.map((c: any) => c.phone));
+      setSelectedPhones(segmentedCustomers.map((c: any) => c.phone).filter(Boolean));
       setSelectAll(true);
     }
   };
@@ -7203,10 +7426,53 @@ function NotificationsSection() {
     }
   };
 
+  const handlePushSend = async () => {
+    if (!pushTitle.trim() || !pushBody.trim()) return;
+    setPushLoading(true);
+    setPushResult(null);
+    try {
+      const res = await fetch("/api/admin/push/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          title: pushTitle.trim(),
+          body: pushBody.trim(),
+          url: "/yourpoodle",
+          segment: pushSegment,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Push hatası");
+      setPushResult(json);
+      toast({ title: `${json.sent} push gönderildi` });
+      if (json.sent > 0) { setPushTitle(""); setPushBody(""); }
+    } catch {
+      toast({ title: "Push gönderilemedi", variant: "destructive" });
+    } finally {
+      setPushLoading(false);
+    }
+  };
+
   const quickTemplates = [
-    { label: "Yeni Ürün", text: brandify("JETGO'da yeni ürünler geldi! Hemen inceleyin: jetgomarket.com") },
-    { label: "Kampanya", text: brandify("JETGO'da büyük kampanya başladı! Kaçırmayın: jetgomarket.com") },
-    { label: "Kargo Ücretsiz", text: brandify("Bugüne özel kargo bedava! Sipariş verin: jetgomarket.com") },
+    { label: "Yeni Ürün", text: brandify("YourPoodle'da yeni ürünler geldi! Hemen inceleyin: yourpoodle.com") },
+    { label: "Kampanya", text: brandify("YourPoodle'da büyük kampanya başladı! Kaçırmayın: yourpoodle.com") },
+    { label: "Kargo Ücretsiz", text: brandify("Bugüne özel kargo bedava! Sipariş verin: yourpoodle.com") },
+  ];
+
+  const segmentButtons = [
+    { key: "all", label: "Tümü" },
+    { key: "yp_buyers", label: "YP Alıcılar" },
+    { key: "yp_no_order", label: "YP Siparişsiz" },
+    { key: "recent_buyers_30d", label: "Son 30 Gün" },
+    { key: "club_active", label: "Club Üyeleri" },
+    { key: "mama_bul", label: "Mama Bul" },
+    { key: "push_subscribers", label: "Push Aboneleri" },
+    { key: "kedi", label: "🐱 Kedi" },
+    { key: "kopek", label: "🐶 Köpek" },
+    { key: "kus", label: "🐦 Kuş" },
+    { key: "kemirgen", label: "🐹 Kemirgen" },
+    { key: "balik", label: "🐠 Balık" },
   ];
 
   return (
@@ -7217,14 +7483,7 @@ function NotificationsSection() {
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">Hedef Kitle</label>
             <div className="flex flex-wrap gap-1.5">
-              {[
-                { key: "all", label: "Tümü" },
-                { key: "kedi", label: "🐱 Kedi Sahipleri" },
-                { key: "kopek", label: "🐶 Köpek Sahipleri" },
-                { key: "kus", label: "🐦 Kuş Sahipleri" },
-                { key: "kemirgen", label: "🐹 Kemirgen Sahipleri" },
-                { key: "balik", label: "🐠 Balık Sahipleri" },
-              ].map(s => (
+              {segmentButtons.map(s => (
                 <button
                   key={s.key}
                   onClick={() => handleSegmentChange(s.key)}
@@ -7238,7 +7497,9 @@ function NotificationsSection() {
                 </button>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">{segmentedCustomers.length} müşteri bu segmentte</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {apiSegmentLoading ? "Segment yükleniyor…" : `${segmentedCustomers.length} müşteri bu segmentte`}
+            </p>
           </div>
           <div>
             <label className="text-xs font-medium text-muted-foreground">Hazır Şablonlar</label>
@@ -7274,7 +7535,7 @@ function NotificationsSection() {
                     }}
                     className="rounded"
                   />
-                  {c.name} ({c.phone})
+                  {c.name || c.full_name || "Müşteri"} ({c.phone})
                 </label>
               ))}
             </div>
@@ -7288,6 +7549,51 @@ function NotificationsSection() {
               <Check className="w-4 h-4 inline text-green-600 mr-1" />
               {result.sent} başarılı{result.failed > 0 ? `, ${result.failed} başarısız` : ""}
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Web Push Bildirimi</CardTitle></CardHeader>
+        <CardContent className="p-3 space-y-3">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Push Segmenti</label>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { key: "all", label: "Tüm aboneler" },
+                { key: "yp_buyers", label: "YP Alıcılar" },
+                { key: "recent_buyers_30d", label: "Son 30 Gün" },
+                { key: "club_active", label: "Club" },
+                { key: "mama_bul", label: "Mama Bul" },
+              ].map(s => (
+                <button
+                  key={s.key}
+                  type="button"
+                  onClick={() => setPushSegment(s.key)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                    pushSegment === s.key ? "text-white" : "bg-muted/60 text-muted-foreground"
+                  }`}
+                  style={pushSegment === s.key ? { backgroundColor: "#5D3A1A" } : {}}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <Input value={pushTitle} onChange={e => setPushTitle(e.target.value.slice(0, 80))} placeholder="Başlık" className="h-8 text-sm" />
+          <textarea
+            value={pushBody}
+            onChange={e => setPushBody(e.target.value.slice(0, 200))}
+            placeholder="Bildirim metni"
+            rows={2}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none"
+          />
+          <Button size="sm" variant="outline" onClick={handlePushSend} disabled={pushLoading || !pushTitle.trim() || !pushBody.trim()} className="w-full">
+            {pushLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+            {pushLoading ? "Gönderiliyor…" : "Push Gönder"}
+          </Button>
+          {pushResult && (
+            <p className="text-xs text-muted-foreground">{pushResult.sent} gönderildi{pushResult.failed > 0 ? `, ${pushResult.failed} başarısız` : ""}</p>
           )}
         </CardContent>
       </Card>
@@ -7333,7 +7639,7 @@ function BannerEditRow({ banner, onCancel }: { banner: any; onCancel: () => void
     },
   });
   return (
-    <Card className="border-purple-300">
+    <Card className="border-amber-300">
       <CardContent className="p-3 space-y-2">
         <div className="flex items-center gap-2">
           {banner.imageData && <img src={banner.imageData} alt={banner.title} className="w-16 h-10 object-cover rounded" />}
@@ -7398,16 +7704,394 @@ function YourPoodleHub() {
       <div className="rounded-2xl border bg-white p-4 sm:p-5" style={{ borderColor: YP_BORDER }}>
         <h2 className="text-lg font-bold" style={{ color: YP_P }}>YourPoodle İçerik</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Makale, etkinlik, ürün ve abone yönetimi — vitrinle aynı marka.
+          Makale, etkinlik, Mama Bul, AI, Club moderasyon ve abone yönetimi.
         </p>
       </div>
+      <YPMamaBulAdminCard />
+      <YPAiAdminCard />
+      <YPClubModerationCard />
+      <YPDogsAdminCard />
       <YPProductsCard />
       <YPEmailSubscribersCard />
       <YPEventRegistrationsCard />
       <YourPoodleSettingsCard />
       <YPArticlesCard />
+      <YPGuideProductsCard />
       <YPEventsCard />
     </div>
+  );
+}
+
+function YPMamaBulAdminCard() {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const { data: stats } = useQuery<any>({
+    queryKey: ["/api/admin/mama-bul/stats"],
+    queryFn: () => fetch("/api/admin/mama-bul/stats", { credentials: "include" }).then((r) => r.json()),
+  });
+  const { data: sessions = [] } = useQuery<any[]>({
+    queryKey: ["/api/admin/mama-bul/sessions"],
+    queryFn: () => fetch("/api/admin/mama-bul/sessions?limit=30", { credentials: "include" }).then((r) => r.json()),
+  });
+  const { data: rules = [] } = useQuery<any[]>({
+    queryKey: ["/api/admin/mama-bul/rules"],
+    queryFn: () => fetch("/api/admin/mama-bul/rules", { credentials: "include" }).then((r) => r.json()),
+  });
+  const [draft, setDraft] = useState<any[]>([]);
+  useEffect(() => { setDraft(Array.isArray(rules) ? rules : []); }, [rules]);
+
+  const saveRules = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("PUT", "/api/admin/mama-bul/rules", { rules: draft });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || "Kayıt hatası");
+      return res.json();
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/admin/mama-bul/rules"] });
+      toast({ title: "Mama Bul kuralları kaydedildi" });
+    },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+
+  return (
+    <Card data-testid="card-mama-bul-admin">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm" style={{ color: YP_P }}>Mama Bul</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+          <div className="rounded-lg border p-2"><p className="text-muted-foreground">Toplam</p><p className="text-lg font-bold">{stats?.total ?? "—"}</p></div>
+          <div className="rounded-lg border p-2"><p className="text-muted-foreground">Bugün</p><p className="text-lg font-bold">{stats?.today ?? "—"}</p></div>
+          <div className="rounded-lg border p-2"><p className="text-muted-foreground">7 gün</p><p className="text-lg font-bold">{stats?.week ?? "—"}</p></div>
+          <div className="rounded-lg border p-2"><p className="text-muted-foreground">Kullanıcı</p><p className="text-lg font-bold">{stats?.uniqueUsers ?? "—"}</p></div>
+        </div>
+        {(stats?.topCriteria || []).slice(0, 4).map((c: any) => (
+          <div key={c.key} className="text-[11px]">
+            <span className="font-semibold">{c.key}:</span>{" "}
+            {(c.top || []).map((t: any) => `${t.value} (${t.count})`).join(" · ")}
+          </div>
+        ))}
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs font-semibold text-muted-foreground uppercase">Kurallar (boost)</p>
+            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setDraft((d) => [...d, { id: `rule-${Date.now()}`, name: "Yeni kural", active: true, boost: 15, match: {}, productIds: [] }])}>+ Kural</Button>
+          </div>
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            {draft.map((rule, idx) => (
+              <div key={rule.id || idx} className="border rounded p-2 space-y-1 text-xs">
+                <div className="flex gap-2">
+                  <Input className="h-7 text-xs" value={rule.name || ""} onChange={(e) => setDraft((d) => d.map((r, i) => i === idx ? { ...r, name: e.target.value } : r))} />
+                  <Input className="h-7 text-xs w-16" type="number" value={rule.boost ?? 10} onChange={(e) => setDraft((d) => d.map((r, i) => i === idx ? { ...r, boost: Number(e.target.value) } : r))} />
+                  <Button size="sm" variant="ghost" className="h-7 text-red-500" onClick={() => setDraft((d) => d.filter((_, i) => i !== idx))}>Sil</Button>
+                </div>
+                <Input className="h-7 text-xs" placeholder="Ürün ID'leri (virgülle)" value={(rule.productIds || []).join(",")} onChange={(e) => setDraft((d) => d.map((r, i) => i === idx ? { ...r, productIds: e.target.value.split(",").map((x) => Number(x.trim())).filter(Boolean) } : r))} />
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 pt-1">
+                  {[
+                    { key: "age", label: "Yaş", opts: [["", "—"], ["puppy", "Yavru"], ["adult", "Yetişkin"], ["senior", "Yaşlı"]] },
+                    { key: "weight", label: "Kilo", opts: [["", "—"], ["micro", "1–2kg"], ["toy", "2–4kg"], ["mini", "4–9kg"], ["standard", "9+"]] },
+                    { key: "allergy", label: "Alerji", opts: [["", "—"], ["none", "Yok"], ["chicken", "Tavuk"], ["grain", "Tahıl"], ["fish", "Balık"]] },
+                    { key: "digestion", label: "Sindirim", opts: [["", "—"], ["none", "Normal"], ["sensitive", "Hassas"], ["very_sensitive", "Çok hassas"]] },
+                    { key: "coat", label: "Tüy", opts: [["", "—"], ["none", "İyi"], ["dull", "Mat"], ["scratch", "Kaşıntı"], ["shedding", "Dökülme"]] },
+                    { key: "activity", label: "Aktivite", opts: [["", "—"], ["low", "Düşük"], ["medium", "Orta"], ["high", "Yüksek"]] },
+                  ].map((f) => (
+                    <label key={f.key} className="text-[10px] text-muted-foreground space-y-0.5">
+                      <span>{f.label}</span>
+                      <select
+                        className="w-full h-7 border rounded px-1 text-xs bg-white"
+                        value={(rule.match && rule.match[f.key]) || ""}
+                        onChange={(e) => setDraft((d) => d.map((r, i) => {
+                          if (i !== idx) return r;
+                          const match = { ...(r.match || {}) };
+                          if (!e.target.value) delete match[f.key];
+                          else match[f.key] = e.target.value;
+                          return { ...r, match };
+                        }))}
+                      >
+                        {f.opts.map(([v, lab]) => <option key={v || "empty"} value={v}>{lab}</option>)}
+                      </select>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+            {draft.length === 0 && <p className="text-[11px] text-muted-foreground">Henüz kural yok — ürün boost + match kriterleri ekleyebilirsin.</p>}
+          </div>
+          <Button size="sm" className="mt-2 text-white" style={{ backgroundColor: YP_P }} disabled={saveRules.isPending} onClick={() => saveRules.mutate()}>
+            {saveRules.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Kuralları Kaydet"}
+          </Button>
+        </div>
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Son oturumlar</p>
+          <div className="space-y-1 max-h-36 overflow-y-auto">
+            {sessions.map((s) => (
+              <div key={s.id} className="text-[11px] bg-gray-50 rounded p-1.5 flex justify-between gap-2">
+                <span>{s.customerName || `#${s.customerId}`} · {s.createdAt ? new Date(s.createdAt).toLocaleString("tr-TR") : ""}</span>
+                <span className="text-muted-foreground">{Array.isArray(s.products) ? s.products.length : "—"} ürün</span>
+              </div>
+            ))}
+            {sessions.length === 0 && <p className="text-[11px] text-muted-foreground">Kayıt yok</p>}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function YPAiAdminCard() {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const { data: stats } = useQuery<any>({
+    queryKey: ["/api/admin/yp-chat/stats"],
+    queryFn: () => fetch("/api/admin/yp-chat/stats", { credentials: "include" }).then((r) => r.json()),
+  });
+  const { data: events = [] } = useQuery<any[]>({
+    queryKey: ["/api/admin/yp-chat/events"],
+    queryFn: () => fetch("/api/admin/yp-chat/events?limit=40", { credentials: "include" }).then((r) => r.json()),
+  });
+  const { data: promptData } = useQuery<{ prompt: string }>({
+    queryKey: ["/api/admin/yp-chat/prompt"],
+    queryFn: () => fetch("/api/admin/yp-chat/prompt", { credentials: "include" }).then((r) => r.json()),
+  });
+  const [prompt, setPrompt] = useState("");
+  useEffect(() => { setPrompt(promptData?.prompt || ""); }, [promptData]);
+
+  const savePrompt = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("PUT", "/api/admin/yp-chat/prompt", { prompt });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || "Kayıt hatası");
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/admin/yp-chat/prompt"] });
+      toast({ title: "AI prompt kaydedildi (sadece sunucu)" });
+    },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+
+  return (
+    <Card data-testid="card-ai-admin">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm" style={{ color: YP_P }}>AI Asistan</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+          <div className="rounded-lg border p-2"><p className="text-muted-foreground">Mesaj</p><p className="text-lg font-bold">{stats?.total ?? "—"}</p></div>
+          <div className="rounded-lg border p-2"><p className="text-muted-foreground">Bugün</p><p className="text-lg font-bold">{stats?.today ?? "—"}</p></div>
+          <div className="rounded-lg border p-2"><p className="text-muted-foreground">Kullanıcı</p><p className="text-lg font-bold">{stats?.users ?? "—"}</p></div>
+          <div className="rounded-lg border p-2"><p className="text-muted-foreground">Local fallback</p><p className="text-lg font-bold">{stats?.localFallback ?? "—"}</p></div>
+        </div>
+        <div>
+          <Label className="text-xs">System prompt (istemciye gitmez)</Label>
+          <Textarea className="mt-1 text-xs min-h-[100px]" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Boş = varsayılan sunucu promptu" />
+          <Button size="sm" className="mt-2 text-white" style={{ backgroundColor: YP_P }} disabled={savePrompt.isPending} onClick={() => savePrompt.mutate()}>
+            Prompt Kaydet
+          </Button>
+        </div>
+        <div className="space-y-1 max-h-36 overflow-y-auto">
+          {events.map((e) => (
+            <div key={e.id} className="text-[11px] bg-gray-50 rounded p-1.5 flex justify-between">
+              <span>{e.customerName || (e.customerId ? `#${e.customerId}` : "Misafir")} · {e.createdAt ? new Date(e.createdAt).toLocaleString("tr-TR") : ""}</span>
+              {e.isLocal && <Badge variant="secondary" className="text-[9px]">local</Badge>}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function YPClubModerationCard() {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [filter, setFilter] = useState("all");
+  const { data: posts = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/admin/club/posts", filter],
+    queryFn: () => fetch(`/api/admin/club/posts?visibility=${filter}&limit=40`, { credentials: "include" }).then((r) => r.json()),
+  });
+  const { data: reports = [] } = useQuery<any[]>({
+    queryKey: ["/api/admin/club/reports"],
+    queryFn: () => fetch("/api/admin/club/reports", { credentials: "include" }).then((r) => r.json()),
+  });
+
+  const setVis = useMutation({
+    mutationFn: async ({ id, visibility }: { id: number; visibility: string }) => {
+      const res = await apiRequest("PATCH", `/api/admin/club/posts/${id}`, { visibility });
+      if (!res.ok) throw new Error("Güncellenemedi");
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/admin/club/posts"] });
+      toast({ title: "Post güncellendi" });
+    },
+  });
+  const delPost = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/admin/club/posts/${id}`);
+      if (!res.ok) throw new Error("Silinemedi");
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/admin/club/posts"] });
+      toast({ title: "Post silindi" });
+    },
+  });
+  const closeReport = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("PATCH", `/api/admin/club/reports/${id}`, { status: "closed" });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/admin/club/reports"] }),
+  });
+  const migrateWebp = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/admin/club/migrate-webp", {});
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || "Migrate başarısız");
+      return res.json();
+    },
+    onSuccess: (data: any) => {
+      qc.invalidateQueries({ queryKey: ["/api/admin/club/posts"] });
+      toast({
+        title: "WebP migrate tamam",
+        description: `${data.imagesConverted || 0} görsel · ${data.postsUpdated || 0} gönderi · ${data.photosUpdated || 0} galeri`,
+      });
+    },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+
+  return (
+    <Card data-testid="card-club-moderation">
+      <CardHeader className="pb-2 flex flex-row items-center justify-between gap-2 flex-wrap">
+        <CardTitle className="text-sm" style={{ color: YP_P }}>Club Moderasyon</CardTitle>
+        <div className="flex items-center gap-1.5">
+          <Button size="sm" variant="outline" className="h-7 text-[10px]" disabled={migrateWebp.isPending}
+            onClick={() => migrateWebp.mutate()}>
+            {migrateWebp.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Eski → WebP"}
+          </Button>
+          <Select value={filter} onValueChange={setFilter}>
+            <SelectTrigger className="w-28 h-7 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tümü</SelectItem>
+              <SelectItem value="public">Açık</SelectItem>
+              <SelectItem value="hidden">Gizli</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+          <div className="space-y-2 max-h-56 overflow-y-auto">
+            {posts.map((p) => (
+              <div key={p.id} className="border rounded p-2 text-xs space-y-1">
+                <div className="flex justify-between gap-2">
+                  <span className="font-semibold">{p.dog_name || "Köpek"} · {p.owner_name || p.owner_phone || `#${p.owner_id}`}</span>
+                  <Badge variant={p.visibility === "hidden" ? "destructive" : "secondary"} className="text-[9px]">{p.visibility}</Badge>
+                </div>
+                <p className="text-muted-foreground line-clamp-2">{p.content || "(görsel)"}</p>
+                <div className="flex gap-1">
+                  {p.visibility !== "hidden" ? (
+                    <Button size="sm" variant="outline" className="h-6 text-[10px]" onClick={() => setVis.mutate({ id: p.id, visibility: "hidden" })}>Gizle</Button>
+                  ) : (
+                    <Button size="sm" variant="outline" className="h-6 text-[10px]" onClick={() => setVis.mutate({ id: p.id, visibility: "public" })}>Aç</Button>
+                  )}
+                  <Button size="sm" variant="ghost" className="h-6 text-[10px] text-red-600" onClick={() => { if (confirm("Post silinsin mi?")) delPost.mutate(p.id); }}>Sil</Button>
+                </div>
+              </div>
+            ))}
+            {posts.length === 0 && <p className="text-[11px] text-muted-foreground">Post yok</p>}
+          </div>
+        )}
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">Şikayetler</p>
+          <div className="space-y-1 max-h-28 overflow-y-auto">
+            {reports.filter((r) => r.status === "open").map((r) => (
+              <div key={r.id} className="text-[11px] bg-amber-50 border border-amber-100 rounded p-1.5 flex justify-between gap-2">
+                <span>Post #{r.post_id} · {r.reason || "—"} · {r.reporter_name || "anon"}</span>
+                <Button size="sm" variant="ghost" className="h-6 text-[10px]" onClick={() => closeReport.mutate(r.id)}>Kapat</Button>
+              </div>
+            ))}
+            {reports.filter((r) => r.status === "open").length === 0 && (
+              <p className="text-[11px] text-muted-foreground">Açık şikayet yok</p>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function YPDogsAdminCard() {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [q, setQ] = useState("");
+  const { data, isLoading } = useQuery<any>({
+    queryKey: ["/api/admin/dogs", q],
+    queryFn: () =>
+      fetch(`/api/admin/dogs?q=${encodeURIComponent(q)}&limit=80`, { credentials: "include" }).then((r) => r.json()),
+  });
+  const dogs = data?.dogs || [];
+  const patchDog = useMutation({
+    mutationFn: async ({ id, body }: { id: number; body: any }) => {
+      const r = await apiRequest("PATCH", `/api/admin/dogs/${id}`, body);
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || "Hata");
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/admin/dogs"] });
+      toast({ title: "Güncellendi" });
+    },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+  const delDog = useMutation({
+    mutationFn: async (id: number) => {
+      const r = await apiRequest("DELETE", `/api/admin/dogs/${id}`);
+      if (!r.ok) throw new Error("Silinemedi");
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/admin/dogs"] });
+      toast({ title: "Köpek silindi" });
+    },
+  });
+
+  return (
+    <Card data-testid="card-dogs-admin">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm" style={{ color: YP_P }}>Köpek Profilleri</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="İsim / slug / sahip ara…"
+          className="h-8 text-sm"
+        />
+        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+          <div className="space-y-1.5 max-h-64 overflow-y-auto">
+            {dogs.map((d: any) => (
+              <div key={d.id} className="text-xs border rounded-lg p-2 flex flex-wrap items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-semibold truncate">{d.name} <span className="font-mono text-[10px] text-muted-foreground">/{d.slug}</span></p>
+                  <p className="text-muted-foreground">{d.breed} · {d.city || "—"} · {d.ownerName || "?"} ({d.ownerPhone || "—"})</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-6 text-[10px]"
+                    onClick={() => patchDog.mutate({ id: d.id, body: { isPublic: !d.isPublic } })}
+                  >
+                    {d.isPublic ? "Gizle" : "Yayınla"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="h-6 text-[10px]"
+                    onClick={() => { if (confirm("Köpek profilini sil?")) delDog.mutate(d.id); }}
+                  >
+                    Sil
+                  </Button>
+                </div>
+              </div>
+            ))}
+            {dogs.length === 0 && <p className="text-xs text-muted-foreground text-center py-4">Kayıt yok</p>}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -7481,10 +8165,10 @@ function YPArticlesCard() {
   };
 
   return (
-    <Card className="border-violet-200">
+    <Card className="border-amber-200">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm flex items-center gap-2">📖 YourPoodle Makaleler</CardTitle>
+          <CardTitle className="text-sm flex items-center gap-2">YourPoodle Makaleler</CardTitle>
           <Button size="sm" onClick={openNew} className="h-7 text-xs">+ Yeni Makale</Button>
         </div>
       </CardHeader>
@@ -7498,14 +8182,17 @@ function YPArticlesCard() {
               <div className="text-[10px] text-muted-foreground flex gap-2 mt-0.5 flex-wrap">
                 {a.tag && <span>{a.tag}</span>}
                 <span>{a.min_read} dk</span>
-                {a.featured && <span className="text-violet-600">⭐ Öne Çıkan</span>}
+                {a.featured && <span className="text-amber-800 font-semibold">Öne Çıkan</span>}
                 <span className={a.is_active ? "text-green-600" : "text-red-500"}>{a.is_active ? "Aktif" : "Gizli"}</span>
+                {a.scheduled_at && new Date(a.scheduled_at) > new Date() && (
+                  <span className="text-blue-600 font-semibold">Zamanlanmış</span>
+                )}
                 {a.slug && <span className="font-mono text-[9px] text-muted-foreground/70">/{a.slug}</span>}
               </div>
             </div>
             <div className="flex gap-1 flex-shrink-0">
               {a.slug && (
-                <a href={`/yourpoodle/rehber/${a.slug}`} target="_blank" rel="noopener noreferrer">
+                <a href={`/yourpoodle/rehber/${encodeURIComponent(a.slug)}`} target="_blank" rel="noopener noreferrer" title="Vitrinde aç">
                   <Button size="sm" variant="outline" className="h-6 text-[10px] px-2">Görüntüle</Button>
                 </a>
               )}
@@ -7554,6 +8241,43 @@ function YPArticlesCard() {
               <Input type="number" value={form.sort_order||0} onChange={F("sort_order")} className="h-7 text-sm"/>
             </div>
           </div>
+          <div className="space-y-1">
+            <Label className="text-[11px]">SEO Başlık</Label>
+            <Input value={form.seo_title||""} onChange={F("seo_title")} className="h-7 text-sm" placeholder="Boşsa makale başlığı kullanılır"/>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-[11px]">SEO Açıklama</Label>
+            <textarea value={form.seo_description||""} onChange={F("seo_description")} rows={2} className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm resize-y" placeholder="Meta description (≈155 karakter)"/>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-[11px]">Yayın Tarihi</Label>
+              <Input
+                type="datetime-local"
+                value={form.published_at ? String(form.published_at).slice(0, 16) : ""}
+                onChange={e => setForm((f: any) => ({ ...f, published_at: e.target.value || null }))}
+                className="h-7 text-sm"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[11px]">Zamanlanmış Yayın</Label>
+              <Input
+                type="datetime-local"
+                value={form.scheduled_at ? String(form.scheduled_at).slice(0, 16) : ""}
+                onChange={e => setForm((f: any) => ({ ...f, scheduled_at: e.target.value || null }))}
+                className="h-7 text-sm"
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-[11px]">İlgili Makale Slug’ları <span className="text-muted-foreground font-normal">(virgülle)</span></Label>
+            <Input
+              value={form.related_slugs||""}
+              onChange={F("related_slugs")}
+              className="h-7 text-sm font-mono"
+              placeholder="slug-1, slug-2"
+            />
+          </div>
           <div className="flex gap-4">
             <label className="flex items-center gap-1.5 cursor-pointer">
               <input type="checkbox" checked={!!form.featured} onChange={e => setForm((f:any) => ({ ...f, featured: e.target.checked }))} className="w-3.5 h-3.5 rounded"/>
@@ -7576,6 +8300,224 @@ function YPArticlesCard() {
   );
 }
 
+/* ─── Guide page product recommendations ─────────────────────── */
+function YPGuideProductsCard() {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [selectedSlug, setSelectedSlug] = useState<string>("");
+  const [productSearch, setProductSearch] = useState("");
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+  const { data: allMappings = [] } = useQuery<any[]>({
+    queryKey: ["/api/admin/yp-guide-products"],
+    queryFn: () => fetch("/api/admin/yp-guide-products", { credentials: "include" }).then(r => r.json()),
+    staleTime: 15000,
+  });
+
+  const { data: dbArticles = [] } = useQuery<any[]>({
+    queryKey: ["/api/admin/yp-articles"],
+    queryFn: () => fetch("/api/admin/yp-articles", { credentials: "include" }).then(r => r.json()),
+    staleTime: 30000,
+  });
+
+  const guideOptions = useMemo(() => {
+    const seen = new Set<string>();
+    const opts: { slug: string; title: string; category: string; categoryLabel: string }[] = [];
+    for (const a of GUIDE_ARTICLE_OPTIONS) {
+      seen.add(a.slug);
+      opts.push(a);
+    }
+    for (const a of dbArticles) {
+      const s = String(a.slug || "").trim();
+      if (!s || seen.has(s)) continue;
+      seen.add(s);
+      opts.push({
+        slug: s,
+        title: a.title || s,
+        category: "cms",
+        categoryLabel: a.tag || "CMS",
+      });
+    }
+    return opts;
+  }, [dbArticles]);
+
+  const { data: allProducts = [] } = useQuery<any[]>({
+    queryKey: ["/api/products", "all"],
+    queryFn: async () => {
+      const res = await fetch("/api/products?all=true", { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    staleTime: 60000,
+  });
+
+  const countsBySlug = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const row of allMappings) {
+      const s = row.articleSlug || row.article_slug;
+      if (!s) continue;
+      m[s] = (m[s] || 0) + 1;
+    }
+    return m;
+  }, [allMappings]);
+
+  useEffect(() => {
+    if (!selectedSlug) {
+      setSelectedIds([]);
+      return;
+    }
+    const ids = allMappings
+      .filter((r: any) => (r.articleSlug || r.article_slug) === selectedSlug)
+      .sort((a: any, b: any) => (a.sortOrder ?? a.sort_order ?? 0) - (b.sortOrder ?? b.sort_order ?? 0))
+      .map((r: any) => Number(r.productId ?? r.product_id))
+      .filter((n: number) => Number.isFinite(n));
+    setSelectedIds(ids);
+  }, [selectedSlug, allMappings]);
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const r = await fetch(`/api/admin/yp-guide-products/${encodeURIComponent(selectedSlug)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ productIds: selectedIds }),
+      });
+      if (!r.ok) throw new Error((await r.json()).message || "Kaydedilemedi");
+      return r.json();
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/admin/yp-guide-products"] });
+      toast({ title: "Önerilen ürünler kaydedildi" });
+    },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+
+  const selectedGuide = guideOptions.find(a => a.slug === selectedSlug);
+  const q = productSearch.trim().toLowerCase();
+  const filteredProducts = useMemo(() => {
+    const active = allProducts.filter((p: any) => p.isActive !== false);
+    if (!q) return active.slice(0, 40);
+    return active.filter((p: any) =>
+      String(p.name || "").toLowerCase().includes(q) ||
+      String(p.id).includes(q) ||
+      String(p.barcode || "").toLowerCase().includes(q)
+    ).slice(0, 40);
+  }, [allProducts, q]);
+
+  const selectedProducts = selectedIds
+    .map(id => allProducts.find((p: any) => p.id === id))
+    .filter(Boolean);
+
+  const toggleId = (id: number) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  return (
+    <Card className="border-amber-200">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">Rehber Ürün Önerileri</CardTitle>
+        <p className="text-[11px] text-muted-foreground mt-1">
+          Hangi rehber sayfasında hangi ürünlerin görüneceğini buradan seçin. Atama yoksa bölüm gizlenir.
+        </p>
+      </CardHeader>
+      <CardContent className="p-3 space-y-3">
+        <div className="space-y-1">
+          <Label className="text-[11px]">Rehber sayfası</Label>
+          <Select value={selectedSlug || undefined} onValueChange={setSelectedSlug}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue placeholder="Makale seçin…" />
+            </SelectTrigger>
+            <SelectContent className="max-h-72">
+              {guideOptions.map(a => (
+                <SelectItem key={a.slug} value={a.slug} className="text-xs">
+                  {a.categoryLabel} · {a.title}
+                  {countsBySlug[a.slug] ? ` (${countsBySlug[a.slug]})` : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {!selectedSlug ? (
+          <p className="text-xs text-muted-foreground py-2">Düzenlemek için bir rehber seçin.</p>
+        ) : (
+          <>
+            <div className="rounded-lg border bg-muted/30 p-2 space-y-1.5">
+              <div className="text-[11px] font-semibold">{selectedGuide?.title}</div>
+              <div className="text-[10px] text-muted-foreground font-mono">/{selectedSlug}</div>
+              <div className="text-[11px]">Seçili: <strong>{selectedIds.length}</strong> ürün</div>
+              {selectedProducts.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {selectedProducts.map((p: any) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => toggleId(p.id)}
+                      className="inline-flex items-center gap-1 rounded-full border bg-white px-2 py-0.5 text-[10px] hover:border-red-300"
+                      title="Kaldır"
+                    >
+                      <span className="max-w-[140px] truncate">{p.name}</span>
+                      <X className="w-3 h-3 text-muted-foreground" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={productSearch}
+                onChange={e => setProductSearch(e.target.value)}
+                placeholder="Ürün ara (ad, id, barkod)…"
+                className="h-8 text-xs pl-8"
+              />
+            </div>
+
+            <div className="max-h-56 overflow-y-auto rounded-lg border divide-y">
+              {filteredProducts.length === 0 ? (
+                <p className="text-xs text-muted-foreground p-3 text-center">Ürün bulunamadı</p>
+              ) : filteredProducts.map((p: any) => {
+                const on = selectedIds.includes(p.id);
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => toggleId(p.id)}
+                    className={`w-full flex items-center gap-2 px-2.5 py-2 text-left hover:bg-muted/50 ${on ? "bg-amber-50" : ""}`}
+                  >
+                    <span className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${on ? "bg-amber-600 border-amber-600 text-white" : "border-muted-foreground/30"}`}>
+                      {on && <Check className="w-3 h-3" />}
+                    </span>
+                    {p.img ? (
+                      <img src={p.img} alt="" className="w-8 h-8 rounded object-cover bg-muted shrink-0" />
+                    ) : (
+                      <div className="w-8 h-8 rounded bg-muted shrink-0" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[11px] font-medium truncate">{p.name}</div>
+                      <div className="text-[10px] text-muted-foreground">#{p.id} · {Number(p.price || 0).toLocaleString("tr-TR")}₺</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <Button
+              size="sm"
+              className="w-full"
+              disabled={!selectedSlug || saveMutation.isPending}
+              onClick={() => saveMutation.mutate()}
+            >
+              {saveMutation.isPending ? "Kaydediliyor…" : "Bu sayfa için kaydet"}
+            </Button>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 /* ─── YP Events Admin ───────────────────────────────────────── */
 function YPEventRegistrationsCard() {
   const { data: registrations = [], isLoading } = useQuery<any[]>({
@@ -7588,19 +8530,18 @@ function YPEventRegistrationsCard() {
     staleTime: 0,
   });
 
-  // Group by event
-  const byEvent = registrations.reduce((acc: Record<string, any>, reg: any) => {
-    const key = reg.event_id ?? reg.eventId;
-    if (!acc[key]) acc[key] = { count: 0, title: reg.event_title || `Etkinlik #${key}`, id: key };
-    acc[key].count++;
-    return acc;
-  }, {});
-  const events = Object.values(byEvent) as { id: number; title: string; count: number }[];
+  // API already returns one row per event: { event_id, event_title, count, attendees }
+  const events = (Array.isArray(registrations) ? registrations : []).map((row: any) => ({
+    id: row.event_id ?? row.eventId,
+    title: row.event_title || row.eventTitle || `Etkinlik #${row.event_id ?? row.eventId}`,
+    count: Number(row.count) || (Array.isArray(row.attendees) ? row.attendees.length : 0),
+  }));
+  const totalPeople = events.reduce((s, e) => s + e.count, 0);
 
   return (
-    <Card className="border-violet-300">
+    <Card className="border-amber-200">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">🗓️ YP Etkinlik Katılımları</CardTitle>
+        <CardTitle className="text-sm flex items-center gap-2">YP Etkinlik Katılımları</CardTitle>
       </CardHeader>
       <CardContent className="p-3">
         {isLoading ? (
@@ -7610,12 +8551,12 @@ function YPEventRegistrationsCard() {
         ) : (
           <div className="space-y-2">
             {events.sort((a, b) => b.count - a.count).map(ev => (
-              <div key={ev.id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-violet-50 border border-violet-100">
-                <span className="text-xs font-semibold text-violet-900 truncate mr-3">{ev.title}</span>
-                <span className="text-xs font-black text-violet-700 shrink-0 bg-violet-200 px-2 py-0.5 rounded-full">{ev.count} kişi</span>
+              <div key={ev.id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-amber-50 border border-amber-100">
+                <span className="text-xs font-semibold text-amber-950 truncate mr-3">{ev.title}</span>
+                <span className="text-xs font-black text-amber-800 shrink-0 bg-amber-200 px-2 py-0.5 rounded-full">{ev.count} kişi</span>
               </div>
             ))}
-            <p className="text-[10px] text-muted-foreground text-center pt-1">Toplam {registrations.length} kayıt</p>
+            <p className="text-[10px] text-muted-foreground text-center pt-1">Toplam {totalPeople} katılımcı · {events.length} etkinlik</p>
           </div>
         )}
       </CardContent>
@@ -7633,7 +8574,7 @@ function YPEventsCard() {
   });
   const [editing, setEditing] = useState<any|null>(null);
   const [form, setForm] = useState<any>({});
-  const openNew = () => { setForm({ color:"#7C3AFF", type:"Buluşma", free:true, sort_order:0 }); setEditing({ id:null }); };
+  const openNew = () => { setForm({ color:"#5D3A1A", type:"Buluşma", free:true, sort_order:0 }); setEditing({ id:null }); };
   const openEdit = (ev: any) => { setForm(ev); setEditing(ev); };
   const close = () => { setEditing(null); setForm({}); };
 
@@ -7661,7 +8602,7 @@ function YPEventsCard() {
     setForm((f: any) => ({ ...f, [k]: e.target.value }));
 
   return (
-    <Card className="border-purple-200">
+    <Card className="border-amber-200">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">📅 YourPoodle Etkinlikler</CardTitle>
@@ -7770,7 +8711,12 @@ function YPProductsCard() {
   const [editStock, setEditStock] = useState("");
 
   const { data: products = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/yp-products"],
+    queryKey: ["/api/yp-products", "all"],
+    queryFn: async () => {
+      const r = await fetch("/api/yp-products?all=true", { credentials: "include" });
+      if (!r.ok) return [];
+      return r.json();
+    },
     staleTime: 0,
   });
 
@@ -7802,15 +8748,17 @@ function YPProductsCard() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["/api/yp-products"] }); setEditingId(null); toast({ title: "Kaydedildi" }); },
   });
 
+  const activeCount = products.filter((p: any) => p.isActive !== false).length;
+
   return (
-    <Card className="border-violet-300">
+    <Card className="border-amber-200">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">🐩 YP Ürün Yönetimi</CardTitle>
+        <CardTitle className="text-sm flex items-center gap-2">YP Ürün Yönetimi</CardTitle>
       </CardHeader>
       <CardContent className="p-3">
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs text-muted-foreground">
-            {isLoading ? "Yükleniyor…" : `${products.length} ürün`}
+            {isLoading ? "Yükleniyor…" : `${products.length} köpek ürünü · ${activeCount} aktif`}
           </span>
         </div>
         <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -7819,7 +8767,7 @@ function YPProductsCard() {
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold truncate">{p.name}</div>
-                  <div className="flex items-center gap-3 mt-1 text-muted-foreground">
+                  <div className="flex items-center gap-3 mt-1 text-muted-foreground flex-wrap">
                     {editingId === p.id ? (
                       <>
                         <label className="flex items-center gap-1">Fiyat: <input type="number" value={editPrice} onChange={e => setEditPrice(e.target.value)} placeholder={String(p.price)} className="w-20 border rounded px-1 py-0.5 text-xs" /></label>
@@ -7829,7 +8777,9 @@ function YPProductsCard() {
                       <>
                         <span>₺{p.price}</span>
                         <span>Stok: {p.stock ?? 0}</span>
-                        {p.mamaType && <span className="bg-violet-100 text-violet-700 rounded px-1">{p.mamaType}</span>}
+                        {p.mamaType && <span className="bg-amber-100 text-amber-900 rounded px-1">{p.mamaType}</span>}
+                        {p.brandName && <span className="text-[10px]">{p.brandName}</span>}
+                        {!p.isActive && <span className="text-red-500 font-semibold">Gizli</span>}
                       </>
                     )}
                   </div>
@@ -7884,9 +8834,9 @@ function YPEmailSubscribersCard() {
   });
 
   return (
-    <Card className="border-violet-300">
+    <Card className="border-amber-200">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">📧 YP Email Aboneleri</CardTitle>
+        <CardTitle className="text-sm flex items-center gap-2">YP Email Aboneleri</CardTitle>
       </CardHeader>
       <CardContent className="p-3">
         <div className="flex items-center justify-between mb-3">
@@ -8003,10 +8953,10 @@ function YourPoodleSettingsCard() {
   };
 
   return (
-    <Card className="border-violet-300">
+    <Card className="border-amber-200">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
-          🐩 YourPoodle Uygulama Ayarları
+          YourPoodle Uygulama Ayarları
         </CardTitle>
       </CardHeader>
       <CardContent className="p-3 space-y-4">
@@ -8298,7 +9248,7 @@ function BreedBannersAdmin() {
   const renderEditor = (idx: BIdx, b: typeof b1, setB: typeof setB1) => (
     <div className={`border rounded-lg p-3 space-y-2 ${b.enabled ? "" : "opacity-60 bg-muted/40"}`}>
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <p className="text-xs font-bold text-purple-700">Banner #{idx}</p>
+        <p className="text-xs font-bold text-amber-900">Banner #{idx}</p>
         <label className="flex items-center gap-1.5 cursor-pointer text-xs">
           <input
             type="checkbox"
@@ -8348,10 +9298,10 @@ function BreedBannersAdmin() {
   );
 
   return (
-    <Card className="border-purple-300">
+    <Card className="border-amber-300">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
-          <Package className="w-4 h-4 text-purple-600" /> Köpek Cinsi Banner'ları (Ana Sayfa - Sokak Canları altında)
+          <Package className="w-4 h-4 text-amber-800" /> Köpek Cinsi Banner'ları (Ana Sayfa - Sokak Canları altında)
         </CardTitle>
       </CardHeader>
       <CardContent className="p-3 space-y-3">
@@ -8601,10 +9551,10 @@ function TopPromoBannerAdmin() {
   });
 
   return (
-    <Card className="border-purple-300">
+    <Card className="border-amber-300">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
-          <Package className="w-4 h-4 text-purple-600" /> Mağaza Banner (Ana Sayfa)
+          <Package className="w-4 h-4 text-amber-800" /> Mağaza Banner (Ana Sayfa)
         </CardTitle>
         <p className="text-[11px] text-muted-foreground">Sadece ana sayfada, mobil görünümde header'ın hemen altında gösterilir.</p>
       </CardHeader>
@@ -9024,20 +9974,20 @@ function SubscriptionsSection() {
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex-1 min-w-0">
               <p className="text-xs text-muted-foreground">Sayfa URL</p>
-              <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm font-mono text-purple-700 break-all hover:underline" data-testid="link-abone-url">{url}</a>
+              <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm font-mono text-amber-900 break-all hover:underline" data-testid="link-abone-url">{url}</a>
             </div>
             <Button size="sm" variant="outline" onClick={() => setShowQR(s => !s)} data-testid="button-toggle-qr">
               <QrCode className="w-3.5 h-3.5 mr-1" /> {showQR ? "QR Gizle" : "QR Göster"}
             </Button>
           </div>
           {showQR && (
-            <div className="flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-4 border-2 border-purple-200">
+            <div className="flex flex-col items-center bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 border-2 border-amber-200">
               <div className="bg-white p-3 rounded-xl shadow-sm">
                 <img src={qrSrc} alt="Abone Karekod" className="w-64 h-64 block" data-testid="img-qr" />
               </div>
-              <p className="text-xs text-center text-muted-foreground mt-2">Karekodu okutarak <strong>{brandify("jetgomarket.com")}/abone</strong> sayfasına ulaşılır.</p>
+              <p className="text-xs text-center text-muted-foreground mt-2">Karekodu okutarak <strong>{brandify("yourpoodle.com")}/abone</strong> sayfasına ulaşılır.</p>
               <div className="flex gap-2 mt-3">
-                <a href={qrSrc} download="jetgo-abone-qr.png">
+                <a href={qrSrc} download="yourpoodle-abone-qr.png">
                   <Button size="sm" variant="outline" data-testid="button-download-qr">İndir (PNG)</Button>
                 </a>
                 <a href={qrSrc} target="_blank" rel="noopener noreferrer">
@@ -9065,11 +10015,11 @@ function SubscriptionsSection() {
             <div key={s.id} className="border rounded-xl p-3 flex items-center gap-3 flex-wrap" data-testid={`row-subscription-${s.id}`}>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <a href={`tel:0${s.phone}`} className="font-mono text-sm font-semibold text-purple-700 hover:underline" data-testid={`text-phone-${s.id}`}>{fmtPhone(s.phone)}</a>
+                  <a href={`tel:0${s.phone}`} className="font-mono text-sm font-semibold text-amber-900 hover:underline" data-testid={`text-phone-${s.id}`}>{fmtPhone(s.phone)}</a>
                   <Badge variant="outline" className="text-xs">{s.petType === "kedi" ? "🐱 Kedi" : "🐶 Köpek"}</Badge>
                   {s.status === "new" && <Badge className="bg-green-600 text-xs">Yeni</Badge>}
                   {s.status === "contacted" && <Badge className="bg-blue-600 text-xs">Arandı</Badge>}
-                  {s.status === "converted" && <Badge className="bg-purple-700 text-xs">Üye Oldu</Badge>}
+                  {s.status === "converted" && <Badge className="bg-amber-900 text-xs">Üye Oldu</Badge>}
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-1">{fmtDate(s.createdAt)}</p>
               </div>
@@ -9212,6 +10162,49 @@ function BannedNumbersSection() {
   );
 }
 
+function ZiyaretciSection() {
+  const [mode, setMode] = useState<"hub" | "classic">("hub");
+  return (
+    <div className="space-y-4" data-testid="section-ziyaretci-wrapper">
+      <div className="flex flex-wrap items-center gap-1 rounded-xl border bg-white p-1.5 w-fit">
+        <button
+          type="button"
+          onClick={() => setMode("hub")}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
+            mode === "hub" ? "bg-amber-800 text-white" : "text-gray-600 hover:bg-amber-50"
+          }`}
+          data-testid="tab-ziyaretci-hub"
+        >
+          Analytics Hub
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("classic")}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
+            mode === "classic" ? "bg-amber-800 text-white" : "text-gray-600 hover:bg-amber-50"
+          }`}
+          data-testid="tab-ziyaretci-classic"
+        >
+          Klasik Ziyaretçi
+        </button>
+      </div>
+      {mode === "hub" ? <AnalyticsHub /> : null}
+      {mode === "classic" ? (
+        <>
+          <div className="flex items-center gap-2 pt-1">
+            <div className="h-px flex-1 bg-gray-200" />
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              Klasik IP Ziyaret Raporu
+            </span>
+            <div className="h-px flex-1 bg-gray-200" />
+          </div>
+          <VisitorsSection />
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 function VisitorsSection() {
   const todayStr = () => {
     const d = new Date();
@@ -9241,7 +10234,7 @@ function VisitorsSection() {
   const sourceColor: Record<string, string> = {
     Google: "bg-blue-500", YouTube: "bg-red-500", Instagram: "bg-pink-500",
     Facebook: "bg-blue-700", TikTok: "bg-gray-900", "Twitter/X": "bg-sky-500",
-    WhatsApp: "bg-green-500", Direkt: "bg-purple-500", Bing: "bg-teal-500",
+    WhatsApp: "bg-green-500", Direkt: "bg-amber-500", Bing: "bg-teal-500",
     Yandex: "bg-orange-500",
   };
   const fmtTime = (d: string | null) => d ? new Date(d).toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "-";
@@ -9250,7 +10243,7 @@ function VisitorsSection() {
     <div className="space-y-4" data-testid="section-visitors">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Eye className="w-5 h-5 text-purple-600" />
+          <Eye className="w-5 h-5 text-amber-800" />
           <h2 className="text-lg font-bold">Ziyaretçi Takip</h2>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -9292,7 +10285,7 @@ function VisitorsSection() {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-purple-600" /></div>
+        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-amber-800" /></div>
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2 sm:gap-3">
@@ -9303,7 +10296,7 @@ function VisitorsSection() {
             </div>
             <div className="rounded-xl border bg-white p-3" data-testid="card-visit-total">
               <p className="text-xs text-gray-500">Gerçek Sayfa Görüntüleme</p>
-              <p className="text-xl font-bold text-purple-700">{summary?.totalVisits ?? 0}</p>
+              <p className="text-xl font-bold text-amber-900">{summary?.totalVisits ?? 0}</p>
               <p className="text-[10px] text-gray-400 mt-0.5">1 kişi birkaç sayfa gezebilir</p>
             </div>
             <div className="rounded-xl border bg-white p-3" data-testid="card-visit-source">
@@ -9472,6 +10465,9 @@ function CouponsSection() {
   const [maxUses, setMaxUses] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [isActive, setIsActive] = useState(true);
+  const [firstOrderOnly, setFirstOrderOnly] = useState(false);
+  const [maxDiscountAmount, setMaxDiscountAmount] = useState("");
+  const [freeShipping, setFreeShipping] = useState(false);
 
   const resetForm = () => {
     setShowForm(false);
@@ -9483,6 +10479,9 @@ function CouponsSection() {
     setMaxUses("");
     setExpiresAt("");
     setIsActive(true);
+    setFirstOrderOnly(false);
+    setMaxDiscountAmount("");
+    setFreeShipping(false);
   };
 
   const startEdit = (coupon: any) => {
@@ -9494,6 +10493,13 @@ function CouponsSection() {
     setMaxUses(coupon.maxUses ? String(coupon.maxUses) : "");
     setExpiresAt(coupon.expiresAt ? new Date(coupon.expiresAt).toISOString().split("T")[0] : "");
     setIsActive(coupon.isActive);
+    setFirstOrderOnly(!!(coupon.firstOrderOnly ?? coupon.first_order_only));
+    setMaxDiscountAmount(
+      coupon.maxDiscountAmount != null || coupon.max_discount_amount != null
+        ? String(coupon.maxDiscountAmount ?? coupon.max_discount_amount)
+        : ""
+    );
+    setFreeShipping(!!(coupon.freeShipping ?? coupon.free_shipping));
     setShowForm(true);
   };
 
@@ -9541,18 +10547,25 @@ function CouponsSection() {
   });
 
   const handleSave = () => {
-    if (!code.trim() || !discountValue) {
-      toast({ title: "Kupon kodu ve indirim değeri gerekli", variant: "destructive" });
+    if (!code.trim()) {
+      toast({ title: "Kupon kodu gerekli", variant: "destructive" });
+      return;
+    }
+    if (!freeShipping && !discountValue) {
+      toast({ title: "İndirim değeri veya ücretsiz kargo gerekli", variant: "destructive" });
       return;
     }
     createMutation.mutate({
       code: code.trim().toUpperCase(),
       discountType,
-      discountValue: Number(discountValue),
+      discountValue: Number(discountValue) || 0,
       minOrderAmount: Number(minOrderAmount) || 0,
       maxUses: maxUses ? Number(maxUses) : null,
       expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
       isActive,
+      firstOrderOnly,
+      maxDiscountAmount: maxDiscountAmount ? Number(maxDiscountAmount) : null,
+      freeShipping,
       ...(editId ? {} : { store: adminStore }),
     });
   };
@@ -9563,7 +10576,7 @@ function CouponsSection() {
     <section>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Tag className="w-5 h-5 text-purple-600" />
+          <Tag className="w-5 h-5 text-amber-800" />
           <h2 className="text-lg font-bold">Kupon Yönetimi</h2>
         </div>
         {!showForm && (
@@ -9608,10 +10621,26 @@ function CouponsSection() {
                 <Label className="text-xs">Son Kullanım Tarihi</Label>
                 <Input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} data-testid="input-coupon-expiry" />
               </div>
+              {discountType === "percentage" && (
+                <div className="space-y-1">
+                  <Label className="text-xs">Max İndirim Tavanı (TL)</Label>
+                  <Input type="number" value={maxDiscountAmount} onChange={(e) => setMaxDiscountAmount(e.target.value)} placeholder="Ör: 200" data-testid="input-coupon-max-discount" />
+                </div>
+              )}
             </div>
-            <div className="flex items-center gap-2">
-              <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} id="coupon-active" data-testid="check-coupon-active" />
-              <label htmlFor="coupon-active" className="text-sm">Aktif</label>
+            <div className="flex flex-wrap items-center gap-4">
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} id="coupon-active" data-testid="check-coupon-active" />
+                Aktif
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={firstOrderOnly} onChange={(e) => setFirstOrderOnly(e.target.checked)} id="coupon-first" />
+                Yalnızca ilk sipariş
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={freeShipping} onChange={(e) => setFreeShipping(e.target.checked)} id="coupon-ship" />
+                Ücretsiz kargo
+              </label>
             </div>
             <div className="flex gap-2">
               <Button onClick={handleSave} disabled={createMutation.isPending} className="flex-1" data-testid="btn-save-coupon">
@@ -9630,7 +10659,7 @@ function CouponsSection() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <code className="text-sm font-bold bg-purple-50 text-purple-700 px-2 py-0.5 rounded">{coupon.code}</code>
+                  <code className="text-sm font-bold bg-amber-50 text-amber-900 px-2 py-0.5 rounded">{coupon.code}</code>
                   <Badge variant={coupon.isActive ? "default" : "secondary"} className="text-xs">
                     {coupon.isActive ? "Aktif" : "Pasif"}
                   </Badge>
@@ -9663,6 +10692,11 @@ function CouponsSection() {
                 <div>Min. Sipariş: <span className="font-medium text-foreground">{coupon.minOrderAmount} TL</span></div>
                 <div>Kullanım: <span className="font-medium text-foreground">{coupon.usedCount}{coupon.maxUses ? `/${coupon.maxUses}` : " (sınırsız)"}</span></div>
                 <div>Son Tarih: <span className="font-medium text-foreground">{coupon.expiresAt ? new Date(coupon.expiresAt).toLocaleDateString("tr-TR") : "Yok"}</span></div>
+                {(coupon.firstOrderOnly || coupon.first_order_only) && <div className="text-amber-800 font-medium">İlk sipariş</div>}
+                {(coupon.freeShipping || coupon.free_shipping) && <div className="text-green-700 font-medium">Ücretsiz kargo</div>}
+                {(coupon.maxDiscountAmount || coupon.max_discount_amount) && (
+                  <div>Tavan: <span className="font-medium text-foreground">{coupon.maxDiscountAmount ?? coupon.max_discount_amount} TL</span></div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -10301,6 +11335,7 @@ function SettingsSection() {
           <YPEventRegistrationsCard />
           <YourPoodleSettingsCard />
           <YPArticlesCard />
+          <YPGuideProductsCard />
           <YPEventsCard />
         </>
       )}
@@ -10328,6 +11363,7 @@ function SettingsSection() {
           <YPEventRegistrationsCard />
           <YourPoodleSettingsCard />
           <YPArticlesCard />
+          <YPGuideProductsCard />
           <YPEventsCard />
         </>
       )}
@@ -10632,9 +11668,9 @@ function SettingsSection() {
               </div>
             )}
             <div className="text-[11px] text-muted-foreground bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md p-2 leading-relaxed">
-              <strong>Callback URL:</strong> Tosla İşim panelinde "Callback URL" olarak <code className="font-mono">https://www.jetgomarket.com/api/tosla/callback</code> adresini ekleyin.
+              <strong>Callback URL:</strong> Tosla İşim panelinde "Callback URL" olarak <code className="font-mono">https://www.yourpoodle.com/api/tosla/callback</code> adresini ekleyin.
               <br />
-              <strong>Webhook URL (opsiyonel):</strong> <code className="font-mono">https://www.jetgomarket.com/api/tosla/webhook</code>
+              <strong>Webhook URL (opsiyonel):</strong> <code className="font-mono">https://www.yourpoodle.com/api/tosla/webhook</code>
             </div>
           </div>
 
@@ -10677,7 +11713,7 @@ function SettingsSection() {
               </div>
             )}
             <div className="text-[11px] text-muted-foreground bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md p-2 leading-relaxed">
-              <strong>Callback URL:</strong> iyzico merchant panelinde "Callback URL" olarak <code className="font-mono">https://www.jetgomarket.com/api/iyzico/callback</code> adresini ayarlayın (otomatik geri dönüş için).
+              <strong>Callback URL:</strong> iyzico merchant panelinde "Callback URL" olarak <code className="font-mono">https://www.yourpoodle.com/api/iyzico/callback</code> adresini ayarlayın (otomatik geri dönüş için).
             </div>
           </div>
         </CardContent>
@@ -10999,19 +12035,37 @@ function ReviewManagementSection() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const [formProductId, setFormProductId] = useState("");
-  const [formName, setFormName] = useState("");
+  const [formFirstName, setFormFirstName] = useState("");
+  const [formLastName, setFormLastName] = useState("");
   const [formRating, setFormRating] = useState("5");
   const [formComment, setFormComment] = useState("");
   const [formHelpful, setFormHelpful] = useState("0");
-  const [formDate, setFormDate] = useState(() => {
-    const now = new Date();
-    return now.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
+  const [formDateIso, setFormDateIso] = useState(() => {
+    const d = new Date();
+    return d.toISOString().slice(0, 10);
   });
   const [formPublished, setFormPublished] = useState(true);
   const [formAnimal, setFormAnimal] = useState("");
   const [formSubcategory, setFormSubcategory] = useState("");
   const [formBrand, setFormBrand] = useState("");
   const [formProductSearch, setFormProductSearch] = useState("");
+  const { toast } = useToast();
+
+  const formatReviewDate = (iso: string) => {
+    if (!iso) return "";
+    const d = new Date(iso + "T12:00:00");
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
+  };
+
+  const parseReviewDateToIso = (display: string) => {
+    // try ISO first
+    if (/^\d{4}-\d{2}-\d{2}$/.test(display)) return display;
+    const parsed = Date.parse(display);
+    if (!Number.isNaN(parsed)) return new Date(parsed).toISOString().slice(0, 10);
+    // leave as today if unparseable
+    return new Date().toISOString().slice(0, 10);
+  };
 
   const categoryMap = useMemo(() => {
     const map = new Map<number, BrandCategory>();
@@ -11054,9 +12108,13 @@ function ReviewManagementSection() {
     }
     if (formProductSearch.trim()) {
       const q = formProductSearch.trim().toLowerCase();
-      result = result.filter(p => p.name.toLowerCase().includes(q));
+      result = result.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        String(p.id).includes(q) ||
+        (p.barcode || "").toLowerCase().includes(q)
+      );
     }
-    return result;
+    return result.slice(0, 200);
   }, [allProducts, categories, formAnimal, formSubcategory, formBrand, formProductSearch]);
 
   const productMap = useMemo(() => {
@@ -11088,7 +12146,9 @@ function ReviewManagementSection() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/reviews"] });
       setAddDialogOpen(false);
       resetForm();
+      toast({ title: "Fake yorum eklendi" });
     },
+    onError: (e: any) => toast({ title: e?.message || "Eklenemedi", variant: "destructive" }),
   });
 
   const updateMutation = useMutation({
@@ -11099,7 +12159,9 @@ function ReviewManagementSection() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/reviews"] });
       setEditReview(null);
       resetForm();
+      toast({ title: "Yorum güncellendi" });
     },
+    onError: (e: any) => toast({ title: e?.message || "Güncellenemedi", variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
@@ -11122,11 +12184,12 @@ function ReviewManagementSection() {
 
   function resetForm() {
     setFormProductId("");
-    setFormName("");
+    setFormFirstName("");
+    setFormLastName("");
     setFormRating("5");
     setFormComment("");
     setFormHelpful("0");
-    setFormDate(new Date().toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" }));
+    setFormDateIso(new Date().toISOString().slice(0, 10));
     setFormPublished(true);
     setFormAnimal("");
     setFormSubcategory("");
@@ -11137,11 +12200,13 @@ function ReviewManagementSection() {
   function openEditDialog(r: any) {
     setEditReview(r);
     setFormProductId(String(r.productId));
-    setFormName(r.reviewerName);
+    const parts = String(r.reviewerName || "").trim().split(/\s+/);
+    setFormFirstName(parts[0] || "");
+    setFormLastName(parts.slice(1).join(" ") || "");
     setFormRating(String(r.rating));
     setFormComment(r.comment);
     setFormHelpful(String(r.helpfulCount));
-    setFormDate(r.reviewDate);
+    setFormDateIso(parseReviewDateToIso(r.reviewDate));
     setFormPublished(r.isPublished);
     const cat = categoryMap.get(allProducts.find(p => p.id === r.productId)?.brandCategoryId ?? 0);
     setFormAnimal(cat?.animal || "");
@@ -11151,16 +12216,20 @@ function ReviewManagementSection() {
   }
 
   function handleSubmit() {
+    const reviewerName = `${formFirstName.trim()} ${formLastName.trim()}`.trim();
     const data = {
       productId: parseInt(formProductId),
-      reviewerName: formName.trim(),
+      reviewerName,
       rating: parseInt(formRating),
-      comment: formComment.trim(),
+      comment: formComment.trim() || "Ürünü beğendim.",
       helpfulCount: parseInt(formHelpful) || 0,
-      reviewDate: formDate.trim(),
+      reviewDate: formatReviewDate(formDateIso),
       isPublished: formPublished,
     };
-    if (!data.productId || !data.reviewerName || !data.comment || !data.reviewDate) return;
+    if (!data.productId || !data.reviewerName || !data.reviewDate) {
+      toast({ title: "Ürün, ad soyad ve tarih gerekli", variant: "destructive" });
+      return;
+    }
     if (editReview) {
       updateMutation.mutate({ id: editReview.id, data });
     } else {
@@ -11168,130 +12237,148 @@ function ReviewManagementSection() {
     }
   }
 
-  const formValid = formProductId && formName.trim() && formComment.trim() && formDate.trim();
+  const formValid = formProductId && formFirstName.trim() && formLastName.trim() && formDateIso;
 
   const reviewForm = (
     <div className="space-y-3">
+      <p className="text-[11px] text-muted-foreground">
+        Admin fake yorum: ürün seç → ad/soyad → tarih → yıldız → (opsiyonel) metin. Yayında işaretlenirse vitrine düşer.
+      </p>
       <div>
-        <Label className="text-xs font-bold">Ana Kategori</Label>
-        <Select value={formAnimal} onValueChange={(v) => { setFormAnimal(v); setFormSubcategory(""); setFormBrand(""); setFormProductId(""); }}>
-          <SelectTrigger className="h-8 text-xs" data-testid="select-review-animal">
-            <SelectValue placeholder="Kategori seçin..." />
+        <Label className="text-xs font-bold">Ürün ara (zorunlu)</Label>
+        <Input
+          value={formProductSearch}
+          onChange={e => setFormProductSearch(e.target.value)}
+          placeholder="Ürün adı, barkod veya ID…"
+          className="h-8 text-xs"
+          data-testid="input-review-product-search"
+        />
+      </div>
+      <div>
+        <Label className="text-xs font-bold">Ürün ({formFilteredProducts.length})</Label>
+        <Select value={formProductId} onValueChange={setFormProductId}>
+          <SelectTrigger className="h-9 text-xs" data-testid="select-review-product">
+            <SelectValue placeholder="Ürün seçin..." />
           </SelectTrigger>
-          <SelectContent>
-            {animalOptions.map(a => (
-              <SelectItem key={a} value={a}>{animalLabels[a] || a}</SelectItem>
+          <SelectContent className="max-h-60">
+            {formFilteredProducts.map(p => (
+              <SelectItem key={p.id} value={String(p.id)}>#{p.id} — {p.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
+        {formProductId && (
+          <p className="text-[10px] text-muted-foreground mt-1 truncate">
+            Seçili: {productMap.get(parseInt(formProductId)) || formProductId}
+          </p>
+        )}
       </div>
-      {formAnimal && subcatOptions.length > 0 && (
-        <div>
-          <Label className="text-xs font-bold">Alt Kategori</Label>
-          <Select value={formSubcategory} onValueChange={(v) => { setFormSubcategory(v); setFormBrand(""); setFormProductId(""); }}>
-            <SelectTrigger className="h-8 text-xs" data-testid="select-review-subcategory">
-              <SelectValue placeholder="Alt kategori seçin..." />
-            </SelectTrigger>
-            <SelectContent>
-              {subcatOptions.map(s => (
-                <SelectItem key={s.slug} value={s.slug}>{s.displayName}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <details className="rounded-md border p-2">
+        <summary className="text-[11px] font-semibold cursor-pointer text-muted-foreground">Kategori filtresi (opsiyonel)</summary>
+        <div className="space-y-2 mt-2">
+          <div>
+            <Label className="text-xs font-bold">Ana Kategori</Label>
+            <Select value={formAnimal || "__all"} onValueChange={(v) => { setFormAnimal(v === "__all" ? "" : v); setFormSubcategory(""); setFormBrand(""); }}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Hepsi" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all">Hepsi</SelectItem>
+                {animalOptions.map(a => (
+                  <SelectItem key={a} value={a}>{animalLabels[a] || a}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {formAnimal && subcatOptions.length > 0 && (
+            <div>
+              <Label className="text-xs font-bold">Alt Kategori</Label>
+              <Select value={formSubcategory || "__all"} onValueChange={(v) => { setFormSubcategory(v === "__all" ? "" : v); setFormBrand(""); }}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Hepsi" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all">Hepsi</SelectItem>
+                  {subcatOptions.map(s => (
+                    <SelectItem key={s.slug} value={s.slug}>{s.displayName}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {formAnimal && formSubcategory && brandOptions.length > 0 && (
+            <div>
+              <Label className="text-xs font-bold">Marka</Label>
+              <Select value={formBrand || "__all"} onValueChange={(v) => setFormBrand(v === "__all" ? "" : v)}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Hepsi" /></SelectTrigger>
+                <SelectContent className="max-h-60">
+                  <SelectItem value="__all">Hepsi</SelectItem>
+                  {brandOptions.map(b => (
+                    <SelectItem key={b} value={b}>{b}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
-      )}
-      {formAnimal && formSubcategory && brandOptions.length > 0 && (
-        <div>
-          <Label className="text-xs font-bold">Marka</Label>
-          <Select value={formBrand} onValueChange={(v) => { setFormBrand(v); setFormProductId(""); }}>
-            <SelectTrigger className="h-8 text-xs" data-testid="select-review-brand">
-              <SelectValue placeholder="Marka seçin..." />
-            </SelectTrigger>
-            <SelectContent className="max-h-60">
-              {brandOptions.map(b => (
-                <SelectItem key={b} value={b}>{b}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-      {formAnimal && formSubcategory && (
-        <div>
-          <Label className="text-xs font-bold">Ürün Ara</Label>
-          <Input
-            value={formProductSearch}
-            onChange={e => setFormProductSearch(e.target.value)}
-            placeholder="Ürün adı ile ara..."
-            className="h-8 text-xs"
-            data-testid="input-review-product-search"
-          />
-        </div>
-      )}
-      {formAnimal && formSubcategory && (
-        <div>
-          <Label className="text-xs font-bold">Ürün ({formFilteredProducts.length})</Label>
-          <Select value={formProductId} onValueChange={setFormProductId}>
-            <SelectTrigger className="h-9 text-xs" data-testid="select-review-product">
-              <SelectValue placeholder="Ürün seçin..." />
-            </SelectTrigger>
-            <SelectContent className="max-h-60">
-              {formFilteredProducts.map(p => (
-                <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
+      </details>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label className="text-xs font-bold">Yorum Yazan</Label>
-          <Input value={formName} onChange={e => setFormName(e.target.value)} placeholder="Ayşe Y." className="h-9 text-xs" data-testid="input-review-name" />
+          <Label className="text-xs font-bold">Ad *</Label>
+          <Input value={formFirstName} onChange={e => setFormFirstName(e.target.value)} placeholder="Ayşe" className="h-9 text-xs" data-testid="input-review-firstname" />
         </div>
         <div>
-          <Label className="text-xs font-bold">Yorum Tarihi</Label>
-          <Input value={formDate} onChange={e => setFormDate(e.target.value)} placeholder="14 Nisan 2026" className="h-9 text-xs" data-testid="input-review-date" />
+          <Label className="text-xs font-bold">Soyad *</Label>
+          <Input value={formLastName} onChange={e => setFormLastName(e.target.value)} placeholder="Yılmaz" className="h-9 text-xs" data-testid="input-review-lastname" />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label className="text-xs font-bold">Puan (1-5)</Label>
-          <Select value={formRating} onValueChange={setFormRating}>
-            <SelectTrigger className="h-9 text-xs" data-testid="select-review-rating">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[5, 4, 3, 2, 1].map(r => (
-                <SelectItem key={r} value={String(r)}>{"⭐".repeat(r)} ({r})</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label className="text-xs font-bold">Tarih *</Label>
+          <Input type="date" value={formDateIso} onChange={e => setFormDateIso(e.target.value)} className="h-9 text-xs" data-testid="input-review-date" />
+          <p className="text-[10px] text-muted-foreground mt-0.5">{formatReviewDate(formDateIso)}</p>
         </div>
         <div>
-          <Label className="text-xs font-bold">Faydalı Bulan</Label>
-          <Input type="number" min="0" value={formHelpful} onChange={e => setFormHelpful(e.target.value)} className="h-9 text-xs" data-testid="input-review-helpful" />
+          <Label className="text-xs font-bold">Yıldız *</Label>
+          <div className="flex items-center gap-1 h-9">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setFormRating(String(n))}
+                className="text-lg leading-none"
+                aria-label={`${n} yıldız`}
+                data-testid={`btn-review-star-${n}`}
+              >
+                <span style={{ color: n <= parseInt(formRating) ? "#F59E0B" : "#D1D5DB" }}>★</span>
+              </button>
+            ))}
+            <span className="text-xs text-muted-foreground ml-1">({formRating})</span>
+          </div>
         </div>
       </div>
       <div>
-        <Label className="text-xs font-bold">Yorum</Label>
+        <Label className="text-xs font-bold">Yorum metni</Label>
         <textarea
           className="w-full border rounded-lg p-3 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-[#5D3A1A]/20"
           rows={3}
           value={formComment}
           onChange={e => setFormComment(e.target.value)}
-          placeholder="Ürün ve hizmet hakkında yorum..."
+          placeholder="Opsiyonel — boş bırakılırsa varsayılan metin kullanılır"
           data-testid="textarea-review-comment"
         />
       </div>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setFormPublished(!formPublished)}
-          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${formPublished ? "bg-green-500" : "bg-gray-300"}`}
-          data-testid="toggle-review-published"
-        >
-          <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${formPublished ? "translate-x-5" : "translate-x-0.5"}`} />
-        </button>
-        <Label className="text-xs">{formPublished ? "Yayında" : "Taslak"}</Label>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label className="text-xs font-bold">Faydalı bulan</Label>
+          <Input type="number" min="0" value={formHelpful} onChange={e => setFormHelpful(e.target.value)} className="h-9 text-xs" data-testid="input-review-helpful" />
+        </div>
+        <div className="flex items-center gap-2 pt-5">
+          <button
+            type="button"
+            onClick={() => setFormPublished(!formPublished)}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${formPublished ? "bg-green-500" : "bg-gray-300"}`}
+            data-testid="toggle-review-published"
+          >
+            <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${formPublished ? "translate-x-5" : "translate-x-0.5"}`} />
+          </button>
+          <Label className="text-xs">{formPublished ? "Yayında" : "Taslak"}</Label>
+        </div>
       </div>
       <Button
         className="w-full"
@@ -11301,7 +12388,7 @@ function ReviewManagementSection() {
         data-testid="btn-save-review"
       >
         {(createMutation.isPending || updateMutation.isPending) ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
-        {editReview ? "Güncelle" : "Yorum Ekle"}
+        {editReview ? "Güncelle" : "Fake Yorum Ekle"}
       </Button>
     </div>
   );
@@ -11316,7 +12403,7 @@ function ReviewManagementSection() {
         </h2>
         <Button size="sm" style={{ backgroundColor: "#5D3A1A" }} onClick={() => { resetForm(); setAddDialogOpen(true); }} data-testid="btn-add-review">
           <Plus className="w-4 h-4 mr-1" />
-          Yorum Ekle
+          Fake Yorum Ekle
         </Button>
       </div>
 
@@ -11328,6 +12415,19 @@ function ReviewManagementSection() {
           className="h-8 text-xs w-[200px]"
           data-testid="input-search-reviews"
         />
+        <Select value={filterProduct || "all"} onValueChange={(v) => setFilterProduct(v === "all" ? "" : v)}>
+          <SelectTrigger className="w-[200px] h-8 text-xs" data-testid="select-review-product-filter">
+            <SelectValue placeholder="Ürün filtre" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tüm ürünler</SelectItem>
+            {Array.from(new Set(reviews.map((r) => r.productId))).slice(0, 80).map((pid) => (
+              <SelectItem key={pid} value={String(pid)}>
+                #{pid} {(productMap.get(pid) || "").slice(0, 40)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
           <SelectTrigger className="w-[130px] h-8 text-xs" data-testid="select-review-status-filter">
             <SelectValue />
@@ -11343,7 +12443,7 @@ function ReviewManagementSection() {
       <Dialog open={addDialogOpen} onOpenChange={(open) => { if (!open) { setAddDialogOpen(false); resetForm(); } else setAddDialogOpen(true); }}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-base">Yeni Yorum Ekle</DialogTitle>
+            <DialogTitle className="text-base">Fake Yorum Ekle</DialogTitle>
           </DialogHeader>
           {reviewForm}
         </DialogContent>
@@ -12228,7 +13328,7 @@ function StokSayimSection() {
         </Card>
       )}
 
-      <Card className="border-purple-200">
+      <Card className="border-amber-200">
         <CardHeader className="pb-2">
           <button
             type="button"
@@ -12237,7 +13337,7 @@ function StokSayimSection() {
             data-testid="button-toggle-stock-report"
           >
             <CardTitle className="text-sm flex items-center gap-2">
-              <Package className="w-4 h-4 text-purple-600" /> Aylık Stok Hareket Raporu
+              <Package className="w-4 h-4 text-amber-800" /> Aylık Stok Hareket Raporu
             </CardTitle>
             <ChevronDown className={`w-4 h-4 transition-transform ${reportOpen ? "rotate-180" : ""}`} />
           </button>
@@ -12555,9 +13655,22 @@ function ReportsSection() {
     return (
       <div className="space-y-4">
         <div className="p-3 rounded-lg border border-orange-200 bg-orange-50 text-xs text-orange-900" data-testid="reports-error">
-          Genel rapor verisi yüklenemedi (sipariş/müşteri analizi gösterilemiyor). Mama Stoğu raporu aşağıda çalışmaya devam ediyor.
+          Genel rapor verisi yüklenemedi. Mama Stoğu, Marj ve Kritik Stok aşağıda çalışmaya devam ediyor.
         </div>
-        <MamaStockSection />
+        <div className="flex flex-wrap gap-1.5">
+          {[
+            { key: "mama-stok", label: "Mama Stoğu" },
+            { key: "margin", label: "Marj / Finans" },
+            { key: "critical", label: "Kritik Stok" },
+          ].map((t) => (
+            <button key={t.key} type="button" onClick={() => setReportTab(t.key)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium ${reportTab === t.key ? "text-white" : "bg-muted/60 text-muted-foreground"}`}
+              style={reportTab === t.key ? { backgroundColor: "#5D3A1A" } : {}}>{t.label}</button>
+          ))}
+        </div>
+        {(reportTab === "mama-stok" || reportTab === "genel") && <MamaStockSection />}
+        {reportTab === "margin" && <MarginFinanceSection />}
+        {reportTab === "critical" && <CriticalStockSection />}
       </div>
     );
   }
@@ -12568,6 +13681,8 @@ function ReportsSection() {
     { key: "bestsellers", label: "En Çok Satanlar" },
     { key: "heatmap", label: "Isı Haritası" },
     { key: "mama-stok", label: "Mama Stoğu" },
+    { key: "margin", label: "Marj / Finans" },
+    { key: "critical", label: "Kritik Stok" },
     { key: "blacklist", label: "Kara Liste" },
   ];
 
@@ -12583,7 +13698,7 @@ function ReportsSection() {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <Card><CardContent className="p-3 text-center"><p className="text-xs text-muted-foreground">Toplam Müşteri</p><p className="text-lg sm:text-xl font-bold text-blue-600">{reports.totalCustomers}</p></CardContent></Card>
           <Card><CardContent className="p-3 text-center"><p className="text-xs text-muted-foreground">Aktif Ürün</p><p className="text-lg sm:text-xl font-bold text-green-600">{reports.totalProducts}</p></CardContent></Card>
-          <Card className="col-span-2 sm:col-span-1"><CardContent className="p-3 text-center"><p className="text-xs text-muted-foreground">Toplam Sipariş</p><p className="text-lg sm:text-xl font-bold text-purple-600">{reports.totalOrders}</p></CardContent></Card>
+          <Card className="col-span-2 sm:col-span-1"><CardContent className="p-3 text-center"><p className="text-xs text-muted-foreground">Toplam Sipariş</p><p className="text-lg sm:text-xl font-bold text-amber-800">{reports.totalOrders}</p></CardContent></Card>
         </div>
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm">Ödeme Yöntemleri</CardTitle></CardHeader>
@@ -12786,7 +13901,7 @@ function ReportsSection() {
                         </div>
                       </div>
                       <div className="w-full bg-gray-100 rounded-full h-1.5">
-                        <div className="h-1.5 rounded-full bg-purple-500" style={{ width: `${pct}%` }} />
+                        <div className="h-1.5 rounded-full bg-amber-500" style={{ width: `${pct}%` }} />
                       </div>
                     </div>
                   );
@@ -12798,8 +13913,92 @@ function ReportsSection() {
       </>}
 
       {reportTab === "mama-stok" && <MamaStockSection />}
-
+      {reportTab === "margin" && <MarginFinanceSection />}
+      {reportTab === "critical" && <CriticalStockSection />}
       {reportTab === "blacklist" && <BlacklistSection reports={reports} />}
+    </div>
+  );
+}
+
+function CriticalStockSection() {
+  const { data, isLoading, error } = useQuery<{ items: any[]; count: number }>({
+    queryKey: ["/api/admin/critical-stock"],
+    queryFn: async () => {
+      const r = await fetch("/api/admin/critical-stock", { credentials: "include" });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || "Kritik stok yüklenemedi");
+      return r.json();
+    },
+  });
+  if (isLoading) return <Loader2 className="w-5 h-5 animate-spin" />;
+  if (error || !data) return <p className="text-xs text-red-600">{(error as any)?.message || "Veri yok"}</p>;
+  return (
+    <div className="space-y-3" data-testid="section-critical-stock">
+      <p className="text-xs text-muted-foreground">{data.count} ürün kritik stok eşiğinde veya altında</p>
+      <div className="space-y-1 max-h-[60vh] overflow-y-auto">
+        {(data.items || []).map((p) => (
+          <div key={p.id} className="text-xs flex items-center justify-between gap-2 border rounded-lg p-2 bg-white">
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold truncate">{p.name}</p>
+              <p className="text-muted-foreground">#{p.id}{p.barcode ? ` · ${p.barcode}` : ""}</p>
+            </div>
+            <div className="text-right">
+              <p className="font-bold text-amber-800">{p.stock} / {p.criticalStock ?? 5}</p>
+              <p className="text-muted-foreground">{Number(p.price || 0).toLocaleString("tr-TR")} ₺</p>
+            </div>
+          </div>
+        ))}
+        {(data.items || []).length === 0 && <p className="text-xs text-muted-foreground text-center py-6">Kritik stok uyarısı yok</p>}
+      </div>
+    </div>
+  );
+}
+
+function MarginFinanceSection() {
+  const { data, isLoading, error } = useQuery<any>({
+    queryKey: ["/api/admin/reports/margin"],
+    queryFn: async () => {
+      const r = await fetch("/api/admin/reports/margin", { credentials: "include" });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || "Marj raporu yüklenemedi");
+      return r.json();
+    },
+  });
+  if (isLoading) return <Loader2 className="w-5 h-5 animate-spin" />;
+  if (error || !data) {
+    return <p className="text-xs text-red-600">{(error as any)?.message || "Finans yetkisi veya veri yok"}</p>;
+  }
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <Card><CardContent className="p-3 text-center"><p className="text-[10px] text-muted-foreground">30g ciro</p><p className="font-bold">{Number(data.last30d?.revenue || 0).toLocaleString("tr-TR")} ₺</p></CardContent></Card>
+        <Card><CardContent className="p-3 text-center"><p className="text-[10px] text-muted-foreground">Ort. marj</p><p className="font-bold">{data.avgMarginPct != null ? `%${data.avgMarginPct}` : "—"}</p></CardContent></Card>
+        <Card><CardContent className="p-3 text-center"><p className="text-[10px] text-muted-foreground">Maliyetli ürün</p><p className="font-bold">{data.withCostCount}</p></CardContent></Card>
+        <Card><CardContent className="p-3 text-center"><p className="text-[10px] text-muted-foreground">Kritik stok</p><p className="font-bold text-amber-800">{data.lowStock?.length || 0}</p></CardContent></Card>
+      </div>
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Kritik stok altı</CardTitle></CardHeader>
+        <CardContent className="p-3 space-y-1 max-h-40 overflow-y-auto">
+          {(data.lowStock || []).map((p: any) => (
+            <div key={p.id} className="text-xs flex justify-between gap-2">
+              <span className="truncate">{p.name}</span>
+              <span className="font-semibold">{p.stock}/{p.criticalStock ?? 5}</span>
+            </div>
+          ))}
+          {(data.lowStock || []).length === 0 && <p className="text-xs text-muted-foreground">Kritik stok uyarısı yok</p>}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Ürün marjları</CardTitle></CardHeader>
+        <CardContent className="p-3 space-y-1 max-h-64 overflow-y-auto">
+          {(data.products || []).slice(0, 80).map((p: any) => (
+            <div key={p.id} className="text-xs flex justify-between gap-2 border-b border-muted/40 py-1">
+              <span className="truncate flex-1">{p.name}</span>
+              <span>{Number(p.price).toLocaleString("tr-TR")} ₺</span>
+              <span className="w-16 text-right text-muted-foreground">{p.costPrice != null ? `${Number(p.costPrice).toLocaleString("tr-TR")} ₺` : "—"}</span>
+              <span className="w-12 text-right font-semibold">{p.marginPct != null ? `%${p.marginPct}` : "—"}</span>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -12841,11 +14040,11 @@ function MamaStockSection() {
             <p className="text-xs font-semibold text-foreground">{fmt(data.totals.kopek.totalValue)} TL</p>
           </CardContent>
         </Card>
-        <Card className="border-purple-300 bg-purple-50">
+        <Card className="border-amber-300 bg-amber-50">
           <CardContent className="p-3">
-            <p className="text-xs font-semibold text-purple-800 mb-1">📦 Genel Toplam</p>
+            <p className="text-xs font-semibold text-amber-900 mb-1">📦 Genel Toplam</p>
             <p className="text-[11px] text-muted-foreground">{data.totals.grand.itemCount} çeşit</p>
-            <p className="text-base font-bold text-purple-700 mt-0.5">{fmt(data.totals.grand.totalStock)} adet</p>
+            <p className="text-base font-bold text-amber-900 mt-0.5">{fmt(data.totals.grand.totalStock)} adet</p>
             <p className="text-xs font-semibold text-foreground">{fmt(data.totals.grand.totalValue)} TL</p>
           </CardContent>
         </Card>
@@ -12983,12 +14182,458 @@ function BlacklistSection({ reports }: { reports: any }) {
   );
 }
 
+function Customer360Panel({ customerId, fallback }: { customerId: number; fallback: any }) {
+  const { data, isLoading } = useQuery<any>({
+    queryKey: ["/api/admin/customers", customerId, "detail"],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/customers/${customerId}/detail`, { credentials: "include" });
+      if (!res.ok) throw new Error("detail");
+      return res.json();
+    },
+  });
+  if (isLoading) return <p className="text-xs text-muted-foreground">360° yükleniyor…</p>;
+  if (!data) return null;
+  const s = data.stats || {};
+  return (
+    <div className="rounded-lg border p-2 space-y-2" style={{ borderColor: YP_BORDER, background: "#FAF7F2" }}>
+      <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: YP_P }}>360° özet</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+        <div><span className="text-muted-foreground">Harcama</span><p className="font-semibold">{Number(s.totalSpend || 0).toLocaleString("tr-TR")} ₺</p></div>
+        <div><span className="text-muted-foreground">Ort. sepet</span><p className="font-semibold">{Number(s.avgBasket || 0).toLocaleString("tr-TR")} ₺</p></div>
+        <div><span className="text-muted-foreground">Mama Bul</span><p className="font-semibold">{s.mamaBulCount ?? 0}</p></div>
+        <div><span className="text-muted-foreground">AI mesaj</span><p className="font-semibold">{s.aiMessageCount ?? 0}</p></div>
+      </div>
+      {(data.dogs || []).length > 0 && (
+        <div>
+          <p className="text-[10px] font-semibold text-muted-foreground mb-1">KÖPEK PROFİLLERİ</p>
+          <div className="flex flex-wrap gap-1">
+            {data.dogs.map((d: any) => (
+              <Badge key={d.id} variant="secondary" className="text-[10px]">
+                {d.name || "Köpek"}{d.breed ? ` · ${d.breed}` : ""}{d.weightKg || d.weight ? ` · ${d.weightKg || d.weight}kg` : ""}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+      {(data.favorites || []).length > 0 && (
+        <p className="text-[10px] text-muted-foreground">Favori: {data.favorites.slice(0, 5).map((f: any) => f.name || `#${f.productId}`).join(", ")}</p>
+      )}
+      {!data.dogs?.length && !fallback?.addresses?.length && (
+        <p className="text-[10px] text-muted-foreground">Ek profil / Mama Bul kaydı sınırlı olabilir.</p>
+      )}
+    </div>
+  );
+}
+
+function PaymentsAdminSection() {
+  const [status, setStatus] = useState("all");
+  const { data = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/admin/payments", status],
+    queryFn: async () => {
+      const qs = status !== "all" ? `?status=${encodeURIComponent(status)}` : "";
+      const res = await fetch(`/api/admin/payments${qs}`, { credentials: "include" });
+      if (!res.ok) throw new Error("payments");
+      return res.json();
+    },
+  });
+  return (
+    <div className="space-y-3" data-testid="section-payments">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-sm font-bold" style={{ color: YP_P }}>Ödeme işlemleri</h2>
+        <Select value={status} onValueChange={setStatus}>
+          <SelectTrigger className="w-40 h-8 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tümü</SelectItem>
+            <SelectItem value="completed">Başarılı</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="awaiting">Awaiting</SelectItem>
+            <SelectItem value="failed">Başarısız</SelectItem>
+            <SelectItem value="refunded">İade</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+        <div className="space-y-2">
+          {data.map((p) => (
+            <Card key={p.id}>
+              <CardContent className="p-3 flex items-center justify-between gap-2 text-xs">
+                <div>
+                  <p className="font-semibold">#{p.id} · {p.customerName || "—"}</p>
+                  <p className="text-muted-foreground">{p.paymentMethod} · {new Date(p.createdAt).toLocaleString("tr-TR")}</p>
+                </div>
+                <div className="text-right">
+                  <Badge variant="secondary">{p.paymentStatus}</Badge>
+                  <p className="font-bold mt-1">{Number(p.grandTotal || 0).toLocaleString("tr-TR")} ₺</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+          {data.length === 0 && <p className="text-xs text-muted-foreground text-center py-6">Kayıt yok</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StaffAdminSection() {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const { data: staff = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/admin/staff"],
+    queryFn: async () => {
+      const r = await fetch("/api/admin/staff", { credentials: "include" });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || "Yetki yok");
+      return r.json();
+    },
+  });
+  const { data: roles = [] } = useQuery<any[]>({
+    queryKey: ["/api/admin/staff/roles"],
+    queryFn: () => fetch("/api/admin/staff/roles", { credentials: "include" }).then((r) => r.json()),
+  });
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("support");
+
+  const createMut = useMutation({
+    mutationFn: async () => {
+      const r = await apiRequest("POST", "/api/admin/staff", { username, password, role });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || "Eklenemedi");
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/admin/staff"] });
+      setUsername(""); setPassword("");
+      toast({ title: "Personel eklendi" });
+    },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+  const patchMut = useMutation({
+    mutationFn: async ({ id, body }: { id: string; body: any }) => {
+      const r = await apiRequest("PATCH", `/api/admin/staff/${id}`, body);
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || "Hata");
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/admin/staff"] });
+      toast({ title: "Güncellendi" });
+    },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+  const delMut = useMutation({
+    mutationFn: async (id: string) => {
+      const r = await apiRequest("DELETE", `/api/admin/staff/${id}`);
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || "Silinemedi");
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/admin/staff"] });
+      toast({ title: "Silindi" });
+    },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+
+  return (
+    <div className="space-y-4" data-testid="section-staff">
+      <h2 className="text-sm font-bold" style={{ color: YP_P }}>Personel / Roller</h2>
+      <Card>
+        <CardContent className="p-3 space-y-2">
+          <p className="text-xs text-muted-foreground">Yeni personel (ilk girişte şifre değişimi zorunlu)</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="kullaniciadi" className="h-8 text-sm" />
+            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Şifre (min 12)" className="h-8 text-sm" />
+            <Select value={role} onValueChange={setRole}>
+              <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {(roles.length ? roles : [{ id: "support", label: "Destek" }]).map((r: any) => (
+                  <SelectItem key={r.id} value={r.id}>{r.label || r.id}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {!!roles.find((r: any) => r.id === role)?.permissions?.length && (
+            <p className="text-[10px] text-muted-foreground break-words">
+              Yetkiler: {(roles.find((r: any) => r.id === role)?.permissions || []).join(", ")}
+            </p>
+          )}
+          <Button size="sm" onClick={() => createMut.mutate()} disabled={createMut.isPending || !username || password.length < 12}>
+            {createMut.isPending ? "…" : "Ekle"}
+          </Button>
+        </CardContent>
+      </Card>
+      {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+        <div className="space-y-2">
+          {staff.map((u) => (
+            <Card key={u.id}>
+              <CardContent className="p-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+                <div className="min-w-0">
+                  <p className="font-semibold">{u.username}</p>
+                  <p className="text-xs text-muted-foreground">{u.role}{u.mustChangePassword ? " · şifre değişmeli" : ""}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 break-words">
+                    {(roles.find((r: any) => r.id === u.role)?.permissions || []).slice(0, 8).join(" · ") || "—"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={u.role || "support"}
+                    onValueChange={(v) => patchMut.mutate({ id: u.id, body: { role: v } })}
+                  >
+                    <SelectTrigger className="h-8 w-[160px] text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {(roles.length ? roles : [{ id: u.role, label: u.role }]).map((r: any) => (
+                        <SelectItem key={r.id} value={r.id}>{r.label || r.id}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => {
+                    const p = prompt("Yeni şifre (min 12 karakter):");
+                    if (p && p.length >= 12) patchMut.mutate({ id: u.id, body: { password: p } });
+                  }}>Şifre</Button>
+                  <Button size="sm" variant="destructive" className="h-8 text-xs" onClick={() => {
+                    if (confirm(`${u.username} silinsin mi?`)) delMut.mutate(u.id);
+                  }}>Sil</Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RefundsAdminSection() {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [filter, setFilter] = useState("pending");
+  const [newOrderId, setNewOrderId] = useState("");
+  const [newReason, setNewReason] = useState("");
+  const [newAmount, setNewAmount] = useState("");
+  const { data = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/admin/refunds", filter],
+    queryFn: async () => {
+      const qs = filter === "all" ? "" : `?status=${filter}`;
+      const r = await fetch(`/api/admin/refunds${qs}`, { credentials: "include" });
+      if (!r.ok) throw new Error("İadeler yüklenemedi");
+      return r.json();
+    },
+  });
+  const updateMut = useMutation({
+    mutationFn: async ({ id, status, adminNote }: { id: number; status: string; adminNote?: string }) => {
+      const r = await apiRequest("PATCH", `/api/admin/refunds/${id}`, { status, adminNote });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || "Hata");
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/admin/refunds"] });
+      toast({ title: "İade güncellendi" });
+    },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+  const createMut = useMutation({
+    mutationFn: async () => {
+      const body: any = { orderId: parseInt(newOrderId), reason: newReason || "Admin iade" };
+      if (newAmount.trim()) body.amount = Number(newAmount);
+      const r = await apiRequest("POST", "/api/admin/refunds", body);
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || "Hata");
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/admin/refunds"] });
+      setNewOrderId(""); setNewReason(""); setNewAmount("");
+      toast({ title: "İade talebi oluşturuldu" });
+    },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+
+  return (
+    <div className="space-y-3" data-testid="section-refunds">
+      <h2 className="text-sm font-bold" style={{ color: YP_P }}>İade Talepleri</h2>
+      <Card>
+        <CardContent className="p-3 space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground">Admin iade oluştur</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <Input value={newOrderId} onChange={(e) => setNewOrderId(e.target.value)} placeholder="Sipariş ID" className="h-8 text-sm" />
+            <Input value={newReason} onChange={(e) => setNewReason(e.target.value)} placeholder="Neden" className="h-8 text-sm" />
+            <Input value={newAmount} onChange={(e) => setNewAmount(e.target.value)} placeholder="Tutar (opsiyonel)" className="h-8 text-sm" type="number" />
+          </div>
+          <Button size="sm" className="h-7 text-xs" disabled={!newOrderId || createMut.isPending} onClick={() => createMut.mutate()}>
+            {createMut.isPending ? "…" : "İade talebi aç"}
+          </Button>
+        </CardContent>
+      </Card>
+      <div className="flex flex-wrap gap-1.5">
+        {[
+          { key: "pending", label: "Bekleyen" },
+          { key: "approved", label: "Onaylı" },
+          { key: "completed", label: "Tamamlanan" },
+          { key: "rejected", label: "Red" },
+          { key: "all", label: "Tümü" },
+        ].map((f) => (
+          <button
+            key={f.key}
+            type="button"
+            onClick={() => setFilter(f.key)}
+            className={`px-2.5 py-1 rounded-full text-xs font-medium ${filter === f.key ? "text-white" : "bg-muted/60 text-muted-foreground"}`}
+            style={filter === f.key ? { backgroundColor: "#5D3A1A" } : {}}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+      {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+        <div className="space-y-2">
+          {data.map((r) => (
+            <Card key={r.id}>
+              <CardContent className="p-3 space-y-2 text-sm">
+                <div className="flex justify-between gap-2">
+                  <p className="font-semibold">#{r.orderId} · {r.customerName || "—"}</p>
+                  <Badge variant="secondary">{r.status}</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">{r.customerPhone} · {Number(r.amount || r.grandTotal || 0).toLocaleString("tr-TR")} ₺</p>
+                <p className="text-xs">{r.reason}</p>
+                {r.adminNote && <p className="text-[11px] text-muted-foreground">Not: {r.adminNote}</p>}
+                {r.status === "pending" && (
+                  <div className="flex flex-wrap gap-1.5">
+                    <Button size="sm" className="h-7 text-xs" onClick={() => updateMut.mutate({ id: r.id, status: "approved" })}>Onayla</Button>
+                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => {
+                      const note = prompt("Admin notu (opsiyonel):") || undefined;
+                      updateMut.mutate({ id: r.id, status: "completed", adminNote: note });
+                    }}>İade tamamlandı</Button>
+                    <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => {
+                      const note = prompt("Red nedeni:") || "";
+                      updateMut.mutate({ id: r.id, status: "rejected", adminNote: note });
+                    }}>Reddet</Button>
+                  </div>
+                )}
+                {r.status === "approved" && (
+                  <Button size="sm" className="h-7 text-xs" onClick={() => {
+                    const note = prompt("Admin notu (opsiyonel):") || undefined;
+                    updateMut.mutate({ id: r.id, status: "completed", adminNote: note });
+                  }}>İadeyi tamamla</Button>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+          {data.length === 0 && <p className="text-xs text-muted-foreground text-center py-6">Kayıt yok</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SeoRedirectsCard() {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const { data = [] } = useQuery<any[]>({
+    queryKey: ["/api/admin/seo-redirects"],
+    queryFn: () => fetch("/api/admin/seo-redirects", { credentials: "include" }).then((r) => r.json()),
+  });
+  const [fromPath, setFromPath] = useState("");
+  const [toPath, setToPath] = useState("");
+  const createMut = useMutation({
+    mutationFn: async () => {
+      const r = await apiRequest("POST", "/api/admin/seo-redirects", { fromPath, toPath });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || "Hata");
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/admin/seo-redirects"] });
+      setFromPath(""); setToPath("");
+      toast({ title: "Redirect eklendi" });
+    },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+  const patchMut = useMutation({
+    mutationFn: async ({ id, body }: { id: number; body: any }) => {
+      const r = await apiRequest("PATCH", `/api/admin/seo-redirects/${id}`, body);
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || "Hata");
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/admin/seo-redirects"] });
+      toast({ title: "Redirect güncellendi" });
+    },
+    onError: (e: any) => toast({ title: e.message, variant: "destructive" }),
+  });
+  const delMut = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/admin/seo-redirects/${id}`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/admin/seo-redirects"] }),
+  });
+
+  return (
+    <Card className="mt-4">
+      <CardHeader className="pb-2"><CardTitle className="text-sm">SEO Redirect (301)</CardTitle></CardHeader>
+      <CardContent className="space-y-2 p-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <Input value={fromPath} onChange={(e) => setFromPath(e.target.value)} placeholder="/eski-yol" className="h-8 text-sm font-mono" />
+          <Input value={toPath} onChange={(e) => setToPath(e.target.value)} placeholder="/yeni-yol" className="h-8 text-sm font-mono" />
+        </div>
+        <Button size="sm" onClick={() => createMut.mutate()} disabled={!fromPath || !toPath}>Ekle</Button>
+        <div className="space-y-1 max-h-52 overflow-y-auto">
+          {data.map((row) => (
+            <div key={row.id} className="text-xs flex flex-wrap items-center justify-between gap-2 border rounded p-1.5">
+              <span className={`font-mono truncate ${row.isActive === false ? "opacity-50 line-through" : ""}`}>
+                {row.fromPath} → {row.toPath}
+              </span>
+              <div className="flex items-center gap-1">
+                <Button size="sm" variant="outline" className="h-6 text-[10px]" onClick={() => {
+                  const next = prompt("Yeni hedef yol:", row.toPath || "");
+                  if (next != null && next.trim()) patchMut.mutate({ id: row.id, body: { toPath: next.trim() } });
+                }}>Düzenle</Button>
+                <Button size="sm" variant="outline" className="h-6 text-[10px]" onClick={() =>
+                  patchMut.mutate({ id: row.id, body: { isActive: row.isActive === false } })
+                }>
+                  {row.isActive === false ? "Aktifleştir" : "Pasif"}
+                </Button>
+                <Button size="sm" variant="ghost" className="h-6 text-[10px]" onClick={() => delMut.mutate(row.id)}>Sil</Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function AuditLogsSection() {
+  const { data = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/admin/audit-logs"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/audit-logs?limit=80", { credentials: "include" });
+      if (!res.ok) throw new Error("audit");
+      return res.json();
+    },
+  });
+  return (
+    <div className="space-y-3" data-testid="section-audit">
+      <h2 className="text-sm font-bold" style={{ color: YP_P }}>Audit log</h2>
+      <p className="text-xs text-muted-foreground">Kritik admin işlemleri (giriş, şifre, sipariş durumu, impersonate, fiyat…)</p>
+      {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+        <div className="space-y-1.5 max-h-[70vh] overflow-y-auto">
+          {data.map((row) => (
+            <div key={row.id} className="text-xs border rounded-lg p-2 bg-white" style={{ borderColor: YP_BORDER }}>
+              <div className="flex justify-between gap-2">
+                <span className="font-semibold">{row.action}</span>
+                <span className="text-muted-foreground">{row.createdAt ? new Date(row.createdAt).toLocaleString("tr-TR") : ""}</span>
+              </div>
+              <p className="text-muted-foreground mt-0.5">
+                {row.actorUsername || "—"} · {row.entityType || ""} {row.entityId || ""} · {row.ip || ""}
+              </p>
+            </div>
+          ))}
+          {data.length === 0 && <p className="text-xs text-muted-foreground text-center py-6">Henüz log yok</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminPage() {
   useEffect(() => {
     document.title = "YourPoodle Admin";
   }, []);
 
-  const { data: user, isLoading, refetch } = useQuery<{ username: string } | null>({
+  const { data: user, isLoading, refetch } = useQuery<{
+    username: string;
+    mustChangePassword?: boolean;
+    role?: string;
+    permissions?: string[];
+  } | null>({
     queryKey: ["/api/admin/me"],
     queryFn: async () => {
       try {
@@ -13013,9 +14658,15 @@ export default function AdminPage() {
     return <LoginForm onLogin={() => refetch()} />;
   }
 
+  if (user.mustChangePassword) {
+    return <ForcePasswordChange onDone={() => refetch()} />;
+  }
+
   return (
     <AdminStoreProvider>
       <AdminDashboard
+        permissions={user.permissions || []}
+        role={user.role}
         onLogout={() => {
           queryClient.setQueryData(["/api/admin/me"], null);
         }}

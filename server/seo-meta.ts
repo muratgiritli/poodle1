@@ -478,7 +478,7 @@ const YP_ROUTE_META: Record<string, YPMeta> = {
   },
   "/yourpoodle/mama-bul": {
     title: "Poodle İçin Doğru Mamayı Bul — Kişisel Öneri | YourPoodle",
-    description: "11 soruluk sihirbazla Poodle'ınıza özel mama önerisi alın. Yaş, kilo, alerji ve bütçenize göre size en uygun 3 mama markasını keşfedin.",
+    description: "4 adımlık sihirbazla Poodle'ınıza özel mama önerisi alın. Yaş, kilo, alerji ve bütçenize göre size en uygun 3 mama markasını keşfedin.",
     keywords: "poodle mama önerisi, hangi mama, poodle mama seç, mama hesaplama, poodle beslenme",
     schemaType: "tool",
     breadcrumb: [{ name: "Ana Sayfa", href: "/" }, { name: "Mama Bul", href: "/yourpoodle/mama-bul" }],

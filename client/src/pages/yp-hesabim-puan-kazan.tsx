@@ -1,6 +1,7 @@
 // Route: /hesabim/poodle-puanlari/kazan
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { useCustomer } from "@/contexts/CustomerContext";
 import {
   ArrowLeft, PawPrint, Flame, Check, Copy, Gift, Medal,
@@ -10,11 +11,15 @@ import {
   Ticket,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import { goBack } from "@/lib/goBack";
+import {
+  LOYALTY_BRAND as P,
+  LOYALTY_BRAND_DARK as PD,
+  LOYALTY_BRAND_LIGHT as PL,
+  fetchLoyalty,
+} from "@/lib/loyalty-api";
 
 /* ── Palette ─────────────────────────── */
-const P    = "#5D3EBD";
-const PD   = "#4A22A0";
-const PL   = "#F5F0E6";
 const DRK  = "#111827";
 const GT   = "#6B7280";
 const GB   = "#E5E7EB";
@@ -137,26 +142,29 @@ export default function YPPuanKazanPage() {
     return `YP${n}`;
   }, [customer?.id]);
 
+  const { data: loyalty } = useQuery({ queryKey: ["/api/customer/loyalty"], queryFn: fetchLoyalty });
+
   const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
-  const [todayClaimed, setTodayClaimed] = useState(false);
-  const [balance, setBalance]           = useState(775);
   const [expandedFaq, setExpandedFaq]   = useState<string|null>(null);
   const [codeCopied, setCodeCopied]     = useState(false);
   const [toast, setToast]               = useState<string|null>(null);
 
+  const balance = loyalty?.balance ?? 0;
+
   const showToast = (msg:string) => { setToast(msg); setTimeout(()=>setToast(null), 3000); };
 
   function claimStreak() {
-    if (todayClaimed) return;
-    setTodayClaimed(true);
-    setBalance(b => b + 15);
-    showToast("15 PoodlePuan kazandınız ✓");
+    showToast("Günlük puanlar sipariş ve görevlerle otomatik yüklenir");
   }
 
   function taskAction(task: EarnTask) {
+    if (task.status === "claimed" || task.buttonDisabled) return;
     if (task.link) { navigate(task.link); return; }
-    if (task.icon === "invite") showToast("Davet linki kopyalandı ✓");
-    else showToast("Göreve yönlendiriliyorsunuz...");
+    if (task.icon === "invite") {
+      copyReferralCode();
+      return;
+    }
+    showToast("Puanlar sipariş tamamlandığında otomatik yüklenir");
   }
 
   function copyReferralCode() {
@@ -211,7 +219,7 @@ export default function YPPuanKazanPage() {
 
         {/* ── BREADCRUMB ── */}
         <div style={{ padding:"12px 16px 0" }}>
-          <button onClick={()=>navigate("/hesabim/poodle-puanlari")}
+          <button onClick={()=>goBack(navigate, "/hesabim/poodle-puanlari")}
             style={{ background:"none", border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:6, padding:0 }}>
             <ArrowLeft size={15} color={P}/>
             <span style={{ fontSize:11, color:P, fontWeight:500 }}>Hesabım / PoodlePuanlarım / Puan Kazan</span>
@@ -330,12 +338,11 @@ export default function YPPuanKazanPage() {
             </div>
 
             {/* Claim button */}
-            <button onClick={claimStreak} disabled={todayClaimed}
-              style={{ width:"100%", background: todayClaimed ? "#D1D5DB" : P, color:"#fff",
+            <button onClick={claimStreak}
+              style={{ width:"100%", background:P, color:"#fff",
                        border:"none", borderRadius:12, padding:"11px 0", fontSize:12,
-                       fontWeight:700, cursor: todayClaimed ? "default" : "pointer",
-                       fontFamily:"inherit" }}>
-              {todayClaimed ? "✓ Bugünkü Puan Alındı" : "Bugünkü Puanı Al"}
+                       fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
+              Nasıl Puan Kazanırım?
             </button>
           </div>
         )}

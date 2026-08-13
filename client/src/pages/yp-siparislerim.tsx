@@ -17,7 +17,10 @@ const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }>
   hazirlaniyor: { label: "Hazırlanıyor",   color: "#1E40AF", bg: "#DBEAFE" },
   kargoda:      { label: "Kargoda",        color: "#3D2612", bg: "#EDE5D8" },
   teslim:       { label: "Teslim Edildi",  color: "#065F46", bg: "#D1FAE5" },
-  iptal:        { label: "İptal",          color: "#991B1B", bg: "#FEE2E2" },
+  iade_talebi:  { label: "İade Talebi",   color: "#92400E", bg: "#FEF3C7" },
+  iade_edildi:  { label: "İade Edildi",   color: "#57534E", bg: "#F5F5F4" },
+  tamamlandi:   { label: "Tamamlandı",    color: "#065F46", bg: "#D1FAE5" },
+  teslim_edildi:{ label: "Teslim Edildi", color: "#065F46", bg: "#D1FAE5" },
 };
 
 const PAYMENT_STATUS: Record<string, { label: string; color: string }> = {
@@ -25,6 +28,7 @@ const PAYMENT_STATUS: Record<string, { label: string; color: string }> = {
   pending:    { label: "Ödeme Bekleniyor", color: "#92400E" },
   awaiting:   { label: "Ödeme Bekleniyor", color: "#92400E" },
   failed:     { label: "Ödeme Başarısız",  color: "#991B1B" },
+  refunded:   { label: "İade Edildi",      color: "#57534E" },
 };
 
 const PAYMENT_METHOD_LABEL: Record<string, string> = {
@@ -45,6 +49,7 @@ function formatCurrency(v: number | string) {
 }
 
 const CANCELLABLE_STATUSES = ["beklemede", "hazirlaniyor"];
+const REFUNDABLE_STATUSES = ["kargoda", "tamamlandi", "teslim_edildi", "teslim"];
 
 export default function YPSiparislerimPage() {
   const [, navigate] = useLocation();
@@ -52,6 +57,8 @@ export default function YPSiparislerimPage() {
   const queryClient = useQueryClient();
   const [confirmingId, setConfirmingId] = useState<number | null>(null);
   const [cancelReasonText, setCancelReasonText] = useState("");
+  const [refundingId, setRefundingId] = useState<number | null>(null);
+  const [refundReason, setRefundReason] = useState("");
 
   // Redirect to login if not logged in
   useEffect(() => {
@@ -69,6 +76,7 @@ export default function YPSiparislerimPage() {
       const res = await fetch(`/api/customer/orders/${orderId}/cancel`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ cancelReasonText: reason }),
       });
       if (!res.ok) {
@@ -80,7 +88,6 @@ export default function YPSiparislerimPage() {
     onSuccess: (_data, { orderId }) => {
       setConfirmingId(null);
       setCancelReasonText("");
-      // Optimistically update the cached order list so status flips instantly
       queryClient.setQueryData<any[]>(["/api/customer/orders"], (prev) =>
         (prev || []).map((o) => (o.id === orderId ? { ...o, status: "iptal" } : o))
       );
@@ -92,10 +99,35 @@ export default function YPSiparislerimPage() {
     },
   });
 
-  // Filter to YP / jetgo orders only, exclude pending payment (not yet paid online)
+  const refundMutation = useMutation({
+    mutationFn: async ({ orderId, reason }: { orderId: number; reason: string }) => {
+      const res = await fetch(`/api/customer/orders/${orderId}/refund-request`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ reason }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || "İade talebi oluşturulamadı");
+      }
+      return res.json();
+    },
+    onSuccess: (_data, { orderId }) => {
+      setRefundingId(null);
+      setRefundReason("");
+      queryClient.setQueryData<any[]>(["/api/customer/orders"], (prev) =>
+        (prev || []).map((o) => (o.id === orderId ? { ...o, status: "iade_talebi" } : o))
+      );
+      alert("İade talebiniz alındı");
+    },
+    onError: (err: Error) => alert(err.message),
+  });
+
+  // YP / jetgo siparişleri (pending online ödemeler hariç)
   const orders = (allOrders || []).filter(
     (o: any) =>
-      o.sourceSite === "jetgo" &&
+      (o.sourceSite === "yp" || o.sourceSite === "jetgo" || !o.sourceSite) &&
       o.paymentStatus !== "pending" &&
       o.paymentStatus !== "awaiting"
   );
@@ -143,8 +175,10 @@ export default function YPSiparislerimPage() {
                 const items: any[] = Array.isArray(order.items) ? order.items : [];
                 const hasTracking = order.trackingNumber || order.trackingUrl;
                 const isCancellable = CANCELLABLE_STATUSES.includes(order.status);
+                const isRefundable = REFUNDABLE_STATUSES.includes(order.status);
                 const isConfirming = confirmingId === order.id;
                 const isCancelling = cancelMutation.isPending && cancelMutation.variables?.orderId === order.id;
+                const isRefundOpen = refundingId === order.id;
 
                 return (
                   <div key={order.id} style={{ background: "#fff", borderRadius: 20, boxShadow: "0 2px 16px rgba(0,0,0,0.07)", overflow: "hidden" }}>
@@ -327,6 +361,48 @@ export default function YPSiparislerimPage() {
                           >
                             <X size={13} />
                             İptal Et
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {isRefundable && (
+                      <div style={{ padding: "0 16px 14px" }}>
+                        {isRefundOpen ? (
+                          <div style={{ background: "#FFFBEB", borderRadius: 12, padding: "12px 14px", border: "1px solid #FDE68A" }}>
+                            <p style={{ fontSize: 13, fontWeight: 700, color: "#92400E", margin: "0 0 8px" }}>İade nedeninizi yazın</p>
+                            <textarea
+                              value={refundReason}
+                              onChange={(e) => setRefundReason(e.target.value.slice(0, 500))}
+                              rows={3}
+                              style={{ width: "100%", borderRadius: 8, border: "1px solid #E5E7EB", padding: 8, fontSize: 13, fontFamily: "inherit", resize: "vertical" }}
+                              placeholder="Ürün hasarlı, yanlış ürün…"
+                            />
+                            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                              <button
+                                type="button"
+                                onClick={() => { setRefundingId(null); setRefundReason(""); }}
+                                style={{ flex: 1, height: 40, borderRadius: 10, background: "#F3F4F6", border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+                              >
+                                Vazgeç
+                              </button>
+                              <button
+                                type="button"
+                                disabled={!refundReason.trim() || refundMutation.isPending}
+                                onClick={() => refundMutation.mutate({ orderId: order.id, reason: refundReason.trim() })}
+                                style={{ flex: 1, height: 40, borderRadius: 10, background: "#5D3A1A", border: "none", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", opacity: !refundReason.trim() ? 0.6 : 1 }}
+                              >
+                                {refundMutation.isPending ? "Gönderiliyor…" : "Talebi Gönder"}
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setRefundingId(order.id)}
+                            style={{ width: "100%", background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 12, padding: "10px 14px", fontSize: 12, fontWeight: 700, color: "#92400E", cursor: "pointer", fontFamily: "inherit" }}
+                          >
+                            İade Talebi Oluştur
                           </button>
                         )}
                       </div>

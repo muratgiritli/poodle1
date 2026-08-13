@@ -5,13 +5,37 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import type { Pool } from "pg";
 import multer from "multer";
+import { toWebpBuffer, toWebpDataUrl } from "./image-service";
+import { sessionHasPermission } from "./admin-security";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } });
 
+function requireClubMod(req: Request, res: Response, next: NextFunction) {
+  if (!sessionHasPermission(req, "club.moderate")) {
+    return res.status(403).json({ message: "Bu işlem için yetkiniz yok", permission: "club.moderate" });
+  }
+  next();
+}
+
+function requireProductsWrite(req: Request, res: Response, next: NextFunction) {
+  // Dog admin: store_manager / content_editor style — products.write OR club.moderate
+  if (!sessionHasPermission(req, "products.write") && !sessionHasPermission(req, "club.moderate")) {
+    return res.status(403).json({ message: "Bu işlem için yetkiniz yok" });
+  }
+  next();
+}
 /* ─── Auth middleware ────────────────────────────────── */
 function requireCustomer(req: Request, res: Response, next: NextFunction) {
   const s = (req as any).session;
   if (!s?.customerId) return res.status(401).json({ message: "Giriş yapılmamış" });
+  next();
+}
+
+function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  const s = (req as any).session;
+  if (!s?.userId || s?.isAdmin !== true) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
   next();
 }
 
@@ -83,6 +107,23 @@ async function migrate(pool: Pool) {
   await pool.query(`ALTER TABLE club_posts ADD COLUMN IF NOT EXISTS image_urls JSONB NOT NULL DEFAULT '[]';`);
   await pool.query(`ALTER TABLE club_posts ADD COLUMN IF NOT EXISTS hashtags JSONB NOT NULL DEFAULT '[]';`);
   await pool.query(`ALTER TABLE club_posts ADD COLUMN IF NOT EXISTS visibility TEXT NOT NULL DEFAULT 'public';`);
+  await pool.query(`ALTER TABLE club_posts ADD COLUMN IF NOT EXISTS moderated_at TIMESTAMPTZ;`);
+  await pool.query(`ALTER TABLE club_posts ADD COLUMN IF NOT EXISTS moderated_by TEXT;`);
+  await pool.query(`ALTER TABLE club_post_comments ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN NOT NULL DEFAULT false;`);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS club_reports (
+      id SERIAL PRIMARY KEY,
+      post_id INTEGER REFERENCES club_posts(id) ON DELETE CASCADE,
+      comment_id INTEGER REFERENCES club_post_comments(id) ON DELETE CASCADE,
+      reporter_user_id INTEGER REFERENCES customers(id) ON DELETE SET NULL,
+      reason TEXT,
+      status TEXT NOT NULL DEFAULT 'open',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      resolved_at TIMESTAMPTZ,
+      resolved_by TEXT
+    );
+  `);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS club_post_likes (
@@ -101,6 +142,16 @@ async function migrate(pool: Pool) {
       user_id    INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
       content    TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS club_post_saves (
+      id         SERIAL PRIMARY KEY,
+      post_id    INTEGER NOT NULL REFERENCES club_posts(id) ON DELETE CASCADE,
+      user_id    INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(post_id, user_id)
     );
   `);
 
@@ -163,7 +214,90 @@ async function migrate(pool: Pool) {
     );
   `);
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS club_dm_threads (
+      id              SERIAL PRIMARY KEY,
+      user_a_id       INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+      user_b_id       INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+      dog_a_slug      TEXT,
+      dog_b_slug      TEXT,
+      last_message    TEXT,
+      last_message_at TIMESTAMPTZ,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(user_a_id, user_b_id)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS club_dm_messages (
+      id          SERIAL PRIMARY KEY,
+      thread_id   INTEGER NOT NULL REFERENCES club_dm_threads(id) ON DELETE CASCADE,
+      sender_id   INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+      body        TEXT NOT NULL,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
   console.log("[dogs] DB migration complete");
+}
+
+/** Demo Club content when DB has no posts (local / empty installs). */
+async function seedClubDemo(pool: Pool) {
+  const cnt = await pool.query(`SELECT COUNT(*)::int AS c FROM club_posts`);
+  if ((cnt.rows[0]?.c ?? 0) > 0) return;
+  const owners = await pool.query(`SELECT id FROM customers ORDER BY id ASC LIMIT 1`);
+  if (!owners.rows.length) return;
+  const userId = owners.rows[0].id as number;
+
+  const demos = [
+    {
+      slug: "luna-club", name: "Luna", breed: "toy", city: "İstanbul",
+      avatar: "/images/poodle-avatar-1.jpg",
+      content: "Sabah yürüyüşü tamam ☀️ #poodle #istanbul",
+      image: "/images/poodle-hero.jpg", likes: 12, hoursAgo: 2,
+    },
+    {
+      slug: "max-club", name: "Max", breed: "miniature", city: "Ankara",
+      avatar: "/images/poodle-avatar-2.jpg",
+      content: "Yeni topumla ilk oyun! 🎾 #oyun #poodle",
+      image: "/images/poodle-hero_2.jpg", likes: 8, hoursAgo: 8,
+    },
+    {
+      slug: "bella-club", name: "Bella", breed: "toy", city: "İzmir",
+      avatar: "/images/poodle-avatar-3.jpg",
+      content: "Kuaförden çıktık, pırıl pırıl ✨ #bakim #toypoodle",
+      image: "/images/yp-poodle-hero.png", likes: 21, hoursAgo: 20,
+    },
+    {
+      slug: "coco-club", name: "Coco", breed: "moyen", city: "İstanbul",
+      avatar: "/images/poodle-avatar-4.jpg",
+      content: "Parkta yeni dostlar 🐾 #yakınımda #club",
+      image: "/images/poodle-hero.png", likes: 5, hoursAgo: 30,
+    },
+  ];
+
+  for (const d of demos) {
+    let dogId: number;
+    const existing = await pool.query(`SELECT id FROM dogs WHERE slug=$1`, [d.slug]);
+    if (existing.rows.length) {
+      dogId = existing.rows[0].id;
+    } else {
+      const ins = await pool.query(`
+        INSERT INTO dogs (user_id, slug, name, breed, city, bio, avatar_url, is_public, is_private, post_count)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,true,false,1)
+        RETURNING id
+      `, [userId, d.slug, d.name, d.breed, d.city, `${d.name} Club demosu`, d.avatar]);
+      dogId = ins.rows[0].id;
+    }
+    const tags = JSON.stringify(
+      [...(d.content.match(/#[\p{L}\p{N}_]+/gu) ?? [])].map(h => h.slice(1).toLowerCase()),
+    );
+    await pool.query(`
+      INSERT INTO club_posts (dog_id, user_id, content, image_urls, hashtags, visibility, like_count, created_at)
+      VALUES ($1,$2,$3,$4::jsonb,$5::jsonb,'public',$6, NOW() - ($7::int * INTERVAL '1 hour'))
+    `, [dogId, userId, d.content, JSON.stringify([d.image]), tags, d.likes, d.hoursAgo]);
+  }
+  console.log("[dogs] Club demo seed complete");
 }
 
 /* ─── Helpers ────────────────────────────────────────── */
@@ -207,6 +341,7 @@ async function createNotification(pool: Pool, opts: {
 export async function registerDogRoutes(app: Express, pool: Pool) {
   try {
     await migrate(pool);
+    await seedClubDemo(pool);
   } catch (e: any) {
     console.warn("[local] Skipping dogs migrate (DB unavailable):", e?.code || e?.message);
   }
@@ -309,14 +444,19 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
     if (!dog.rows.length) return res.status(404).json({ message: "Bulunamadı" });
     if (dog.rows[0].user_id !== userId) return res.status(403).json({ message: "Yetkisiz" });
     if (!req.file) return res.status(400).json({ message: "Dosya bulunamadı" });
-    const b64 = req.file.buffer.toString("base64");
-    const mime = req.file.mimetype;
-    // Delete old
-    await pool.query(`DELETE FROM dog_images WHERE dog_id=$1`, [dog.rows[0].id]);
-    await pool.query(`INSERT INTO dog_images (dog_id, data, mimetype) VALUES ($1,$2,$3)`, [dog.rows[0].id, b64, mime]);
-    const avatarUrl = `/api/dogs/${dog.rows[0].slug}/avatar-img`;
-    await pool.query(`UPDATE dogs SET avatar_url=$1, updated_at=NOW() WHERE id=$2`, [avatarUrl, dog.rows[0].id]);
-    res.json({ avatarUrl });
+    if (!req.file.mimetype?.startsWith("image/")) return res.status(400).json({ message: "Sadece resim yüklenebilir" });
+    try {
+      const webp = await toWebpBuffer(req.file.buffer, { width: 400, height: 400, fit: "cover", quality: 82 });
+      const b64 = webp.toString("base64");
+      await pool.query(`DELETE FROM dog_images WHERE dog_id=$1`, [dog.rows[0].id]);
+      await pool.query(`INSERT INTO dog_images (dog_id, data, mimetype) VALUES ($1,$2,$3)`, [dog.rows[0].id, b64, "image/webp"]);
+      const avatarUrl = `/api/dogs/${dog.rows[0].slug}/avatar-img`;
+      await pool.query(`UPDATE dogs SET avatar_url=$1, updated_at=NOW() WHERE id=$2`, [avatarUrl, dog.rows[0].id]);
+      res.json({ avatarUrl });
+    } catch (err: any) {
+      console.log(`[dogs] avatar webp error: ${err?.message || err}`);
+      res.status(500).json({ message: "Avatar yüklenemedi" });
+    }
   });
 
   // ── Serve dog avatar image ──────────────────────────
@@ -345,6 +485,11 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
     `, [userId, dog.rows[0].id, status]);
     if (status === "active") {
       await pool.query(`UPDATE dogs SET follower_count=follower_count+1 WHERE id=$1`, [dog.rows[0].id]);
+      // Takip eden kullanıcının köpeklerinde following_count artır
+      await pool.query(
+        `UPDATE dogs SET following_count=following_count+1 WHERE user_id=$1`,
+        [userId],
+      );
       await createNotification(pool, {
         userId: dog.rows[0].user_id, type: "new_follower", actorUserId: userId,
         dogId: dog.rows[0].id, message: `Birisi ${dog.rows[0].name} profilinizi takip etmeye başladı.`,
@@ -366,6 +511,10 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
     const f = await pool.query(`SELECT status FROM dog_follows WHERE follower_user_id=$1 AND dog_id=$2`, [userId, dog.rows[0].id]);
     if (f.rows.length && f.rows[0].status === "active") {
       await pool.query(`UPDATE dogs SET follower_count=GREATEST(0,follower_count-1) WHERE id=$1`, [dog.rows[0].id]);
+      await pool.query(
+        `UPDATE dogs SET following_count=GREATEST(0,following_count-1) WHERE user_id=$1`,
+        [userId],
+      );
     }
     await pool.query(`DELETE FROM dog_follows WHERE follower_user_id=$1 AND dog_id=$2`, [userId, dog.rows[0].id]);
     res.json({ ok: true });
@@ -380,6 +529,13 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
     if (dog.rows[0].user_id !== userId) return res.status(403).json({ message: "Yetkisiz" });
     await pool.query(`UPDATE dog_follows SET status='active' WHERE follower_user_id=$1 AND dog_id=$2`, [followerId, dog.rows[0].id]);
     await pool.query(`UPDATE dogs SET follower_count=follower_count+1 WHERE id=$1`, [dog.rows[0].id]);
+    const fid = parseInt(followerId, 10);
+    if (!Number.isNaN(fid)) {
+      await pool.query(
+        `UPDATE dogs SET following_count=following_count+1 WHERE user_id=$1`,
+        [fid],
+      );
+    }
     await createNotification(pool, {
       userId: parseInt(followerId), type: "follow_accept", actorUserId: userId,
       dogId: dog.rows[0].id, message: `${dog.rows[0].name} takip isteğiniz kabul edildi.`,
@@ -420,9 +576,11 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
     const offset = parseInt((req.query.offset as string) || "0");
     const r = await pool.query(`
       SELECT cp.*,
-             d.name AS dog_name, d.slug AS dog_slug, d.avatar_url,
+             d.name AS dog_name, d.slug AS dog_slug, d.avatar_url, d.city AS dog_city,
              c.name AS owner_name,
-             EXISTS(SELECT 1 FROM club_post_likes l WHERE l.post_id=cp.id AND l.user_id=$1) AS liked
+             EXISTS(SELECT 1 FROM club_post_likes l WHERE l.post_id=cp.id AND l.user_id=$1) AS liked,
+             EXISTS(SELECT 1 FROM club_post_saves s WHERE s.post_id=cp.id AND s.user_id=$1) AS saved,
+             TRUE AS following
       FROM club_posts cp
       JOIN dog_follows df ON df.dog_id=cp.dog_id AND df.follower_user_id=$1 AND df.status='active'
       LEFT JOIN dogs d ON d.id=cp.dog_id
@@ -431,40 +589,143 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
       ORDER BY cp.created_at DESC
       LIMIT $2 OFFSET $3
     `, [userId, limit, offset]);
-    res.json(r.rows.map(p => ({ ...p, timeAgo: timeAgo(new Date(p.created_at)) })));
+    res.json(r.rows.map(p => ({
+      ...p,
+      image_urls: typeof p.image_urls === "string" ? JSON.parse(p.image_urls) : (p.image_urls || []),
+      hashtags: typeof p.hashtags === "string" ? JSON.parse(p.hashtags) : (p.hashtags || []),
+      timeAgo: timeAgo(new Date(p.created_at)),
+    })));
   });
 
   // ── Public explore feed (no auth needed) ───────────
   app.get("/api/club/public-feed", async (req, res) => {
     const limit = parseInt((req.query.limit as string) || "20");
     const offset = parseInt((req.query.offset as string) || "0");
+    const city = ((req.query.city as string) || "").trim();
+    const userId = (req as any).session?.customerId as number | undefined;
+
+    const params: any[] = [];
+    let where = `WHERE cp.visibility='public'`;
+    if (city) {
+      params.push(`%${city}%`);
+      where += ` AND d.city ILIKE $${params.length}`;
+    }
+    params.push(limit, offset);
+    const limitIdx = params.length - 1;
+    const offsetIdx = params.length;
+
     const r = await pool.query(`
       SELECT cp.*,
-             d.name AS dog_name, d.slug AS dog_slug, d.avatar_url,
+             d.name AS dog_name, d.slug AS dog_slug, d.avatar_url, d.city AS dog_city,
              c.name AS owner_name
       FROM club_posts cp
       LEFT JOIN dogs d ON d.id=cp.dog_id
       LEFT JOIN customers c ON c.id=cp.user_id
-      WHERE cp.visibility='public'
+      ${where}
       ORDER BY cp.created_at DESC
-      LIMIT $1 OFFSET $2
-    `, [limit, offset]);
-    const userId = (req as any).session?.customerId;
-    const rows = r.rows.map(p => ({ ...p, liked: false, timeAgo: timeAgo(new Date(p.created_at)) }));
-    if (userId) {
+      LIMIT $${limitIdx} OFFSET $${offsetIdx}
+    `, params);
+
+    const rows = r.rows.map(p => ({
+      ...p,
+      image_urls: typeof p.image_urls === "string" ? JSON.parse(p.image_urls) : (p.image_urls || []),
+      hashtags: typeof p.hashtags === "string" ? JSON.parse(p.hashtags) : (p.hashtags || []),
+      liked: false,
+      saved: false,
+      following: false,
+      timeAgo: timeAgo(new Date(p.created_at)),
+    }));
+
+    if (userId && rows.length) {
+      const ids = rows.map(r => r.id);
+      const [likes, saves, follows] = await Promise.all([
+        pool.query(`SELECT post_id FROM club_post_likes WHERE user_id=$1 AND post_id = ANY($2::int[])`, [userId, ids]),
+        pool.query(`SELECT post_id FROM club_post_saves WHERE user_id=$1 AND post_id = ANY($2::int[])`, [userId, ids]),
+        pool.query(`
+          SELECT dog_id FROM dog_follows
+          WHERE follower_user_id=$1 AND status='active'
+            AND dog_id = ANY($2::int[])
+        `, [userId, rows.map(r => r.dog_id).filter(Boolean)]),
+      ]);
+      const likedSet = new Set(likes.rows.map(x => x.post_id));
+      const savedSet = new Set(saves.rows.map(x => x.post_id));
+      const followSet = new Set(follows.rows.map(x => x.dog_id));
       for (const row of rows) {
-        const l = await pool.query(`SELECT 1 FROM club_post_likes WHERE post_id=$1 AND user_id=$2`, [row.id, userId]);
-        row.liked = l.rows.length > 0;
+        row.liked = likedSet.has(row.id);
+        row.saved = savedSet.has(row.id);
+        row.following = row.dog_id ? followSet.has(row.dog_id) : false;
       }
     }
     res.json(rows);
   });
 
+  // ── Single post ─────────────────────────────────────
+  app.get("/api/club/posts/:id", async (req, res) => {
+    const id = parseInt(String(req.params.id));
+    if (!id) return res.status(400).json({ message: "Geçersiz id" });
+    const userId = (req as any).session?.customerId as number | undefined;
+    const r = await pool.query(`
+      SELECT cp.*,
+             d.name AS dog_name, d.slug AS dog_slug, d.avatar_url, d.city AS dog_city,
+             c.name AS owner_name
+      FROM club_posts cp
+      LEFT JOIN dogs d ON d.id=cp.dog_id
+      LEFT JOIN customers c ON c.id=cp.user_id
+      WHERE cp.id=$1
+    `, [id]);
+    if (!r.rows.length) return res.status(404).json({ message: "Bulunamadı" });
+    const p = r.rows[0];
+    if (p.visibility !== "public" && p.user_id !== userId) {
+      return res.status(404).json({ message: "Bulunamadı" });
+    }
+    if (p.visibility === "hidden" && p.user_id !== userId) {
+      return res.status(404).json({ message: "Bulunamadı" });
+    }
+    let liked = false, saved = false, following = false;
+    if (userId) {
+      const [l, s, f] = await Promise.all([
+        pool.query(`SELECT 1 FROM club_post_likes WHERE post_id=$1 AND user_id=$2`, [id, userId]),
+        pool.query(`SELECT 1 FROM club_post_saves WHERE post_id=$1 AND user_id=$2`, [id, userId]),
+        p.dog_id
+          ? pool.query(`SELECT 1 FROM dog_follows WHERE dog_id=$1 AND follower_user_id=$2 AND status='active'`, [p.dog_id, userId])
+          : Promise.resolve({ rows: [] as any[] }),
+      ]);
+      liked = l.rows.length > 0;
+      saved = s.rows.length > 0;
+      following = f.rows.length > 0;
+    }
+    res.json({
+      ...p,
+      image_urls: typeof p.image_urls === "string" ? JSON.parse(p.image_urls) : (p.image_urls || []),
+      hashtags: typeof p.hashtags === "string" ? JSON.parse(p.hashtags) : (p.hashtags || []),
+      liked, saved, following,
+      timeAgo: timeAgo(new Date(p.created_at)),
+    });
+  });
+
+  // ── Save/unsave ─────────────────────────────────────
+  app.post("/api/club/posts/:id/save", requireCustomer, async (req, res) => {
+    const userId = (req as any).session.customerId as number;
+    const id = parseInt(String(req.params.id));
+    const p = await pool.query(`SELECT id FROM club_posts WHERE id=$1`, [id]);
+    if (!p.rows.length) return res.status(404).json({ message: "Bulunamadı" });
+    const existing = await pool.query(`SELECT id FROM club_post_saves WHERE post_id=$1 AND user_id=$2`, [id, userId]);
+    if (existing.rows.length) {
+      await pool.query(`DELETE FROM club_post_saves WHERE post_id=$1 AND user_id=$2`, [id, userId]);
+      return res.json({ saved: false });
+    }
+    await pool.query(`INSERT INTO club_post_saves (post_id, user_id) VALUES ($1,$2)`, [id, userId]);
+    res.json({ saved: true });
+  });
+
   // ── Create post ─────────────────────────────────────
   app.post("/api/club/posts", requireCustomer, async (req, res) => {
     const userId = (req as any).session.customerId as number;
-    const { dogSlug, content, imageBase64, visibility = "public" } = req.body;
-    if (!content?.trim() && !imageBase64) return res.status(400).json({ message: "İçerik veya fotoğraf zorunlu" });
+    const { dogSlug, content, imageBase64, imagesBase64, visibility = "public" } = req.body;
+    const rawImages: string[] = Array.isArray(imagesBase64)
+      ? imagesBase64.filter((x: any) => typeof x === "string" && x.length > 0).slice(0, 6)
+      : (imageBase64 ? [imageBase64] : []);
+    if (!content?.trim() && rawImages.length === 0) return res.status(400).json({ message: "İçerik veya fotoğraf zorunlu" });
     let dogId: number | null = null;
     let dogOwnerId: number | null = null;
     if (dogSlug) {
@@ -473,13 +734,70 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
     }
     if (dogId && dogOwnerId !== userId) return res.status(403).json({ message: "Bu köpek size ait değil" });
     const hashtags = content ? extractHashtags(content) : [];
-    const imageUrls = imageBase64 ? [imageBase64] : [];
+    const imageUrls: string[] = [];
+    for (const img of rawImages) {
+      if (String(img).length > 12 * 1024 * 1024) {
+        return res.status(400).json({ message: "Fotoğraf çok büyük" });
+      }
+      try {
+        imageUrls.push(await toWebpDataUrl(img, { width: 1080, height: 1080, fit: "cover", quality: 82 }));
+      } catch (err: any) {
+        console.log(`[club] post image webp error: ${err?.message || err}`);
+        return res.status(400).json({ message: "Fotoğraf işlenemedi" });
+      }
+    }
     const r = await pool.query(`
       INSERT INTO club_posts (dog_id, user_id, content, image_urls, hashtags, visibility)
       VALUES ($1,$2,$3,$4,$5,$6) RETURNING *
     `, [dogId, userId, content?.trim() || null, JSON.stringify(imageUrls), JSON.stringify(hashtags), visibility]);
     if (dogId) await pool.query(`UPDATE dogs SET post_count=post_count+1 WHERE id=$1`, [dogId]);
     res.status(201).json(r.rows[0]);
+  });
+
+  // ── Admin: migrate legacy club/dog images to WebP ───
+  app.post("/api/admin/club/migrate-webp", requireAdmin, requireClubMod, async (_req, res) => {
+    try {
+      let postsUpdated = 0;
+      let photosUpdated = 0;
+      let imagesConverted = 0;
+      const posts = await pool.query(`SELECT id, image_urls FROM club_posts WHERE jsonb_array_length(image_urls) > 0 ORDER BY id ASC LIMIT 500`);
+      for (const row of posts.rows) {
+        const urls: string[] = typeof row.image_urls === "string" ? JSON.parse(row.image_urls) : (row.image_urls || []);
+        let changed = false;
+        const next: string[] = [];
+        for (const u of urls) {
+          if (typeof u !== "string" || !u.startsWith("data:") || u.startsWith("data:image/webp")) {
+            next.push(u);
+            continue;
+          }
+          try {
+            next.push(await toWebpDataUrl(u, { width: 1080, height: 1080, fit: "cover", quality: 82 }));
+            changed = true;
+            imagesConverted++;
+          } catch {
+            next.push(u);
+          }
+        }
+        if (changed) {
+          await pool.query(`UPDATE club_posts SET image_urls=$1 WHERE id=$2`, [JSON.stringify(next), row.id]);
+          postsUpdated++;
+        }
+      }
+      const photos = await pool.query(
+        `SELECT id, url FROM dog_photos WHERE url LIKE 'data:image/%' AND url NOT LIKE 'data:image/webp%' ORDER BY id ASC LIMIT 500`
+      );
+      for (const row of photos.rows) {
+        try {
+          const webp = await toWebpDataUrl(row.url, { maxEdge: 1440, quality: 82 });
+          await pool.query(`UPDATE dog_photos SET url=$1 WHERE id=$2`, [webp, row.id]);
+          photosUpdated++;
+          imagesConverted++;
+        } catch { /* skip */ }
+      }
+      res.json({ ok: true, postsUpdated, photosUpdated, imagesConverted });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Migrate başarısız" });
+    }
   });
 
   // ── Delete post ─────────────────────────────────────
@@ -527,7 +845,9 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
       SELECT cc.*, c.name AS author_name
       FROM club_post_comments cc
       JOIN customers c ON c.id=cc.user_id
-      WHERE cc.post_id=$1 ORDER BY cc.created_at ASC LIMIT 50
+      WHERE cc.post_id=$1
+        AND COALESCE(cc.is_hidden, false) = false
+      ORDER BY cc.created_at ASC LIMIT 50
     `, [id]);
     res.json(r.rows);
   });
@@ -553,7 +873,8 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
         message: `Birisi ${dog.rows[0]?.name ?? ""} gönderinize yorum yaptı 💬`,
       });
     }
-    res.status(201).json(r.rows[0]);
+    const me = await pool.query(`SELECT name FROM customers WHERE id=$1`, [userId]);
+    res.status(201).json({ ...r.rows[0], author_name: me.rows[0]?.name || "Sen" });
   });
 
   // ── Notifications ───────────────────────────────────
@@ -610,7 +931,11 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
       GROUP BY city ORDER BY cnt DESC LIMIT 8
     `);
     res.json({
-      popular: popular.rows.map(p => ({ ...p, timeAgo: timeAgo(new Date(p.created_at)) })),
+      popular: popular.rows.map(p => ({
+        ...p,
+        image_urls: typeof p.image_urls === "string" ? JSON.parse(p.image_urls) : (p.image_urls || []),
+        timeAgo: timeAgo(new Date(p.created_at)),
+      })),
       newDogs: newDogs.rows,
       cities: cities.rows,
     });
@@ -620,7 +945,11 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
   app.get("/api/club/stories", requireCustomer, async (req, res) => {
     const userId = (req as any).session.customerId as number;
     const r = await pool.query(`
-      SELECT DISTINCT ON (d.id) d.id, d.name, d.slug, d.avatar_url, cp.created_at
+      SELECT DISTINCT ON (d.id)
+             d.id, d.name, d.slug, d.avatar_url,
+             cp.id AS post_id,
+             cp.image_urls,
+             cp.created_at
       FROM club_posts cp
       JOIN dogs d ON d.id=cp.dog_id
       JOIN dog_follows df ON df.dog_id=d.id AND df.follower_user_id=$1 AND df.status='active'
@@ -629,7 +958,18 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
       ORDER BY d.id, cp.created_at DESC
       LIMIT 12
     `, [userId]);
-    res.json(r.rows);
+    res.json(r.rows.map(row => {
+      const urls = typeof row.image_urls === "string" ? JSON.parse(row.image_urls) : (row.image_urls || []);
+      return {
+        id: row.id,
+        name: row.name,
+        slug: row.slug,
+        avatar_url: row.avatar_url,
+        post_id: row.post_id,
+        story_image: urls[0] || null,
+        created_at: row.created_at,
+      };
+    }));
   });
 
   // ── My dogs (for post creation) ─────────────────────
@@ -637,6 +977,164 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
     const userId = (req as any).session.customerId as number;
     const r = await pool.query(`SELECT * FROM dogs WHERE user_id=$1 ORDER BY created_at DESC`, [userId]);
     res.json(r.rows);
+  });
+
+  // ── My club posts (all dogs of current user) ────────
+  app.get("/api/club/my-posts", requireCustomer, async (req, res) => {
+    const userId = (req as any).session.customerId as number;
+    try {
+      const r = await pool.query(`
+        SELECT cp.*, d.slug AS dog_slug, d.name AS dog_name, d.avatar_url AS dog_avatar
+        FROM club_posts cp
+        JOIN dogs d ON d.id = cp.dog_id
+        WHERE d.user_id = $1
+        ORDER BY cp.created_at DESC
+        LIMIT 100
+      `, [userId]);
+      res.json(r.rows.map((p: any) => ({ ...p, timeAgo: timeAgo(new Date(p.created_at)) })));
+    } catch (e: any) {
+      console.error("[club my-posts]", e?.message);
+      res.json([]);
+    }
+  });
+
+  // ── Direct messages ─────────────────────────────────
+  app.get("/api/club/messages", requireCustomer, async (req, res) => {
+    const userId = (req as any).session.customerId as number;
+    try {
+      const r = await pool.query(`
+        SELECT t.*,
+          CASE WHEN t.user_a_id = $1 THEN t.user_b_id ELSE t.user_a_id END AS other_user_id,
+          CASE WHEN t.user_a_id = $1 THEN t.dog_b_slug ELSE t.dog_a_slug END AS other_dog_slug
+        FROM club_dm_threads t
+        WHERE t.user_a_id = $1 OR t.user_b_id = $1
+        ORDER BY COALESCE(t.last_message_at, t.created_at) DESC
+        LIMIT 50
+      `, [userId]);
+      const threads = [];
+      for (const row of r.rows) {
+        let otherDogName = row.other_dog_slug || "Üye";
+        let otherDogAvatar: string | null = null;
+        if (row.other_dog_slug) {
+          const d = await pool.query(`SELECT name, avatar_url FROM dogs WHERE slug=$1 LIMIT 1`, [row.other_dog_slug]);
+          if (d.rows[0]) {
+            otherDogName = d.rows[0].name;
+            otherDogAvatar = d.rows[0].avatar_url;
+          }
+        } else {
+          const c = await pool.query(`SELECT name FROM customers WHERE id=$1`, [row.other_user_id]);
+          if (c.rows[0]) otherDogName = c.rows[0].name;
+        }
+        threads.push({
+          id: row.id,
+          otherDogSlug: row.other_dog_slug || undefined,
+          otherDogName,
+          otherDogAvatar,
+          otherCustomerName: otherDogName,
+          lastMessage: row.last_message || "",
+          lastMessageAt: row.last_message_at,
+          unreadCount: 0,
+        });
+      }
+      res.json(threads);
+    } catch (e: any) {
+      console.error("[club messages list]", e?.message);
+      res.json([]);
+    }
+  });
+
+  app.get("/api/club/messages/:threadId", requireCustomer, async (req, res) => {
+    const userId = (req as any).session.customerId as number;
+    const threadId = parseInt(String(req.params.threadId), 10);
+    if (!Number.isFinite(threadId)) return res.status(400).json({ message: "Geçersiz thread" });
+    try {
+      const t = await pool.query(
+        `SELECT * FROM club_dm_threads WHERE id=$1 AND (user_a_id=$2 OR user_b_id=$2)`,
+        [threadId, userId]
+      );
+      if (!t.rows[0]) return res.status(404).json({ message: "Konuşma bulunamadı" });
+      const msgs = await pool.query(
+        `SELECT id, body, created_at, sender_id FROM club_dm_messages WHERE thread_id=$1 ORDER BY id ASC LIMIT 200`,
+        [threadId]
+      );
+      res.json(msgs.rows.map((m: any) => ({
+        id: m.id,
+        body: m.body,
+        created_at: m.created_at,
+        isMine: m.sender_id === userId,
+      })));
+    } catch {
+      res.json([]);
+    }
+  });
+
+  app.post("/api/club/messages", requireCustomer, async (req, res) => {
+    const userId = (req as any).session.customerId as number;
+    const body = String(req.body?.body || "").trim();
+    const toDogSlug = String(req.body?.toDogSlug || "").trim();
+    if (!body) return res.status(400).json({ message: "Mesaj gerekli" });
+    if (!toDogSlug) return res.status(400).json({ message: "Alıcı gerekli" });
+    try {
+      const dog = await pool.query(`SELECT id, user_id, slug, name FROM dogs WHERE slug=$1`, [toDogSlug]);
+      if (!dog.rows[0]) return res.status(404).json({ message: "Profil bulunamadı" });
+      const otherId = dog.rows[0].user_id as number;
+      if (otherId === userId) return res.status(400).json({ message: "Kendinize mesaj gönderemezsiniz" });
+      const a = Math.min(userId, otherId);
+      const b = Math.max(userId, otherId);
+      let thread = await pool.query(
+        `SELECT * FROM club_dm_threads WHERE user_a_id=$1 AND user_b_id=$2`,
+        [a, b]
+      );
+      if (!thread.rows[0]) {
+        const myDog = await pool.query(`SELECT slug FROM dogs WHERE user_id=$1 ORDER BY id ASC LIMIT 1`, [userId]);
+        const dogASlug = userId === a ? (myDog.rows[0]?.slug || null) : toDogSlug;
+        const dogBSlug = userId === b ? (myDog.rows[0]?.slug || null) : toDogSlug;
+        thread = await pool.query(
+          `INSERT INTO club_dm_threads (user_a_id, user_b_id, dog_a_slug, dog_b_slug, last_message, last_message_at)
+           VALUES ($1,$2,$3,$4,$5,NOW()) RETURNING *`,
+          [a, b, dogASlug, dogBSlug, body.slice(0, 500)]
+        );
+      } else {
+        await pool.query(
+          `UPDATE club_dm_threads SET last_message=$1, last_message_at=NOW() WHERE id=$2`,
+          [body.slice(0, 500), thread.rows[0].id]
+        );
+      }
+      const threadId = thread.rows[0].id;
+      await pool.query(
+        `INSERT INTO club_dm_messages (thread_id, sender_id, body) VALUES ($1,$2,$3)`,
+        [threadId, userId, body.slice(0, 4000)]
+      );
+      res.json({ ok: true, threadId, id: threadId });
+    } catch (e: any) {
+      console.error("[club messages create]", e?.message);
+      res.status(500).json({ message: "Mesaj gönderilemedi" });
+    }
+  });
+
+  app.post("/api/club/messages/:threadId", requireCustomer, async (req, res) => {
+    const userId = (req as any).session.customerId as number;
+    const threadId = parseInt(String(req.params.threadId), 10);
+    const body = String(req.body?.body || "").trim();
+    if (!Number.isFinite(threadId) || !body) return res.status(400).json({ message: "Geçersiz istek" });
+    try {
+      const t = await pool.query(
+        `SELECT * FROM club_dm_threads WHERE id=$1 AND (user_a_id=$2 OR user_b_id=$2)`,
+        [threadId, userId]
+      );
+      if (!t.rows[0]) return res.status(404).json({ message: "Konuşma bulunamadı" });
+      await pool.query(
+        `INSERT INTO club_dm_messages (thread_id, sender_id, body) VALUES ($1,$2,$3)`,
+        [threadId, userId, body.slice(0, 4000)]
+      );
+      await pool.query(
+        `UPDATE club_dm_threads SET last_message=$1, last_message_at=NOW() WHERE id=$2`,
+        [body.slice(0, 500), threadId]
+      );
+      res.json({ ok: true });
+    } catch {
+      res.status(500).json({ message: "Mesaj gönderilemedi" });
+    }
   });
 
   // ── Dog's posts ─────────────────────────────────────
@@ -736,12 +1234,19 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
     if (!dog.rows.length) return res.status(403).json({ message: "Yetkisiz" });
     const { imageBase64, caption } = req.body;
     if (!imageBase64) return res.status(400).json({ message: "Fotoğraf zorunlu" });
-    if (imageBase64.length > 6 * 1024 * 1024) return res.status(400).json({ message: "Fotoğraf 5MB'tan büyük olamaz" });
+    if (String(imageBase64).length > 12 * 1024 * 1024) return res.status(400).json({ message: "Fotoğraf 5MB'tan büyük olamaz" });
     const count = await pool.query(`SELECT COUNT(*) AS cnt FROM dog_photos WHERE dog_id=$1`, [dog.rows[0].id]);
     if (parseInt(count.rows[0].cnt) >= 30) return res.status(400).json({ message: "En fazla 30 fotoğraf ekleyebilirsiniz" });
+    let webpUrl: string;
+    try {
+      webpUrl = await toWebpDataUrl(imageBase64, { maxEdge: 1440, quality: 82 });
+    } catch (err: any) {
+      console.log(`[dogs] photo webp error: ${err?.message || err}`);
+      return res.status(400).json({ message: "Fotoğraf işlenemedi" });
+    }
     const r = await pool.query(
       `INSERT INTO dog_photos (dog_id, url, caption) VALUES ($1,$2,$3) RETURNING *`,
-      [dog.rows[0].id, imageBase64, caption || null]
+      [dog.rows[0].id, webpUrl, caption || null]
     );
     res.json(r.rows[0]);
   });
@@ -778,15 +1283,218 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
   });
 
   // ── Admin: event registrations overview ───────────
-  app.get("/api/admin/yp-event-registrations", async (req, res) => {
-    const r = await pool.query(`
-      SELECT er.event_id, COUNT(*) AS count,
-             json_agg(json_build_object('id', c.id, 'name', c.name, 'phone', c.phone) ORDER BY er.created_at DESC) AS attendees
-      FROM yp_event_registrations er
-      JOIN customers c ON c.id = er.user_id
-      GROUP BY er.event_id ORDER BY er.event_id
-    `);
-    res.json(r.rows);
+  app.get("/api/admin/yp-event-registrations", requireAdmin, (req, res, next) => {
+    if (!sessionHasPermission(req, "club.moderate") && !sessionHasPermission(req, "customers.read")) {
+      return res.status(403).json({ message: "Bu işlem için yetkiniz yok", permission: "club.moderate|customers.read" });
+    }
+    next();
+  }, async (_req, res) => {
+    try {
+      const r = await pool.query(`
+        SELECT er.event_id,
+               COALESCE(e.title, 'Etkinlik #' || er.event_id) AS event_title,
+               COUNT(*)::int AS count,
+               json_agg(json_build_object('id', c.id, 'name', c.name, 'phone', c.phone) ORDER BY er.created_at DESC) AS attendees
+        FROM yp_event_registrations er
+        JOIN customers c ON c.id = er.user_id
+        LEFT JOIN yp_events e ON e.id = er.event_id
+        GROUP BY er.event_id, e.title
+        ORDER BY count DESC, er.event_id
+      `);
+      res.json(r.rows);
+    } catch (e: any) {
+      console.error("[admin yp-event-registrations]", e?.message);
+      res.status(500).json({ message: "Kayıtlar yüklenemedi" });
+    }
+  });
+
+  // ── Admin: Club moderation ─────────────────────────
+  app.get("/api/admin/club/posts", requireAdmin, requireClubMod, async (req, res) => {
+    try {
+      const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 40));
+      const filter = String(req.query.visibility || "all");
+      const params: any[] = [];
+      let where = "WHERE 1=1";
+      if (filter === "public" || filter === "hidden") {
+        params.push(filter);
+        where += ` AND cp.visibility = $${params.length}`;
+      }
+      params.push(limit);
+      const r = await pool.query(
+        `SELECT cp.id, cp.content, cp.visibility, cp.like_count, cp.comment_count, cp.created_at,
+                cp.image_urls, cp.moderated_at, cp.moderated_by,
+                d.name AS dog_name, c.name AS owner_name, c.phone AS owner_phone, c.id AS owner_id
+         FROM club_posts cp
+         LEFT JOIN dogs d ON d.id = cp.dog_id
+         LEFT JOIN customers c ON c.id = cp.user_id
+         ${where}
+         ORDER BY cp.created_at DESC
+         LIMIT $${params.length}`,
+        params,
+      );
+      res.json(r.rows.map((p: any) => ({
+        ...p,
+        image_urls: typeof p.image_urls === "string" ? JSON.parse(p.image_urls) : (p.image_urls || []),
+      })));
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Club postları alınamadı" });
+    }
+  });
+
+  app.patch("/api/admin/club/posts/:id", requireAdmin, requireClubMod, async (req, res) => {
+    try {
+      const id = parseInt(String(req.params.id));
+      if (!id) return res.status(400).json({ message: "Geçersiz id" });
+      const visibility = String(req.body?.visibility || "").trim();
+      if (!["public", "hidden"].includes(visibility)) {
+        return res.status(400).json({ message: "visibility public|hidden olmalı" });
+      }
+      const adminUser = String((req as any).session?.adminUsername || (req as any).session?.userId || "admin");
+      const r = await pool.query(
+        `UPDATE club_posts SET visibility=$1, moderated_at=NOW(), moderated_by=$2 WHERE id=$3 RETURNING id, visibility`,
+        [visibility, adminUser, id],
+      );
+      if (!r.rows[0]) return res.status(404).json({ message: "Post bulunamadı" });
+      res.json(r.rows[0]);
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Güncellenemedi" });
+    }
+  });
+
+  app.delete("/api/admin/club/posts/:id", requireAdmin, requireClubMod, async (req, res) => {
+    try {
+      const id = parseInt(String(req.params.id));
+      if (!id) return res.status(400).json({ message: "Geçersiz id" });
+      await pool.query(`DELETE FROM club_posts WHERE id=$1`, [id]);
+      res.json({ ok: true });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Silinemedi" });
+    }
+  });
+
+  app.get("/api/admin/club/reports", requireAdmin, requireClubMod, async (_req, res) => {
+    try {
+      const r = await pool.query(
+        `SELECT r.*, c.name AS reporter_name, c.phone AS reporter_phone
+         FROM club_reports r
+         LEFT JOIN customers c ON c.id = r.reporter_user_id
+         ORDER BY r.created_at DESC LIMIT 100`,
+      );
+      res.json(r.rows);
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Şikayetler alınamadı" });
+    }
+  });
+
+  app.patch("/api/admin/club/reports/:id", requireAdmin, requireClubMod, async (req, res) => {
+    try {
+      const id = parseInt(String(req.params.id));
+      const status = String(req.body?.status || "closed");
+      if (!["open", "closed"].includes(status)) return res.status(400).json({ message: "Geçersiz status" });
+      const adminUser = String((req as any).session?.adminUsername || "admin");
+      await pool.query(
+        `UPDATE club_reports SET status=$1, resolved_at=NOW(), resolved_by=$2 WHERE id=$3`,
+        [status, adminUser, id],
+      );
+      res.json({ ok: true });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Güncellenemedi" });
+    }
+  });
+
+  // ─── Admin: dog profiles ──────────────────────────────────────────────────
+  app.get("/api/admin/dogs", requireAdmin, requireProductsWrite, async (req, res) => {
+    try {
+      const q = typeof req.query.q === "string" ? req.query.q.trim() : "";
+      const limit = Math.min(200, Math.max(1, Number(req.query.limit) || 50));
+      const params: any[] = [];
+      let where = "";
+      if (q) {
+        params.push(`%${q}%`);
+        where = `WHERE (d.name ILIKE $1 OR d.slug ILIKE $1 OR c.name ILIKE $1 OR c.phone ILIKE $1)`;
+      }
+      params.push(limit);
+      const r = await pool.query(
+        `SELECT d.id, d.slug, d.name, d.breed, d.city, d.gender, d.is_public AS "isPublic",
+                d.is_private AS "isPrivate", d.follower_count AS "followerCount",
+                d.post_count AS "postCount", d.created_at AS "createdAt",
+                c.id AS "ownerId", c.name AS "ownerName", c.phone AS "ownerPhone"
+         FROM dogs d
+         LEFT JOIN customers c ON c.id = d.user_id
+         ${where}
+         ORDER BY d.created_at DESC
+         LIMIT $${params.length}`,
+        params
+      );
+      res.json({ dogs: r.rows });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Köpek listesi alınamadı" });
+    }
+  });
+
+  app.patch("/api/admin/dogs/:id", requireAdmin, requireProductsWrite, async (req, res) => {
+    try {
+      const id = parseInt(String(req.params.id));
+      if (isNaN(id)) return res.status(400).json({ message: "Geçersiz ID" });
+      const sets: string[] = [];
+      const params: any[] = [];
+      let i = 1;
+      if (req.body?.isPublic !== undefined) {
+        sets.push(`is_public = $${i++}`);
+        params.push(!!req.body.isPublic);
+      }
+      if (req.body?.isPrivate !== undefined) {
+        sets.push(`is_private = $${i++}`);
+        params.push(!!req.body.isPrivate);
+      }
+      if (req.body?.name !== undefined) {
+        sets.push(`name = $${i++}`);
+        params.push(String(req.body.name).slice(0, 80));
+      }
+      if (req.body?.city !== undefined) {
+        sets.push(`city = $${i++}`);
+        params.push(String(req.body.city).slice(0, 80) || null);
+      }
+      if (!sets.length) return res.status(400).json({ message: "Güncelleme yok" });
+      sets.push(`updated_at = NOW()`);
+      params.push(id);
+      const r = await pool.query(
+        `UPDATE dogs SET ${sets.join(", ")} WHERE id = $${i}
+         RETURNING id, slug, name, is_public AS "isPublic", is_private AS "isPrivate", city`,
+        params
+      );
+      if (!r.rows[0]) return res.status(404).json({ message: "Köpek yok" });
+      res.json(r.rows[0]);
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Güncellenemedi" });
+    }
+  });
+
+  app.delete("/api/admin/dogs/:id", requireAdmin, requireProductsWrite, async (req, res) => {
+    try {
+      const id = parseInt(String(req.params.id));
+      await pool.query(`DELETE FROM dogs WHERE id = $1`, [id]);
+      res.json({ ok: true });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Silinemedi" });
+    }
+  });
+
+  app.post("/api/club/posts/:id/report", requireCustomer, async (req, res) => {
+    try {
+      const id = parseInt(String(req.params.id));
+      const userId = (req as any).session.customerId as number;
+      const reason = String(req.body?.reason || "").slice(0, 500);
+      const p = await pool.query(`SELECT id FROM club_posts WHERE id=$1`, [id]);
+      if (!p.rows[0]) return res.status(404).json({ message: "Post yok" });
+      await pool.query(
+        `INSERT INTO club_reports (post_id, reporter_user_id, reason) VALUES ($1,$2,$3)`,
+        [id, userId, reason || null],
+      );
+      res.json({ ok: true });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Şikayet kaydedilemedi" });
+    }
   });
 
   console.log("[dogs] Routes registered");

@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { Mail, CheckCircle, ChevronLeft } from "lucide-react";
 import { IS_YP } from "@/lib/store";
+import { goBack } from "@/lib/goBack";
 
 const P = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
@@ -29,7 +30,7 @@ export default function YPSifremiUnuttumPage() {
     <YPLayout authMode constrain={false}>
       <div style={{ minHeight: "100vh", background: "#FAF7F0", paddingBottom: 48 }}>
         <div style={{ maxWidth: "var(--yp-shell-max)", margin: "0 auto", padding: "28px 20px 0" }}>
-          <button onClick={() => navigate(`${BASE}/giris`)}
+          <button onClick={() => goBack(navigate, `${BASE}/giris`)}
             style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", color: "#6B7280", fontSize: 13, fontWeight: 600, padding: 0, fontFamily: "inherit", marginBottom: 20 }}>
             <ChevronLeft size={16} /> Giriş sayfasına dön
           </button>

@@ -195,6 +195,13 @@ export default function YPAraPage() {
   /* Reset tab to "tumü" whenever q changes */
   useEffect(() => { setTab("tumü"); }, [q]);
 
+  useEffect(() => {
+    if (!q || q.trim().length < 2) return;
+    import("@/lib/yp-analytics").then(({ track }) => {
+      track("search", { query: q.trim().slice(0, 120) });
+    }).catch(() => {});
+  }, [q]);
+
   const showToast = useCallback((msg: string) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
     setToast({ message:msg, visible:true });

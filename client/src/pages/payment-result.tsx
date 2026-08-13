@@ -41,6 +41,16 @@ export default function PaymentResultPage() {
     if (redirectedRef.current) return;
     redirectedRef.current = true;
 
+    if (orderId) {
+      import("@/lib/yp-analytics").then((yp) => {
+        yp.trackPurchase({
+          orderId,
+          value: order?.grandTotal != null ? Number(order.grandTotal) : undefined,
+          currency: "TRY",
+        });
+      }).catch(() => {});
+    }
+
     // Clear both carts on confirmed success
     clearCart();
     try { localStorage.setItem("yp_cart_items", "[]"); } catch {}

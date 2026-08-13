@@ -5,6 +5,7 @@ import { Bell, Heart, MessageCircle, UserPlus, CheckCheck, ChevronLeft } from "l
 import { apiRequest } from "@/lib/queryClient";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { useCustomer } from "@/contexts/CustomerContext";
+import { goBack } from "@/lib/goBack";
 
 interface Notif {
   id: number;
@@ -95,7 +96,7 @@ export default function YPBildirimlerPage() {
 
         {/* Header */}
         <div style={{ background: "#fff", borderBottom: "1px solid #F0EAFF", padding: "12px 16px", display: "flex", alignItems: "center", gap: 10, position: "sticky", top: 60, zIndex: 40 }}>
-          <button onClick={() => navigate(-1 as any)}
+          <button onClick={() => goBack(navigate, "/")}
             style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#5D3A1A" }}>
             <ChevronLeft size={22} />
           </button>

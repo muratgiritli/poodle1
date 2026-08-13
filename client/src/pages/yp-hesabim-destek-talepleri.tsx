@@ -1,6 +1,7 @@
 // Route: /hesabim/destek-talepleri
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft, Plus, List, Clock, MessageCircle, CheckCircle,
   Search, SlidersHorizontal, ArrowUpDown, Paperclip,
@@ -8,10 +9,18 @@ import {
   Star, Headphones, X,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import { goBack } from "@/lib/goBack";
+import {
+  SUPPORT_BRAND as P,
+  SUPPORT_BRAND_LIGHT as PL,
+  fetchSupportTickets,
+  formatTicketDate,
+  statusLabelTr,
+  ticketStatusGroup,
+  type SupportTicket,
+} from "@/lib/support-api";
 
 /* ── Palette ─────────────────────────── */
-const P    = "#5D3EBD";
-const PL   = "#F5F0E6";
 const NAV  = "#1D1E9B";
 const DRK  = "#111827";
 const GT   = "#6B7280";
@@ -27,53 +36,22 @@ const GRNB = "#F0FDF4";
 /* ── Types ────────────────────────────── */
 type TicketTab = "all" | "open" | "replied" | "solved";
 
-/* ── Mock data (from image + prompt) ─── */
-const OPEN_TICKETS = [
-  {
-    id: "YP-4822",
-    title: "Siparişimde bir ürün eksik geldi",
-    category: "Sipariş ve Teslimat",
-    issue: "Eksik Ürün",
-    orderId: "YP-20260723",
-    date: "24 Temmuz 2026",
-    time: "00:52",
-    lastUpdate: "2 dk önce",
-    statusLabel: "İnceleniyor",
-    progressStage: 1,
-    attachmentCount: 2,
-  },
-];
-
-const AWAITING_TICKETS = [
-  {
-    id: "YP-4798",
-    title: "Tasma beden değişimi",
-    category: "İade / Değişim",
-    lastMsg: "YourPoodle Destek: Değişim talebiniz onaylandı...",
-    date: "22 Temmuz 2026",
-    newMsgCount: 1,
-  },
-  {
-    id: "YP-4754",
-    title: "Kupon kodu uygulanmıyor",
-    category: "Ödeme ve Kampanya",
-    lastMsg: "YourPoodle Destek: Kuponunuz hesabınıza yeniden tanımlandı...",
-    date: "18 Temmuz 2026",
-    newMsgCount: 0,
-  },
-];
-
-const SOLVED_TICKETS = [
-  { id: "YP-4612", title: "Kargo teslimat gecikmesi",     date: "12 Temmuz 2026",  Icon: Truck,    isEvaluated: false, rating: 0 },
-  { id: "YP-4521", title: "Club playlaşımı silme",        date: "4 Temmuz 2026",   Icon: PawPrint, isEvaluated: true,  rating: 5 },
-  { id: "YP-4388", title: "Telefon numarası değişikliği", date: "28 Haziran 2026", Icon: Phone,    isEvaluated: true,  rating: 4 },
-];
-
-const OLDER_TICKETS = [
-  { id: "YP-4200", title: "İade talebi", date: "28 Haziran 2026", Icon: Truck, isEvaluated: true, rating: 5 },
-];
-
 const PROGRESS_STEPS = ["Alındı", "İnceleniyor", "Yanıt", "Çözüldü"];
+
+function ticketIcon(ticket: SupportTicket) {
+  const cat = (ticket.category || "").toLowerCase();
+  if (cat.includes("kargo") || cat.includes("sipariş") || cat.includes("siparis")) return Truck;
+  if (cat.includes("club")) return PawPrint;
+  if (cat.includes("telefon") || cat.includes("üyelik") || cat.includes("uyelik")) return Phone;
+  return MessageCircle;
+}
+
+function progressStage(status: string) {
+  const g = ticketStatusGroup(status);
+  if (g === "solved") return 3;
+  if (g === "replied") return 2;
+  return 1;
+}
 
 /* ── Star Rating ─────────────────────── */
 function StarRating({ ticketId, initialRating, onRate }: {
@@ -208,12 +186,20 @@ export default function YPDestekTalepleriPage() {
   const [showOlder, setShowOlder]   = useState(false);
   const [modalOpen, setModalOpen]   = useState(false);
   const [toast,     setToast]       = useState("");
-  const [ratings,   setRatings]     = useState<Record<string, number>>({
-    "YP-4521": 5, "YP-4388": 4,
+  const [ratings,   setRatings]     = useState<Record<string, number>>({});
+  const [evaluated, setEvaluated]   = useState<Record<string, boolean>>({});
+
+  const { data: tickets = [], isLoading } = useQuery({
+    queryKey: ["/api/customer/support-tickets"],
+    queryFn: fetchSupportTickets,
   });
-  const [evaluated, setEvaluated]   = useState<Record<string, boolean>>({
-    "YP-4521": true, "YP-4388": true,
-  });
+
+  const stats = useMemo(() => ({
+    total: tickets.length,
+    open: tickets.filter(t => ticketStatusGroup(t.status) === "open").length,
+    replied: tickets.filter(t => ticketStatusGroup(t.status) === "replied").length,
+    solved: tickets.filter(t => ticketStatusGroup(t.status) === "solved").length,
+  }), [tickets]);
 
   const showToast = (m: string) => { setToast(m); setTimeout(() => setToast(""), 2500); };
 
@@ -226,28 +212,24 @@ export default function YPDestekTalepleriPage() {
 
   const handleSubmitTicket = () => {
     setModalOpen(false);
-    navigate("/hesabim/yardim/talep/YP-4822");
-    showToast("Talebiniz oluşturuldu ✓");
+    navigate("/hesabim/yardim/yeni-talep");
   };
 
-  /* Filtering */
   const q = search.toLowerCase();
 
-  const filteredOpen = OPEN_TICKETS.filter(t =>
-    (!q || t.id.toLowerCase().includes(q) || t.title.toLowerCase().includes(q))
-  );
-  const filteredAwaiting = AWAITING_TICKETS.filter(t =>
-    (!q || t.id.toLowerCase().includes(q) || t.title.toLowerCase().includes(q))
-  );
-  const baseSolved = showOlder ? [...SOLVED_TICKETS, ...OLDER_TICKETS] : SOLVED_TICKETS;
-  const filteredSolved = baseSolved.filter(t =>
-    (!q || t.id.toLowerCase().includes(q) || t.title.toLowerCase().includes(q))
+  const filtered = tickets.filter(t =>
+    !q || String(t.id).toLowerCase().includes(q) || t.subject.toLowerCase().includes(q),
   );
 
-  const showOpenSec    = (activeTab === "all" || activeTab === "open")    && filteredOpen.length > 0;
-  const showAwaitSec   = (activeTab === "all" || activeTab === "replied") && filteredAwaiting.length > 0;
-  const showSolvedSec  = (activeTab === "all" || activeTab === "solved")  && filteredSolved.length > 0;
-  const allEmpty       = !showOpenSec && !showAwaitSec && !showSolvedSec;
+  const openTickets = filtered.filter(t => ticketStatusGroup(t.status) === "open");
+  const awaitingTickets = filtered.filter(t => ticketStatusGroup(t.status) === "replied");
+  const solvedTickets = filtered.filter(t => ticketStatusGroup(t.status) === "solved");
+  const visibleSolved = showOlder ? solvedTickets : solvedTickets.slice(0, 5);
+
+  const showOpenSec    = (activeTab === "all" || activeTab === "open")    && openTickets.length > 0;
+  const showAwaitSec   = (activeTab === "all" || activeTab === "replied") && awaitingTickets.length > 0;
+  const showSolvedSec  = (activeTab === "all" || activeTab === "solved")  && visibleSolved.length > 0;
+  const allEmpty       = !isLoading && !showOpenSec && !showAwaitSec && !showSolvedSec;
 
   return (
     <YPLayout activeLink="club" constrain={false}>
@@ -255,7 +237,7 @@ export default function YPDestekTalepleriPage() {
 
         {/* ── BREADCRUMB ── */}
         <div style={{ padding:"14px 16px 0" }}>
-          <button onClick={() => navigate("/hesabim")}
+          <button onClick={() => goBack(navigate, "/hesabim")}
             style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
                      cursor:"pointer", padding:0, fontFamily:"inherit" }}>
             <ArrowLeft size={15} color={P} />
@@ -272,7 +254,7 @@ export default function YPDestekTalepleriPage() {
               Sorularınızı, taleplerinizi ve çözüm durumlarını buradan takip edin.
             </p>
           </div>
-          <button onClick={() => setModalOpen(true)}
+          <button onClick={() => navigate("/hesabim/yardim/yeni-talep")}
             style={{ flexShrink:0, background:P, color:"#fff", border:"none",
                      borderRadius:12, padding:"9px 11px", fontSize:11, fontWeight:700,
                      cursor:"pointer", display:"flex", alignItems:"center", gap:5,
@@ -285,10 +267,10 @@ export default function YPDestekTalepleriPage() {
         {/* ── STATS ROW ── */}
         <div style={{ padding:"0 16px 14px", display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:8 }}>
           {[
-            { Icon: List,         bg: PL,   ic: P,   count: "6", label:"Toplam",    tab:"all"     },
-            { Icon: Clock,        bg: OBG,  ic: OFG, count: "1", label:"Açık",      tab:"open"    },
-            { Icon: MessageCircle,bg: BBG,  ic: BFG, count: "2", label:"Yanıtlandı",tab:"replied" },
-            { Icon: CheckCircle,  bg: GRNB, ic: GRN, count: "3", label:"Çözüldü",   tab:"solved"  },
+            { Icon: List,         bg: PL,   ic: P,   count: String(stats.total), label:"Toplam",    tab:"all"     },
+            { Icon: Clock,        bg: OBG,  ic: OFG, count: String(stats.open), label:"Açık",      tab:"open"    },
+            { Icon: MessageCircle,bg: BBG,  ic: BFG, count: String(stats.replied), label:"Yanıtlandı",tab:"replied" },
+            { Icon: CheckCircle,  bg: GRNB, ic: GRN, count: String(stats.solved), label:"Çözüldü",   tab:"solved"  },
           ].map(({ Icon, bg, ic, count, label, tab }) => (
             <button key={label} onClick={() => setActiveTab(tab as TicketTab)}
               style={{ background:"#fff", border:`1px solid #F3F4F6`, borderRadius:14,
@@ -337,10 +319,10 @@ export default function YPDestekTalepleriPage() {
         {/* ── TABS ── */}
         <div style={{ padding:"0 16px 14px", display:"flex", gap:8, overflowX:"auto" }}>
           {[
-            { key:"all",     label:"Tümü 6"      },
-            { key:"open",    label:"Açık 1"       },
-            { key:"replied", label:"Yanıtlandı 2" },
-            { key:"solved",  label:"Çözüldü 3"    },
+            { key:"all",     label:`Tümü ${stats.total}`      },
+            { key:"open",    label:`Açık ${stats.open}`       },
+            { key:"replied", label:`Yanıtlandı ${stats.replied}` },
+            { key:"solved",  label:`Çözüldü ${stats.solved}`    },
           ].map(({ key, label }) => (
             <button key={key} onClick={() => setActiveTab(key as TicketTab)}
               style={{
@@ -361,48 +343,41 @@ export default function YPDestekTalepleriPage() {
         {showOpenSec && (
           <div style={{ padding:"0 16px 14px" }}>
             <div style={{ fontSize:13, fontWeight:700, color:DRK, marginBottom:12 }}>Açık Talepler</div>
-            {filteredOpen.map(t => (
+            {openTickets.map(t => (
               <div key={t.id} style={{ background:"#fff", borderRadius:20, border:`1px solid #F3F4F6`,
                                        boxShadow:"0 1px 6px rgba(0,0,0,.06)", padding:16, marginBottom:8 }}>
-                {/* Top row */}
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                   <span style={{ fontSize:11.5, fontWeight:700, color:P }}>#{t.id}</span>
                   <span style={{ background:PL, color:P, fontSize:10, fontWeight:700,
                                  padding:"3px 9px", borderRadius:20 }}>
-                    {t.statusLabel}
+                    {statusLabelTr(t.status)}
                   </span>
                 </div>
-                {/* Title */}
-                <div style={{ fontSize:14, fontWeight:700, color:DRK, marginTop:8 }}>{t.title}</div>
-                {/* Tags */}
+                <div style={{ fontSize:14, fontWeight:700, color:DRK, marginTop:8 }}>{t.subject}</div>
                 <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginTop:8 }}>
-                  {[t.category, t.issue].filter(Boolean).map(tag => (
-                    <span key={tag} style={{ background:"#F3F4F6", color:GT, fontSize:10,
-                                             padding:"2px 8px", borderRadius:20 }}>
-                      {tag}
-                    </span>
-                  ))}
+                  <span style={{ background:"#F3F4F6", color:GT, fontSize:10, padding:"2px 8px", borderRadius:20 }}>
+                    {t.category}
+                  </span>
                 </div>
-                {/* Details */}
                 <div style={{ fontSize:11, color:GT, marginTop:8, lineHeight:1.7 }}>
-                  <div>Sipariş: #{t.orderId}</div>
-                  <div>{t.date} • {t.time}</div>
+                  {t.orderId != null && <div>Sipariş: #{t.orderId}</div>}
+                  <div>{formatTicketDate(t.createdAt)}</div>
                 </div>
-                {/* Stepper */}
-                <ProgressStepper currentStep={t.progressStage} />
-                {/* Footer row */}
+                <ProgressStepper currentStep={progressStage(t.status)} />
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
                               borderTop:`1px solid #F9FAFB`, paddingTop:12, marginTop:4 }}>
                   <div>
-                    <div style={{ fontSize:10, color:"#9CA3AF" }}>Son güncelleme: {t.lastUpdate}</div>
-                    {t.attachmentCount ? (
+                    <div style={{ fontSize:10, color:"#9CA3AF" }}>
+                      Son güncelleme: {formatTicketDate(t.updatedAt || t.createdAt)}
+                    </div>
+                    {(t.attachmentCount ?? 0) > 0 && (
                       <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:3 }}>
                         <Paperclip size={11} color={GT} />
                         <span style={{ fontSize:10, color:GT }}>{t.attachmentCount} dosya</span>
                       </div>
-                    ) : null}
+                    )}
                   </div>
-                  <button onClick={() => viewTicket(t.id)}
+                  <button onClick={() => viewTicket(String(t.id))}
                     style={{ border:`2px solid ${P}`, color:P, background:"none",
                              borderRadius:12, padding:"9px 18px", fontSize:12,
                              fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
@@ -418,51 +393,42 @@ export default function YPDestekTalepleriPage() {
         {showAwaitSec && (
           <div style={{ padding:"0 16px 14px" }}>
             <div style={{ fontSize:13, fontWeight:700, color:DRK, marginBottom:12 }}>Yanıt Bekleyenler</div>
-            {filteredAwaiting.map(t => (
+            {awaitingTickets.map(t => {
+              const lastMsg = t.messages?.[t.messages.length - 1]?.body;
+              return (
               <div key={t.id}
-                onClick={() => viewTicket(t.id)}
+                onClick={() => viewTicket(String(t.id))}
                 style={{ background:"#fff", borderRadius:16, border:`1px solid #F3F4F6`,
                          padding:"12px", marginBottom:8, cursor:"pointer",
                          display:"flex", gap:12 }}>
-                {/* LEFT */}
                 <div style={{ flex:1, minWidth:0 }}>
                   <span style={{ fontSize:11.5, fontWeight:700, color:P }}>#{t.id}</span>
-                  <div style={{ fontSize:13, fontWeight:600, color:DRK, marginTop:2 }}>{t.title}</div>
-                  {t.lastMsg && (
+                  <div style={{ fontSize:13, fontWeight:600, color:DRK, marginTop:2 }}>{t.subject}</div>
+                  {lastMsg && (
                     <div style={{ fontSize:11, color:GT, marginTop:3,
-                                  overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                                  maxWidth:"100%" }}>
-                      {t.lastMsg}
+                                  overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      {lastMsg}
                     </div>
                   )}
-                  <div style={{ fontSize:10, color:"#9CA3AF", marginTop:4 }}>{t.date}</div>
+                  <div style={{ fontSize:10, color:"#9CA3AF", marginTop:4 }}>
+                    {formatTicketDate(t.updatedAt || t.createdAt)}
+                  </div>
                 </div>
-                {/* RIGHT */}
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:7, flexShrink:0 }}>
                   <span style={{ background:BBG, color:BFG, fontSize:10, fontWeight:700,
                                  padding:"2px 8px", borderRadius:20 }}>
                     Yanıtlandı
                   </span>
-                  {t.newMsgCount > 0 && (
-                    <span style={{ background:P, color:"#fff", fontSize:9, fontWeight:700,
-                                   padding:"2px 7px", borderRadius:20 }}>
-                      {t.newMsgCount} yeni mesaj
-                    </span>
-                  )}
                   <button
-                    onClick={e => { e.stopPropagation(); replyTicket(t.id); }}
-                    style={{
-                      background: t.newMsgCount > 0 ? P : "none",
-                      color: t.newMsgCount > 0 ? "#fff" : P,
-                      border: t.newMsgCount > 0 ? "none" : `1px solid ${P}`,
-                      borderRadius:9, padding:"6px 13px", fontSize:10, fontWeight:700,
-                      cursor:"pointer", fontFamily:"inherit",
-                    }}>
-                    {t.newMsgCount > 0 ? "Yanıtla" : "Talebi Gör"}
+                    onClick={e => { e.stopPropagation(); replyTicket(String(t.id)); }}
+                    style={{ background:P, color:"#fff", border:"none",
+                             borderRadius:9, padding:"6px 13px", fontSize:10, fontWeight:700,
+                             cursor:"pointer", fontFamily:"inherit" }}>
+                    Yanıtla
                   </button>
                 </div>
               </div>
-            ))}
+            );})}
           </div>
         )}
 
@@ -470,21 +436,20 @@ export default function YPDestekTalepleriPage() {
         {showSolvedSec && (
           <div style={{ padding:"0 16px 14px" }}>
             <div style={{ fontSize:13, fontWeight:700, color:DRK, marginBottom:12 }}>Çözülen Talepler</div>
-            {filteredSolved.map(t => {
-              const isEval = evaluated[t.id] ?? t.isEvaluated;
-              const rating = ratings[t.id] ?? t.rating;
+            {visibleSolved.map(t => {
+              const Icon = ticketIcon(t);
+              const isEval = evaluated[String(t.id)] ?? t.evaluated ?? false;
+              const rating = ratings[String(t.id)] ?? t.rating ?? 0;
               return (
                 <div key={t.id}
-                  onClick={() => viewTicket(t.id)}
+                  onClick={() => viewTicket(String(t.id))}
                   style={{ background:"#fff", borderRadius:16, border:`1px solid #F3F4F6`,
                            padding:"12px 12px 12px 12px", marginBottom:8, cursor:"pointer",
                            display:"flex", alignItems:"center", gap:12 }}>
-                  {/* Icon */}
                   <div style={{ width:36, height:36, borderRadius:12, background:GRNB,
                                 display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                    <t.Icon size={16} color={GRN} />
+                    <Icon size={16} color={GRN} />
                   </div>
-                  {/* Center */}
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                       <span style={{ background:GRNB, color:GRN, fontSize:9, fontWeight:700,
@@ -495,42 +460,29 @@ export default function YPDestekTalepleriPage() {
                     </div>
                     <div style={{ fontSize:13, fontWeight:600, color:DRK, marginTop:3,
                                   overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                      {t.title}
+                      {t.subject}
                     </div>
-                    <div style={{ fontSize:10, color:"#9CA3AF", marginTop:2 }}>{t.date}</div>
+                    <div style={{ fontSize:10, color:"#9CA3AF", marginTop:2 }}>
+                      {formatTicketDate(t.updatedAt || t.createdAt)}
+                    </div>
                     {isEval ? (
                       <div style={{ fontSize:10, color:GRN, marginTop:4, display:"flex", alignItems:"center", gap:4 }}>
                         <Check size={11} color={GRN} strokeWidth={3} />
                         Değerlendirildi
-                        {rating > 0 && (
-                          <span style={{ display:"flex", gap:2, marginLeft:4 }}>
-                            {[1,2,3,4,5].map(n => (
-                              <Star key={n} size={11}
-                                fill={n <= rating ? "#FBBF24" : "none"}
-                                color={n <= rating ? "#FBBF24" : GB}
-                                strokeWidth={1.5} />
-                            ))}
-                          </span>
-                        )}
                       </div>
                     ) : (
                       <div>
                         <div style={{ fontSize:10, color:GT, marginTop:4 }}>Deneyiminizi değerlendirin</div>
-                        <StarRating
-                          ticketId={t.id}
-                          initialRating={rating}
-                          onRate={setRating} />
+                        <StarRating ticketId={String(t.id)} initialRating={rating ?? 0} onRate={setRating} />
                       </div>
                     )}
                   </div>
-                  {/* Chevron */}
                   <ChevronRight size={16} color="#D1D5DB" style={{ flexShrink:0 }} />
                 </div>
               );
             })}
 
-            {/* Load more */}
-            {!showOlder && (
+            {!showOlder && solvedTickets.length > 5 && (
               <button onClick={() => setShowOlder(true)}
                 style={{ width:"100%", border:`2px solid ${P}`, color:P, background:"none",
                          borderRadius:14, padding:"13px 0", fontSize:13, fontWeight:700,
@@ -546,11 +498,18 @@ export default function YPDestekTalepleriPage() {
           <div style={{ padding:"48px 16px", textAlign:"center" }}>
             <MessageCircle size={44} color={GB} style={{ margin:"0 auto 14px" }} />
             <div style={{ fontSize:15, fontWeight:600, color:DRK, marginBottom:6 }}>
-              Talep bulunamadı
+              {isLoading ? "Talepler yükleniyor..." : "Henüz destek talebiniz yok"}
             </div>
-            <div style={{ fontSize:13, color:GT }}>
-              Arama kriterlerinize uygun talep yok.
+            <div style={{ fontSize:13, color:GT, marginBottom:16 }}>
+              {isLoading ? "Lütfen bekleyin" : "Sorun yaşarsanız yeni talep oluşturabilirsiniz."}
             </div>
+            {!isLoading && (
+              <button onClick={() => navigate("/hesabim/yardim/yeni-talep")}
+                style={{ background:P, color:"#fff", border:"none", borderRadius:12,
+                         padding:"10px 18px", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
+                Yeni Talep Oluştur
+              </button>
+            )}
           </div>
         )}
 

@@ -3,8 +3,43 @@ import { db } from "./storage";
 import { productImages } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
+/** Decode a data-URL or raw base64 string into a Buffer. */
+function decodeImageInput(input: Buffer | string): Buffer {
+  if (Buffer.isBuffer(input)) return input;
+  const m = String(input).match(/^data:[^;]+;base64,(.+)$/s);
+  return Buffer.from(m ? m[1] : String(input).replace(/^data:[^;]+;base64,/, ""), "base64");
+}
+
+/** Convert any image buffer/base64 to a WebP data URL (EXIF-rotated, size-capped). */
+export async function toWebpDataUrl(
+  input: Buffer | string,
+  opts?: { maxEdge?: number; quality?: number; fit?: "inside" | "cover"; width?: number; height?: number },
+): Promise<string> {
+  const buffer = decodeImageInput(input);
+  const quality = opts?.quality ?? 82;
+  let pipeline = sharp(buffer).rotate();
+  if (opts?.width && opts?.height) {
+    pipeline = pipeline.resize(opts.width, opts.height, { fit: opts.fit || "cover" });
+  } else {
+    const maxEdge = opts?.maxEdge ?? 1440;
+    pipeline = pipeline.resize(maxEdge, maxEdge, { fit: opts?.fit || "inside", withoutEnlargement: true });
+  }
+  const webpBuffer = await pipeline.webp({ quality }).toBuffer();
+  return `data:image/webp;base64,${webpBuffer.toString("base64")}`;
+}
+
+/** Convert image buffer to WebP Buffer (for DB blob / disk storage). */
+export async function toWebpBuffer(
+  input: Buffer | string,
+  opts?: { maxEdge?: number; quality?: number; fit?: "inside" | "cover"; width?: number; height?: number },
+): Promise<Buffer> {
+  const dataUrl = await toWebpDataUrl(input, opts);
+  return decodeImageInput(dataUrl);
+}
+
 export async function saveProductImage(buffer: Buffer, productId: number): Promise<string> {
   const webpBuffer = await sharp(buffer)
+    .rotate()
     .resize(800, 800, { fit: "inside", withoutEnlargement: true })
     .webp({ quality: 80 })
     .toBuffer();

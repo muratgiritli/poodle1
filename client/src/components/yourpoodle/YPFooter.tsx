@@ -1,5 +1,7 @@
 import { Truck, RefreshCcw, ShieldCheck, CreditCard, MapPin, Phone, Mail, Clock, Instagram, Facebook, Youtube, Twitter } from "lucide-react";
 import { IS_YP } from "@/lib/store";
+import { YP_COMPANY } from "@/lib/yp-company";
+import PaymentCardLogos from "./PaymentCardLogos";
 
 const B = IS_YP ? "" : "/yourpoodle";
 
@@ -19,7 +21,6 @@ const COLUMNS = [
       { label: "Teslimat ve İade Şartları", href: `${B}/teslimat-iade` },
       { label: "Gizlilik Sözleşmesi",      href: `${B}/gizlilik-politikasi` },
       { label: "Mesafeli Satış Sözleşmesi", href: `${B}/mesafeli-satis` },
-      { label: "Kariyer",                  href: `${B}/kariyer` },
     ],
   },
   {
@@ -36,6 +37,7 @@ const COLUMNS = [
   {
     title: "Destek",
     links: [
+      { label: "İletişim",             href: `${B}/iletisim` },
       { label: "Sık Sorulan Sorular",  href: `${B}/sss` },
       { label: "Kargo ve Teslimat",    href: `${B}/kargo` },
       { label: "İade ve Değişim",      href: `${B}/iade` },
@@ -74,18 +76,19 @@ const CONTACT = [
 const orgSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  "name": "YourPoodle",
-  "url": "https://www.yourpoodle.com",
-  "telephone": "+908508403959",
-  "email": "info@sizpa.com",
+  "name": YP_COMPANY.brand,
+  "legalName": YP_COMPANY.legalName,
+  "url": YP_COMPANY.siteUrl,
+  "telephone": YP_COMPANY.phoneTel,
+  "email": YP_COMPANY.email,
   "address": {
     "@type": "PostalAddress",
-    "streetAddress": "Yenimahalle Atatürk 3. Kısım Blv. No:113/A",
-    "addressLocality": "Samsun",
-    "addressRegion": "Samsun",
+    "streetAddress": YP_COMPANY.addressLine,
+    "addressLocality": YP_COMPANY.city,
+    "addressRegion": YP_COMPANY.city,
     "addressCountry": "TR",
   },
-  "description": "Türkiye'nin 81 iline hızlı kargo ile ulaşan Toy Poodle uzman e-ticaret ve topluluk platformu.",
+  "description": "Türkiye geneline kargo ile Toy Poodle e-ticaret ve topluluk platformu.",
   "areaServed": "TR",
   "sameAs": [
     "https://instagram.com/yourpoodle",
@@ -97,7 +100,7 @@ const orgSchema = {
 
 export default function YPFooter() {
   return (
-    <footer role="contentinfo" className="bg-gray-950 mt-0">
+    <footer role="contentinfo" className="yp-site-footer bg-gray-950 mt-0">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
@@ -225,26 +228,9 @@ export default function YPFooter() {
             <span className="text-gray-600">Tüm hakları saklıdır.</span>
           </p>
 
-          {/* Payment badges */}
-          <div className="flex gap-2 flex-wrap justify-center">
-            {[
-              { label: "VISA", href: `${B}/odeme-kartlari` },
-              { label: "MC", href: `${B}/odeme-kartlari` },
-              { label: "Troy", href: `${B}/odeme-kartlari` },
-              { label: "İyzico", href: `${B}/iyzico` },
-            ].map(badge => (
-              <a
-                key={badge.label}
-                href={badge.href}
-                className="px-2.5 py-1 rounded-md text-[10px] font-bold text-gray-400 hover:text-white transition-colors"
-                style={{
-                  background: "rgb(17,24,39)",
-                  border: "1px solid rgb(31,41,55)",
-                }}
-              >
-                {badge.label}
-              </a>
-            ))}
+          {/* Official iyzico payment marks band */}
+          <div className="flex gap-3 flex-wrap justify-center items-center">
+            <PaymentCardLogos height={36} href={`${B}/iyzico`} />
             <a
               href={`${B}/ssl`}
               className="px-2.5 py-1 rounded-md text-[10px] font-bold flex items-center gap-1 hover:opacity-90"

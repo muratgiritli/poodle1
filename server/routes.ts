@@ -21,6 +21,50 @@ import OpenAI from "openai";
 import { getSeoPagesForStore, getSitemapPagesForStore, isCargoStore } from "../client/src/lib/seo-data";
 import { getAllStoreGoogleConfigs, setStoreGoogleConfig, deleteStoreGoogleConfig } from "./google-tags";
 import { getAllStoreMerchantConfigs, getStoreMerchantConfig, setStoreMerchantConfig, deleteStoreMerchantConfig, effectiveStoreCode } from "./merchant";
+import { ensureAnalyticsTables, ingestAnalyticsEvent, touchAnalyticsHeartbeat, ANALYTICS_ID_RE } from "./first-party-analytics";
+import {
+  getRealtimeSessions,
+  getOverview,
+  getVisitorsList,
+  getVisitorDetail,
+  getSessionTimeline,
+  getTrafficSources,
+  getCampaigns,
+  getFunnel,
+  getProductAnalytics,
+  attributeOrder,
+  attributeOrderById,
+} from "./analytics-reports";
+import {
+  listTrackingIntegrations,
+  upsertTrackingIntegration,
+  getPublicTrackingConfig,
+  sendMetaCapiPurchaseForOrder,
+} from "./tracking-integrations";
+import {
+  initSharedLimits,
+  rateLimitHit,
+  otpSet,
+  otpGet,
+  otpDelete,
+  otpSendCountGet,
+  otpSendCountIncr,
+  loginAttemptGet,
+  loginAttemptSet,
+  loginAttemptClear,
+} from "./shared-limits";
+import {
+  DEFAULT_ADMIN_PASSWORD,
+  LEGACY_DEFAULT_ADMIN_PASSWORD,
+  ensureAdminSecuritySchema,
+  writeAuditLog,
+  auditActorFromReq,
+  permissionsForRole,
+  roleHasPermission,
+  ADMIN_ROLES,
+  type AdminPermission,
+  type AdminRole,
+} from "./admin-security";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
@@ -69,44 +113,8 @@ function parseSkt(skt: string): Date | null {
   return null;
 }
 
-const otpStore = new Map<string, { code: string; expiresAt: number; attempts: number }>();
-const otpSendCount = new Map<string, { count: number; resetAt: number }>();
-
-const apiRateLimits = new Map<string, { count: number; resetAt: number }>();
-function rateLimit(key: string, maxRequests: number, windowMs: number): boolean {
-  const now = Date.now();
-  const entry = apiRateLimits.get(key);
-  if (!entry || entry.resetAt <= now) {
-    apiRateLimits.set(key, { count: 1, resetAt: now + windowMs });
-    return false;
-  }
-  entry.count++;
-  return entry.count > maxRequests;
-}
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, val] of apiRateLimits) {
-    if (val.resetAt <= now) apiRateLimits.delete(key);
-  }
-  for (const [key, val] of otpStore) {
-    if (val.expiresAt <= now) otpStore.delete(key);
-  }
-  for (const [key, val] of otpSendCount) {
-    if (val.resetAt <= now) otpSendCount.delete(key);
-  }
-  for (const [key, val] of loginAttempts) {
-    if ((val.blockedUntil > 0 && val.blockedUntil <= now) || (val.blockedUntil === 0 && val.count > 0)) loginAttempts.delete(key);
-  }
-  if (apiRateLimits.size > 10000) apiRateLimits.clear();
-  if (loginAttempts.size > 5000) loginAttempts.clear();
-  if (otpStore.size > 5000) otpStore.clear();
-  if (otpSendCount.size > 5000) otpSendCount.clear();
-}, 60000);
-
-const loginAttempts = new Map<string, { count: number; blockedUntil: number }>();
-
 function generateOTP(): string {
-  return crypto.randomInt(1000, 10000).toString();
+  return crypto.randomInt(100000, 1000000).toString();
 }
 
 // Test-only OTP bypass: lets automated e2e/integration tests complete the
@@ -114,7 +122,94 @@ function generateOTP(): string {
 // can NEVER run in production: requires NODE_ENV !== "production" AND an explicit
 // TEST_OTP_BYPASS=1 env flag (set only in the development environment).
 // Evaluated per request so tests can toggle the flag at runtime.
-const TEST_OTP_CODE = "0000";
+const TEST_OTP_CODE = "000000";
+
+const TRUSTED_DEVICE_COOKIE = "yp_td";
+const CUSTOMER_PASSWORD_MIN = 8;
+
+function parseCookieHeader(req: Request): Record<string, string> {
+  const raw = req.headers.cookie || "";
+  const out: Record<string, string> = {};
+  for (const part of raw.split(";")) {
+    const i = part.indexOf("=");
+    if (i < 0) continue;
+    const k = part.slice(0, i).trim();
+    if (!k) continue;
+    try {
+      out[k] = decodeURIComponent(part.slice(i + 1).trim());
+    } catch {
+      out[k] = part.slice(i + 1).trim();
+    }
+  }
+  return out;
+}
+
+function setTrustedDeviceCookie(res: Response, token: string) {
+  const maxAge = 30 * 24 * 60 * 60;
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  res.append(
+    "Set-Cookie",
+    `${TRUSTED_DEVICE_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure}`,
+  );
+}
+
+function clearTrustedDeviceCookie(res: Response) {
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  res.append(
+    "Set-Cookie",
+    `${TRUSTED_DEVICE_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`,
+  );
+}
+
+function regenerateCustomerSession(
+  req: Request,
+  res: Response,
+  customerId: number,
+  then: () => void,
+) {
+  req.session.regenerate((err) => {
+    if (err) {
+      console.error("Customer session regenerate error:", err);
+      res.status(500).json({ message: "Oturum hatası" });
+      return;
+    }
+    (req.session as any).customerId = customerId;
+    req.session.save((saveErr) => {
+      if (saveErr) {
+        console.error("Session save error:", saveErr);
+        res.status(500).json({ message: "Oturum kaydedilemedi" });
+        return;
+      }
+      then();
+    });
+  });
+}
+
+/** Mask payment / SMS secrets before returning settings to admin UI. */
+const SECRET_SETTING_KEYS = new Set([
+  "tosla_api_pass",
+  "iyzico_secret_key",
+  "netgsm_password",
+  "netgsm_pass",
+  "sms_password",
+]);
+
+function maskSettingsSecrets(settings: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = { ...settings };
+  for (const k of SECRET_SETTING_KEYS) {
+    if (out[k] && String(out[k]).length > 0) {
+      out[k] = "••••••••";
+      out[`${k}_configured`] = "1";
+    }
+  }
+  return out;
+}
+
+function isMaskedSecretValue(v: unknown): boolean {
+  if (typeof v !== "string") return false;
+  const t = v.trim();
+  return t.length === 0 || /^•+$/.test(t) || t === "********";
+}
 export function isTestOtpBypass(): boolean {
   return process.env.NODE_ENV !== "production" && process.env.TEST_OTP_BYPASS === "1";
 }
@@ -269,18 +364,82 @@ const PgSession = pgSession(session);
 async function ensureAdminExists() {
   const existing = await storage.getUserByUsername("admin");
   if (!existing) {
-    const hashed = await bcrypt.hash("jetgo2024", 10);
+    const bootstrap = String(process.env.ADMIN_BOOTSTRAP_PASSWORD || "").trim();
+    if (bootstrap.length < 12) {
+      console.error(
+        "[security] No admin user and ADMIN_BOOTSTRAP_PASSWORD missing/weak (min 12 chars). Admin bootstrap skipped — set the env var and restart.",
+      );
+      return;
+    }
+    if (bootstrap === DEFAULT_ADMIN_PASSWORD || bootstrap === LEGACY_DEFAULT_ADMIN_PASSWORD) {
+      console.error("[security] ADMIN_BOOTSTRAP_PASSWORD must not be the legacy default. Admin bootstrap skipped.");
+      return;
+    }
+    const hashed = await bcrypt.hash(bootstrap, 10);
     await storage.createUser({ username: "admin", password: hashed });
-    console.log("Default admin user created (admin / jetgo2024)");
+    try {
+      await sharedPool.query(
+        `UPDATE users SET must_change_password = false, role = 'super_admin' WHERE username = 'admin'`,
+      );
+    } catch { /* column may not exist yet */ }
+    console.info("[security] Default admin created from ADMIN_BOOTSTRAP_PASSWORD (value not logged)");
   }
 }
+
+const ADMIN_MUST_CHANGE_ALLOW = new Set([
+  "/api/admin/change-password",
+  "/api/admin/me",
+  "/api/admin/logout",
+]);
 
 function requireAdmin(req: Request, res: Response, next: NextFunction) {
   const sess = req.session as any;
   if (!sess?.userId || sess?.isAdmin !== true) {
     return res.status(401).json({ message: "Unauthorized" });
   }
+  if (sess.mustChangePassword === true) {
+    const pathOnly = (req.path || "").split("?")[0];
+    if (!ADMIN_MUST_CHANGE_ALLOW.has(pathOnly)) {
+      return res.status(403).json({
+        message: "Önce şifrenizi değiştirmeniz gerekiyor",
+        mustChangePassword: true,
+      });
+    }
+  }
   next();
+}
+
+function requireSuperAdmin(req: Request, res: Response, next: NextFunction) {
+  const sess = req.session as any;
+  if (!sess?.userId || sess?.isAdmin !== true) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  if (sess.mustChangePassword === true) {
+    return res.status(403).json({ message: "Önce şifrenizi değiştirmeniz gerekiyor", mustChangePassword: true });
+  }
+  if (String(sess.adminRole || "") !== "super_admin") {
+    return res.status(403).json({ message: "Bu işlem için süper admin yetkisi gerekir" });
+  }
+  next();
+}
+
+function requirePermission(perm: AdminPermission) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const sess = req.session as any;
+    if (!sess?.userId || sess?.isAdmin !== true) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const role = String(sess.adminRole || "super_admin");
+    if (!roleHasPermission(role, perm)) {
+      return res.status(403).json({ message: "Bu işlem için yetkiniz yok", permission: perm });
+    }
+    next();
+  };
+}
+
+function sessionIsAdmin(req: Request): boolean {
+  const sess = req.session as any;
+  return !!(sess?.userId && sess?.isAdmin === true);
 }
 
 export async function registerRoutes(
@@ -406,7 +565,7 @@ export async function registerRoutes(
       if (claim.rowCount === 0) return;
       const ord = claim.rows[0];
       const stCfg = storeById(ord.source_site);
-      const brand = stCfg.id === "jetgo" ? "Jetgo" : stCfg.shortName;
+      const brand = stCfg.shortName || "YourPoodle";
       const apexHost = canonicalHost(stCfg).replace(/^www\./, "");
       const smsMsg = `${brand} - #${ord.id} numarali siparisiniz alindi.${paymentConfirmed ? " Odemeniz onaylandi." : ""} Tutar: ${ord.grand_total} TL. Tesekkurler! ${apexHost}`;
       const stHeader = await resolveSmsHeader(stCfg.id);
@@ -415,6 +574,52 @@ export async function registerRoutes(
       console.error("notifyCustomerNewOrder error:", e);
     }
   }
+
+  /** Award ~1 point per TL on paid orders (idempotent via type+orderId). */
+  async function awardLoyaltyForPaidOrder(orderId: number): Promise<void> {
+    try {
+      if (!orderId) return;
+      const ord = await sharedPool.query(
+        `SELECT id, grand_total, customer_phone, payment_status FROM orders WHERE id=$1`,
+        [orderId]
+      );
+      if (!ord.rows[0]) return;
+      const o = ord.rows[0];
+      if (o.payment_status !== "completed" && o.payment_status !== "paid") return;
+      const cust = await sharedPool.query(
+        `SELECT id FROM customers WHERE regexp_replace(phone, '\\D', '', 'g') = regexp_replace($1, '\\D', '', 'g') LIMIT 1`,
+        [o.customer_phone || ""]
+      );
+      if (!cust.rows[0]) return;
+      const customerId = cust.rows[0].id as number;
+      const existing = await sharedPool.query(
+        `SELECT id FROM loyalty_points WHERE customer_id=$1 AND order_id=$2 AND type='earn' LIMIT 1`,
+        [customerId, orderId]
+      );
+      if (existing.rows[0]) return;
+      const points = Math.max(1, Math.floor(Number(o.grand_total) || 0));
+      await storage.addLoyaltyPoints({
+        customerId,
+        orderId,
+        amount: points,
+        type: "earn",
+        description: `Sipariş #${orderId} puanı`,
+      });
+    } catch (e) {
+      console.error("awardLoyaltyForPaidOrder error:", e);
+    }
+  }
+
+  function parseAnalyticsIds(raw: unknown): { visitorId: string | null; sessionId: string | null } {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+      return { visitorId: null, sessionId: null };
+    }
+    const a = raw as Record<string, unknown>;
+    const visitorId = typeof a.visitorId === "string" && ANALYTICS_ID_RE.test(a.visitorId) ? a.visitorId : null;
+    const sessionId = typeof a.sessionId === "string" && ANALYTICS_ID_RE.test(a.sessionId) ? a.sessionId : null;
+    return { visitorId, sessionId };
+  }
+
   // Verilen store için LIKE desenine uyan app_settings anahtarlarını çöz.
   async function resolveSettingsLike(basePattern: string, store: string): Promise<Record<string, string>> {
     const prefix = settingsPrefix(store);
@@ -515,6 +720,8 @@ export async function registerRoutes(
     await sharedPool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_sms_sent boolean NOT NULL DEFAULT false;`);
     await sharedPool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS admin_sms_sent boolean NOT NULL DEFAULT false;`);
     await sharedPool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_sms_sent boolean NOT NULL DEFAULT false;`);
+    await sharedPool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS visitor_id TEXT`);
+    await sharedPool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS session_id TEXT`);
   } catch (e) {
     console.error("Orders source_site migration error:", e);
   }
@@ -671,6 +878,8 @@ export async function registerRoutes(
     `);
     await sharedPool.query(`ALTER TABLE ip_geo_cache ADD COLUMN IF NOT EXISTS isp TEXT;`);
     await sharedPool.query(`ALTER TABLE ip_geo_cache ADD COLUMN IF NOT EXISTS is_hosting BOOLEAN;`);
+    await ensureAnalyticsTables(sharedPool);
+    initSharedLimits(sharedPool);
   } catch (e) {
     console.error("Site visits table setup error:", e);
   }
@@ -698,6 +907,29 @@ export async function registerRoutes(
     console.error("Stock movements table setup error:", e);
   }
 
+  try {
+    await ensureAdminSecuritySchema(sharedPool);
+  } catch (e) {
+    console.error("Admin security schema setup error:", e);
+  }
+
+  // SEO redirects (301) — skip API/assets
+  app.use(async (req, res, next) => {
+    try {
+      if (req.method !== "GET" && req.method !== "HEAD") return next();
+      const path = req.path || "";
+      if (!path || path.startsWith("/api") || path.includes(".")) return next();
+      const r = await sharedPool.query(
+        `SELECT to_path FROM seo_redirects WHERE from_path = $1 AND is_active = true LIMIT 1`,
+        [path]
+      );
+      if (r.rows[0]?.to_path) {
+        return res.redirect(301, r.rows[0].to_path);
+      }
+    } catch { /* ignore */ }
+    next();
+  });
+
   // ── yp_articles one-time schema migration + initial seed ──────────────────────
   // Runs at startup (not per-request). The sitemap handler is intentionally
   // read-only; admin edits/deletes are the sole mechanism for changing the list.
@@ -710,6 +942,11 @@ export async function registerRoutes(
         is_active BOOLEAN DEFAULT true, slug TEXT
       )`);
     await sharedPool.query(`ALTER TABLE yp_articles ADD COLUMN IF NOT EXISTS slug TEXT`);
+    await sharedPool.query(`ALTER TABLE yp_articles ADD COLUMN IF NOT EXISTS seo_title TEXT`);
+    await sharedPool.query(`ALTER TABLE yp_articles ADD COLUMN IF NOT EXISTS seo_description TEXT`);
+    await sharedPool.query(`ALTER TABLE yp_articles ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ`);
+    await sharedPool.query(`ALTER TABLE yp_articles ADD COLUMN IF NOT EXISTS scheduled_at TIMESTAMPTZ`);
+    await sharedPool.query(`ALTER TABLE yp_articles ADD COLUMN IF NOT EXISTS related_slugs TEXT`);
     await sharedPool.query(`
       CREATE UNIQUE INDEX IF NOT EXISTS yp_articles_slug_unique
       ON yp_articles (slug) WHERE slug IS NOT NULL`);
@@ -742,6 +979,22 @@ export async function registerRoutes(
     }
   } catch (e) {
     console.error("yp_articles schema/seed error:", e);
+  }
+
+  // ── Guide page → recommended products (admin-assigned) ─────────────────────
+  try {
+    await sharedPool.query(`
+      CREATE TABLE IF NOT EXISTS yp_guide_products (
+        article_slug TEXT NOT NULL,
+        product_id INTEGER NOT NULL,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (article_slug, product_id)
+      )`);
+    await sharedPool.query(`
+      CREATE INDEX IF NOT EXISTS yp_guide_products_slug_idx
+      ON yp_guide_products (article_slug)`);
+  } catch (e) {
+    console.error("yp_guide_products schema error:", e);
   }
 
   // ── yp_events one-time schema migration ───────────────────────────────────
@@ -862,7 +1115,7 @@ export async function registerRoutes(
     console.warn("[local] Skipping seedDatabase/ensureAdminExists (no Postgres)");
   }
 
-  app.use((req, res, next) => {
+  app.use(async (req, res, next) => {
     // Task 15: Correct security headers — no X-XSS-Protection (deprecated)
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("X-Frame-Options", "SAMEORIGIN");
@@ -875,12 +1128,12 @@ export async function registerRoutes(
     // Task 4: Harden CSP — remove unsafe-eval; restrict img-src to known domains; add object-src none + upgrade-insecure-requests
     res.setHeader("Content-Security-Policy", [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://googleads.g.doubleclick.net https://www.googleadservices.com",
+      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://connect.facebook.net https://analytics.tiktok.com https://www.clarity.ms https://scripts.clarity.ms https://mc.yandex.ru https://static.hotjar.com https://*.hotjar.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://www.yourpoodle.com https://www.enuygunpet.com https://www.google-analytics.com https://www.googletagmanager.com https://googleads.g.doubleclick.net https://images.unsplash.com https://picsum.photos https://fastly.picsum.photos",
-      "connect-src 'self' https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com",
-      "frame-src 'self' https://www.google.com https://maps.google.com https://www.google.com.tr",
+      "img-src 'self' data: blob: https://www.yourpoodle.com https://www.enuygunpet.com https://www.google-analytics.com https://www.googletagmanager.com https://googleads.g.doubleclick.net https://images.unsplash.com https://picsum.photos https://fastly.picsum.photos https://www.facebook.com https://*.facebook.com https://mc.yandex.ru https://*.tiktok.com",
+      "connect-src 'self' https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://www.facebook.com https://connect.facebook.net https://graph.facebook.com https://analytics.tiktok.com https://*.tiktokw.us https://*.clarity.ms https://mc.yandex.ru https://*.hotjar.com https://*.hotjar.io wss://*.hotjar.com",
+      "frame-src 'self' https://www.google.com https://maps.google.com https://www.google.com.tr https://www.facebook.com https://*.hotjar.com",
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -898,12 +1151,12 @@ export async function registerRoutes(
         ip === "::1" ||
         ip === "::ffff:127.0.0.1" ||
         ip === "localhost";
-      if (!isLocalDev && rateLimit(`global:api:${ip}`, 100, 15 * 60 * 1000)) {
+      if (!isLocalDev && await rateLimitHit(`global:api:${ip}`, 100, 15 * 60 * 1000)) {
         return res.status(429).json({ error: "Too many requests", retryAfter: 900 });
       }
     }
 
-    next();
+    return next();
   });
 
   app.get("/sitemap.xml", async (req, res) => {
@@ -1078,7 +1331,10 @@ export async function registerRoutes(
       let articleRows: Array<{ id: number; title: string; slug: string | null }> = [];
       try {
         const result = await sharedPool.query<{ id: number; title: string; slug: string | null }>(
-          `SELECT id, title, slug FROM yp_articles WHERE is_active = true ORDER BY featured DESC, sort_order ASC, id ASC`
+          `SELECT id, title, slug FROM yp_articles
+           WHERE is_active = true
+             AND (scheduled_at IS NULL OR scheduled_at <= NOW())
+           ORDER BY featured DESC, sort_order ASC, id ASC`
         );
         articleRows = result.rows;
       } catch (_dbErr) {
@@ -1230,7 +1486,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/export/xlsx", requireAdmin, async (req, res) => {
+  app.get("/api/export/xlsx", requireAdmin, requirePermission("products.read"), async (req, res) => {
     try {
       const ExcelJS = (await import("exceljs")).default;
       const SITE = storeById(adminStoreId(req)).domain;
@@ -1289,7 +1545,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/export/products-xlsx", requireAdmin, async (req, res) => {
+  app.get("/api/admin/export/products-xlsx", requireAdmin, requirePermission("products.read"), async (req, res) => {
     try {
       const ExcelJS = (await import("exceljs")).default;
       const ANIMAL_MAP: Record<string, string> = { kopek: "Köpek" };
@@ -1416,7 +1672,7 @@ export async function registerRoutes(
     };
   }
 
-  app.get("/api/admin/reports/mama-stock", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/reports/mama-stock", requireAdmin, requirePermission("products.read"), async (_req, res) => {
     try {
       const data = await getMamaStockData();
       res.json(data);
@@ -1426,7 +1682,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/export/mama-stock-xlsx", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/export/mama-stock-xlsx", requireAdmin, requirePermission("products.read"), async (_req, res) => {
     try {
       const ExcelJS = (await import("exceljs")).default;
       const data = await getMamaStockData();
@@ -1518,7 +1774,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/export/yml", requireAdmin, async (req, res) => {
+  app.get("/api/export/yml", requireAdmin, requirePermission("products.read"), async (req, res) => {
     try {
       const stCfg = storeById(adminStoreId(req));
       const SITE = stCfg.domain;
@@ -1670,7 +1926,7 @@ export async function registerRoutes(
     res.json(subs.filter(s => s.isActive));
   });
 
-  app.post("/api/admin/subcategories", requireAdmin, async (req, res) => {
+  app.post("/api/admin/subcategories", requireAdmin, requirePermission("products.write"), async (req, res) => {
     try {
       const schema = z.object({ animal: z.string().min(1).max(30), slug: z.string().min(1).max(50), displayName: z.string().min(1).max(100), color: z.string().max(20).optional(), hasBrands: z.boolean().optional(), sortOrder: z.number().int().optional(), isActive: z.boolean().optional() });
       const parsed = schema.safeParse(req.body);
@@ -1682,7 +1938,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/admin/subcategories/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/subcategories/:id", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) return res.status(400).json({ message: "Geçersiz ID" });
     const allowedKeys = ["animal", "slug", "displayName", "color", "hasBrands", "sortOrder", "isActive"];
@@ -1695,7 +1951,7 @@ export async function registerRoutes(
     res.json(sub);
   });
 
-  app.delete("/api/admin/subcategories/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/subcategories/:id", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     await storage.deleteSubcategory(id);
     res.json({ message: "Deleted" });
@@ -2267,8 +2523,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
 
   app.get("/api/products", async (req, res) => {
     const allProducts = await storage.getAllProducts();
-    const isAdmin = !!(req.session as any)?.userId;
-    const showAll = req.query.all === "true" && isAdmin;
+    const showAll = req.query.all === "true" && sessionIsAdmin(req);
     if (showAll) {
       res.setHeader("Cache-Control", "private, no-store");
       res.json(allProducts);
@@ -2279,9 +2534,11 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   });
 
   // YourPoodle storefront: products joined with brand_categories for animal + subcategory
+  // Admin: ?all=true includes inactive (Gizle sonrası hub'dan kaybolmasın)
   app.get("/api/yp-products", async (req, res) => {
     try {
       const subcategory = typeof req.query.subcategory === "string" ? req.query.subcategory : null;
+      const showAll = req.query.all === "true" && sessionIsAdmin(req);
       const result = await sharedPool.query(
         `SELECT p.id, p.name, p.price, p.original_price AS "originalPrice",
                 p.img, p.stock, p.is_active AS "isActive", p.mama_type AS "mamaType",
@@ -2292,12 +2549,17 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
                 bc.animal, bc.subcategory, bc.brand_name AS "brandName", bc.brand_slug AS "brandSlug"
          FROM products p
          LEFT JOIN brand_categories bc ON p.brand_category_id = bc.id
-         WHERE p.is_active = true AND bc.animal = 'kopek'
+         WHERE bc.animal = 'kopek'
+         ${showAll ? "" : "AND p.is_active = true"}
          ${subcategory ? "AND bc.subcategory = $1" : ""}
-         ORDER BY p.id DESC`,
+         ORDER BY p.is_active DESC, p.id DESC`,
         subcategory ? [subcategory] : []
       );
-      res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+      if (showAll) {
+        res.setHeader("Cache-Control", "private, no-store");
+      } else {
+        res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+      }
       res.json(result.rows);
     } catch (e: any) {
       console.error("[/api/yp-products]", e?.message);
@@ -2373,7 +2635,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.get("/api/admin/missing-products", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/missing-products", requireAdmin, requirePermission("products.read"), async (_req, res) => {
     const all = await storage.getAllProducts();
     const noImage = all.filter(p => !p.img || p.img === "");
     const noPrice = all.filter(p => !p.price || p.price <= 0);
@@ -2415,7 +2677,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.get("/api/admin/street-animals", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/street-animals", requireAdmin, requirePermission("products.read"), async (_req, res) => {
     const r = await sharedPool.query(
       `SELECT id, name, price, original_price AS "originalPrice", img, stock, barcode, is_active AS "isActive",
               skt, cost_price AS "costPrice"
@@ -2424,7 +2686,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json(r.rows);
   });
 
-  app.post("/api/admin/street-animals/quick-create", requireAdmin, upload.single("image"), async (req, res) => {
+  app.post("/api/admin/street-animals/quick-create", requireAdmin, requirePermission("products.write"), upload.single("image"), async (req, res) => {
     try {
       const name = String(req.body.name || "").trim();
       const price = parseFloat(req.body.price);
@@ -2486,7 +2748,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.patch("/api/admin/street-animals/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/street-animals/:id", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) return res.status(400).json({ message: "Geçersiz id" });
     const allowed: any = {};
@@ -2503,7 +2765,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json(updated);
   });
 
-  app.delete("/api/admin/street-animals/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/street-animals/:id", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) return res.status(400).json({ message: "Geçersiz id" });
     await sharedPool.query("DELETE FROM products WHERE id = $1 AND is_street_animal = true", [id]);
@@ -2528,14 +2790,14 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
 
     // Rate limit: 5 per 15 min per IP
-    if (rateLimit(`adminlogin:rate:${ip}`, 5, 15 * 60 * 1000)) {
+    if (await rateLimitHit(`adminlogin:rate:${ip}`, 5, 15 * 60 * 1000)) {
       console.warn(`[admin-login] rate-limited IP=${ip}`);
       res.setHeader("Retry-After", "900");
       return res.status(429).json({ message: "Too many requests", retryAfter: 900 });
     }
 
     // Hard block: 30 min after 10 cumulative fails
-    const attempt = loginAttempts.get(`admin:${ip}`);
+    const attempt = await loginAttemptGet(`admin:${ip}`);
     if (attempt && attempt.blockedUntil > now) {
       const wait = Math.ceil((attempt.blockedUntil - now) / 1000);
       res.setHeader("Retry-After", String(wait));
@@ -2553,15 +2815,33 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     if (!user || !valid) {
       const c = (attempt?.count || 0) + 1;
       const blockAt = c >= 10 ? now + 30 * 60 * 1000 : 0;
-      loginAttempts.set(`admin:${ip}`, { count: c, blockedUntil: blockAt });
+      await loginAttemptSet(`admin:${ip}`, c, blockAt);
       // Log failure — never log the password
       console.warn(`[admin-login] FAIL ip=${ip} attempt=${c} user="${username}" ua="${ua}"`);
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
     // Success — clear attempts, regenerate session ID
-    loginAttempts.delete(`admin:${ip}`);
+    await loginAttemptClear(`admin:${ip}`);
     console.info(`[admin-login] SUCCESS ip=${ip} user="${username}" ua="${ua}"`);
+
+    let mustChange = false;
+    let role = "super_admin";
+    try {
+      const meta = await sharedPool.query(
+        `SELECT role, must_change_password FROM users WHERE id = $1`,
+        [user.id],
+      );
+      role = String(meta.rows[0]?.role || "super_admin");
+      mustChange = !!meta.rows[0]?.must_change_password;
+    } catch { /* ignore */ }
+    if (!mustChange && (await bcrypt.compare(LEGACY_DEFAULT_ADMIN_PASSWORD, user.password))) {
+      mustChange = true;
+      try {
+        await sharedPool.query(`UPDATE users SET must_change_password = true WHERE id = $1`, [user.id]);
+      } catch { /* ignore */ }
+    }
+
     req.session.regenerate((err) => {
       if (err) {
         console.error("Session regenerate error:", err);
@@ -2569,9 +2849,26 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       }
       (req.session as any).userId = user.id;
       (req.session as any).isAdmin = true;
+      (req.session as any).adminUsername = user.username;
+      (req.session as any).adminRole = role;
+      (req.session as any).mustChangePassword = mustChange;
       req.session.save((saveErr) => {
         if (saveErr) return res.status(500).json({ message: "Session save error" });
-        res.json({ message: "Login successful" });
+        writeAuditLog(sharedPool, {
+          actorUserId: String(user.id),
+          actorUsername: user.username,
+          action: "admin.login",
+          entityType: "user",
+          entityId: user.id,
+          ip,
+          meta: { mustChangePassword: mustChange, role },
+        });
+        res.json({
+          message: "Login successful",
+          mustChangePassword: mustChange,
+          role,
+          permissions: permissionsForRole(role),
+        });
       });
     });
   });
@@ -2592,7 +2889,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     });
   });
 
-  app.post("/api/admin/import-vet", requireAdmin, async (_req, res) => {
+  app.post("/api/admin/import-vet", requireAdmin, requirePermission("settings.write"), async (_req, res) => {
     if (isVetImportRunning()) {
       return res.status(409).json({ message: "İçe aktarma zaten çalışıyor" });
     }
@@ -2616,11 +2913,11 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.get("/api/admin/import-vet/status", requireAdmin, (_req, res) => {
+  app.get("/api/admin/import-vet/status", requireAdmin, requirePermission("settings.write"), (_req, res) => {
     res.json(getVetImportStatus());
   });
 
-  app.post("/api/admin/fill-seo", requireAdmin, async (req, res) => {
+  app.post("/api/admin/fill-seo", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     if (isSeoFillRunning()) {
       return res.status(409).json({ message: "SEO doldurma zaten çalışıyor" });
     }
@@ -2645,33 +2942,568 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.get("/api/admin/fill-seo/status", requireAdmin, (_req, res) => {
+  app.get("/api/admin/fill-seo/status", requireAdmin, requirePermission("settings.write"), (_req, res) => {
     res.json(getSeoFillStatus());
   });
 
   app.get("/api/admin/me", async (req, res) => {
     const sess = req.session as any;
     const userId = sess?.userId;
-    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    if (!userId || sess?.isAdmin !== true) return res.status(401).json({ message: "Not authenticated" });
     const user = await storage.getUser(userId);
     if (!user) return res.status(401).json({ message: "Not authenticated" });
-    // Upgrade legacy sessions that pre-date the isAdmin flag so that
-    // all subsequent requests in the same session pass requireAdmin.
-    if (sess.isAdmin !== true) {
-      sess.isAdmin = true;
-      await new Promise<void>((resolve) => req.session.save(() => resolve()));
-    }
-    res.json({ username: user.username });
+
+    let role = String(sess.adminRole || "super_admin");
+    let mustChange = !!sess.mustChangePassword;
+    try {
+      const meta = await sharedPool.query(
+        `SELECT role, must_change_password FROM users WHERE id = $1`,
+        [user.id],
+      );
+      if (meta.rows[0]) {
+        role = String(meta.rows[0].role || "super_admin");
+        mustChange = !!meta.rows[0].must_change_password;
+        sess.adminRole = role;
+        sess.mustChangePassword = mustChange;
+        sess.adminUsername = user.username;
+      }
+    } catch { /* ignore */ }
+
+    res.json({
+      username: user.username,
+      role,
+      mustChangePassword: mustChange,
+      permissions: permissionsForRole(role),
+    });
   });
 
-  app.post("/api/admin/brand-categories", requireAdmin, async (req, res) => {
+  app.post("/api/admin/change-password", requireAdmin, async (req, res) => {
+    try {
+      const currentPassword = String(req.body?.currentPassword || "");
+      const newPassword = String(req.body?.newPassword || "");
+      if (newPassword.length < 12) {
+        return res.status(400).json({ message: "Yeni şifre en az 12 karakter olmalı" });
+      }
+      if (newPassword === LEGACY_DEFAULT_ADMIN_PASSWORD || newPassword === DEFAULT_ADMIN_PASSWORD) {
+        return res.status(400).json({ message: "Varsayılan şifreyi kullanamazsınız" });
+      }
+      const sess = req.session as any;
+      const user = await storage.getUser(String(sess.userId));
+      if (!user) return res.status(401).json({ message: "Not authenticated" });
+      const ok = await bcrypt.compare(currentPassword, user.password);
+      if (!ok) return res.status(401).json({ message: "Mevcut şifre hatalı" });
+      const hashed = await bcrypt.hash(newPassword, 10);
+      await sharedPool.query(
+        `UPDATE users SET password = $1, must_change_password = false WHERE id = $2`,
+        [hashed, user.id],
+      );
+      sess.mustChangePassword = false;
+      const actor = auditActorFromReq(req);
+      await writeAuditLog(sharedPool, {
+        actorUserId: actor.userId,
+        actorUsername: user.username,
+        action: "admin.password_change",
+        entityType: "user",
+        entityId: user.id,
+        ip: actor.ip,
+      });
+      res.json({ ok: true });
+    } catch (e: any) {
+      console.error("change-password:", e?.message);
+      res.status(500).json({ message: "Şifre değiştirilemedi" });
+    }
+  });
+
+  app.get("/api/admin/audit-logs", requireAdmin, requirePermission("audit.read"), async (req, res) => {
+    try {
+      const limit = Math.min(200, Math.max(1, Number(req.query.limit) || 50));
+      const action = typeof req.query.action === "string" ? req.query.action.trim() : "";
+      const rows = action
+        ? await sharedPool.query(
+            `SELECT id, actor_user_id AS "actorUserId", actor_username AS "actorUsername",
+                    action, entity_type AS "entityType", entity_id AS "entityId",
+                    before_json AS "before", after_json AS "after", ip, meta, created_at AS "createdAt"
+             FROM audit_logs WHERE action = $1 ORDER BY created_at DESC LIMIT $2`,
+            [action, limit],
+          )
+        : await sharedPool.query(
+            `SELECT id, actor_user_id AS "actorUserId", actor_username AS "actorUsername",
+                    action, entity_type AS "entityType", entity_id AS "entityId",
+                    before_json AS "before", after_json AS "after", ip, meta, created_at AS "createdAt"
+             FROM audit_logs ORDER BY created_at DESC LIMIT $1`,
+            [limit],
+          );
+      res.json(rows.rows);
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Audit log okunamadı" });
+    }
+  });
+
+  // ─── Staff / RBAC ─────────────────────────────────────────────────────────
+  app.get("/api/admin/staff/roles", requireAdmin, requirePermission("staff.manage"), (_req, res) => {
+    res.json(ADMIN_ROLES.map((r) => ({
+      ...r,
+      permissions: permissionsForRole(r.id),
+    })));
+  });
+
+  app.get("/api/admin/staff", requireAdmin, requirePermission("staff.manage"), async (_req, res) => {
+    try {
+      const r = await sharedPool.query(
+        `SELECT id, username, role, must_change_password AS "mustChangePassword"
+         FROM users ORDER BY username ASC`
+      );
+      res.json(r.rows);
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Personel listelenemedi" });
+    }
+  });
+
+  app.post("/api/admin/staff", requireAdmin, requirePermission("staff.manage"), async (req, res) => {
+    try {
+      const username = String(req.body?.username || "").trim().toLowerCase();
+      const password = String(req.body?.password || "");
+      const role = String(req.body?.role || "support") as AdminRole;
+      if (!/^[a-z0-9._-]{3,40}$/.test(username)) {
+        return res.status(400).json({ message: "Kullanıcı adı 3–40 karakter, a-z 0-9 ._-" });
+      }
+      if (password.length < 12) return res.status(400).json({ message: "Şifre en az 12 karakter" });
+      if (!ADMIN_ROLES.some((r) => r.id === role)) {
+        return res.status(400).json({ message: "Geçersiz rol" });
+      }
+      const exists = await storage.getUserByUsername(username);
+      if (exists) return res.status(409).json({ message: "Bu kullanıcı adı zaten var" });
+      const hashed = await bcrypt.hash(password, 10);
+      const user = await storage.createUser({ username, password: hashed });
+      await sharedPool.query(
+        `UPDATE users SET role = $1, must_change_password = true WHERE id = $2`,
+        [role, user.id]
+      );
+      const actor = auditActorFromReq(req);
+      await writeAuditLog(sharedPool, {
+        actorUserId: actor.userId,
+        actorUsername: actor.username,
+        action: "staff.create",
+        entityType: "user",
+        entityId: user.id,
+        after: { username, role },
+        ip: actor.ip,
+      });
+      res.status(201).json({ id: user.id, username, role, mustChangePassword: true });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Personel eklenemedi" });
+    }
+  });
+
+  app.patch("/api/admin/staff/:id", requireAdmin, requirePermission("staff.manage"), async (req, res) => {
+    try {
+      const id = String(req.params.id);
+      const cur = await sharedPool.query(
+        `SELECT id, username, role, must_change_password FROM users WHERE id = $1`,
+        [id]
+      );
+      if (!cur.rows[0]) return res.status(404).json({ message: "Kullanıcı yok" });
+      const before = cur.rows[0];
+      const updates: string[] = [];
+      const params: any[] = [];
+      let i = 1;
+      if (req.body?.role !== undefined) {
+        const role = String(req.body.role) as AdminRole;
+        if (!ADMIN_ROLES.some((r) => r.id === role)) {
+          return res.status(400).json({ message: "Geçersiz rol" });
+        }
+        if (before.role === "super_admin" && role !== "super_admin") {
+          const supers = await sharedPool.query(
+            `SELECT COUNT(*)::int AS c FROM users WHERE role = 'super_admin'`
+          );
+          if ((supers.rows[0]?.c || 0) <= 1) {
+            return res.status(400).json({ message: "Son süper admin rolü düşürülemez" });
+          }
+        }
+        updates.push(`role = $${i++}`);
+        params.push(role);
+      }
+      if (req.body?.mustChangePassword !== undefined) {
+        updates.push(`must_change_password = $${i++}`);
+        params.push(!!req.body.mustChangePassword);
+      }
+      if (req.body?.password) {
+        const password = String(req.body.password);
+        if (password.length < 12) return res.status(400).json({ message: "Şifre en az 12 karakter" });
+        updates.push(`password = $${i++}`);
+        params.push(await bcrypt.hash(password, 10));
+        updates.push(`must_change_password = true`);
+      }
+      if (updates.length === 0) return res.status(400).json({ message: "Güncellenecek alan yok" });
+      params.push(id);
+      await sharedPool.query(`UPDATE users SET ${updates.join(", ")} WHERE id = $${i}`, params);
+      const after = await sharedPool.query(
+        `SELECT id, username, role, must_change_password AS "mustChangePassword" FROM users WHERE id = $1`,
+        [id]
+      );
+      const actor = auditActorFromReq(req);
+      await writeAuditLog(sharedPool, {
+        actorUserId: actor.userId,
+        actorUsername: actor.username,
+        action: "staff.update",
+        entityType: "user",
+        entityId: id,
+        before: { role: before.role },
+        after: after.rows[0],
+        ip: actor.ip,
+      });
+      res.json(after.rows[0]);
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Güncellenemedi" });
+    }
+  });
+
+  app.delete("/api/admin/staff/:id", requireAdmin, requirePermission("staff.manage"), async (req, res) => {
+    try {
+      const id = String(req.params.id);
+      const sess = req.session as any;
+      if (String(sess.userId) === id) {
+        return res.status(400).json({ message: "Kendinizi silemezsiniz" });
+      }
+      const cur = await sharedPool.query(`SELECT id, username, role FROM users WHERE id = $1`, [id]);
+      if (!cur.rows[0]) return res.status(404).json({ message: "Kullanıcı yok" });
+      if (cur.rows[0].role === "super_admin") {
+        const supers = await sharedPool.query(
+          `SELECT COUNT(*)::int AS c FROM users WHERE role = 'super_admin'`
+        );
+        if ((supers.rows[0]?.c || 0) <= 1) {
+          return res.status(400).json({ message: "Son süper admin silinemez" });
+        }
+      }
+      await sharedPool.query(`DELETE FROM users WHERE id = $1`, [id]);
+      const actor = auditActorFromReq(req);
+      await writeAuditLog(sharedPool, {
+        actorUserId: actor.userId,
+        actorUsername: actor.username,
+        action: "staff.delete",
+        entityType: "user",
+        entityId: id,
+        before: cur.rows[0],
+        ip: actor.ip,
+      });
+      res.json({ ok: true });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Silinemedi" });
+    }
+  });
+
+  // ─── Refunds ──────────────────────────────────────────────────────────────
+  app.get("/api/admin/refunds", requireAdmin, requirePermission("orders.read"), async (req, res) => {
+    try {
+      const status = typeof req.query.status === "string" ? req.query.status : "";
+      const r = status
+        ? await sharedPool.query(
+            `SELECT r.id, r.order_id AS "orderId", r.customer_id AS "customerId", r.reason,
+                    r.amount, r.status, r.admin_note AS "adminNote", r.resolved_by AS "resolvedBy",
+                    r.created_at AS "createdAt", r.resolved_at AS "resolvedAt",
+                    o.customer_name AS "customerName", o.customer_phone AS "customerPhone",
+                    o.grand_total AS "grandTotal", o.status AS "orderStatus", o.payment_status AS "paymentStatus"
+             FROM order_refunds r
+             LEFT JOIN orders o ON o.id = r.order_id
+             WHERE r.status = $1
+             ORDER BY r.created_at DESC LIMIT 200`,
+            [status]
+          )
+        : await sharedPool.query(
+            `SELECT r.id, r.order_id AS "orderId", r.customer_id AS "customerId", r.reason,
+                    r.amount, r.status, r.admin_note AS "adminNote", r.resolved_by AS "resolvedBy",
+                    r.created_at AS "createdAt", r.resolved_at AS "resolvedAt",
+                    o.customer_name AS "customerName", o.customer_phone AS "customerPhone",
+                    o.grand_total AS "grandTotal", o.status AS "orderStatus", o.payment_status AS "paymentStatus"
+             FROM order_refunds r
+             LEFT JOIN orders o ON o.id = r.order_id
+             ORDER BY r.created_at DESC LIMIT 200`
+          );
+      res.json(r.rows);
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "İadeler alınamadı" });
+    }
+  });
+
+  app.patch("/api/admin/refunds/:id", requireAdmin, requirePermission("orders.update"), async (req, res) => {
+    try {
+      const id = parseInt(String(req.params.id));
+      if (isNaN(id)) return res.status(400).json({ message: "Geçersiz ID" });
+      const status = String(req.body?.status || "");
+      const adminNote = req.body?.adminNote != null ? String(req.body.adminNote).slice(0, 1000) : undefined;
+      if (!["pending", "approved", "rejected", "completed"].includes(status)) {
+        return res.status(400).json({ message: "Geçersiz durum" });
+      }
+      const cur = await sharedPool.query(`SELECT * FROM order_refunds WHERE id = $1`, [id]);
+      if (!cur.rows[0]) return res.status(404).json({ message: "İade bulunamadı" });
+      const actor = auditActorFromReq(req);
+      await sharedPool.query(
+        `UPDATE order_refunds SET status = $1, admin_note = COALESCE($2, admin_note),
+           resolved_by = $3, resolved_at = NOW() WHERE id = $4`,
+        [status, adminNote ?? null, actor.username || "admin", id]
+      );
+      if (status === "approved") {
+        await sharedPool.query(
+          `UPDATE orders SET status = 'iade_talebi' WHERE id = $1`,
+          [cur.rows[0].order_id]
+        );
+      }
+      if (status === "completed") {
+        await sharedPool.query(
+          `UPDATE orders SET status = 'iade_edildi', payment_status = 'refunded' WHERE id = $1`,
+          [cur.rows[0].order_id]
+        );
+      }
+      if (status === "rejected") {
+        await sharedPool.query(
+          `UPDATE orders SET status = CASE WHEN status IN ('iade_talebi','iade_edildi') THEN 'tamamlandi' ELSE status END
+           WHERE id = $1`,
+          [cur.rows[0].order_id]
+        );
+      }
+      await writeAuditLog(sharedPool, {
+        actorUserId: actor.userId,
+        actorUsername: actor.username,
+        action: "refund.update",
+        entityType: "order_refund",
+        entityId: id,
+        before: { status: cur.rows[0].status },
+        after: { status, adminNote },
+        ip: actor.ip,
+      });
+      res.json({ ok: true });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "İade güncellenemedi" });
+    }
+  });
+
+  /** Admin-initiated refund (creates order_refunds row + sets order status). */
+  app.post("/api/admin/refunds", requireAdmin, requirePermission("orders.update"), async (req, res) => {
+    try {
+      const orderId = parseInt(String(req.body?.orderId));
+      if (isNaN(orderId)) return res.status(400).json({ message: "orderId gerekli" });
+      const reason = String(req.body?.reason || "Admin iade").trim().slice(0, 500);
+      const adminNote = req.body?.adminNote != null ? String(req.body.adminNote).slice(0, 1000) : null;
+      const orderRows = await sharedPool.query(
+        `SELECT id, status, customer_id, grand_total FROM orders WHERE id = $1`,
+        [orderId]
+      );
+      if (!orderRows.rows[0]) return res.status(404).json({ message: "Sipariş bulunamadı" });
+      const order = orderRows.rows[0];
+      const open = await sharedPool.query(
+        `SELECT id FROM order_refunds WHERE order_id = $1 AND status IN ('pending','approved') LIMIT 1`,
+        [orderId]
+      );
+      if (open.rows[0]) return res.status(409).json({ message: "Bu sipariş için açık iade talebi var", id: open.rows[0].id });
+      const amount = req.body?.amount != null ? Number(req.body.amount) : Number(order.grand_total);
+      const actor = auditActorFromReq(req);
+      const ins = await sharedPool.query(
+        `INSERT INTO order_refunds (order_id, customer_id, reason, amount, status, admin_note, resolved_by)
+         VALUES ($1,$2,$3,$4,'pending',$5,$6) RETURNING id`,
+        [orderId, order.customer_id || null, reason, amount, adminNote, actor.username || "admin"]
+      );
+      await sharedPool.query(`UPDATE orders SET status = 'iade_talebi' WHERE id = $1`, [orderId]);
+      await writeAuditLog(sharedPool, {
+        actorUserId: actor.userId,
+        actorUsername: actor.username,
+        action: "refund.create",
+        entityType: "order_refund",
+        entityId: ins.rows[0].id,
+        after: { orderId, reason, amount },
+        ip: actor.ip,
+      });
+      res.status(201).json({ ok: true, id: ins.rows[0].id });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "İade oluşturulamadı" });
+    }
+  });
+
+  app.post("/api/customer/orders/:id/refund-request", requireCustomer, async (req, res) => {
+    const customerId = (req as any).customerId;
+    const orderId = parseInt(String(req.params.id));
+    if (isNaN(orderId)) return res.status(400).json({ message: "Geçersiz sipariş ID" });
+    const reason = String(req.body?.reason || "").trim().slice(0, 500);
+    if (!reason) return res.status(400).json({ message: "İade nedeni gerekli" });
+    try {
+      const customer = await storage.getCustomer(customerId);
+      if (!customer) return res.status(401).json({ message: "Müşteri bulunamadı" });
+      const orderRows = await sharedPool.query(
+        `SELECT id, status, payment_status, customer_phone, grand_total FROM orders WHERE id = $1`,
+        [orderId]
+      );
+      if (!orderRows.rows[0]) return res.status(404).json({ message: "Sipariş bulunamadı" });
+      const order = orderRows.rows[0];
+      if (canonicalTrPhone(order.customer_phone || "") !== canonicalTrPhone(customer.phone || "")) {
+        return res.status(403).json({ message: "Bu siparişe erişim izniniz yok" });
+      }
+      const allowed = ["kargoda", "tamamlandi", "teslim_edildi"];
+      if (!allowed.includes(order.status)) {
+        return res.status(409).json({ message: "Bu sipariş için iade talebi açılamaz" });
+      }
+      const open = await sharedPool.query(
+        `SELECT id FROM order_refunds WHERE order_id = $1 AND status IN ('pending','approved') LIMIT 1`,
+        [orderId]
+      );
+      if (open.rows[0]) return res.status(409).json({ message: "Bu sipariş için açık iade talebi var" });
+      const ins = await sharedPool.query(
+        `INSERT INTO order_refunds (order_id, customer_id, reason, amount, status)
+         VALUES ($1,$2,$3,$4,'pending') RETURNING id`,
+        [orderId, customerId, reason, order.grand_total]
+      );
+      await sharedPool.query(`UPDATE orders SET status = 'iade_talebi' WHERE id = $1`, [orderId]);
+      res.status(201).json({ ok: true, id: ins.rows[0].id });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "İade talebi oluşturulamadı" });
+    }
+  });
+
+  // ─── SEO redirects ────────────────────────────────────────────────────────
+  app.get("/api/admin/seo-redirects", requireAdmin, requirePermission("settings.write"), async (_req, res) => {
+    try {
+      const r = await sharedPool.query(
+        `SELECT id, from_path AS "fromPath", to_path AS "toPath", is_active AS "isActive",
+                created_at AS "createdAt"
+         FROM seo_redirects ORDER BY id DESC`
+      );
+      res.json(r.rows);
+    } catch {
+      res.json([]);
+    }
+  });
+
+  app.post("/api/admin/seo-redirects", requireAdmin, requirePermission("settings.write"), async (req, res) => {
+    try {
+      let fromPath = String(req.body?.fromPath || "").trim();
+      let toPath = String(req.body?.toPath || "").trim();
+      if (!fromPath.startsWith("/")) fromPath = `/${fromPath}`;
+      if (!toPath.startsWith("/") && !/^https?:\/\//i.test(toPath)) toPath = `/${toPath}`;
+      if (fromPath.length < 2 || toPath.length < 1) {
+        return res.status(400).json({ message: "fromPath ve toPath gerekli" });
+      }
+      const r = await sharedPool.query(
+        `INSERT INTO seo_redirects (from_path, to_path, is_active)
+         VALUES ($1,$2,true) RETURNING id, from_path AS "fromPath", to_path AS "toPath", is_active AS "isActive"`,
+        [fromPath, toPath]
+      );
+      res.status(201).json(r.rows[0]);
+    } catch (e: any) {
+      if (e?.code === "23505") return res.status(409).json({ message: "Bu from_path zaten var" });
+      res.status(500).json({ message: e?.message || "Eklenemedi" });
+    }
+  });
+
+  app.patch("/api/admin/seo-redirects/:id", requireAdmin, requirePermission("settings.write"), async (req, res) => {
+    try {
+      const id = parseInt(String(req.params.id));
+      const sets: string[] = [];
+      const params: any[] = [];
+      let i = 1;
+      if (req.body?.toPath !== undefined) {
+        let toPath = String(req.body.toPath).trim();
+        if (!toPath.startsWith("/") && !/^https?:\/\//i.test(toPath)) toPath = `/${toPath}`;
+        sets.push(`to_path = $${i++}`);
+        params.push(toPath);
+      }
+      if (req.body?.isActive !== undefined) {
+        sets.push(`is_active = $${i++}`);
+        params.push(!!req.body.isActive);
+      }
+      if (!sets.length) return res.status(400).json({ message: "Güncelleme yok" });
+      params.push(id);
+      const r = await sharedPool.query(
+        `UPDATE seo_redirects SET ${sets.join(", ")} WHERE id = $${i}
+         RETURNING id, from_path AS "fromPath", to_path AS "toPath", is_active AS "isActive"`,
+        params
+      );
+      if (!r.rows[0]) return res.status(404).json({ message: "Yok" });
+      res.json(r.rows[0]);
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Güncellenemedi" });
+    }
+  });
+
+  app.delete("/api/admin/seo-redirects/:id", requireAdmin, requirePermission("settings.write"), async (req, res) => {
+    try {
+      await sharedPool.query(`DELETE FROM seo_redirects WHERE id = $1`, [parseInt(String(req.params.id))]);
+      res.json({ ok: true });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Silinemedi" });
+    }
+  });
+
+  // ─── Finance / margin report ──────────────────────────────────────────────
+  app.get("/api/admin/reports/margin", requireAdmin, requirePermission("finance.read"), async (_req, res) => {
+    try {
+      const catalog = await sharedPool.query(
+        `SELECT id, name, price, cost_price AS "costPrice", stock, critical_stock AS "criticalStock",
+                CASE WHEN cost_price IS NOT NULL AND cost_price > 0
+                  THEN ROUND(((price - cost_price) / NULLIF(cost_price,0)) * 100)::float
+                  ELSE NULL END AS "marginPct"
+         FROM products
+         WHERE is_active = true
+         ORDER BY
+           CASE WHEN cost_price IS NULL OR cost_price <= 0 THEN 1 ELSE 0 END,
+           name ASC
+         LIMIT 500`
+      );
+      const sold = await sharedPool.query(
+        `SELECT
+           SUM(COALESCE(grand_total,0))::float AS revenue,
+           COUNT(*)::int AS order_count
+         FROM orders
+         WHERE COALESCE(status,'') NOT IN ('iptal','cancelled')
+           AND created_at >= NOW() - INTERVAL '30 days'`
+      );
+      const lowStock = await sharedPool.query(
+        `SELECT id, name, stock, critical_stock AS "criticalStock", price, cost_price AS "costPrice"
+         FROM products
+         WHERE is_active = true
+           AND stock <= COALESCE(critical_stock, 5)
+         ORDER BY stock ASC, name ASC
+         LIMIT 100`
+      );
+      const withCost = catalog.rows.filter((p: any) => p.costPrice != null && Number(p.costPrice) > 0);
+      const avgMargin =
+        withCost.length > 0
+          ? withCost.reduce((s: number, p: any) => s + (Number(p.marginPct) || 0), 0) / withCost.length
+          : null;
+      res.json({
+        products: catalog.rows,
+        lowStock: lowStock.rows,
+        last30d: sold.rows[0] || { revenue: 0, order_count: 0 },
+        avgMarginPct: avgMargin != null ? Math.round(avgMargin * 10) / 10 : null,
+        withCostCount: withCost.length,
+        missingCostCount: catalog.rows.length - withCost.length,
+      });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Marj raporu alınamadı" });
+    }
+  });
+
+  app.get("/api/admin/critical-stock", requireAdmin, requirePermission("products.read"), async (_req, res) => {
+    try {
+      const r = await sharedPool.query(
+        `SELECT id, name, stock, critical_stock AS "criticalStock", price, barcode, img
+         FROM products
+         WHERE is_active = true
+           AND stock <= COALESCE(critical_stock, 5)
+         ORDER BY stock ASC, name ASC
+         LIMIT 200`
+      );
+      res.json({ items: r.rows, count: r.rows.length });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Kritik stok listesi alınamadı" });
+    }
+  });
+
+  app.post("/api/admin/brand-categories", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const parsed = insertBrandCategorySchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.errors });
     const category = await storage.createBrandCategory(parsed.data);
     res.status(201).json(category);
   });
 
-  app.patch("/api/admin/brand-categories/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/brand-categories/:id", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) return res.status(400).json({ message: "Geçersiz ID" });
     const allowedKeys = ["brandName", "brandSlug", "animal", "subcategory"];
@@ -2684,13 +3516,13 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json(category);
   });
 
-  app.delete("/api/admin/brand-categories/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/brand-categories/:id", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     await storage.deleteBrandCategory(id);
     res.json({ message: "Deleted" });
   });
 
-  app.post("/api/admin/products", requireAdmin, async (req, res) => {
+  app.post("/api/admin/products", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const parsed = insertProductSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.errors });
     const data: any = { ...parsed.data };
@@ -2711,10 +3543,10 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.status(201).json(product);
   });
 
-  app.patch("/api/admin/products/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/products/:id", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) return res.status(400).json({ message: "Geçersiz ürün ID" });
-    const allowedFields = ["name", "price", "originalPrice", "skt", "img", "originalImg", "brandCategoryId", "isActive", "stock", "barcode", "costPrice", "mamaType", "preorderEnabled", "hiddenPaymentMethods", "variants", "longDescription", "metaTitle", "metaDescription", "metaKeywords", "mamaMetadata"];
+    const allowedFields = ["name", "price", "originalPrice", "skt", "img", "originalImg", "brandCategoryId", "isActive", "stock", "barcode", "costPrice", "criticalStock", "mamaType", "preorderEnabled", "hiddenPaymentMethods", "variants", "longDescription", "metaTitle", "metaDescription", "metaKeywords", "mamaMetadata"];
     const safeBody: Record<string, any> = {};
     for (const key of allowedFields) {
       if (req.body[key] !== undefined) safeBody[key] = req.body[key];
@@ -2737,7 +3569,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json(product);
   });
 
-  app.post("/api/admin/products/:id/image", requireAdmin, upload.single("image"), async (req, res) => {
+  app.post("/api/admin/products/:id/image", requireAdmin, requirePermission("products.write"), upload.single("image"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     if (!req.file) return res.status(400).json({ message: "Resim dosyası gerekli" });
     if (!req.file.mimetype.startsWith("image/")) return res.status(400).json({ message: "Sadece resim dosyaları yüklenebilir" });
@@ -2752,13 +3584,13 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.delete("/api/admin/products/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/products/:id", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     await storage.deleteProduct(id);
     res.json({ message: "Deleted" });
   });
 
-  app.post("/api/admin/products/bulk-price-update", requireAdmin, async (req, res) => {
+  app.post("/api/admin/products/bulk-price-update", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const { productIds, percentage } = req.body;
     if (!Array.isArray(productIds) || productIds.length === 0 || typeof percentage !== "number" || percentage === 0) {
       return res.status(400).json({ message: "Invalid data" });
@@ -2778,9 +3610,18 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       }
     }
     res.json({ message: `${updated} ürün fiyatı güncellendi`, updated });
+    const actor = auditActorFromReq(req);
+    writeAuditLog(sharedPool, {
+      actorUserId: actor.userId,
+      actorUsername: actor.username,
+      action: "products.bulk_price",
+      entityType: "product",
+      after: { productIds, percentage, updated },
+      ip: actor.ip,
+    });
   });
 
-  app.post("/api/admin/products/bulk-individual-update", requireAdmin, async (req, res) => {
+  app.post("/api/admin/products/bulk-individual-update", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const { updates } = req.body;
     if (!Array.isArray(updates) || updates.length === 0) {
       return res.status(400).json({ message: "Invalid data" });
@@ -2795,7 +3636,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json({ message: `${updated} ürün fiyatı güncellendi`, updated });
   });
 
-  app.post("/api/admin/products/rename-hills", requireAdmin, async (_req, res) => {
+  app.post("/api/admin/products/rename-hills", requireAdmin, requirePermission("products.write"), async (_req, res) => {
     const all = await storage.getAllProducts();
     const re = /^Hill(?:&#0?39;|')?s\s+Prescription\s+Diet\s+/i;
     const changes: { id: number; from: string; to: string }[] = [];
@@ -2811,7 +3652,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json({ message: `${changes.length} ürün adı güncellendi`, count: changes.length, changes });
   });
 
-  app.post("/api/admin/products/bulk-stock-update", requireAdmin, async (req, res) => {
+  app.post("/api/admin/products/bulk-stock-update", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const { updates } = req.body;
     if (!Array.isArray(updates) || updates.length === 0 || updates.length > 500) {
       return res.status(400).json({ message: "Invalid data" });
@@ -2830,7 +3671,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json({ message: `${updated} ürün stoğu güncellendi`, updated });
   });
 
-  app.post("/api/admin/products/bulk-img-update", requireAdmin, async (req, res) => {
+  app.post("/api/admin/products/bulk-img-update", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const { updates } = req.body;
     if (!Array.isArray(updates) || updates.length === 0 || updates.length > 500) {
       return res.status(400).json({ message: "Invalid data" });
@@ -2906,14 +3747,14 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json(sectionsWithItems);
   });
 
-  app.post("/api/admin/cross-sell-sections", requireAdmin, async (req, res) => {
+  app.post("/api/admin/cross-sell-sections", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const parsed = insertCrossSellSectionSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.errors });
     const section = await storage.createCrossSellSection(parsed.data);
     res.status(201).json(section);
   });
 
-  app.patch("/api/admin/cross-sell-sections/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/cross-sell-sections/:id", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) return res.status(400).json({ message: "Geçersiz ID" });
     const allowedKeys = ["title", "forProductId", "forAnimal", "sortOrder", "isActive"];
@@ -2926,20 +3767,20 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json(section);
   });
 
-  app.delete("/api/admin/cross-sell-sections/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/cross-sell-sections/:id", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     await storage.deleteCrossSellSection(id);
     res.json({ message: "Deleted" });
   });
 
-  app.post("/api/admin/cross-sell-items", requireAdmin, async (req, res) => {
+  app.post("/api/admin/cross-sell-items", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const parsed = insertCrossSellItemSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.errors });
     const item = await storage.addCrossSellItem(parsed.data);
     res.status(201).json(item);
   });
 
-  app.post("/api/admin/cross-sell-items/bulk", requireAdmin, async (req, res) => {
+  app.post("/api/admin/cross-sell-items/bulk", requireAdmin, requirePermission("products.write"), async (req, res) => {
     try {
       const sectionId = parseInt(String(req.body?.sectionId));
       const productIds: number[] = Array.isArray(req.body?.productIds)
@@ -2970,13 +3811,13 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.delete("/api/admin/cross-sell-items/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/cross-sell-items/:id", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     await storage.removeCrossSellItem(id);
     res.json({ message: "Deleted" });
   });
 
-  app.post("/api/admin/quick-cross-sell", requireAdmin, async (req, res) => {
+  app.post("/api/admin/quick-cross-sell", requireAdmin, requirePermission("products.write"), async (req, res) => {
     try {
       const { forProductId, addProductId } = req.body;
       if (!forProductId || !addProductId) return res.status(400).json({ message: "forProductId and addProductId required" });
@@ -3006,7 +3847,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.post("/api/admin/quick-cross-sell/bulk", requireAdmin, async (req, res) => {
+  app.post("/api/admin/quick-cross-sell/bulk", requireAdmin, requirePermission("products.write"), async (req, res) => {
     try {
       const forProductId = parseInt(String(req.body?.forProductId));
       const addProductIds: number[] = Array.isArray(req.body?.addProductIds)
@@ -3045,7 +3886,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.get("/api/admin/product-cross-sell/:productId", requireAdmin, async (req, res) => {
+  app.get("/api/admin/product-cross-sell/:productId", requireAdmin, requirePermission("products.read"), async (req, res) => {
     try {
       const pid = parseInt(String(req.params.productId));
       const allSections = await storage.getAllCrossSellSections();
@@ -3096,7 +3937,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       return res.status(403).json({ message: "Hesabınız askıya alınmıştır. Sipariş veremezsiniz. Lütfen müşteri hizmetleri ile iletişime geçin." });
     }
     const ip = req.ip || "unknown";
-    if (rateLimit(`order:${ip}`, 20, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`order:${ip}`, 20, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla sipariş denemesi. Lütfen bekleyin." });
     }
     const parsed = createOrderSchema.safeParse(req.body);
@@ -3525,6 +4366,32 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
 
     const order = await storage.createOrder(orderData);
 
+    const { visitorId: orderVisitorId, sessionId: orderSessionId } = parseAnalyticsIds(req.body?.analytics);
+    if (orderVisitorId || orderSessionId) {
+      try {
+        await sharedPool.query(
+          `UPDATE orders SET visitor_id = COALESCE($1, visitor_id), session_id = COALESCE($2, session_id) WHERE id = $3`,
+          [orderVisitorId, orderSessionId, order.id],
+        );
+      } catch (e) {
+        console.error("Order analytics ids update error:", e);
+      }
+    }
+
+    // Non-online payments are completed immediately — attribute now.
+    if (!isOnlinePayment && (orderVisitorId || orderSessionId)) {
+      attributeOrder(sharedPool, {
+        orderId: order.id,
+        visitorId: orderVisitorId,
+        sessionId: orderSessionId,
+        revenue: Number((order as any).grandTotal ?? orderData.grandTotal) || null,
+        currency: "TRY",
+      }).catch((e) => console.error("attributeOrder (create) error:", e));
+    }
+    if (!isOnlinePayment) {
+      sendMetaCapiPurchaseForOrder(order.id).catch(() => {});
+    }
+
     if (saleMovements.length > 0) {
       try {
         for (const sm of saleMovements) {
@@ -3909,6 +4776,8 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       }
 
       if (tok.status === "completed") {
+        attributeOrderById(sharedPool, tok.order_id).catch(() => {});
+        sendMetaCapiPurchaseForOrder(tok.order_id).catch(() => {});
         return res.redirect(303, buildResultUrl(tok.order_id, "success", merchantOrderId));
       }
       if (tok.status === "failed") {
@@ -3967,6 +4836,9 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         );
         notifyAdminNewOrder(tok.order_id, true).catch(() => {});
         notifyCustomerNewOrder(tok.order_id, true).catch(() => {});
+        awardLoyaltyForPaidOrder(tok.order_id).catch(() => {});
+        attributeOrderById(sharedPool, tok.order_id).catch(() => {});
+        sendMetaCapiPurchaseForOrder(tok.order_id).catch(() => {});
         return res.redirect(303, buildResultUrl(tok.order_id, "success", merchantOrderId));
       }
 
@@ -4074,6 +4946,10 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       }
 
       if (tokenRow.status === "completed" || tokenRow.status === "failed") {
+        if (tokenRow.status === "completed") {
+          attributeOrderById(sharedPool, tokenRow.order_id).catch(() => {});
+        sendMetaCapiPurchaseForOrder(tokenRow.order_id).catch(() => {});
+        }
         return sendOk();
       }
 
@@ -4132,6 +5008,9 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         );
         notifyAdminNewOrder(tokenRow.order_id, true).catch(() => {});
         notifyCustomerNewOrder(tokenRow.order_id, true).catch(() => {});
+        awardLoyaltyForPaidOrder(tokenRow.order_id).catch(() => {});
+        attributeOrderById(sharedPool, tokenRow.order_id).catch(() => {});
+        sendMetaCapiPurchaseForOrder(tokenRow.order_id).catch(() => {});
         return sendOk();
       }
 
@@ -4387,6 +5266,8 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
 
       // Idempotent: already processed
       if (tokenRow.status === "completed") {
+        attributeOrderById(sharedPool, tokenRow.order_id).catch(() => {});
+        sendMetaCapiPurchaseForOrder(tokenRow.order_id).catch(() => {});
         return res.redirect(303, buildResultUrl({ status: "success", order: String(tokenRow.order_id), t: token }));
       }
       if (tokenRow.status === "failed") {
@@ -4430,6 +5311,9 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         );
         notifyAdminNewOrder(tokenRow.order_id, true).catch(() => {});
         notifyCustomerNewOrder(tokenRow.order_id, true).catch(() => {});
+        awardLoyaltyForPaidOrder(tokenRow.order_id).catch(() => {});
+        attributeOrderById(sharedPool, tokenRow.order_id).catch(() => {});
+        sendMetaCapiPurchaseForOrder(tokenRow.order_id).catch(() => {});
         return res.redirect(303, buildResultUrl({ status: "success", order: String(tokenRow.order_id), t: token }));
       }
 
@@ -4566,7 +5450,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.get("/api/admin/bank-transfer-notifications", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/bank-transfer-notifications", requireAdmin, requirePermission("orders.read"), async (_req, res) => {
     try {
       const r = await sharedPool.query("SELECT * FROM bank_transfer_notifications ORDER BY id DESC LIMIT 500");
       res.json(r.rows);
@@ -4575,7 +5459,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.patch("/api/admin/bank-transfer-notifications/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/bank-transfer-notifications/:id", requireAdmin, requirePermission("orders.update"), async (req, res) => {
     try {
       const id = parseInt(String(req.params.id));
       if (isNaN(id)) return res.status(400).json({ message: "Geçersiz ID" });
@@ -4589,7 +5473,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.delete("/api/admin/bank-transfer-notifications/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/bank-transfer-notifications/:id", requireAdmin, requirePermission("orders.update"), async (req, res) => {
     try {
       const id = parseInt(String(req.params.id));
       if (isNaN(id)) return res.status(400).json({ message: "Geçersiz ID" });
@@ -4600,7 +5484,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.get("/api/admin/new-order-check", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/new-order-check", requireAdmin, requirePermission("orders.read"), async (_req, res) => {
     try {
       const result = await sharedPool.query(
         "SELECT id, customer_name, grand_total, payment_method, created_at FROM orders WHERE payment_status <> 'pending' AND payment_status <> 'awaiting' ORDER BY id DESC LIMIT 1"
@@ -4697,7 +5581,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   // Sadece jetgo mağazasında geçerli. app_settings `jetgo:product_surcharge_overrides`
   // JSON haritası { "<productId>": <yuzde> } olarak saklanır. Diğer 8 mağaza bu
   // özelliğe hiç dokunmaz; tek oranlı card_surcharge_percent modelinde kalır.
-  app.get("/api/admin/product-surcharge-overrides", requireAdmin, async (req, res) => {
+  app.get("/api/admin/product-surcharge-overrides", requireAdmin, requirePermission("products.read"), async (req, res) => {
     try {
       if (adminStoreId(req) !== "jetgo") return res.json({});
       const s = await resolveSettings(["product_surcharge_overrides"], "jetgo");
@@ -4717,7 +5601,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.patch("/api/admin/product-surcharge-overrides", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/product-surcharge-overrides", requireAdmin, requirePermission("products.write"), async (req, res) => {
     try {
       if (adminStoreId(req) !== "jetgo") {
         return res.status(400).json({ message: "Ürün bazlı ödeme farkı yalnızca jetgomarket için ayarlanabilir." });
@@ -4764,14 +5648,14 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   });
 
   // ===== Domain'e özel Google etiketleri (DB-backed, redeploy gerektirmez) =====
-  app.get("/api/admin/google-tags", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/google-tags", requireAdmin, requirePermission("settings.write"), async (_req, res) => {
     try {
       res.json(await getAllStoreGoogleConfigs());
     } catch {
       res.status(500).json({ message: "Google etiketleri yüklenemedi" });
     }
   });
-  app.put("/api/admin/google-tags/:storeId", requireAdmin, async (req, res) => {
+  app.put("/api/admin/google-tags/:storeId", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     try {
       const cfg = await setStoreGoogleConfig(String(req.params.storeId), req.body || {});
       res.json({ ok: true, config: cfg });
@@ -4780,7 +5664,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       res.status(invalid ? 400 : 500).json({ message: invalid ? "Geçersiz mağaza" : "Kayıt başarısız" });
     }
   });
-  app.delete("/api/admin/google-tags/:storeId", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/google-tags/:storeId", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     try {
       await deleteStoreGoogleConfig(String(req.params.storeId));
       res.json({ ok: true });
@@ -4792,7 +5676,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
 
   // Google Merchant Center — her domain için feed adresi, ürün sayısı ve
   // domaine özel Merchant hesap kimliği / kargo override yönetimi.
-  app.get("/api/admin/merchant", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/merchant", requireAdmin, requirePermission("settings.write"), async (_req, res) => {
     try {
       const stores = await getAllStoreMerchantConfigs();
       const { rows } = await sharedPool.query(
@@ -4803,7 +5687,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       res.status(500).json({ message: "Merchant ayarları yüklenemedi" });
     }
   });
-  app.put("/api/admin/merchant/:storeId", requireAdmin, async (req, res) => {
+  app.put("/api/admin/merchant/:storeId", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     try {
       const cfg = await setStoreMerchantConfig(String(req.params.storeId), req.body || {});
       res.json({ ok: true, config: cfg });
@@ -4812,7 +5696,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       res.status(invalid ? 400 : 500).json({ message: invalid ? "Geçersiz mağaza" : "Kayıt başarısız" });
     }
   });
-  app.delete("/api/admin/merchant/:storeId", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/merchant/:storeId", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     try {
       await deleteStoreMerchantConfig(String(req.params.storeId));
       res.json({ ok: true });
@@ -4825,7 +5709,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   // Google Local Feed admin paneli istatistikleri. Ürün kataloğu tüm domainlerde
   // ortaktır, bu yüzden sayımlar globaldir; mağaza bazlı tek fark feed adresi ve
   // store_code'dur. Feed canlı üretildiği için generatedAt = anlık zamandır.
-  app.get("/api/admin/local-feed-stats", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/local-feed-stats", requireAdmin, requirePermission("settings.write"), async (_req, res) => {
     try {
       const { rows } = await sharedPool.query(
         `SELECT COUNT(*)::int AS total,
@@ -4855,18 +5739,24 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.get("/api/admin/settings", requireAdmin, async (req, res) => {
+  app.get("/api/admin/settings", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     try {
       const settings = await resolveAllSettings(adminStoreId(req));
-      res.json(settings);
+      res.json(maskSettingsSecrets(settings));
     } catch {
       res.json({});
     }
   });
 
-  app.patch("/api/admin/settings", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/settings", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     try {
-      const updates = req.body;
+      const updates = { ...(req.body || {}) };
+      // Do not overwrite real secrets with masked placeholders from the UI
+      for (const k of SECRET_SETTING_KEYS) {
+        if (k in updates && isMaskedSecretValue(updates[k])) {
+          delete updates[k];
+        }
+      }
       const numericKeys = ["pet_base_points", "pet_streak_divisor", "pet_max_points", "pet_base_exp", "pet_streak_exp_bonus", "card_surcharge_percent"];
       const textKeys = [
         "admin_phone", "order_notification_sms", "sms_msgheader",
@@ -4958,13 +5848,13 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         }
       }
       const settings = await resolveAllSettings(store);
-      res.json(settings);
+      res.json(maskSettingsSecrets(settings));
     } catch {
       res.status(500).json({ message: "Ayarlar güncellenemedi" });
     }
   });
 
-  app.get("/api/admin/orders", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/orders", requireAdmin, requirePermission("orders.read"), async (_req, res) => {
     const rawOrders = await storage.getAllOrders();
     // Online ödeme siparişleri ödeme tamamlanmadan önce "pending"/"awaiting" olarak
     // oluşturulur (iyzico/Tosla sayfası açıkken). Ödeme alınmadığı için bunları admin
@@ -4998,7 +5888,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json(enriched);
   });
 
-  app.delete("/api/admin/orders/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/orders/:id", requireAdmin, requirePermission("orders.update"), async (req, res) => {
     const id = Number(req.params.id);
     if (!id || isNaN(id)) return res.status(400).json({ message: "Geçersiz sipariş ID" });
     try {
@@ -5010,10 +5900,16 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.delete("/api/admin/orders/clear-all", requireAdmin, async (_req, res) => {
+  app.delete("/api/admin/orders/clear-all", requireSuperAdmin, async (req, res) => {
     try {
       await sharedPool.query(`DELETE FROM orders`);
       await sharedPool.query(`ALTER SEQUENCE orders_id_seq RESTART WITH 1`);
+      writeAuditLog(sharedPool, {
+        ...auditActorFromReq(req),
+        action: "orders.clear_all",
+        entityType: "orders",
+        meta: { wiped: true },
+      });
       res.json({ ok: true });
     } catch (err: any) {
       console.error("[clear-all orders] error:", err?.message);
@@ -5046,11 +5942,11 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   }
 
-  app.patch("/api/admin/orders/:id/status", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/orders/:id/status", requireAdmin, requirePermission("orders.update"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     const { status } = req.body;
     if (!status) return res.status(400).json({ message: "Status required" });
-    const prevRow = await sharedPool.query("SELECT status, cancel_reason FROM orders WHERE id = $1", [id]);
+    const prevRow = await sharedPool.query("SELECT status, cancel_reason, grand_total, customer_id FROM orders WHERE id = $1", [id]);
     const prevStatus = prevRow.rows[0]?.status;
 
     // Alıcı tarafından iptal edilmiş siparişlerde admin geçersiz kılma isteği varsa izin ver
@@ -5072,6 +5968,49 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         "UPDATE orders SET cancel_reason = 'admin' WHERE id = $1 AND cancel_reason IS NULL",
         [id]
       );
+    }
+
+    // Keep İade tab in sync when status set from Siparişler
+    try {
+      const actorRef = auditActorFromReq(req);
+      if (status === "iade_talebi" || status === "iade_edildi") {
+        const open = await sharedPool.query(
+          `SELECT id, status FROM order_refunds WHERE order_id = $1 AND status IN ('pending','approved','completed') ORDER BY id DESC LIMIT 1`,
+          [id]
+        );
+        if (!open.rows[0]) {
+          const refundStatus = status === "iade_edildi" ? "completed" : "pending";
+          await sharedPool.query(
+            `INSERT INTO order_refunds (order_id, customer_id, reason, amount, status, resolved_by, resolved_at)
+             VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+            [
+              id,
+              prevRow.rows[0]?.customer_id || null,
+              status === "iade_edildi" ? "Admin: iade edildi" : "Admin: iade talebi",
+              prevRow.rows[0]?.grand_total,
+              refundStatus,
+              actorRef.username || "admin",
+              refundStatus === "completed" ? new Date() : null,
+            ]
+          );
+        } else if (status === "iade_edildi" && open.rows[0].status !== "completed") {
+          await sharedPool.query(
+            `UPDATE order_refunds SET status = 'completed', resolved_at = NOW(), resolved_by = $1 WHERE id = $2`,
+            [actorRef.username || "admin", open.rows[0].id]
+          );
+          await sharedPool.query(
+            `UPDATE orders SET payment_status = 'refunded' WHERE id = $1`,
+            [id]
+          );
+        } else if (status === "iade_talebi" && open.rows[0].status === "completed") {
+          // noop — already completed refund exists
+        }
+        if (status === "iade_edildi") {
+          await sharedPool.query(`UPDATE orders SET payment_status = 'refunded' WHERE id = $1`, [id]);
+        }
+      }
+    } catch (syncErr: any) {
+      console.error("[refund-sync]", syncErr?.message);
     }
 
     if (SHIPPED_STATUSES.has(String(status).toLowerCase())) {
@@ -5099,10 +6038,48 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       });
     }
 
+    const actor = auditActorFromReq(req);
+    await writeAuditLog(sharedPool, {
+      actorUserId: actor.userId,
+      actorUsername: actor.username,
+      action: "order.status_change",
+      entityType: "order",
+      entityId: id,
+      before: { status: prevStatus },
+      after: { status },
+      ip: actor.ip,
+      meta: { forceOverride: !!req.body?.forceOverride },
+    });
+
     res.json(order);
   });
 
-  app.patch("/api/admin/orders/:id/tracking", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/orders/:id/admin-note", requireAdmin, requirePermission("orders.update"), async (req, res) => {
+    try {
+      const id = parseInt(String(req.params.id));
+      if (isNaN(id)) return res.status(400).json({ message: "Geçersiz sipariş" });
+      const note = String(req.body?.adminNote ?? "").slice(0, 2000);
+      const prev = await sharedPool.query(`SELECT admin_note FROM orders WHERE id = $1`, [id]);
+      if (!prev.rows[0]) return res.status(404).json({ message: "Order not found" });
+      await sharedPool.query(`UPDATE orders SET admin_note = $1 WHERE id = $2`, [note || null, id]);
+      const actor = auditActorFromReq(req);
+      await writeAuditLog(sharedPool, {
+        actorUserId: actor.userId,
+        actorUsername: actor.username,
+        action: "order.admin_note",
+        entityType: "order",
+        entityId: id,
+        before: { adminNote: prev.rows[0].admin_note },
+        after: { adminNote: note || null },
+        ip: actor.ip,
+      });
+      res.json({ ok: true, adminNote: note || null });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Not kaydedilemedi" });
+    }
+  });
+
+  app.patch("/api/admin/orders/:id/tracking", requireAdmin, requirePermission("orders.update"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) return res.status(400).json({ message: "Geçersiz sipariş" });
     const cargoCompany = req.body?.cargoCompany ? String(req.body.cargoCompany).trim() : "";
@@ -5134,7 +6111,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   });
 
   // Admin teslimat saati güncelleme
-  app.patch("/api/admin/orders/:id/delivery-slot", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/orders/:id/delivery-slot", requireAdmin, requirePermission("orders.update"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) return res.status(400).json({ message: "Geçersiz sipariş" });
     const raw = req.body?.deliverySlot;
@@ -5166,10 +6143,10 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
 
   app.post("/api/otp/send", async (req, res) => {
     const ip = req.ip || "unknown";
-    if (rateLimit(`otp:${ip}`, 10, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`otp:${ip}`, 10, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
     }
-    const { phone, deviceToken } = req.body;
+    const { phone, forceSms } = req.body || {};
     if (!phone) return res.status(400).json({ message: "Telefon numarası gerekli" });
     const normalized = phone.replace(/\D/g, "");
     if (normalized.length < 10) return res.status(400).json({ message: "Geçerli bir telefon numarası girin" });
@@ -5180,12 +6157,19 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
 
     if (isTestOtpBypass()) {
-      otpStore.set(normalized, { code: TEST_OTP_CODE, expiresAt: Date.now() + 180000, attempts: 0 });
-      const customerExists = !!(await storage.getCustomerByPhone(normalized));
-      return res.json({ message: "Doğrulama kodu gönderildi (test)", isExisting: customerExists });
+      await otpSet(normalized, { code: TEST_OTP_CODE, expiresAt: Date.now() + 180000, attempts: 0 });
+      return res.json({ message: "Doğrulama kodu gönderildi (test)" });
     }
 
-    if (deviceToken && typeof deviceToken === "string" && deviceToken.length > 20) {
+    // Trusted device: HttpOnly cookie only (no body/localStorage token).
+    // forceSms skips silent cookie login (e.g. user wants SMS while pattern lock exists).
+    const cookies = parseCookieHeader(req);
+    const deviceToken =
+      !forceSms && cookies[TRUSTED_DEVICE_COOKIE] && cookies[TRUSTED_DEVICE_COOKIE].length > 20
+        ? cookies[TRUSTED_DEVICE_COOKIE]
+        : null;
+
+    if (deviceToken) {
       try {
         const result = await sharedPool.query(
           "SELECT td.customer_id, td.id FROM trusted_devices td WHERE td.phone = $1 AND td.device_token = $2 AND td.expires_at > NOW()",
@@ -5195,16 +6179,12 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
           const customerId = result.rows[0].customer_id;
           const customer = await storage.getCustomer(customerId);
           if (customer && customer.phone === normalized) {
-            (req.session as any).customerId = customer.id;
             await sharedPool.query(
               "UPDATE trusted_devices SET created_at = NOW(), expires_at = NOW() + INTERVAL '30 days' WHERE id = $1",
               [result.rows[0].id]
             );
-            return req.session.save((err) => {
-              if (err) {
-                console.error("Session save error:", err);
-                return res.status(500).json({ message: "Oturum kaydedilemedi" });
-              }
+            setTrustedDeviceCookie(res, deviceToken);
+            return regenerateCustomerSession(req, res, customer.id, () => {
               res.json({
                 message: "Güvenilir cihaz ile giriş yapıldı",
                 trustedLogin: true,
@@ -5216,18 +6196,18 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       } catch (e) {}
     }
 
-    const sendTrack = otpSendCount.get(normalized);
+    const sendTrack = await otpSendCountGet(normalized);
     if (sendTrack && sendTrack.resetAt > Date.now() && sendTrack.count >= 5) {
       return res.status(429).json({ message: "Günlük SMS limiti aşıldı, lütfen yarın tekrar deneyin" });
     }
 
-    const existing = otpStore.get(normalized);
+    const existing = await otpGet(normalized);
     if (existing && existing.expiresAt > Date.now() && (existing.expiresAt - Date.now()) > 150000) {
       return res.status(429).json({ message: "Lütfen biraz bekleyin, kısa süre önce kod gönderildi" });
     }
 
     const code = generateOTP();
-    otpStore.set(normalized, { code, expiresAt: Date.now() + 180000, attempts: 0 });
+    await otpSet(normalized, { code, expiresAt: Date.now() + 180000, attempts: 0 });
 
     const hostHeader = (req.headers["x-forwarded-host"] as string) || req.headers.host || "jetgomarket.com";
     const otpHost = String(hostHeader).split(":")[0];
@@ -5235,48 +6215,47 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     const message = `${code} dogrulama kodu ile ${otpStoreCfg.brandWord} hesabina giris yapabilirsiniz. Kodunu kimseyle paylasma.\n\n@${otpHost} #${code}`;
     const sent = await sendSmsViaNetgsm(normalized, message, await resolveSmsHeader(otpStoreCfg.id));
     if (!sent) {
-      otpStore.delete(normalized);
+      await otpDelete(normalized);
       return res.status(500).json({ message: "SMS gönderilemedi, lütfen tekrar deneyin" });
     }
 
-    const currentTrack = otpSendCount.get(normalized);
-    const dayMs = 24 * 60 * 60 * 1000;
-    if (currentTrack && currentTrack.resetAt > Date.now()) {
-      currentTrack.count++;
-    } else {
-      otpSendCount.set(normalized, { count: 1, resetAt: Date.now() + dayMs });
-    }
+    await otpSendCountIncr(normalized, 24 * 60 * 60 * 1000);
 
-    const customerExists = !!(await storage.getCustomerByPhone(normalized));
-    res.json({ message: "Doğrulama kodu gönderildi", isExisting: customerExists });
+    // Do not reveal whether the phone is already registered (enumeration).
+    res.json({ message: "Doğrulama kodu gönderildi" });
   });
 
   app.post("/api/otp/verify", async (req, res) => {
     const { phone, code, name, address, city, district } = req.body;
     if (!phone || !code) return res.status(400).json({ message: "Telefon ve doğrulama kodu gerekli" });
     const normalized = phone.replace(/\D/g, "");
+    const codeStr = String(code).replace(/\D/g, "");
 
-    const entry = otpStore.get(normalized);
+    const entry = await otpGet(normalized);
     if (!entry) return res.status(400).json({ message: "Doğrulama kodu bulunamadı, yeni kod isteyin" });
     if (entry.expiresAt < Date.now()) {
-      otpStore.delete(normalized);
+      await otpDelete(normalized);
       return res.status(400).json({ message: "Doğrulama kodunun süresi doldu, yeni kod isteyin" });
     }
     if (entry.attempts >= 5) {
-      otpStore.delete(normalized);
+      await otpDelete(normalized);
       return res.status(429).json({ message: "Çok fazla hatalı deneme, yeni kod isteyin" });
     }
-    if (entry.code !== code) {
+    if (entry.code !== codeStr) {
       entry.attempts++;
+      await otpSet(normalized, entry);
       return res.status(400).json({ message: "Doğrulama kodu hatalı" });
     }
 
     let customer = await storage.getCustomerByPhone(normalized);
     let isNewUser = false;
     if (!customer && !(name && String(name).trim())) {
+      // Keep OTP in store and extend TTL so registration can complete within 15 minutes
+      entry.expiresAt = Date.now() + 15 * 60 * 1000;
+      await otpSet(normalized, entry);
       return res.json({ verified: true, isNewUser: true, requiresRegistration: true });
     }
-    otpStore.delete(normalized);
+    await otpDelete(normalized);
     if (!customer) {
       isNewUser = true;
       const dummyPass = await bcrypt.hash(Math.random().toString(36), 10);
@@ -5290,9 +6269,6 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       } as any);
     }
 
-    (req.session as any).customerId = customer.id;
-
-    let newDeviceToken: string | undefined;
     try {
       const token = crypto.randomBytes(48).toString("hex");
       const ua = req.headers["user-agent"] || "";
@@ -5300,27 +6276,33 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         "INSERT INTO trusted_devices (customer_id, phone, device_token, user_agent, expires_at) VALUES ($1, $2, $3, $4, NOW() + INTERVAL '30 days')",
         [customer.id, normalized, token, ua]
       );
-      newDeviceToken = token;
+      setTrustedDeviceCookie(res, token);
       await sharedPool.query("DELETE FROM trusted_devices WHERE expires_at < NOW()");
     } catch (e) {}
 
-    req.session.save((err) => {
-      if (err) {
-        console.error("Session save error:", err);
-        return res.status(500).json({ message: "Oturum kaydedilemedi" });
-      }
-      res.json({ id: customer.id, phone: customer.phone, name: customer.name, address: customer.address, deviceToken: newDeviceToken, isNewUser });
+    regenerateCustomerSession(req, res, customer.id, () => {
+      res.json({
+        id: customer!.id,
+        phone: customer!.phone,
+        name: customer!.name,
+        address: customer!.address,
+        isNewUser,
+      });
     });
   });
 
   app.post("/api/customer/register", async (req, res) => {
     const ip = req.ip || "unknown";
-    if (rateLimit(`register:${ip}`, 5, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`register:${ip}`, 5, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla kayıt denemesi. Lütfen daha sonra tekrar deneyin." });
     }
-    const { phone, password, name, address, email } = req.body;
+    const { phone, password, name, address, email, otp, code } = req.body || {};
+    const otpCode = String(otp || code || "").replace(/\D/g, "");
     if (!phone || !password || !name) {
       return res.status(400).json({ message: "Telefon, şifre ve ad soyad gerekli" });
+    }
+    if (!otpCode || otpCode.length < 6) {
+      return res.status(400).json({ message: "Telefon doğrulama kodu gerekli. Önce SMS kodu alın." });
     }
     if (typeof phone !== "string" || typeof password !== "string" || typeof name !== "string") {
       return res.status(400).json({ message: "Geçersiz veri tipi" });
@@ -5329,8 +6311,8 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     if (normalized.length < 10 || normalized.length > 15) {
       return res.status(400).json({ message: "Geçerli bir telefon numarası girin" });
     }
-    if (password.length < 6) {
-      return res.status(400).json({ message: "Şifre en az 6 karakter olmalı" });
+    if (password.length < CUSTOMER_PASSWORD_MIN) {
+      return res.status(400).json({ message: `Şifre en az ${CUSTOMER_PASSWORD_MIN} karakter olmalı` });
     }
     if (password.length > 128) {
       return res.status(400).json({ message: "Şifre çok uzun" });
@@ -5348,9 +6330,27 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       }
       emailNorm = email.trim().toLowerCase();
     }
+
+    const entry = await otpGet(normalized);
+    if (!entry || entry.expiresAt < Date.now()) {
+      await otpDelete(normalized);
+      return res.status(400).json({ message: "Doğrulama kodunun süresi doldu, yeni kod isteyin" });
+    }
+    if (entry.attempts >= 5) {
+      await otpDelete(normalized);
+      return res.status(429).json({ message: "Çok fazla hatalı deneme, yeni kod isteyin" });
+    }
+    if (entry.code !== otpCode) {
+      entry.attempts++;
+      await otpSet(normalized, entry);
+      return res.status(400).json({ message: "Doğrulama kodu hatalı" });
+    }
+    await otpDelete(normalized);
+
     const existing = await storage.getCustomerByPhone(normalized);
     if (existing) {
-      return res.status(409).json({ message: "Bu telefon numarası zaten kayıtlı" });
+      // Generic message — avoid phone enumeration
+      return res.status(400).json({ message: "Kayıt tamamlanamadı. Giriş yapmayı deneyin veya destek ile iletişime geçin." });
     }
     const hashed = await bcrypt.hash(password, 10);
     const customer = await storage.createCustomer({
@@ -5360,19 +6360,20 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       address: address?.trim() || null,
       email: emailNorm,
     });
-    (req.session as any).customerId = customer.id;
-    req.session.save((err) => {
-      if (err) {
-        console.error("Session save error:", err);
-        return res.status(500).json({ message: "Oturum kaydedilemedi" });
-      }
-      res.status(201).json({ id: customer.id, phone: customer.phone, name: customer.name, address: customer.address, email: customer.email });
+    regenerateCustomerSession(req, res, customer.id, () => {
+      res.status(201).json({
+        id: customer.id,
+        phone: customer.phone,
+        name: customer.name,
+        address: customer.address,
+        email: customer.email,
+      });
     });
   });
 
   app.post("/api/customer/login", async (req, res) => {
     const ip = req.ip || "unknown";
-    if (rateLimit(`custlogin:${ip}`, 10, 15 * 60 * 1000)) {
+    if (await rateLimitHit(`custlogin:${ip}`, 10, 15 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla giriş denemesi. 15 dakika bekleyin." });
     }
     const { phone, password } = req.body;
@@ -5380,24 +6381,20 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       return res.status(400).json({ message: "Telefon ve şifre gerekli" });
     }
     const normalized = phone.replace(/\D/g, "");
-    if (rateLimit(`custlogin:phone:${normalized}`, 5, 15 * 60 * 1000)) {
+    if (await rateLimitHit(`custlogin:phone:${normalized}`, 5, 15 * 60 * 1000)) {
       return res.status(429).json({ message: "Bu numara için çok fazla deneme. 15 dakika bekleyin." });
     }
     const customer = await storage.getCustomerByPhone(normalized);
     if (!customer) return res.status(401).json({ message: "Telefon numarası veya şifre hatalı" });
     const valid = await bcrypt.compare(password, customer.password);
     if (!valid) return res.status(401).json({ message: "Telefon numarası veya şifre hatalı" });
-    (req.session as any).customerId = customer.id;
-    req.session.save((err) => {
-      if (err) {
-        console.error("Session save error:", err);
-        return res.status(500).json({ message: "Oturum kaydedilemedi" });
-      }
+    regenerateCustomerSession(req, res, customer.id, () => {
       res.json({ id: customer.id, phone: customer.phone, name: customer.name, address: customer.address });
     });
   });
 
   app.post("/api/customer/logout", (req, res) => {
+    // Keep trusted-device cookie so pattern unlock can work without a new SMS.
     delete (req.session as any).customerId;
     req.session.save(() => {
       res.json({ message: "Çıkış yapıldı" });
@@ -5416,13 +6413,23 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     if (!customerId) return res.status(401).json({ message: "Giriş yapılmamış" });
     const customer = await storage.getCustomer(customerId);
     if (!customer) return res.status(401).json({ message: "Giriş yapılmamış" });
-    res.json({ id: customer.id, phone: customer.phone, name: customer.name, address: customer.address, email: customer.email, notifyStock: customer.notifyStock, notifyCampaign: customer.notifyCampaign });
+    res.json({
+      id: customer.id,
+      phone: customer.phone,
+      name: customer.name,
+      address: customer.address,
+      email: customer.email,
+      city: (customer as any).city ?? null,
+      district: (customer as any).district ?? null,
+      notifyStock: customer.notifyStock,
+      notifyCampaign: customer.notifyCampaign,
+    });
   });
 
   app.patch("/api/customer/profile", requireCustomer, async (req, res) => {
     const customerId = (req as any).customerId;
     const ip = req.ip || "unknown";
-    if (rateLimit(`profile:${ip}`, 15, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`profile:${ip}`, 15, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
     }
     const { name, address, email, tcNo, city, district } = req.body;
@@ -5495,18 +6502,30 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       }
     }
 
-    res.json({ id: customer.id, phone: customer.phone, name: customer.name, address: customer.address, email: customer.email, notifyStock: customer.notifyStock, notifyCampaign: customer.notifyCampaign });
+    res.json({
+      id: customer.id,
+      phone: customer.phone,
+      name: customer.name,
+      address: customer.address,
+      email: customer.email,
+      city: (customer as any).city ?? null,
+      district: (customer as any).district ?? null,
+      notifyStock: customer.notifyStock,
+      notifyCampaign: customer.notifyCampaign,
+    });
   });
 
   app.patch("/api/customer/password", requireCustomer, async (req, res) => {
     const customerId = (req as any).customerId;
     const ip = req.ip || "unknown";
-    if (rateLimit(`passwd:${ip}`, 5, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`passwd:${ip}`, 5, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla şifre değiştirme denemesi. Lütfen daha sonra tekrar deneyin." });
     }
     const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword) return res.status(400).json({ message: "Mevcut ve yeni şifre gerekli" });
-    if (typeof newPassword !== "string" || newPassword.length < 6) return res.status(400).json({ message: "Yeni şifre en az 6 karakter olmalı" });
+    if (typeof newPassword !== "string" || newPassword.length < CUSTOMER_PASSWORD_MIN) {
+      return res.status(400).json({ message: `Yeni şifre en az ${CUSTOMER_PASSWORD_MIN} karakter olmalı` });
+    }
     if (newPassword.length > 128) return res.status(400).json({ message: "Şifre çok uzun" });
     const customer = await storage.getCustomer(customerId);
     if (!customer) return res.status(404).json({ message: "Müşteri bulunamadı" });
@@ -5520,7 +6539,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   app.delete("/api/customer/account", requireCustomer, async (req, res) => {
     const customerId = (req as any).customerId;
     const ip = req.ip || "unknown";
-    if (rateLimit(`accdel:${ip}`, 3, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`accdel:${ip}`, 3, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
     }
     const { password } = req.body;
@@ -5561,7 +6580,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
 
   app.post("/api/reorder-reminders", async (req, res) => {
     const ip = req.ip || "unknown";
-    if (rateLimit(`reminder:${ip}`, 10, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`reminder:${ip}`, 10, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
     }
     const parsed = createReminderSchema.safeParse(req.body);
@@ -5575,12 +6594,12 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.status(201).json(reminder);
   });
 
-  app.get("/api/admin/reorder-reminders", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/reorder-reminders", requireAdmin, requirePermission("orders.read"), async (_req, res) => {
     const reminders = await storage.getReorderReminders();
     res.json(reminders);
   });
 
-  app.patch("/api/admin/reorder-reminders/:id/status", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/reorder-reminders/:id/status", requireAdmin, requirePermission("orders.update"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     const { status } = req.body;
     if (!status) return res.status(400).json({ message: "Status gerekli" });
@@ -5645,7 +6664,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     if (isNaN(orderId)) return res.status(400).json({ message: "Geçersiz sipariş ID" });
 
     const ip = req.ip || "unknown";
-    if (rateLimit(`customer-cancel:${ip}`, 10, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`customer-cancel:${ip}`, 10, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
     }
 
@@ -5762,7 +6781,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   app.post("/api/customer/favorites", requireCustomer, async (req, res) => {
     const customerId = (req as any).customerId;
     const ip = req.ip || "unknown";
-    if (rateLimit(`fav:${ip}`, 30, 60 * 1000)) {
+    if (await rateLimitHit(`fav:${ip}`, 30, 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek." });
     }
     const { productId } = req.body;
@@ -5783,7 +6802,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   app.post("/api/customer/favorites/sync", requireCustomer, async (req, res) => {
     const customerId = (req as any).customerId;
     const ip = req.ip || "unknown";
-    if (rateLimit(`favsync:${ip}`, 20, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`favsync:${ip}`, 20, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek." });
     }
     const { productIds } = req.body;
@@ -5806,7 +6825,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   app.post("/api/customer/addresses", requireCustomer, async (req, res) => {
     const customerId = (req as any).customerId;
     const ip = req.ip || "unknown";
-    if (rateLimit(`addr:${ip}`, 10, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`addr:${ip}`, 10, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
     }
     const existingAddrs = await storage.getCustomerAddresses(customerId);
@@ -5837,7 +6856,12 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   app.patch("/api/customer/addresses/:id", requireCustomer, async (req, res) => {
     const customerId = (req as any).customerId;
     const id = parseInt(String(req.params.id));
-    const schema = z.object({ label: z.string().min(1).optional(), address: z.string().min(1).optional(), isDefault: z.boolean().optional() });
+    const schema = z.object({
+      label: z.string().min(1).optional(),
+      address: z.string().min(1).optional(),
+      isDefault: z.boolean().optional(),
+      district: z.string().max(100).optional().nullable(),
+    });
     const parsed = schema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ message: "Geçersiz veri" });
     if (parsed.data.isDefault) {
@@ -5856,6 +6880,237 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json(addresses);
   });
 
+  // ─── Loyalty (Poodle Puanları) ─────────────────────────────────────────────
+  const LOYALTY_REWARD_CATALOG = [
+    { id: "rw-50tl", title: "50 TL İndirim", points: 500, category: "discount", couponValue: 50 },
+    { id: "rw-kargo", title: "Ücretsiz Kargo", points: 300, category: "shipping", couponValue: 49 },
+    { id: "rw-bakim", title: "%15 Bakım İndirimi", points: 750, category: "discount", couponValue: 0 },
+    { id: "rw-mama", title: "100 TL Mama İndirimi", points: 1000, category: "discount", couponValue: 100 },
+  ];
+
+  app.get("/api/customer/loyalty", requireCustomer, async (req, res) => {
+    const customerId = (req as any).customerId;
+    try {
+      const [balance, txs] = await Promise.all([
+        storage.getCustomerPointsBalance(customerId),
+        storage.getLoyaltyPointsByCustomer(customerId),
+      ]);
+      res.json({
+        balance,
+        transactions: txs.map((t) => ({
+          id: String(t.id),
+          amount: t.amount,
+          type: t.type,
+          description: t.description || "",
+          createdAt: t.createdAt,
+          orderId: t.orderId,
+        })),
+      });
+    } catch (e: any) {
+      console.error("[loyalty]", e?.message);
+      res.status(500).json({ message: "Puanlar yüklenemedi" });
+    }
+  });
+
+  app.get("/api/customer/loyalty/rewards", requireCustomer, async (_req, res) => {
+    res.json(LOYALTY_REWARD_CATALOG.map(({ id, title, points, category }) => ({ id, title, points, category })));
+  });
+
+  app.post("/api/customer/loyalty/redeem", requireCustomer, async (req, res) => {
+    const customerId = (req as any).customerId;
+    const rewardId = String(req.body?.rewardId || "");
+    const pointsCost = Number(req.body?.pointsCost);
+    const title = String(req.body?.title || "Ödül");
+    const reward = LOYALTY_REWARD_CATALOG.find((r) => r.id === rewardId);
+    if (!reward) return res.status(400).json({ message: "Ödül bulunamadı" });
+    const cost = Number.isFinite(pointsCost) && pointsCost > 0 ? pointsCost : reward.points;
+    if (cost !== reward.points) return res.status(400).json({ message: "Puan tutarı uyuşmuyor" });
+    try {
+      const balance = await storage.getCustomerPointsBalance(customerId);
+      if (balance < cost) return res.status(400).json({ message: "Yetersiz puan" });
+      await storage.addLoyaltyPoints({
+        customerId,
+        amount: -cost,
+        type: "redeem",
+        description: `Ödül: ${title || reward.title}`,
+      });
+      let couponCode: string | undefined;
+      if (reward.couponValue > 0) {
+        couponCode = `YP${reward.id.replace(/\W/g, "").toUpperCase().slice(0, 6)}${customerId}${Date.now().toString(36).slice(-4).toUpperCase()}`;
+        try {
+          await sharedPool.query(
+            `INSERT INTO coupons (code, discount_type, discount_value, min_order_amount, max_uses, used_count, is_active, store, customer_id, expires_at)
+             VALUES ($1, 'fixed', $2, 0, 1, 0, true, 'all', $3, NOW() + INTERVAL '30 days')`,
+            [couponCode, reward.couponValue, customerId]
+          );
+        } catch (e: any) {
+          console.warn("[loyalty redeem coupon]", e?.message);
+          couponCode = undefined;
+        }
+      }
+      const newBalance = await storage.getCustomerPointsBalance(customerId);
+      res.json({
+        ok: true,
+        balance: newBalance,
+        message: couponCode
+          ? `Ödülünüz hazır. Kupon kodunuz: ${couponCode}`
+          : "Ödül puanlarınız düşüldü. Siparişinizde kullanılabilir.",
+        couponCode,
+      });
+    } catch (e: any) {
+      console.error("[loyalty redeem]", e?.message);
+      res.status(500).json({ message: "Ödül kullanılamadı" });
+    }
+  });
+
+  // ─── Support tickets ───────────────────────────────────────────────────────
+  await sharedPool.query(`
+    CREATE TABLE IF NOT EXISTS support_tickets (
+      id SERIAL PRIMARY KEY,
+      customer_id INTEGER NOT NULL,
+      subject TEXT NOT NULL,
+      category TEXT,
+      body TEXT,
+      order_id INTEGER,
+      status TEXT NOT NULL DEFAULT 'open',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `).catch(() => {});
+  await sharedPool.query(`
+    CREATE TABLE IF NOT EXISTS support_ticket_messages (
+      id SERIAL PRIMARY KEY,
+      ticket_id INTEGER NOT NULL REFERENCES support_tickets(id) ON DELETE CASCADE,
+      sender TEXT NOT NULL,
+      body TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `).catch(() => {});
+
+  app.get("/api/customer/support-tickets", requireCustomer, async (req, res) => {
+    const customerId = (req as any).customerId;
+    try {
+      const r = await sharedPool.query(
+        `SELECT id, subject, category, body, order_id AS "orderId", status, created_at AS "createdAt", updated_at AS "updatedAt"
+         FROM support_tickets WHERE customer_id=$1 ORDER BY updated_at DESC LIMIT 100`,
+        [customerId]
+      );
+      res.json(r.rows.map((row: any) => ({ ...row, id: String(row.id) })));
+    } catch (e: any) {
+      console.error("[support-tickets]", e?.message);
+      res.json([]);
+    }
+  });
+
+  app.post("/api/customer/support-tickets", requireCustomer, async (req, res) => {
+    const customerId = (req as any).customerId;
+    const subject = String(req.body?.subject || "").trim();
+    const category = String(req.body?.category || "").trim();
+    const body = String(req.body?.body || "").trim();
+    const orderId = req.body?.orderId != null ? parseInt(String(req.body.orderId), 10) : null;
+    if (subject.length < 3 || body.length < 5) {
+      return res.status(400).json({ message: "Konu ve açıklama gerekli" });
+    }
+    try {
+      const r = await sharedPool.query(
+        `INSERT INTO support_tickets (customer_id, subject, category, body, order_id, status)
+         VALUES ($1,$2,$3,$4,$5,'open') RETURNING id`,
+        [customerId, subject.slice(0, 200), category.slice(0, 120) || null, body.slice(0, 5000), Number.isFinite(orderId as number) ? orderId : null]
+      );
+      const id = r.rows[0].id;
+      await sharedPool.query(
+        `INSERT INTO support_ticket_messages (ticket_id, sender, body) VALUES ($1,'user',$2)`,
+        [id, body.slice(0, 5000)]
+      );
+      res.json({ id: String(id) });
+    } catch (e: any) {
+      console.error("[support create]", e?.message);
+      res.status(500).json({ message: "Talep oluşturulamadı" });
+    }
+  });
+
+  app.get("/api/customer/support-tickets/:id", requireCustomer, async (req, res) => {
+    const customerId = (req as any).customerId;
+    const id = parseInt(String(req.params.id), 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ message: "Geçersiz ID" });
+    try {
+      const t = await sharedPool.query(
+        `SELECT id, subject, category, body, order_id AS "orderId", status, created_at AS "createdAt", updated_at AS "updatedAt"
+         FROM support_tickets WHERE id=$1 AND customer_id=$2`,
+        [id, customerId]
+      );
+      if (!t.rows[0]) return res.status(404).json({ message: "Talep bulunamadı" });
+      const msgs = await sharedPool.query(
+        `SELECT id, sender, body, created_at AS "createdAt" FROM support_ticket_messages WHERE ticket_id=$1 ORDER BY id ASC`,
+        [id]
+      );
+      res.json({
+        ...t.rows[0],
+        id: String(t.rows[0].id),
+        messages: msgs.rows.map((m: any) => ({ ...m, id: String(m.id) })),
+      });
+    } catch (e: any) {
+      res.status(500).json({ message: "Talep yüklenemedi" });
+    }
+  });
+
+  app.post("/api/customer/support-tickets/:id/messages", requireCustomer, async (req, res) => {
+    const customerId = (req as any).customerId;
+    const id = parseInt(String(req.params.id), 10);
+    const body = String(req.body?.body || "").trim();
+    if (!Number.isFinite(id) || body.length < 1) return res.status(400).json({ message: "Mesaj gerekli" });
+    try {
+      const t = await sharedPool.query(`SELECT id, status FROM support_tickets WHERE id=$1 AND customer_id=$2`, [id, customerId]);
+      if (!t.rows[0]) return res.status(404).json({ message: "Talep bulunamadı" });
+      await sharedPool.query(
+        `INSERT INTO support_ticket_messages (ticket_id, sender, body) VALUES ($1,'user',$2)`,
+        [id, body.slice(0, 5000)]
+      );
+      await sharedPool.query(
+        `UPDATE support_tickets SET updated_at=NOW(), status=CASE WHEN status='solved' OR status='closed' THEN status ELSE 'open' END WHERE id=$1`,
+        [id]
+      );
+      res.json({ ok: true });
+    } catch {
+      res.status(500).json({ message: "Mesaj gönderilemedi" });
+    }
+  });
+
+  // ─── Order invoice (HTML printable) ────────────────────────────────────────
+  app.get("/api/customer/orders/:id/invoice", requireCustomer, async (req, res) => {
+    const customerId = (req as any).customerId;
+    const orderId = parseInt(String(req.params.id), 10);
+    if (!Number.isFinite(orderId)) return res.status(400).send("Geçersiz sipariş");
+    try {
+      const customer = await storage.getCustomer(customerId);
+      if (!customer) return res.status(401).send("Yetkisiz");
+      const orderRows = await sharedPool.query(`SELECT * FROM orders WHERE id=$1`, [orderId]);
+      if (!orderRows.rows[0]) return res.status(404).send("Sipariş bulunamadı");
+      const o = orderRows.rows[0];
+      if (canonicalTrPhone(o.customer_phone || "") !== canonicalTrPhone(customer.phone || "")) {
+        return res.status(403).send("Bu siparişe erişim yok");
+      }
+      const items = Array.isArray(o.items) ? o.items : (typeof o.items === "string" ? JSON.parse(o.items) : []);
+      const rows = items.map((it: any) =>
+        `<tr><td>${String(it.name || "").replace(/</g, "")}</td><td>${it.quantity || 1}</td><td>${Number(it.price || 0).toFixed(2)} TL</td><td>${(Number(it.price || 0) * Number(it.quantity || 1)).toFixed(2)} TL</td></tr>`
+      ).join("");
+      const html = `<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>Fatura #${orderId}</title>
+        <style>body{font-family:system-ui,sans-serif;padding:32px;color:#111}table{width:100%;border-collapse:collapse;margin-top:24px}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#F5F0E6}.brand{color:#5D3A1A;font-weight:800;font-size:22px}.meta{color:#666;font-size:13px;margin-top:8px}.tot{margin-top:16px;font-weight:700}</style></head>
+        <body onload="window.print()">
+        <div class="brand">YourPoodle</div>
+        <div class="meta">Sipariş No: #${orderId}<br>Tarih: ${new Date(o.created_at).toLocaleString("tr-TR")}<br>Müşteri: ${String(o.customer_name || customer.name || "").replace(/</g, "")}<br>Adres: ${String(o.customer_address || "").replace(/</g, "")}</div>
+        <table><thead><tr><th>Ürün</th><th>Adet</th><th>Birim</th><th>Tutar</th></tr></thead><tbody>${rows}</tbody></table>
+        <div class="tot">Ara toplam: ${Number(o.subtotal || 0).toFixed(2)} TL<br>Kargo: ${Number(o.shipping || 0).toFixed(2)} TL<br>İndirim: ${Number(o.discount || 0).toFixed(2)} TL<br>Genel toplam: ${Number(o.grand_total || 0).toFixed(2)} TL</div>
+        <p class="meta">Bu belge bilgilendirme amaçlı sipariş özetidir.</p>
+        </body></html>`;
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.send(html);
+    } catch (e: any) {
+      console.error("[invoice]", e?.message);
+      res.status(500).send("Fatura oluşturulamadı");
+    }
+  });
+
   app.get("/api/customer/pets", requireCustomer, async (req, res) => {
     const customerId = (req as any).customerId;
     const pets = await storage.getPetProfiles(customerId);
@@ -5865,7 +7120,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   app.post("/api/customer/pets", requireCustomer, async (req, res) => {
     const customerId = (req as any).customerId;
     const ip = req.ip || "unknown";
-    if (rateLimit(`pets:${ip}`, 10, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`pets:${ip}`, 10, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
     }
     const schema = z.object({ name: z.string().min(1).max(50), type: z.string().min(1).max(30), breed: z.string().max(50).optional(), age: z.number().min(0).max(50).optional(), weight: z.number().min(0).max(200).optional() });
@@ -5930,14 +7185,14 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json(stats.sort((a, b) => a.sortOrder - b.sortOrder));
   });
 
-  app.post("/api/admin/breed-stats", requireAdmin, async (req, res) => {
+  app.post("/api/admin/breed-stats", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const parsed = insertBreedStatSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ message: "Invalid data", errors: parsed.error.errors });
     const stat = await storage.createBreedStat(parsed.data);
     res.status(201).json(stat);
   });
 
-  app.delete("/api/admin/breed-stats/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/breed-stats/:id", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     await storage.deleteBreedStat(id);
     res.json({ message: "Deleted" });
@@ -5945,7 +7200,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
 
   app.post("/api/stock-alerts", async (req, res) => {
     const ip = req.ip || "unknown";
-    if (rateLimit(`stockalert:${ip}`, 10, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`stockalert:${ip}`, 10, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
     }
     const schema = z.object({
@@ -5960,12 +7215,12 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.status(201).json(alert);
   });
 
-  app.get("/api/admin/stock-alerts", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/stock-alerts", requireAdmin, requirePermission("products.read"), async (_req, res) => {
     const alerts = await storage.getAllStockAlerts();
     res.json(alerts);
   });
 
-  app.post("/api/admin/stock-alerts/:productId/notify", requireAdmin, async (req, res) => {
+  app.post("/api/admin/stock-alerts/:productId/notify", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const productId = parseInt(String(req.params.productId));
     const pending = await storage.getUnnotifiedStockAlerts(productId);
     if (pending.length === 0) return res.json({ message: "Bildirilecek kişi yok", notified: 0, contacts: [] });
@@ -5979,12 +7234,12 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json(rates);
   });
 
-  app.get("/api/admin/installment-rates", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/installment-rates", requireAdmin, requirePermission("finance.read"), async (_req, res) => {
     const rates = await storage.getAllInstallmentRates();
     res.json(rates);
   });
 
-  app.post("/api/admin/installment-rates", requireAdmin, async (req, res) => {
+  app.post("/api/admin/installment-rates", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     const schema = z.object({
       months: z.number().min(1).max(36),
       rate: z.number().min(0).max(100),
@@ -5998,7 +7253,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.status(201).json(rate);
   });
 
-  app.patch("/api/admin/installment-rates/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/installment-rates/:id", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     const id = parseInt(req.params.id as string);
     const schema = z.object({
       months: z.number().min(1).max(36).optional(),
@@ -6014,14 +7269,14 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json(rate);
   });
 
-  app.delete("/api/admin/installment-rates/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/installment-rates/:id", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     const id = parseInt(req.params.id as string);
     await storage.deleteInstallmentRate(id);
     res.json({ message: "Deleted" });
   });
 
 
-  app.post("/api/admin/migrate-disk-images", requireAdmin, async (req, res) => {
+  app.post("/api/admin/migrate-disk-images", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     res.json({ message: "Disk resimlerinin DB'ye aktarımı başlatıldı" });
     
     const fs = await import("fs");
@@ -6128,7 +7383,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.post("/api/admin/campaign-items", requireAdmin, async (req, res) => {
+  app.post("/api/admin/campaign-items", requireAdmin, requirePermission("products.write"), async (req, res) => {
     try {
       const { productId, itemType, sortOrder, parentProductId, campaignPrice } = req.body;
       if (!productId || !itemType) return res.status(400).json({ message: "productId and itemType required" });
@@ -6180,12 +7435,12 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.status(201).json({ ok: true, id: review.id });
   });
 
-  app.get("/api/admin/reviews", requireAdmin, async (req, res) => {
+  app.get("/api/admin/reviews", requireAdmin, requirePermission("products.read"), async (req, res) => {
     const reviews = await db.select().from(productReviews).orderBy(desc(productReviews.createdAt));
     res.json(reviews);
   });
 
-  app.post("/api/admin/reviews", requireAdmin, async (req, res) => {
+  app.post("/api/admin/reviews", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const schema = z.object({
       productId: z.number().int(),
       reviewerName: z.string().min(1).max(100),
@@ -6201,7 +7456,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.status(201).json(review);
   });
 
-  app.patch("/api/admin/reviews/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/reviews/:id", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) return res.status(400).json({ message: "Geçersiz ID" });
     const patchSchema = z.object({
@@ -6222,14 +7477,14 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     res.json(updated);
   });
 
-  app.delete("/api/admin/reviews/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/reviews/:id", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) return res.status(400).json({ message: "Geçersiz ID" });
     await db.delete(productReviews).where(eq(productReviews.id, id));
     res.json({ message: "Silindi" });
   });
 
-  app.get("/api/admin/campaign-items", requireAdmin, async (req, res) => {
+  app.get("/api/admin/campaign-items", requireAdmin, requirePermission("products.read"), async (req, res) => {
     try {
       const { rows } = await sharedPool.query(`
         SELECT ci.*, ci.campaign_price, p.name, p.price, p.original_price, p.img, p.stock, p.is_active AS product_active, p.skt
@@ -6243,7 +7498,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.patch("/api/admin/campaign-items/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/campaign-items/:id", requireAdmin, requirePermission("products.write"), async (req, res) => {
     try {
       const id = parseInt(String(req.params.id));
       if (await blockedByStoreContext(req, res, "campaign_items", id)) return;
@@ -6269,7 +7524,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.delete("/api/admin/campaign-items/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/campaign-items/:id", requireAdmin, requirePermission("products.write"), async (req, res) => {
     try {
       if (await blockedByStoreContext(req, res, "campaign_items", parseInt(String(req.params.id)))) return;
       const r = await sharedPool.query(
@@ -6292,7 +7547,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.post("/api/admin/campaign-items/quick-create", requireAdmin, upload.single("image"), async (req, res) => {
+  app.post("/api/admin/campaign-items/quick-create", requireAdmin, requirePermission("products.write"), upload.single("image"), async (req, res) => {
     try {
       const name = String(req.body.name || "").trim();
       const campaignPrice = parseFloat(req.body.campaignPrice);
@@ -6358,7 +7613,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.post("/api/admin/campaign-items/cleanup-orphans", requireAdmin, async (_req, res) => {
+  app.post("/api/admin/campaign-items/cleanup-orphans", requireAdmin, requirePermission("products.write"), async (_req, res) => {
     try {
       const del = await sharedPool.query(`
         DELETE FROM campaign_items ci
@@ -6389,7 +7644,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.get("/api/admin/delivery-neighborhoods", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/delivery-neighborhoods", requireAdmin, requirePermission("settings.write"), async (_req, res) => {
     try {
       const neighborhoods = await storage.getAllDeliveryNeighborhoods();
       res.json(neighborhoods);
@@ -6398,7 +7653,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.post("/api/admin/delivery-neighborhoods", requireAdmin, async (req, res) => {
+  app.post("/api/admin/delivery-neighborhoods", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     try {
       const { district, name, distance, minOrder, shippingFee, freeShippingLimit, isActive, sortOrder } = req.body;
       if (!name || typeof name !== "string") {
@@ -6421,7 +7676,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.patch("/api/admin/delivery-neighborhoods/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/delivery-neighborhoods/:id", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     try {
       const id = parseInt(String(req.params.id));
       if (await blockedByStoreContext(req, res, "delivery_neighborhoods", id)) return;
@@ -6443,7 +7698,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.delete("/api/admin/delivery-neighborhoods/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/delivery-neighborhoods/:id", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     try {
       const id = parseInt(String(req.params.id));
       if (await blockedByStoreContext(req, res, "delivery_neighborhoods", id)) return;
@@ -6454,7 +7709,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.get("/api/admin/dashboard-stats", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/dashboard-stats", requireAdmin, requirePermission("finance.read"), async (_req, res) => {
     try {
       const allOrders = await storage.getAllOrders();
       const allProducts = await storage.getAllProducts();
@@ -6550,6 +7805,55 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         return custEntries.filter(c => (cancelMap[c.phone] || 0) >= 2).map(c => ({ ...c, cancellations: cancelMap[c.phone] || 0 }));
       })();
 
+      // YourPoodle-specific KPIs (best-effort; tables may be empty on other stores)
+      let mamaBulUses = 0;
+      let mamaBulToday = 0;
+      let aiMessages = 0;
+      let aiMessagesToday = 0;
+      let clubPosts = 0;
+      let clubActiveUsers = 0;
+      let newReviews = 0;
+      try {
+        const mb = await sharedPool.query(`SELECT COUNT(*)::int AS c FROM yp_recommendations`);
+        mamaBulUses = mb.rows[0]?.c || 0;
+        const mbt = await sharedPool.query(
+          `SELECT COUNT(*)::int AS c FROM yp_recommendations WHERE created_at >= $1`,
+          [todayStart],
+        );
+        mamaBulToday = mbt.rows[0]?.c || 0;
+      } catch { /* table may not exist on all envs */ }
+      try {
+        const ai = await sharedPool.query(`SELECT COUNT(*)::int AS c FROM yp_chat_events`);
+        aiMessages = ai.rows[0]?.c || 0;
+        const ait = await sharedPool.query(
+          `SELECT COUNT(*)::int AS c FROM yp_chat_events WHERE created_at >= $1`,
+          [todayStart],
+        );
+        aiMessagesToday = ait.rows[0]?.c || 0;
+      } catch { /* ignore */ }
+      try {
+        const cp = await sharedPool.query(
+          `SELECT COUNT(*)::int AS c FROM club_posts WHERE created_at >= NOW() - INTERVAL '30 days'`,
+        );
+        clubPosts = cp.rows[0]?.c || 0;
+        const cu = await sharedPool.query(
+          `SELECT COUNT(DISTINCT customer_id)::int AS c FROM club_posts WHERE created_at >= NOW() - INTERVAL '30 days'`,
+        );
+        clubActiveUsers = cu.rows[0]?.c || 0;
+      } catch { /* ignore */ }
+      try {
+        const rv = await sharedPool.query(
+          `SELECT COUNT(*)::int AS c FROM product_reviews WHERE created_at >= $1 OR is_published = false`,
+          [weekStart],
+        );
+        newReviews = rv.rows[0]?.c || 0;
+      } catch { /* ignore */ }
+
+      const newCustomersMonth = allCustomers.filter((c: any) => {
+        const d = c.createdAt ? new Date(c.createdAt) : null;
+        return d && d >= monthStart;
+      }).length;
+
       res.json({
         today: { orders: todayOrders.length, revenue: Math.round(sum(todayOrders) * 100) / 100, avgBasket: Math.round(avg(todayOrders) * 100) / 100 },
         yesterday: { orders: yesterdayOrders.length, revenue: Math.round(sum(yesterdayOrders) * 100) / 100 },
@@ -6570,13 +7874,23 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
           dormantCount: dormantCustomers.length,
           riskyCount: riskyCustomers.length,
         },
+        yp: {
+          mamaBulUses,
+          mamaBulToday,
+          aiMessages,
+          aiMessagesToday,
+          clubPosts30d: clubPosts,
+          clubActiveUsers30d: clubActiveUsers,
+          newReviews,
+          newCustomersMonth,
+        },
       });
     } catch (err) {
       res.status(500).json({ message: "Dashboard stats error" });
     }
   });
 
-  app.get("/api/admin/customers", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/customers", requireAdmin, requirePermission("customers.read"), async (_req, res) => {
     try {
       const allCustomers = await storage.getAllCustomers();
       const allOrders = await storage.getAllOrders();
@@ -6616,7 +7930,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.patch("/api/admin/customers/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/customers/:id", requireAdmin, requirePermission("customers.write"), async (req, res) => {
     try {
       const id = parseInt(String(req.params.id));
       const { name, address } = req.body;
@@ -6631,7 +7945,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.post("/api/admin/impersonate/:id", requireAdmin, async (req, res) => {
+  app.post("/api/admin/impersonate/:id", requireAdmin, requirePermission("customers.write"), async (req, res) => {
     try {
       const id = parseInt(String(req.params.id));
       if (isNaN(id)) return res.status(400).json({ message: "Geçersiz müşteri ID" });
@@ -6639,6 +7953,16 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       if (!customer) return res.status(404).json({ message: "Müşteri bulunamadı" });
       (req.session as any).customerId = customer.id;
       (req.session as any).adminImpersonating = true;
+      const actor = auditActorFromReq(req);
+      writeAuditLog(sharedPool, {
+        actorUserId: actor.userId,
+        actorUsername: actor.username,
+        action: "customer.impersonate",
+        entityType: "customer",
+        entityId: customer.id,
+        ip: actor.ip,
+        meta: { phone: customer.phone },
+      });
       req.session.save((err) => {
         if (err) {
           console.error("Session save error:", err);
@@ -6651,10 +7975,19 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.delete("/api/admin/customers/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/customers/:id", requireAdmin, requirePermission("customers.write"), async (req, res) => {
     try {
       const id = parseInt(String(req.params.id));
       if (isNaN(id)) return res.status(400).json({ message: "Geçersiz müşteri ID" });
+      const actor = auditActorFromReq(req);
+      await writeAuditLog(sharedPool, {
+        actorUserId: actor.userId,
+        actorUsername: actor.username,
+        action: "customer.delete",
+        entityType: "customer",
+        entityId: id,
+        ip: actor.ip,
+      });
       await storage.deleteCustomerAccount(id);
       res.json({ success: true });
     } catch (err: any) {
@@ -6663,7 +7996,140 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.post("/api/admin/send-sms", requireAdmin, async (req, res) => {
+  /** Customer 360° detail for admin */
+  app.get("/api/admin/customers/:id/detail", requireAdmin, requirePermission("customers.read"), async (req, res) => {
+    try {
+      const id = parseInt(String(req.params.id));
+      if (isNaN(id)) return res.status(400).json({ message: "Geçersiz müşteri ID" });
+      const customer = await storage.getCustomer(id);
+      if (!customer) return res.status(404).json({ message: "Müşteri bulunamadı" });
+
+      const ordersRes = await sharedPool.query(
+        `SELECT id, status, payment_status AS "paymentStatus", payment_method AS "paymentMethod",
+                grand_total AS "grandTotal", created_at AS "createdAt", discount, shipping
+         FROM orders WHERE customer_phone = $1 ORDER BY created_at DESC LIMIT 50`,
+        [customer.phone],
+      );
+      const ordersList = ordersRes.rows;
+      const orderCount = ordersList.length;
+      const spend = ordersList
+        .filter((o: any) => o.status !== "iptal")
+        .reduce((s: number, o: any) => s + Number(o.grandTotal || 0), 0);
+      const avgBasket = orderCount > 0 ? spend / ordersList.filter((o: any) => o.status !== "iptal").length : 0;
+
+      let addresses: any[] = [];
+      try {
+        const a = await sharedPool.query(
+          `SELECT id, label, address, district, is_default AS "isDefault" FROM customer_addresses WHERE customer_id = $1`,
+          [id],
+        );
+        addresses = a.rows;
+      } catch { /* ignore */ }
+
+      let favorites: any[] = [];
+      try {
+        const f = await sharedPool.query(
+          `SELECT cf.product_id AS "productId", p.name FROM customer_favorites cf
+           LEFT JOIN products p ON p.id = cf.product_id WHERE cf.customer_id = $1 LIMIT 40`,
+          [id],
+        );
+        favorites = f.rows;
+      } catch { /* ignore */ }
+
+      let mamaBul: any[] = [];
+      try {
+        const m = await sharedPool.query(
+          `SELECT id, answers, products, created_at AS "createdAt" FROM yp_recommendations
+           WHERE customer_id = $1 ORDER BY created_at DESC LIMIT 10`,
+          [id],
+        );
+        mamaBul = m.rows;
+      } catch { /* ignore */ }
+
+      let dogs: any[] = [];
+      try {
+        const d = await sharedPool.query(
+          `SELECT id, name, breed, size_type AS "sizeType", birth_date AS "birthDate", weight_kg AS "weightKg", gender
+           FROM dogs WHERE customer_id = $1 ORDER BY id DESC LIMIT 20`,
+          [id],
+        );
+        dogs = d.rows;
+      } catch {
+        try {
+          const yp = await sharedPool.query(
+            `SELECT id, name, breed, weight, birth_year AS "birthYear" FROM yp_poodles WHERE customer_id = $1`,
+            [id],
+          );
+          dogs = yp.rows;
+        } catch { /* ignore */ }
+      }
+
+      let aiCount = 0;
+      try {
+        const ai = await sharedPool.query(
+          `SELECT COUNT(*)::int AS c FROM yp_chat_events WHERE customer_id = $1`,
+          [id],
+        );
+        aiCount = ai.rows[0]?.c || 0;
+      } catch { /* ignore */ }
+
+      res.json({
+        customer: {
+          id: customer.id,
+          name: customer.name,
+          phone: customer.phone,
+          email: (customer as any).email || null,
+          address: customer.address,
+          createdAt: customer.createdAt,
+          isBlacklisted: !!(customer as any).isBlacklisted,
+        },
+        stats: {
+          orderCount,
+          totalSpend: Math.round(spend * 100) / 100,
+          avgBasket: Math.round(avgBasket * 100) / 100,
+          lastOrderAt: ordersList[0]?.createdAt || null,
+          mamaBulCount: mamaBul.length,
+          aiMessageCount: aiCount,
+        },
+        orders: ordersList,
+        addresses,
+        favorites,
+        mamaBul,
+        dogs,
+      });
+    } catch (e: any) {
+      console.error("customer detail:", e?.message);
+      res.status(500).json({ message: "Müşteri detayı alınamadı" });
+    }
+  });
+
+  /** Payment transaction-ish view from orders */
+  app.get("/api/admin/payments", requireAdmin, requirePermission("orders.read"), async (req, res) => {
+    try {
+      const status = typeof req.query.status === "string" ? req.query.status.trim() : "";
+      const limit = Math.min(200, Math.max(1, Number(req.query.limit) || 50));
+      const params: any[] = [];
+      let where = "WHERE payment_method ILIKE '%online%' OR payment_method ILIKE '%kart%' OR payment_method ILIKE '%iyzico%' OR payment_method ILIKE '%tosla%' OR payment_status IN ('pending','awaiting','failed','refunded','completed')";
+      if (status) {
+        params.push(status);
+        where += ` AND payment_status = $${params.length}`;
+      }
+      params.push(limit);
+      const q = await sharedPool.query(
+        `SELECT id, customer_name AS "customerName", customer_phone AS "customerPhone",
+                payment_method AS "paymentMethod", payment_status AS "paymentStatus",
+                grand_total AS "grandTotal", status, created_at AS "createdAt", source_site AS "sourceSite"
+         FROM orders ${where}
+         ORDER BY created_at DESC LIMIT $${params.length}`,
+        params,
+      );
+      res.json(q.rows);
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Ödeme listesi alınamadı" });
+    }
+  });
+
+  app.post("/api/admin/send-sms", requireAdmin, requirePermission("customers.write"), async (req, res) => {
     try {
       const { phones, message } = req.body;
       if (!phones || !Array.isArray(phones) || phones.length === 0 || !message || typeof message !== "string") {
@@ -6684,14 +8150,86 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         else failed++;
         await new Promise(r => setTimeout(r, 200));
       }
+      writeAuditLog(sharedPool, {
+        actorUserId: (req.session as any)?.userId,
+        actorUsername: (req.session as any)?.username,
+        action: "sms.broadcast",
+        entityType: "sms",
+        ip: req.ip,
+        meta: { sent, failed, total: validPhones.length },
+      });
       res.json({ sent, failed, total: validPhones.length });
     } catch (err) {
       res.status(500).json({ message: "SMS gönderim hatası" });
     }
   });
 
+  /** Segmentasyon: SMS / push hedef kitle */
+  app.get("/api/admin/segments/:key", requireAdmin, requirePermission("customers.read"), async (req, res) => {
+    const key = String(req.params.key || "");
+    try {
+      let q = "";
+      if (key === "yp_buyers") {
+        q = `SELECT DISTINCT c.id, c.name, c.phone, c.email
+             FROM customers c
+             INNER JOIN orders o ON o.customer_id = c.id
+             WHERE o.store = 'yp' AND COALESCE(o.status,'') NOT IN ('cancelled','iptal')
+               AND c.phone IS NOT NULL AND c.phone <> ''
+             ORDER BY c.name ASC NULLS LAST LIMIT 500`;
+      } else if (key === "yp_no_order") {
+        q = `SELECT c.id, c.name, c.phone, c.email
+             FROM customers c
+             WHERE c.phone IS NOT NULL AND c.phone <> ''
+               AND NOT EXISTS (
+                 SELECT 1 FROM orders o
+                 WHERE o.customer_id = c.id AND o.store = 'yp'
+                   AND COALESCE(o.status,'') NOT IN ('cancelled','iptal')
+               )
+             ORDER BY c.created_at DESC NULLS LAST LIMIT 500`;
+      } else if (key === "club_active") {
+        q = `SELECT DISTINCT c.id, c.name, c.phone, c.email
+             FROM customers c
+             INNER JOIN dogs d ON d.user_id = c.id
+             WHERE c.phone IS NOT NULL AND c.phone <> ''
+             ORDER BY c.name ASC NULLS LAST LIMIT 500`;
+      } else if (key === "mama_bul") {
+        q = `SELECT DISTINCT c.id, c.name, c.phone, c.email
+             FROM customers c
+             INNER JOIN yp_recommendations r ON r.customer_id = c.id
+             WHERE c.phone IS NOT NULL AND c.phone <> ''
+             ORDER BY c.name ASC NULLS LAST LIMIT 500`;
+      } else if (key === "recent_buyers_30d") {
+        q = `SELECT DISTINCT c.id, c.name, c.phone, c.email
+             FROM customers c
+             INNER JOIN orders o ON o.customer_id = c.id
+             WHERE o.store = 'yp' AND o.created_at >= NOW() - INTERVAL '30 days'
+               AND COALESCE(o.status,'') NOT IN ('cancelled','iptal')
+               AND c.phone IS NOT NULL AND c.phone <> ''
+             ORDER BY c.name ASC NULLS LAST LIMIT 500`;
+      } else if (key === "push_subscribers") {
+        await sharedPool.query(ENSURE_YP_PUSH);
+        q = `SELECT DISTINCT c.id, c.name, c.phone, c.email
+             FROM yp_push_subscriptions ps
+             INNER JOIN customers c ON c.id = ps.customer_id
+             WHERE c.phone IS NOT NULL AND c.phone <> ''
+             ORDER BY c.name ASC NULLS LAST LIMIT 500`;
+      } else {
+        return res.status(400).json({ message: "Geçersiz segment" });
+      }
+      const r = await sharedPool.query(q);
+      res.json({
+        key,
+        count: r.rows.length,
+        phones: r.rows.map((x: any) => x.phone).filter(Boolean),
+        customers: r.rows,
+      });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Segment yüklenemedi" });
+    }
+  });
+
   // ===== Yasaklı Numaralar (tüm siteler için global) =====
-  app.get("/api/admin/banned-numbers", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/banned-numbers", requireAdmin, requirePermission("customers.read"), async (_req, res) => {
     try {
       const list = await storage.getBannedNumbers();
       res.json(list);
@@ -6700,7 +8238,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.post("/api/admin/banned-numbers", requireAdmin, async (req, res) => {
+  app.post("/api/admin/banned-numbers", requireAdmin, requirePermission("customers.write"), async (req, res) => {
     try {
       const phone = canonicalTrPhone(String(req.body?.phone || ""));
       if (!/^5\d{9}$/.test(phone)) {
@@ -6714,7 +8252,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.delete("/api/admin/banned-numbers/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/banned-numbers/:id", requireAdmin, requirePermission("customers.write"), async (req, res) => {
     try {
       const id = parseInt(String(req.params.id));
       if (isNaN(id)) return res.status(400).json({ message: "Geçersiz ID" });
@@ -6725,7 +8263,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.get("/api/admin/banners", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/banners", requireAdmin, requirePermission("settings.write"), async (_req, res) => {
     try {
       const all = await storage.getAllBanners();
       res.json(all);
@@ -6737,7 +8275,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   app.post("/api/abone", async (req, res) => {
     try {
       const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.ip || "unknown";
-      if (rateLimit(`abone:${ip}`, 5, 60 * 60 * 1000)) {
+      if (await rateLimitHit(`abone:${ip}`, 5, 60 * 60 * 1000)) {
         return res.status(429).json({ message: "Çok fazla deneme. Lütfen daha sonra tekrar deneyin." });
       }
       const phoneRaw = String(req.body?.phone || "").replace(/\D/g, "");
@@ -6757,7 +8295,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.get("/api/admin/subscriptions", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/subscriptions", requireAdmin, requirePermission("orders.read"), async (_req, res) => {
     try {
       const list = await storage.getAllSubscriptions();
       res.json(list);
@@ -6766,7 +8304,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.patch("/api/admin/subscriptions/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/subscriptions/:id", requireAdmin, requirePermission("orders.update"), async (req, res) => {
     try {
       const id = parseInt(String(req.params.id));
       const status = String(req.body?.status || "");
@@ -6780,7 +8318,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.delete("/api/admin/subscriptions/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/subscriptions/:id", requireAdmin, requirePermission("orders.update"), async (req, res) => {
     try {
       await storage.deleteSubscription(parseInt(String(req.params.id)));
       res.json({ ok: true });
@@ -6789,7 +8327,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.post("/api/admin/banners", requireAdmin, upload.single("image"), async (req, res) => {
+  app.post("/api/admin/banners", requireAdmin, requirePermission("settings.write"), upload.single("image"), async (req, res) => {
     try {
       const { title, linkUrl, sortOrder, position, device } = req.body;
       if (!title) return res.status(400).json({ message: "Başlık gerekli" });
@@ -6832,7 +8370,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.patch("/api/admin/banners/:id", requireAdmin, upload.single("image"), async (req, res) => {
+  app.patch("/api/admin/banners/:id", requireAdmin, requirePermission("settings.write"), upload.single("image"), async (req, res) => {
     try {
       const id = parseInt(String(req.params.id));
       if (await blockedByStoreContext(req, res, "banners", id)) return;
@@ -6870,7 +8408,7 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  app.delete("/api/admin/banners/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/banners/:id", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     try {
       const id = parseInt(String(req.params.id));
       if (await blockedByStoreContext(req, res, "banners", id)) return;
@@ -6882,25 +8420,25 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   });
 
 
-  app.post("/api/admin/blacklist/:customerId", requireAdmin, async (req, res) => {
+  app.post("/api/admin/blacklist/:customerId", requireAdmin, requirePermission("customers.write"), async (req, res) => {
     const customerId = parseInt(String(req.params.customerId));
     const { reason } = req.body;
     await sharedPool.query("UPDATE customers SET is_blacklisted = true, blacklist_reason = $1 WHERE id = $2", [reason || "Belirtilmemiş", customerId]);
     res.json({ success: true });
   });
 
-  app.post("/api/admin/unblacklist/:customerId", requireAdmin, async (req, res) => {
+  app.post("/api/admin/unblacklist/:customerId", requireAdmin, requirePermission("customers.write"), async (req, res) => {
     const customerId = parseInt(String(req.params.customerId));
     await sharedPool.query("UPDATE customers SET is_blacklisted = false, blacklist_reason = NULL WHERE id = $1", [customerId]);
     res.json({ success: true });
   });
 
-  app.get("/api/admin/blacklisted-customers", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/blacklisted-customers", requireAdmin, requirePermission("customers.read"), async (_req, res) => {
     const result = await sharedPool.query("SELECT * FROM customers WHERE is_blacklisted = true ORDER BY name");
     res.json(result.rows);
   });
 
-  app.get("/api/admin/reports", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/reports", requireAdmin, requirePermission("finance.read"), async (_req, res) => {
     try {
       const allOrders = await storage.getAllOrders();
       const allProducts = await storage.getAllProducts();
@@ -7080,10 +8618,35 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     }
   });
 
-  const petAI = new OpenAI({
-    apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || "sk-local-placeholder",
-    baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-  });
+  const openaiKey = (process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY || "").trim();
+  const openaiBase = (process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || "").trim() || undefined;
+  const hasRealOpenAI = openaiKey.length > 20 && !openaiKey.includes("placeholder");
+  const petAI = hasRealOpenAI
+    ? new OpenAI({ apiKey: openaiKey, baseURL: openaiBase })
+    : null;
+
+  function localYpChatReply(userText: string): string {
+    const t = userText.toLocaleLowerCase("tr-TR");
+    if (/mama|beslen|yem|kilo|porsiyon|kalori/.test(t)) {
+      return "Toy/Minyatür Poodle için yaşa uygun, küçük ırk formülü mama seçin. Yavruysa puppy, 1–7 yaş yetişkin, 7+ yaş senior tercih edin. Günlük miktarı kilo ve aktiviteye göre ayarlayın; ani mama değişiminde 7 gün geçiş yapın. Size özel öneri için Mama Bul sihirbazını da deneyebilirsiniz.";
+    }
+    if (/tüy|tıras|tras|şampuan|sampuan|göz|kulak|bakım|bakim|dökül|dokul|kaşıntı|kasinti/.test(t)) {
+      return "Poodle tüyü günlük tarama ister; düğüm oluşursa zorlamayın. 4–6 haftada bir profesyonel tıraş önerilir. Göz çevresini yumuşak bezle temizleyin, kulakları nemli bırakmayın. Kaşıntı/kızarıklık sürerse veteriner kontrolü şarttır.";
+    }
+    if (/eğitim|egitim|tuvalet|komut|havla|ısırma|isirma|davranış|davranis/.test(t)) {
+      return "Kısa (5–10 dk), sık ve ödüllü seanslar en etkilidir. Tuvalet eğitiminde sabit alan + her başarıda ödül kullanın. Isırma/havlama için dikkat çekmeyi kesip sakin davranışı ödüllendirin. Tutarlılık herkesten aynı kuralları uygulamaktır.";
+    }
+    if (/sağlık|saglik|hasta|kusma|ishal|aşı|asi|parazit|veteriner|ateş|ates/.test(t)) {
+      return "Ben kesin teşhis koyamam. Kusma, ishal, iştahsızlık, halsizlik veya nefes darlığı varsa en kısa sürede veterinere gidin. Rutin aşı ve parazit takvimini aksatmayın; ani kilo kaybı da kontrol gerektirir.";
+    }
+    if (/yavru|puppy|kaç aylık|kac aylik|ilk gün|ilk gun/.test(t)) {
+      return "Yavru Poodle için puppy mama, sıcak ve sessiz alan, kısa oyun seansları ve sosyalizasyon önemli. İlk günlerde tuvalet rutini kurun, gece uykusunu sabırla yönetin. İlk veteriner kontrolünü geciktirmeyin.";
+    }
+    if (/merhaba|selam|hey|günaydın|gunaydin|iyi akşam|iyi aksam/.test(t)) {
+      return "Merhaba! YourPoodle asistanıyım. Mama, bakım, eğitim veya sağlık hakkında sorabilirsin. Ciddi belirtilerde mutlaka veterinere yönlendiririm.";
+    }
+    return "Toy/Minyatür Poodle hakkında yardımcı olabilirim: mama seçimi, tüy bakımı, eğitim ve genel sağlık bilgisi. Sorunu biraz daha net yazarsan (ör. “2 kg yetişkin mama öner”) daha spesifik cevap verebilirim. Acil sağlık şüphesinde lütfen veterinere başvur.";
+  }
 
   // ── YourPoodle AI Chat ─────────────────────────────────────────────────────
   // Task 8: Daily limits (guest=10/day/IP, logged-in=50/day), prompt injection filter, 30s timeout
@@ -7094,30 +8657,30 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
     const customerId = (req.session as any)?.customerId;
 
     // Per-minute burst limit (both guests and logged-in)
-    if (rateLimit(`ypchat:burst:${ip}`, 12, 60 * 1000)) {
+    if (await rateLimitHit(`ypchat:burst:${ip}`, 12, 60 * 1000)) {
       return res.status(429).json({ error: "Çok fazla mesaj. Lütfen biraz bekleyin." });
     }
 
     // Daily limit per user type
     if (customerId) {
       // Logged-in: 50 messages / day / user
-      if (rateLimit(`ypchat:day:user:${customerId}`, 50, 24 * 60 * 60 * 1000)) {
+      if (await rateLimitHit(`ypchat:day:user:${customerId}`, 50, 24 * 60 * 60 * 1000)) {
         return res.status(429).json({ error: "Günlük mesaj limitinize ulaştınız. Yarın tekrar deneyin." });
       }
     } else {
       // Guest: 10 messages / day / IP
-      if (rateLimit(`ypchat:day:guest:${ip}`, 10, 24 * 60 * 60 * 1000)) {
+      if (await rateLimitHit(`ypchat:day:guest:${ip}`, 10, 24 * 60 * 60 * 1000)) {
         return res.status(429).json({ error: "Daily limit reached. Please log in or try again tomorrow." });
       }
     }
 
     // Global cost protection
-    if (rateLimit(`ypchat:global`, 300, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`ypchat:global`, 300, 60 * 60 * 1000)) {
       return res.status(429).json({ error: "Sistem yoğun. Lütfen daha sonra tekrar deneyin." });
     }
 
     try {
-      const { messages, systemPrompt } = req.body;
+      const { messages } = req.body;
       if (!Array.isArray(messages) || messages.length === 0) {
         return res.status(400).json({ error: "Geçersiz mesaj." });
       }
@@ -7133,7 +8696,20 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
         return res.status(400).json({ error: "Geçersiz mesaj." });
       }
 
-      const defaultSystem = `Sen YourPoodle'ın AI asistanısın. Yalnızca Toy Poodle ve Miniature Poodle sahiplerine yardımcı oluyorsun.
+      const ipHash = crypto.createHash("sha256").update(ip).digest("hex").slice(0, 32);
+
+      // Local fallback when OpenAI key is missing (dev / offline)
+      if (!petAI) {
+        try {
+          await sharedPool.query(
+            `INSERT INTO yp_chat_events (customer_id, ip_hash, is_local) VALUES ($1,$2,true)`,
+            [customerId || null, ipHash],
+          );
+        } catch { /* ignore */ }
+        return res.json({ reply: localYpChatReply(userText), local: true });
+      }
+
+      const defaultSystemFallback = `Sen YourPoodle'ın AI asistanısın. Yalnızca Toy Poodle ve Miniature Poodle sahiplerine yardımcı oluyorsun.
 
 Kurallar:
 - Samimi, sıcak ve anlaşılır dil kullan.
@@ -7142,15 +8718,26 @@ Kurallar:
 - Kısa ve net cevaplar ver (max 4-5 cümle). Gerektiğinde madde madde açıkla.
 - Türkçe cevap ver.`;
 
+      let defaultSystem = defaultSystemFallback;
+      try {
+        const ps = await sharedPool.query(
+          `SELECT value FROM app_settings WHERE key = 'yp_ai_system_prompt' LIMIT 1`,
+        );
+        if (ps.rows[0]?.value && String(ps.rows[0].value).trim().length > 20) {
+          defaultSystem = String(ps.rows[0].value).slice(0, 4000);
+        }
+      } catch { /* keep fallback */ }
+
       // 30-second timeout via AbortController
       const ctrl = new AbortController();
       const timeout = setTimeout(() => ctrl.abort(), 30000);
 
       try {
+        // systemPrompt is NEVER taken from the client (prompt-injection / jailbreak)
         const completion = await petAI.chat.completions.create({
           model: "gpt-4.1-mini",
           messages: [
-            { role: "system", content: typeof systemPrompt === "string" ? systemPrompt.slice(0, 2000) : defaultSystem },
+            { role: "system", content: defaultSystem },
             ...(messages.slice(-10).map((m: any) => ({
               role: (m.role === "user" ? "user" : "assistant") as "user" | "assistant",
               content: String(m.content).slice(0, 1000),
@@ -7161,13 +8748,20 @@ Kurallar:
         }, { signal: ctrl.signal as any });
         clearTimeout(timeout);
         const reply = completion.choices[0]?.message?.content || "Üzgünüm, şu an cevap veremiyorum.";
+        try {
+          await sharedPool.query(
+            `INSERT INTO yp_chat_events (customer_id, ip_hash, is_local) VALUES ($1,$2,false)`,
+            [customerId || null, ipHash],
+          );
+        } catch { /* ignore */ }
         res.json({ reply });
       } catch (aiErr: any) {
         clearTimeout(timeout);
         if (aiErr?.name === "AbortError" || aiErr?.message?.includes("abort")) {
           return res.status(504).json({ error: "Yanıt süresi doldu, lütfen tekrar deneyin." });
         }
-        throw aiErr;
+        console.warn("[yp-chat] OpenAI failed, using local fallback:", aiErr?.message);
+        return res.json({ reply: localYpChatReply(userText), local: true });
       }
     } catch (error: any) {
       console.error("[yp-chat] error:", error?.message);
@@ -7317,6 +8911,225 @@ Kurallar:
     } catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
+  // ── Admin: Mama Bul analytics + sessions + rules ───
+  app.get("/api/admin/mama-bul/stats", requireAdmin, requirePermission("products.read"), async (_req, res) => {
+    try {
+      await sharedPool.query(ENSURE_YP_RECOMMENDATIONS);
+      const total = await sharedPool.query(`SELECT COUNT(*)::int AS c FROM yp_recommendations`);
+      const today = await sharedPool.query(
+        `SELECT COUNT(*)::int AS c FROM yp_recommendations WHERE created_at >= CURRENT_DATE`,
+      );
+      const week = await sharedPool.query(
+        `SELECT COUNT(*)::int AS c FROM yp_recommendations WHERE created_at >= NOW() - INTERVAL '7 days'`,
+      );
+      const users = await sharedPool.query(
+        `SELECT COUNT(DISTINCT customer_id)::int AS c FROM yp_recommendations`,
+      );
+      const recent = await sharedPool.query(
+        `SELECT answers FROM yp_recommendations ORDER BY created_at DESC LIMIT 200`,
+      );
+      const keyCounts: Record<string, Record<string, number>> = {};
+      for (const row of recent.rows) {
+        let answers = row.answers;
+        if (typeof answers === "string") {
+          try { answers = JSON.parse(answers); } catch { answers = {}; }
+        }
+        if (!answers || typeof answers !== "object") continue;
+        for (const [k, v] of Object.entries(answers)) {
+          const val = String(v ?? "").slice(0, 80);
+          if (!val) continue;
+          if (!keyCounts[k]) keyCounts[k] = {};
+          keyCounts[k][val] = (keyCounts[k][val] || 0) + 1;
+        }
+      }
+      const topCriteria = Object.entries(keyCounts).map(([key, vals]) => ({
+        key,
+        top: Object.entries(vals)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([value, count]) => ({ value, count })),
+      }));
+      res.json({
+        total: total.rows[0]?.c || 0,
+        today: today.rows[0]?.c || 0,
+        week: week.rows[0]?.c || 0,
+        uniqueUsers: users.rows[0]?.c || 0,
+        topCriteria,
+      });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Mama Bul istatistik hatası" });
+    }
+  });
+
+  app.get("/api/admin/mama-bul/sessions", requireAdmin, requirePermission("products.read"), async (req, res) => {
+    try {
+      await sharedPool.query(ENSURE_YP_RECOMMENDATIONS);
+      const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 40));
+      const r = await sharedPool.query(
+        `SELECT r.id, r.customer_id AS "customerId", r.answers, r.products, r.created_at AS "createdAt",
+                c.name AS "customerName", c.phone AS "customerPhone"
+         FROM yp_recommendations r
+         LEFT JOIN customers c ON c.id = r.customer_id
+         ORDER BY r.created_at DESC LIMIT $1`,
+        [limit],
+      );
+      res.json(r.rows);
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Oturumlar alınamadı" });
+    }
+  });
+
+  app.get("/api/admin/mama-bul/rules", requireAdmin, requirePermission("products.read"), async (_req, res) => {
+    try {
+      const r = await sharedPool.query(`SELECT value FROM app_settings WHERE key='yp_mama_bul_rules' LIMIT 1`);
+      let rules: any[] = [];
+      if (r.rows[0]?.value) {
+        try { rules = JSON.parse(r.rows[0].value); } catch { rules = []; }
+      }
+      if (!Array.isArray(rules)) rules = [];
+      res.json(rules);
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Kurallar alınamadı" });
+    }
+  });
+
+  /** Public active rules for Mama Bul scoring boosts (no secrets) */
+  app.get("/api/mama-bul/rules", async (_req, res) => {
+    try {
+      const r = await sharedPool.query(`SELECT value FROM app_settings WHERE key='yp_mama_bul_rules' LIMIT 1`);
+      let rules: any[] = [];
+      if (r.rows[0]?.value) {
+        try { rules = JSON.parse(r.rows[0].value); } catch { rules = []; }
+      }
+      if (!Array.isArray(rules)) rules = [];
+      res.setHeader("Cache-Control", "public, max-age=60");
+      res.json(rules.filter((x: any) => x && x.active !== false).map((x: any) => ({
+        id: x.id,
+        name: x.name,
+        boost: x.boost,
+        match: x.match || {},
+        productIds: x.productIds || [],
+      })));
+    } catch {
+      res.json([]);
+    }
+  });
+
+  app.put("/api/admin/mama-bul/rules", requireAdmin, requirePermission("products.write"), async (req, res) => {
+    try {
+      const rules = Array.isArray(req.body?.rules) ? req.body.rules : req.body;
+      if (!Array.isArray(rules)) return res.status(400).json({ message: "rules dizi olmalı" });
+      const cleaned = rules.slice(0, 100).map((rule: any, i: number) => ({
+        id: String(rule.id || `rule-${i + 1}`),
+        name: String(rule.name || `Kural ${i + 1}`).slice(0, 120),
+        active: rule.active !== false,
+        boost: Math.max(0, Math.min(100, Number(rule.boost) || 10)),
+        match: rule.match && typeof rule.match === "object" ? rule.match : {},
+        productIds: Array.isArray(rule.productIds)
+          ? rule.productIds.map((x: any) => Number(x)).filter((n: number) => Number.isFinite(n)).slice(0, 50)
+          : [],
+      }));
+      await sharedPool.query(
+        `INSERT INTO app_settings (key, value, updated_at) VALUES ('yp_mama_bul_rules', $1, NOW())
+         ON CONFLICT (key) DO UPDATE SET value=$1, updated_at=NOW()`,
+        [JSON.stringify(cleaned)],
+      );
+      const actor = auditActorFromReq(req);
+      await writeAuditLog(sharedPool, {
+        actorUserId: actor.userId,
+        actorUsername: actor.username,
+        action: "mama_bul.rules_update",
+        entityType: "settings",
+        entityId: "yp_mama_bul_rules",
+        after: { count: cleaned.length },
+        ip: actor.ip,
+      });
+      res.json(cleaned);
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Kurallar kaydedilemedi" });
+    }
+  });
+
+  app.get("/api/admin/yp-chat/stats", requireAdmin, requirePermission("settings.write"), async (_req, res) => {
+    try {
+      const total = await sharedPool.query(`SELECT COUNT(*)::int AS c FROM yp_chat_events`);
+      const today = await sharedPool.query(
+        `SELECT COUNT(*)::int AS c FROM yp_chat_events WHERE created_at >= CURRENT_DATE`,
+      );
+      const users = await sharedPool.query(
+        `SELECT COUNT(DISTINCT customer_id)::int AS c FROM yp_chat_events WHERE customer_id IS NOT NULL`,
+      );
+      const local = await sharedPool.query(
+        `SELECT COUNT(*)::int AS c FROM yp_chat_events WHERE is_local = true`,
+      );
+      res.json({
+        total: total.rows[0]?.c || 0,
+        today: today.rows[0]?.c || 0,
+        users: users.rows[0]?.c || 0,
+        localFallback: local.rows[0]?.c || 0,
+      });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "AI istatistik hatası" });
+    }
+  });
+
+  app.get("/api/admin/yp-chat/events", requireAdmin, requirePermission("settings.write"), async (req, res) => {
+    try {
+      const limit = Math.min(200, Math.max(1, Number(req.query.limit) || 50));
+      const r = await sharedPool.query(
+        `SELECT e.id, e.customer_id AS "customerId", e.is_local AS "isLocal", e.created_at AS "createdAt",
+                c.name AS "customerName", c.phone AS "customerPhone"
+         FROM yp_chat_events e
+         LEFT JOIN customers c ON c.id = e.customer_id
+         ORDER BY e.created_at DESC LIMIT $1`,
+        [limit],
+      );
+      res.json(r.rows);
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "AI olayları alınamadı" });
+    }
+  });
+
+  app.get("/api/admin/yp-chat/prompt", requireAdmin, requirePermission("settings.write"), async (_req, res) => {
+    try {
+      const r = await sharedPool.query(`SELECT value FROM app_settings WHERE key='yp_ai_system_prompt' LIMIT 1`);
+      res.json({ prompt: r.rows[0]?.value || "" });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Prompt okunamadı" });
+    }
+  });
+
+  app.put("/api/admin/yp-chat/prompt", requireAdmin, requirePermission("settings.write"), async (req, res) => {
+    try {
+      const prompt = String(req.body?.prompt || "").trim().slice(0, 4000);
+      if (prompt.length > 0 && prompt.length < 20) {
+        return res.status(400).json({ message: "Prompt en az 20 karakter olmalı (veya boş bırakıp varsayılana dön)" });
+      }
+      if (!prompt) {
+        await sharedPool.query(`DELETE FROM app_settings WHERE key='yp_ai_system_prompt'`);
+      } else {
+        await sharedPool.query(
+          `INSERT INTO app_settings (key, value, updated_at) VALUES ('yp_ai_system_prompt', $1, NOW())
+           ON CONFLICT (key) DO UPDATE SET value=$1, updated_at=NOW()`,
+          [prompt],
+        );
+      }
+      const actor = auditActorFromReq(req);
+      await writeAuditLog(sharedPool, {
+        actorUserId: actor.userId,
+        actorUsername: actor.username,
+        action: "ai.prompt_update",
+        entityType: "settings",
+        entityId: "yp_ai_system_prompt",
+        after: { length: prompt.length },
+        ip: actor.ip,
+      });
+      res.json({ ok: true, prompt });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Prompt kaydedilemedi" });
+    }
+  });
+
   // ── Poodle photo upload ────────────────────────────────────────────────
   app.post("/api/yp/poodle/photo", upload.single("photo"), async (req, res) => {
     const customerId = (req.session as any)?.customerId;
@@ -7372,12 +9185,48 @@ Kurallar:
   });
 
   // ── Push notification: admin send ──────────────────────────────────────
-  app.post("/api/admin/push/send", requireAdmin, async (req, res) => {
-    const { title, body, url } = req.body;
+  app.post("/api/admin/push/send", requireAdmin, requirePermission("settings.write"), async (req, res) => {
+    const { title, body, url, segment, customerIds } = req.body;
     if (!title || !body) return res.status(400).json({ error: "Başlık ve içerik gerekli" });
     try {
       await sharedPool.query(ENSURE_YP_PUSH);
-      const { rows } = await sharedPool.query("SELECT * FROM yp_push_subscriptions");
+      let rows: any[] = [];
+      if (Array.isArray(customerIds) && customerIds.length > 0) {
+        const ids = customerIds.map((x: any) => Number(x)).filter((n: number) => Number.isFinite(n)).slice(0, 500);
+        const r = await sharedPool.query(
+          `SELECT * FROM yp_push_subscriptions WHERE customer_id = ANY($1::int[])`,
+          [ids]
+        );
+        rows = r.rows;
+      } else if (segment && segment !== "all") {
+        // Segment → customer ids via same queries as SMS segments (phones path unused)
+        let segSql = "";
+        if (segment === "yp_buyers") {
+          segSql = `SELECT DISTINCT o.customer_id AS id FROM orders o
+                    WHERE o.store='yp' AND COALESCE(o.status,'') NOT IN ('cancelled','iptal')`;
+        } else if (segment === "club_active") {
+          segSql = `SELECT DISTINCT d.user_id AS id FROM dogs d`;
+        } else if (segment === "mama_bul") {
+          segSql = `SELECT DISTINCT r.customer_id AS id FROM yp_recommendations r`;
+        } else if (segment === "recent_buyers_30d") {
+          segSql = `SELECT DISTINCT o.customer_id AS id FROM orders o
+                    WHERE o.store='yp' AND o.created_at >= NOW() - INTERVAL '30 days'
+                      AND COALESCE(o.status,'') NOT IN ('cancelled','iptal')`;
+        }
+        if (segSql) {
+          const r = await sharedPool.query(
+            `SELECT ps.* FROM yp_push_subscriptions ps
+             WHERE ps.customer_id IN (${segSql})`
+          );
+          rows = r.rows;
+        } else {
+          const r = await sharedPool.query("SELECT * FROM yp_push_subscriptions");
+          rows = r.rows;
+        }
+      } else {
+        const r = await sharedPool.query("SELECT * FROM yp_push_subscriptions");
+        rows = r.rows;
+      }
       const payload = JSON.stringify({ title, body, url: url || "/yourpoodle", icon: "/favicon-192.png" });
       let sent = 0, failed = 0;
       for (const sub of rows) {
@@ -7391,12 +9240,20 @@ Kurallar:
           failed++;
         }
       }
+      writeAuditLog(sharedPool, {
+        actorUserId: (req.session as any)?.userId,
+        actorUsername: (req.session as any)?.username,
+        action: "push.broadcast",
+        entityType: "push",
+        ip: req.ip,
+        meta: { sent, failed, segment: segment || "all" },
+      });
       res.json({ sent, failed });
     } catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
   // ── YourPoodle admin: email subscribers ──────────────────────────────────
-  app.get("/api/admin/yp-email-subscribers", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/yp-email-subscribers", requireAdmin, requirePermission("customers.read"), async (_req, res) => {
     try {
       const result = await sharedPool.query(
         `SELECT id, email, created_at FROM yp_email_subscribers ORDER BY created_at DESC`
@@ -7405,14 +9262,14 @@ Kurallar:
     } catch { res.json([]); }
   });
 
-  app.delete("/api/admin/yp-email-subscribers/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/yp-email-subscribers/:id", requireAdmin, requirePermission("customers.write"), async (req, res) => {
     try {
       await sharedPool.query(`DELETE FROM yp_email_subscribers WHERE id=$1`, [parseInt(String(req.params.id))]);
       res.json({ ok: true });
     } catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
-  app.get("/api/admin/yp-email-subscribers/export", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/yp-email-subscribers/export", requireAdmin, requirePermission("customers.read"), async (_req, res) => {
     try {
       const result = await sharedPool.query(
         `SELECT email, created_at FROM yp_email_subscribers ORDER BY created_at DESC`
@@ -7453,16 +9310,20 @@ Kurallar:
 
   app.post("/api/pet-ask", async (req: Request, res: Response) => {
     const ip = req.ip || "unknown";
-    if (rateLimit(`petask:${ip}`, 5, 60 * 1000)) {
+    if (await rateLimitHit(`petask:${ip}`, 5, 60 * 1000)) {
       return res.status(429).json({ error: "Çok fazla soru. Lütfen biraz bekleyin." });
     }
-    if (rateLimit(`petask:global`, 100, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`petask:global`, 100, 60 * 60 * 1000)) {
       return res.status(429).json({ error: "Sistem yoğun. Lütfen daha sonra tekrar deneyin." });
     }
     try {
       const { question } = req.body;
       if (!question || typeof question !== "string" || question.trim().length < 2 || question.trim().length > 500) {
         return res.status(400).json({ error: "Lütfen 2-500 karakter arası bir soru yazın" });
+      }
+
+      if (!petAI) {
+        return res.json({ answer: localYpChatReply(question.trim()), local: true });
       }
 
       const completion = await petAI.chat.completions.create({
@@ -7482,13 +9343,17 @@ Kurallar:
       res.json({ answer });
     } catch (error: any) {
       console.error("Pet AI error:", error?.message || error);
+      try {
+        const q = typeof req.body?.question === "string" ? req.body.question : "";
+        if (q) return res.json({ answer: localYpChatReply(q), local: true });
+      } catch {}
       res.status(500).json({ error: "Yapay zeka şu an meşgul, lütfen tekrar deneyin." });
     }
   });
 
   app.post("/api/coupons/validate", async (req, res) => {
     const ip = req.ip || "unknown";
-    if (rateLimit(`coupon:${ip}`, 15, 60 * 1000)) {
+    if (await rateLimitHit(`coupon:${ip}`, 15, 60 * 1000)) {
       return res.status(429).json({ valid: false, message: "Çok fazla deneme. Lütfen bekleyin." });
     }
     const { code, subtotal } = req.body;
@@ -7498,30 +9363,52 @@ Kurallar:
     const now = new Date();
     if (coupon.expiresAt && new Date(coupon.expiresAt) < now) return res.json({ valid: false, message: "Kupon kodunun süresi dolmuş" });
     if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) return res.json({ valid: false, message: "Kupon kullanım limiti dolmuş" });
+    const customerId = (req.session as any)?.customerId as number | undefined;
     if (coupon.customerId) {
-      const customerId = (req.session as any)?.customerId;
       if (!customerId || customerId !== coupon.customerId) {
         return res.json({ valid: false, message: "Bu kupon size ait değil" });
       }
     }
+    const cAny = coupon as any;
+    if (cAny.firstOrderOnly || cAny.first_order_only) {
+      if (!customerId) {
+        return res.json({ valid: false, message: "Bu kupon yalnızca ilk siparişte geçerlidir — giriş yapın" });
+      }
+      const prior = await sharedPool.query(
+        `SELECT 1 FROM orders WHERE customer_id = $1 AND status NOT IN ('cancelled') LIMIT 1`,
+        [customerId]
+      );
+      if (prior.rows.length > 0) {
+        return res.json({ valid: false, message: "Bu kupon yalnızca ilk siparişte geçerlidir" });
+      }
+    }
     if (subtotal && subtotal < coupon.minOrderAmount) return res.json({ valid: false, message: `Minimum sipariş tutarı: ${coupon.minOrderAmount} TL` });
+    const freeShipping = !!(cAny.freeShipping || cAny.free_shipping);
     let discountAmount = 0;
     if (coupon.discountType === "percentage") {
       discountAmount = Math.round((subtotal || 0) * (coupon.discountValue / 100) * 100) / 100;
-    } else {
+      const maxD = Number(cAny.maxDiscountAmount ?? cAny.max_discount_amount);
+      if (Number.isFinite(maxD) && maxD > 0 && discountAmount > maxD) discountAmount = maxD;
+    } else if (coupon.discountType !== "free_shipping") {
       discountAmount = coupon.discountValue;
     }
+    const msg = freeShipping || coupon.discountType === "free_shipping"
+      ? (discountAmount > 0 ? `İndirim + ücretsiz kargo` : "Ücretsiz kargo uygulandı")
+      : coupon.discountType === "percentage"
+        ? `%${coupon.discountValue} indirim uygulandı`
+        : `${coupon.discountValue} TL indirim uygulandı`;
     res.json({
       valid: true,
       discountType: coupon.discountType,
       discountValue: coupon.discountValue,
       discountAmount,
+      freeShipping,
       minOrderAmount: coupon.minOrderAmount,
-      message: coupon.discountType === "percentage" ? `%${coupon.discountValue} indirim uygulandı` : `${coupon.discountValue} TL indirim uygulandı`,
+      message: msg,
     });
   });
 
-  app.get("/api/admin/coupons", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/coupons", requireAdmin, requirePermission("settings.write"), async (_req, res) => {
     const all = await storage.getAllCoupons();
     res.json(all);
   });
@@ -7612,6 +9499,248 @@ Kurallar:
     return null;
   }
 
+  // First-party analytics events (Phase 1) — anonymous visitor/session event stream
+  app.post("/api/track/event", async (req: Request, res: Response) => {
+    res.status(204).end();
+    try {
+      const ip = clientIpFrom(req);
+      if (await rateLimitHit(`track-evt:${ip}`, 120, 60 * 60 * 1000)) return;
+
+      const body = req.body || {};
+      const visitorId = typeof body.visitorId === "string" ? body.visitorId : "";
+      const sessionId = typeof body.sessionId === "string" ? body.sessionId : "";
+      const eventName = typeof body.eventName === "string" ? body.eventName : "";
+      const pageUrl = typeof body.pageUrl === "string" ? body.pageUrl : null;
+      if (pageUrl && /^\/admin/i.test(pageUrl)) return;
+
+      const ua = String(req.headers["user-agent"] || "");
+      const geo = await resolveVisitGeo(ip);
+      const isBot = UA_BOT_RE.test(ua) || !!geo?.hosting;
+
+      const referrer = typeof body.referrer === "string" ? body.referrer : null;
+      const utmSource = typeof body.utmSource === "string" ? body.utmSource : null;
+      const source = detectVisitSource(referrer, utmSource);
+
+      let userId: number | null = null;
+      const sid = (req as any).session?.customerId;
+      if (typeof sid === "number") userId = sid;
+
+      await ingestAnalyticsEvent(sharedPool, {
+        visitorId,
+        sessionId,
+        eventName,
+        pageUrl,
+        referrer,
+        userId,
+        metadata: body.metadata,
+        utm: {
+          source: utmSource,
+          medium: typeof body.utmMedium === "string" ? body.utmMedium : null,
+          campaign: typeof body.utmCampaign === "string" ? body.utmCampaign : null,
+          content: typeof body.utmContent === "string" ? body.utmContent : null,
+          term: typeof body.utmTerm === "string" ? body.utmTerm : null,
+        },
+        clickIds: {
+          gclid: typeof body.gclid === "string" ? body.gclid : null,
+          fbclid: typeof body.fbclid === "string" ? body.fbclid : null,
+          ttclid: typeof body.ttclid === "string" ? body.ttclid : null,
+          gbraid: typeof body.gbraid === "string" ? body.gbraid : null,
+          wbraid: typeof body.wbraid === "string" ? body.wbraid : null,
+          msclkid: typeof body.msclkid === "string" ? body.msclkid : null,
+        },
+        source,
+        city: geo?.city ?? null,
+        region: geo?.region ?? null,
+        country: geo?.country ?? null,
+        userAgent: ua,
+        isBot,
+      });
+    } catch (e) {
+      console.error("track/event error:", e);
+    }
+  });
+
+  // Session engagement heartbeat (active time)
+  app.post("/api/track/heartbeat", async (req: Request, res: Response) => {
+    res.status(204).end();
+    try {
+      const ip = clientIpFrom(req);
+      if (await rateLimitHit(`track-evt:${ip}`, 120, 60 * 60 * 1000)) return;
+
+      const body = req.body || {};
+      const visitorId = typeof body.visitorId === "string" ? body.visitorId : "";
+      const sessionId = typeof body.sessionId === "string" ? body.sessionId : "";
+      await touchAnalyticsHeartbeat(sharedPool, visitorId, sessionId);
+    } catch (e) {
+      console.error("track/heartbeat error:", e);
+    }
+  });
+
+  const analyticsDate = (s: unknown): string | null =>
+    typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+
+  app.get("/api/admin/analytics/realtime", requireAdmin, requirePermission("settings.write"), async (req: Request, res: Response) => {
+    try {
+      const minutes = parseInt(String(req.query.minutes || "5"), 10);
+      const data = await getRealtimeSessions(sharedPool, Number.isFinite(minutes) ? minutes : 5);
+      res.json(data);
+    } catch (e) {
+      console.error("admin analytics realtime error:", e);
+      res.status(500).json({ message: "Analytics realtime failed" });
+    }
+  });
+
+  app.get("/api/admin/analytics/overview", requireAdmin, requirePermission("settings.write"), async (req: Request, res: Response) => {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const from = analyticsDate(req.query.from) || today;
+      const to = analyticsDate(req.query.to) || from;
+      res.json(await getOverview(sharedPool, from, to));
+    } catch (e) {
+      console.error("admin analytics overview error:", e);
+      res.status(500).json({ message: "Analytics overview failed" });
+    }
+  });
+
+  app.get("/api/admin/analytics/visitors", requireAdmin, requirePermission("settings.write"), async (req: Request, res: Response) => {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const from = analyticsDate(req.query.from) || today;
+      const to = analyticsDate(req.query.to) || from;
+      const limit = parseInt(String(req.query.limit || "50"), 10);
+      res.json(await getVisitorsList(sharedPool, from, to, Number.isFinite(limit) ? limit : 50));
+    } catch (e) {
+      console.error("admin analytics visitors error:", e);
+      res.status(500).json({ message: "Analytics visitors failed" });
+    }
+  });
+
+  app.get("/api/admin/analytics/visitor/:id", requireAdmin, requirePermission("settings.write"), async (req: Request, res: Response) => {
+    try {
+      const data = await getVisitorDetail(sharedPool, String(req.params.id || ""));
+      if (!data) return res.status(404).json({ message: "Visitor not found" });
+      res.json(data);
+    } catch (e) {
+      console.error("admin analytics visitor detail error:", e);
+      res.status(500).json({ message: "Analytics visitor failed" });
+    }
+  });
+
+  app.get("/api/admin/analytics/session/:id", requireAdmin, requirePermission("settings.write"), async (req: Request, res: Response) => {
+    try {
+      const data = await getSessionTimeline(sharedPool, String(req.params.id || ""));
+      if (!data) return res.status(404).json({ message: "Session not found" });
+      res.json(data);
+    } catch (e) {
+      console.error("admin analytics session error:", e);
+      res.status(500).json({ message: "Analytics session failed" });
+    }
+  });
+
+  app.get("/api/admin/analytics/sources", requireAdmin, requirePermission("settings.write"), async (req: Request, res: Response) => {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const from = analyticsDate(req.query.from) || today;
+      const to = analyticsDate(req.query.to) || from;
+      res.json(await getTrafficSources(sharedPool, from, to));
+    } catch (e) {
+      console.error("admin analytics sources error:", e);
+      res.status(500).json({ message: "Analytics sources failed" });
+    }
+  });
+
+  app.get("/api/admin/analytics/campaigns", requireAdmin, requirePermission("settings.write"), async (req: Request, res: Response) => {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const from = analyticsDate(req.query.from) || today;
+      const to = analyticsDate(req.query.to) || from;
+      res.json(await getCampaigns(sharedPool, from, to));
+    } catch (e) {
+      console.error("admin analytics campaigns error:", e);
+      res.status(500).json({ message: "Analytics campaigns failed" });
+    }
+  });
+
+  app.get("/api/admin/analytics/funnel", requireAdmin, requirePermission("settings.write"), async (req: Request, res: Response) => {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const from = analyticsDate(req.query.from) || today;
+      const to = analyticsDate(req.query.to) || from;
+      const source = typeof req.query.source === "string" ? req.query.source : null;
+      res.json(await getFunnel(sharedPool, from, to, source));
+    } catch (e) {
+      console.error("admin analytics funnel error:", e);
+      res.status(500).json({ message: "Analytics funnel failed" });
+    }
+  });
+
+  app.get("/api/admin/analytics/products", requireAdmin, requirePermission("products.read"), async (req: Request, res: Response) => {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const from = analyticsDate(req.query.from) || today;
+      const to = analyticsDate(req.query.to) || from;
+      res.json(await getProductAnalytics(sharedPool, from, to));
+    } catch (e) {
+      console.error("admin analytics products error:", e);
+      res.status(500).json({ message: "Analytics products failed" });
+    }
+  });
+
+  app.get("/api/public/tracking-config", async (_req: Request, res: Response) => {
+    try {
+      res.json(await getPublicTrackingConfig());
+    } catch (e) {
+      console.error("public tracking-config error:", e);
+      res.json({ providers: [] });
+    }
+  });
+
+  app.get("/api/admin/analytics/integrations", requireAdmin, requirePermission("settings.write"), async (_req: Request, res: Response) => {
+    try {
+      res.json({ providers: await listTrackingIntegrations() });
+    } catch (e) {
+      console.error("admin integrations list error:", e);
+      res.status(500).json({ message: "Integrations list failed" });
+    }
+  });
+
+  app.put("/api/admin/analytics/integrations/:provider", requireAdmin, requirePermission("settings.write"), async (req: Request, res: Response) => {
+    try {
+      const provider = String(req.params.provider || "");
+      const body = req.body || {};
+      const adminUser = (req as any).session?.adminUsername || (req as any).session?.adminId || null;
+      const row = await upsertTrackingIntegration(
+        provider,
+        {
+          enabled: body.enabled,
+          publicId: body.publicId,
+          secret: body.secret === "" ? null : body.secret,
+          config: body.config,
+        },
+        adminUser != null ? String(adminUser) : null,
+      );
+      writeAuditLog(sharedPool, {
+        actorUsername: adminUser != null ? String(adminUser) : "admin",
+        action: "tracking_integration_update",
+        entityType: "tracking_integration",
+        entityId: provider,
+        after: {
+          provider,
+          enabled: row.enabled,
+          publicId: row.publicId,
+          hasSecret: row.hasSecret,
+          status: row.status,
+        },
+        ip: clientIpFrom(req),
+      });
+      res.json(row);
+    } catch (e: any) {
+      if (e?.message === "unknown_provider") return res.status(400).json({ message: "Bilinmeyen sağlayıcı" });
+      console.error("admin integrations put error:", e);
+      res.status(500).json({ message: "Integrations save failed" });
+    }
+  });
+
   // Ziyaret kaydı (public, sayfa açılışında çağrılır)
   // Task 9: Rate limit 60/hour/IP, validate payload, hash IP for KVKK privacy
   app.post("/api/track/visit", async (req: Request, res: Response) => {
@@ -7620,7 +9749,7 @@ Kurallar:
     try {
       const ip = clientIpFrom(req);
       // Rate limit: 60/hour/IP
-      if (rateLimit(`track:${ip}`, 60, 60 * 60 * 1000)) return;
+      if (await rateLimitHit(`track:${ip}`, 60, 60 * 60 * 1000)) return;
 
       const ua = String(req.headers["user-agent"] || "");
 
@@ -7654,7 +9783,7 @@ Kurallar:
   });
 
   // Ziyaretçi raporu (admin) — günlük tarih seçimli
-  app.get("/api/admin/visitors", requireAdmin, async (req: Request, res: Response) => {
+  app.get("/api/admin/visitors", requireAdmin, requirePermission("settings.write"), async (req: Request, res: Response) => {
     try {
       const isDate = (s: any): s is string => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
       const today = new Date().toISOString().slice(0, 10);
@@ -7737,7 +9866,7 @@ Kurallar:
 
   // Ziyaretçi IP dışa aktarma (admin) — tarih aralıklı, sadece IP adresleri.
   // type=real|bot, format=xlsx|txt
-  app.get("/api/admin/visitors/export", requireAdmin, async (req: Request, res: Response) => {
+  app.get("/api/admin/visitors/export", requireAdmin, requirePermission("settings.write"), async (req: Request, res: Response) => {
     try {
       const isDate = (s: any): s is string => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
       const today = new Date().toISOString().slice(0, 10);
@@ -7781,16 +9910,19 @@ Kurallar:
     }
   });
 
-  app.post("/api/admin/coupons", requireAdmin, async (req, res) => {
+  app.post("/api/admin/coupons", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     const schema = z.object({
       code: z.string().min(3),
       discountType: z.enum(["percentage", "fixed"]),
-      discountValue: z.number().positive(),
+      discountValue: z.number().min(0),
       minOrderAmount: z.number().min(0).optional(),
       maxUses: z.number().positive().optional().nullable(),
       isActive: z.boolean().optional(),
       expiresAt: z.string().optional().nullable(),
       store: z.string().optional(),
+      firstOrderOnly: z.boolean().optional(),
+      maxDiscountAmount: z.number().positive().optional().nullable(),
+      freeShipping: z.boolean().optional(),
     });
     const parsed = schema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ message: "Geçersiz veri" });
@@ -7798,6 +9930,12 @@ Kurallar:
     if (data.expiresAt) data.expiresAt = new Date(data.expiresAt);
     else data.expiresAt = null;
     data.store = isValidStore(data.store) ? data.store : "all";
+    if (data.discountType === "percentage" && data.discountValue <= 0) {
+      return res.status(400).json({ message: "Yüzde indirim 0'dan büyük olmalı" });
+    }
+    if (data.discountType === "fixed" && !data.freeShipping && data.discountValue <= 0) {
+      return res.status(400).json({ message: "Sabit indirim veya ücretsiz kargo gerekli" });
+    }
     const dup = await sharedPool.query(
       `SELECT id FROM coupons WHERE store = $1 AND upper(code) = upper($2) LIMIT 1`,
       [data.store, data.code]
@@ -7814,11 +9952,14 @@ Kurallar:
     }
   });
 
-  app.patch("/api/admin/coupons/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/coupons/:id", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) return res.status(400).json({ message: "Geçersiz ID" });
     if (await blockedByStoreContext(req, res, "coupons", id)) return;
-    const allowedKeys = ["code", "discountType", "discountValue", "minOrderAmount", "maxUses", "isActive", "expiresAt", "customerId", "store"];
+    const allowedKeys = [
+      "code", "discountType", "discountValue", "minOrderAmount", "maxUses", "isActive",
+      "expiresAt", "customerId", "store", "firstOrderOnly", "maxDiscountAmount", "freeShipping",
+    ];
     const data: any = {};
     for (const key of allowedKeys) {
       if (req.body[key] !== undefined) data[key] = req.body[key];
@@ -7849,7 +9990,7 @@ Kurallar:
     }
   });
 
-  app.delete("/api/admin/coupons/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/coupons/:id", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     if (await blockedByStoreContext(req, res, "coupons", id)) return;
     await storage.deleteCoupon(id);
@@ -7860,7 +10001,7 @@ Kurallar:
   app.post("/api/contact-messages", async (req, res) => {
     const ip = req.ip || "unknown";
     // Rate limit: 3 per hour per IP
-    if (rateLimit(`contact:${ip}`, 3, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`contact:${ip}`, 3, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
     }
     try {
@@ -7893,17 +10034,17 @@ Kurallar:
     }
   });
 
-  app.get("/api/admin/contact-messages", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/contact-messages", requireAdmin, requirePermission("customers.read"), async (_req, res) => {
     const list = await storage.getAllContactMessages();
     res.json(list);
   });
 
-  app.get("/api/admin/contact-messages/unread-count", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/contact-messages/unread-count", requireAdmin, requirePermission("customers.read"), async (_req, res) => {
     const count = await storage.getUnreadContactMessageCount();
     res.json({ count });
   });
 
-  app.patch("/api/admin/contact-messages/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/contact-messages/:id", requireAdmin, requirePermission("customers.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     const isRead = req.body?.isRead === true;
     const updated = await storage.markContactMessageRead(id, isRead);
@@ -7911,7 +10052,7 @@ Kurallar:
     res.json(updated);
   });
 
-  app.delete("/api/admin/contact-messages/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/contact-messages/:id", requireAdmin, requirePermission("customers.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     await storage.deleteContactMessage(id);
     res.json({ message: "Silindi" });
@@ -7948,7 +10089,7 @@ Kurallar:
     try {
       const customerId = (req as any).customerId;
       const ip = req.ip || "unknown";
-      if (rateLimit(`petfeed:${ip}`, 10, 60 * 60 * 1000)) {
+      if (await rateLimitHit(`petfeed:${ip}`, 10, 60 * 60 * 1000)) {
         return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
       }
       const [pet] = await db.select().from(virtualPets).where(eq(virtualPets.customerId, customerId));
@@ -8005,7 +10146,7 @@ Kurallar:
     res.json(firsatProducts);
   });
 
-  app.get("/api/skt-alerts", requireAdmin, async (_req, res) => {
+  app.get("/api/skt-alerts", requireAdmin, requirePermission("products.read"), async (_req, res) => {
     const allProducts = await storage.getAllProducts();
     const now = new Date();
     const threeMonthsLater = new Date(now.getFullYear(), now.getMonth() + 3, now.getDate());
@@ -8024,14 +10165,14 @@ Kurallar:
     res.json({ expired, expiringSoon });
   });
 
-  app.get("/api/admin/product-by-barcode/:barcode", requireAdmin, async (req, res) => {
+  app.get("/api/admin/product-by-barcode/:barcode", requireAdmin, requirePermission("products.read"), async (req, res) => {
     const barcode = req.params.barcode;
     const result = await sharedPool.query("SELECT * FROM products WHERE barcode = $1 LIMIT 1", [barcode]);
     if (result.rows.length === 0) return res.status(404).json({ message: "Barkod bulunamadı" });
     res.json(result.rows[0]);
   });
 
-  app.patch("/api/admin/product-quick-update/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/product-quick-update/:id", requireAdmin, requirePermission("products.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) return res.status(400).json({ message: "Geçersiz ürün ID" });
     const { stock, skt, barcode, mode } = req.body;
@@ -8138,7 +10279,7 @@ Kurallar:
     }
   });
 
-  app.patch("/api/admin/breed-banners", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/breed-banners", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     const body = req.body || {};
     const updates: Array<[string, string]> = [];
     if (body.enabled !== undefined) updates.push(["breed_banner_enabled", body.enabled ? "1" : "0"]);
@@ -8183,7 +10324,7 @@ Kurallar:
     }
   });
 
-  app.patch("/api/admin/category-banners", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/category-banners", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     try {
       const body = req.body || {};
       const list = Array.isArray(body.banners) ? body.banners : [];
@@ -8231,7 +10372,7 @@ Kurallar:
     }
   });
 
-  app.patch("/api/admin/top-banner", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/top-banner", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     const { enabled, image, link } = req.body || {};
     if (image !== undefined && typeof image !== "string") return res.status(400).json({ message: "Geçersiz görsel" });
     if (image && image.length > 3 * 1024 * 1024) return res.status(400).json({ message: "Görsel çok büyük (max 2MB)" });
@@ -8244,7 +10385,7 @@ Kurallar:
     res.json({ ok: true });
   });
 
-  app.get("/api/admin/stock-movements", requireAdmin, async (req, res) => {
+  app.get("/api/admin/stock-movements", requireAdmin, requirePermission("products.read"), async (req, res) => {
     const month = String(req.query.month || "");
     const from = String(req.query.from || "");
     const to = String(req.query.to || "");
@@ -8290,7 +10431,7 @@ Kurallar:
     const customerId = (req.session as any)?.customerId;
     if (!customerId) return res.status(401).json({ message: "Giriş yapmalısınız" });
     const ip = req.ip || "unknown";
-    if (rateLimit(`petprof:${ip}`, 10, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`petprof:${ip}`, 10, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
     }
     const { name, type, breed, birthday, weight, photoData, notes } = req.body;
@@ -8311,7 +10452,7 @@ Kurallar:
     const customerId = (req.session as any)?.customerId;
     if (!customerId) return res.status(401).json({ message: "Giriş yapmalısınız" });
     const ip = req.ip || "unknown";
-    if (rateLimit(`petprofup:${ip}`, 15, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`petprofup:${ip}`, 15, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
     }
     const id = parseInt(String(req.params.id));
@@ -8359,7 +10500,7 @@ Kurallar:
     const customerId = (req.session as any)?.customerId;
     if (!customerId) return res.status(401).json({ message: "Giriş yapmalısınız" });
     const ip = req.ip || "unknown";
-    if (rateLimit(`pethealth:${ip}`, 20, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`pethealth:${ip}`, 20, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
     }
     const petId = parseInt(String(req.params.id));
@@ -8401,7 +10542,7 @@ Kurallar:
     const customerId = (req.session as any)?.customerId;
     if (!customerId) return res.status(401).json({ message: "Giriş yapmalısınız" });
     const ip = req.ip || "unknown";
-    if (rateLimit(`petweight:${ip}`, 20, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`petweight:${ip}`, 20, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
     }
     const petId = parseInt(String(req.params.id));
@@ -8429,7 +10570,7 @@ Kurallar:
     const customerId = (req.session as any)?.customerId;
     if (!customerId) return res.status(401).json({ message: "Giriş yapmalısınız" });
     const ip = req.ip || "unknown";
-    if (rateLimit(`petphoto:${ip}`, 20, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`petphoto:${ip}`, 20, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla fotoğraf yükleme. Lütfen daha sonra tekrar deneyin." });
     }
     const petId = parseInt(String(req.params.id));
@@ -8467,7 +10608,7 @@ Kurallar:
     const customerId = (req.session as any)?.customerId;
     if (!customerId) return res.status(401).json({ message: "Giriş yapmalısınız" });
     const ip = req.ip || "unknown";
-    if (rateLimit(`lostfound:${ip}`, 5, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`lostfound:${ip}`, 5, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla ilan. Lütfen daha sonra tekrar deneyin." });
     }
     const { postType, petName, petType, breed, color, lastSeenLocation, description, contactPhone, photoData } = req.body;
@@ -8499,7 +10640,7 @@ Kurallar:
     const customerId = (req.session as any)?.customerId;
     if (!customerId) return res.status(401).json({ message: "Giriş yapmalısınız" });
     const ip = req.ip || "unknown";
-    if (rateLimit(`lfresolve:${ip}`, 10, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`lfresolve:${ip}`, 10, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek." });
     }
     const id = parseInt(String(req.params.id));
@@ -8531,7 +10672,7 @@ Kurallar:
 
   app.post("/api/voice-order", async (req, res) => {
     const ip = req.ip || "unknown";
-    if (rateLimit(`voiceorder:${ip}`, 3, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`voiceorder:${ip}`, 3, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
     }
     const { name, phone, note } = req.body;
@@ -8605,7 +10746,7 @@ Kurallar:
   app.post("/api/pet-contest", requireCustomer, async (req, res) => {
     const customerId = (req as any).customerId;
     const ip = req.ip || "unknown";
-    if (rateLimit(`contest:${ip}`, 5, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`contest:${ip}`, 5, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla istek. Lütfen daha sonra tekrar deneyin." });
     }
     const { petName, petType, photo, description } = req.body;
@@ -8635,7 +10776,7 @@ Kurallar:
 
   app.post("/api/pet-contest/:id/vote", async (req, res) => {
     const ip = req.ip || "unknown";
-    if (rateLimit(`vote:${ip}`, 30, 60 * 60 * 1000)) {
+    if (await rateLimitHit(`vote:${ip}`, 30, 60 * 60 * 1000)) {
       return res.status(429).json({ message: "Çok fazla oy. Lütfen daha sonra tekrar deneyin." });
     }
     const entryId = parseInt(String(req.params.id));
@@ -8709,7 +10850,7 @@ Kurallar:
   });
 
   // Admin: list all events
-  app.get("/api/admin/yp-events", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/yp-events", requireAdmin, requirePermission("club.moderate"), async (_req, res) => {
     try {
       const result = await sharedPool.query(`SELECT * FROM yp_events ORDER BY sort_order ASC, id ASC`);
       res.json(result.rows);
@@ -8717,7 +10858,7 @@ Kurallar:
   });
 
   // Admin: create event
-  app.post("/api/admin/yp-events", requireAdmin, async (req, res) => {
+  app.post("/api/admin/yp-events", requireAdmin, requirePermission("club.moderate"), async (req, res) => {
     const { title, description, location, event_date, day, month, year, type, free, color, sort_order } = req.body;
     if (!title || !day || !month) return res.status(400).json({ message: "title, day, month gerekli" });
     try {
@@ -8734,7 +10875,7 @@ Kurallar:
   });
 
   // Admin: update event
-  app.put("/api/admin/yp-events/:id", requireAdmin, async (req, res) => {
+  app.put("/api/admin/yp-events/:id", requireAdmin, requirePermission("club.moderate"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     const { title, description, location, event_date, day, month, year, type, free, color, sort_order, is_active } = req.body;
     try {
@@ -8752,7 +10893,7 @@ Kurallar:
   });
 
   // Admin: delete event
-  app.delete("/api/admin/yp-events/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/yp-events/:id", requireAdmin, requirePermission("club.moderate"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     try {
       await sharedPool.query(`DELETE FROM yp_events WHERE id=$1`, [id]);
@@ -8767,13 +10908,17 @@ Kurallar:
     const { slug } = req.params;
     try {
       const result = await sharedPool.query(
-        `SELECT id, title, body, tag, emoji, min_read, featured, sort_order, is_active, slug
+        `SELECT id, title, body, tag, emoji, min_read, featured, sort_order, is_active, slug,
+                seo_title, seo_description, published_at, scheduled_at, related_slugs
          FROM yp_articles WHERE slug = $1 LIMIT 1`,
         [slug]
       );
       if (!result.rows[0]) return res.status(404).json({ message: "Makale bulunamadı" });
       const article = result.rows[0];
       if (!article.is_active) return res.status(410).json({ message: "Bu makale artık yayında değil" });
+      if (article.scheduled_at && new Date(article.scheduled_at) > new Date()) {
+        return res.status(404).json({ message: "Makale bulunamadı" });
+      }
       res.json(article);
     } catch {
       res.status(500).json({ message: "Sunucu hatası" });
@@ -8788,13 +10933,20 @@ Kurallar:
     if (slug.includes(".")) return next();
     try {
       const result = await sharedPool.query(
-        `SELECT is_active FROM yp_articles WHERE slug = $1 LIMIT 1`,
+        `SELECT is_active, scheduled_at FROM yp_articles WHERE slug = $1 LIMIT 1`,
         [slug]
       );
       if (result.rows[0] && !result.rows[0].is_active) {
         return res.status(410).send(
           `<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>Makale Kaldırıldı</title></head>` +
           `<body><h1>410 Gone</h1><p>Bu makale artık yayında değil.</p>` +
+          `<p><a href="/yourpoodle/rehber">Tüm rehberlere dön</a></p></body></html>`
+        );
+      }
+      if (result.rows[0]?.scheduled_at && new Date(result.rows[0].scheduled_at) > new Date()) {
+        return res.status(404).send(
+          `<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>Makale</title></head>` +
+          `<body><h1>404</h1><p>Makale henüz yayınlanmadı.</p>` +
           `<p><a href="/yourpoodle/rehber">Tüm rehberlere dön</a></p></body></html>`
         );
       }
@@ -8808,8 +10960,12 @@ Kurallar:
   app.get("/api/yp-articles", async (_req, res) => {
     try {
       const result = await sharedPool.query(
-        `SELECT id, title, body, tag, emoji, min_read, featured, sort_order
-         FROM yp_articles WHERE is_active = true ORDER BY featured DESC, sort_order ASC, id ASC`
+        `SELECT id, title, body, tag, emoji, min_read, featured, sort_order, slug,
+                seo_title, seo_description, published_at, related_slugs
+         FROM yp_articles
+         WHERE is_active = true
+           AND (scheduled_at IS NULL OR scheduled_at <= NOW())
+         ORDER BY featured DESC, sort_order ASC, id ASC`
       );
       res.json(result.rows);
     } catch (e) {
@@ -8819,7 +10975,7 @@ Kurallar:
   });
 
   // Admin: list all articles
-  app.get("/api/admin/yp-articles", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/yp-articles", requireAdmin, requirePermission("settings.write"), async (_req, res) => {
     try {
       const result = await sharedPool.query(`SELECT * FROM yp_articles ORDER BY sort_order ASC, id ASC`);
       res.json(result.rows);
@@ -8827,8 +10983,11 @@ Kurallar:
   });
 
   // Admin: create article
-  app.post("/api/admin/yp-articles", requireAdmin, async (req, res) => {
-    const { title, body, tag, emoji, min_read, featured, sort_order, slug, is_active } = req.body;
+  app.post("/api/admin/yp-articles", requireAdmin, requirePermission("settings.write"), async (req, res) => {
+    const {
+      title, body, tag, emoji, min_read, featured, sort_order, slug, is_active,
+      seo_title, seo_description, published_at, scheduled_at, related_slugs,
+    } = req.body;
     if (!title || !body) return res.status(400).json({ message: "title ve body gerekli" });
     const finalSlug = slug && slug.trim() ? slug.trim() : null;
     if (finalSlug) {
@@ -8836,30 +10995,57 @@ Kurallar:
       if (existing.rows.length) return res.status(409).json({ message: "Bu slug zaten kullanımda" });
     }
     const activeVal = is_active === false || is_active === "false" ? false : true;
+    const relatedVal = Array.isArray(related_slugs)
+      ? related_slugs.map((s: any) => String(s).trim()).filter(Boolean).join(",")
+      : (related_slugs ? String(related_slugs).trim() : null);
+    const publishedVal = published_at ? new Date(published_at) : (activeVal ? new Date() : null);
+    const scheduledVal = scheduled_at ? new Date(scheduled_at) : null;
     try {
       const result = await sharedPool.query(
-        `INSERT INTO yp_articles (title, body, tag, emoji, min_read, featured, sort_order, is_active, slug)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-        [title, body, tag||null, emoji||"📖", min_read||5, featured===true||featured==="true", sort_order||0, activeVal, finalSlug]
+        `INSERT INTO yp_articles
+           (title, body, tag, emoji, min_read, featured, sort_order, is_active, slug,
+            seo_title, seo_description, published_at, scheduled_at, related_slugs)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
+        [
+          title, body, tag || null, emoji || "📖", min_read || 5,
+          featured === true || featured === "true", sort_order || 0, activeVal, finalSlug,
+          seo_title || null, seo_description || null, publishedVal, scheduledVal, relatedVal,
+        ]
       );
       res.json(result.rows[0]);
     } catch (e: any) { res.status(500).json({ message: e.message }); }
   });
 
   // Admin: update article
-  app.put("/api/admin/yp-articles/:id", requireAdmin, async (req, res) => {
+  app.put("/api/admin/yp-articles/:id", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
-    const { title, body, tag, emoji, min_read, featured, sort_order, is_active, slug } = req.body;
+    const {
+      title, body, tag, emoji, min_read, featured, sort_order, is_active, slug,
+      seo_title, seo_description, published_at, scheduled_at, related_slugs,
+    } = req.body;
     const finalSlug = slug && slug.trim() ? slug.trim() : null;
     if (finalSlug) {
       const existing = await sharedPool.query(`SELECT id FROM yp_articles WHERE slug=$1 AND id<>$2`, [finalSlug, id]);
       if (existing.rows.length) return res.status(409).json({ message: "Bu slug zaten kullanımda" });
     }
+    const activeVal = is_active !== false && is_active !== "false";
+    const relatedVal = Array.isArray(related_slugs)
+      ? related_slugs.map((s: any) => String(s).trim()).filter(Boolean).join(",")
+      : (related_slugs != null ? String(related_slugs).trim() : null);
+    const publishedVal = published_at ? new Date(published_at) : null;
+    const scheduledVal = scheduled_at ? new Date(scheduled_at) : null;
     try {
       const result = await sharedPool.query(
-        `UPDATE yp_articles SET title=$1, body=$2, tag=$3, emoji=$4, min_read=$5, featured=$6, sort_order=$7, is_active=$8, slug=$9
-         WHERE id=$10 RETURNING *`,
-        [title, body, tag||null, emoji||"📖", min_read||5, featured===true||featured==="true", sort_order||0, is_active!==false, finalSlug, id]
+        `UPDATE yp_articles SET
+           title=$1, body=$2, tag=$3, emoji=$4, min_read=$5, featured=$6, sort_order=$7,
+           is_active=$8, slug=$9, seo_title=$10, seo_description=$11,
+           published_at=COALESCE($12, published_at), scheduled_at=$13, related_slugs=$14
+         WHERE id=$15 RETURNING *`,
+        [
+          title, body, tag || null, emoji || "📖", min_read || 5,
+          featured === true || featured === "true", sort_order || 0, activeVal, finalSlug,
+          seo_title || null, seo_description || null, publishedVal, scheduledVal, relatedVal, id,
+        ]
       );
       if (!result.rows[0]) return res.status(404).json({ message: "Makale bulunamadı" });
       res.json(result.rows[0]);
@@ -8867,12 +11053,100 @@ Kurallar:
   });
 
   // Admin: delete article
-  app.delete("/api/admin/yp-articles/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/yp-articles/:id", requireAdmin, requirePermission("settings.write"), async (req, res) => {
     const id = parseInt(String(req.params.id));
     try {
       await sharedPool.query(`DELETE FROM yp_articles WHERE id=$1`, [id]);
       res.json({ ok: true });
     } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  // ─── Guide recommended products (rehber sayfası ürün önerileri) ───────────
+
+  app.get("/api/yp-guide/:slug/products", async (req, res) => {
+    const slug = String(req.params.slug || "").trim();
+    if (!slug) return res.status(400).json({ message: "slug gerekli" });
+    try {
+      const result = await sharedPool.query(
+        `SELECT p.id, p.name, p.price, p.original_price AS "originalPrice",
+                p.img, p.stock, p.is_active AS "isActive"
+         FROM yp_guide_products gp
+         JOIN products p ON p.id = gp.product_id
+         WHERE gp.article_slug = $1 AND p.is_active = true
+         ORDER BY gp.sort_order ASC, p.id ASC`,
+        [slug]
+      );
+      res.setHeader("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
+      res.json(result.rows);
+    } catch (e: any) {
+      console.error("GET /api/yp-guide/:slug/products", e?.message);
+      res.status(500).json({ message: "Ürünler yüklenemedi" });
+    }
+  });
+
+  app.get("/api/admin/yp-guide-products", requireAdmin, requirePermission("products.read"), async (_req, res) => {
+    try {
+      const result = await sharedPool.query(
+        `SELECT gp.article_slug AS "articleSlug", gp.product_id AS "productId",
+                gp.sort_order AS "sortOrder", p.name AS "productName"
+         FROM yp_guide_products gp
+         LEFT JOIN products p ON p.id = gp.product_id
+         ORDER BY gp.article_slug ASC, gp.sort_order ASC`
+      );
+      res.json(result.rows);
+    } catch {
+      res.json([]);
+    }
+  });
+
+  app.get("/api/admin/yp-guide-products/:slug", requireAdmin, requirePermission("products.read"), async (req, res) => {
+    const slug = String(req.params.slug || "").trim();
+    try {
+      const result = await sharedPool.query(
+        `SELECT p.id, p.name, p.price, p.img, gp.sort_order AS "sortOrder"
+         FROM yp_guide_products gp
+         JOIN products p ON p.id = gp.product_id
+         WHERE gp.article_slug = $1
+         ORDER BY gp.sort_order ASC, p.id ASC`,
+        [slug]
+      );
+      res.json(result.rows);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
+  app.put("/api/admin/yp-guide-products/:slug", requireAdmin, requirePermission("products.write"), async (req, res) => {
+    const slug = String(req.params.slug || "").trim();
+    if (!slug) return res.status(400).json({ message: "slug gerekli" });
+    const raw = Array.isArray(req.body?.productIds) ? req.body.productIds : [];
+    const productIds = Array.from(
+      new Set(
+        raw
+          .map((x: any) => parseInt(String(x), 10))
+          .filter((n: number) => Number.isFinite(n) && n > 0)
+      )
+    ) as number[];
+    const client = await sharedPool.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query(`DELETE FROM yp_guide_products WHERE article_slug = $1`, [slug]);
+      for (let i = 0; i < productIds.length; i++) {
+        await client.query(
+          `INSERT INTO yp_guide_products (article_slug, product_id, sort_order)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (article_slug, product_id) DO UPDATE SET sort_order = EXCLUDED.sort_order`,
+          [slug, productIds[i], i]
+        );
+      }
+      await client.query("COMMIT");
+      res.json({ ok: true, articleSlug: slug, productIds });
+    } catch (e: any) {
+      try { await client.query("ROLLBACK"); } catch { /* ignore */ }
+      res.status(500).json({ message: e.message || "Kaydedilemedi" });
+    } finally {
+      client.release();
+    }
   });
 
   await registerDogRoutes(app, sharedPool);

@@ -4,6 +4,7 @@ import { Camera, Save, ChevronLeft, PawPrint, Cake, Weight, Palette } from "luci
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { useCustomer } from "@/contexts/CustomerContext";
 import { IS_YP } from "@/lib/store";
+import { goBack } from "@/lib/goBack";
 
 const BASE = IS_YP ? "" : "/yourpoodle";
 const P = "#5D3A1A";
@@ -81,7 +82,7 @@ export default function YPBenimPoodleimPage() {
       <div style={{ maxWidth:640, margin:"0 auto", padding:"24px 0 60px" }}>
 
         {/* Back */}
-        <button onClick={() => navigate(BASE || "/")}
+        <button onClick={() => goBack(navigate, BASE || "/")}
           style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
                    cursor:"pointer", color:"#5D3A1A", fontSize:14, fontWeight:600,
                    fontFamily:"inherit", marginBottom:20, padding:0 }}>

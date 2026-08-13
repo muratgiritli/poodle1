@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { Mail, Phone, MapPin, MessageCircle } from "lucide-react";
+import { YP_COMPANY } from "@/lib/yp-company";
 
 const P = "#5D3A1A";
+const WA_DIGITS = YP_COMPANY.phoneTel.replace(/\D/g, "");
 
 export default function YPIletisimPage() {
   useEffect(() => { document.title = "İletişim | YourPoodle"; }, []);
@@ -45,10 +47,10 @@ export default function YPIletisimPage() {
 
   const KONULAR = ["Sipariş / Kargo", "Ürün Bilgisi", "İade / Değişim", "Teknik Destek", "Diğer"];
   const CONTACT_INFO = [
-    { Icon: Mail, label: "E-posta", value: "info@sizpa.com", href: "mailto:info@sizpa.com" },
-    { Icon: Phone, label: "Telefon", value: "0362 000 12 34", href: "tel:+903620001234" },
-    { Icon: MessageCircle, label: "WhatsApp", value: "+90 532 000 00 00", href: "https://wa.me/905320000000" },
-    { Icon: MapPin, label: "Adres", value: "Türkiye genelinde hizmet", href: undefined },
+    { Icon: Mail, label: "E-posta", value: YP_COMPANY.email, href: `mailto:${YP_COMPANY.email}` },
+    { Icon: Phone, label: "Telefon", value: YP_COMPANY.phoneDisplay, href: `tel:${YP_COMPANY.phoneTel}` },
+    { Icon: MessageCircle, label: "WhatsApp", value: YP_COMPANY.phoneTel, href: `https://wa.me/${WA_DIGITS}` },
+    { Icon: MapPin, label: "Adres", value: YP_COMPANY.fullAddress, href: undefined },
   ];
 
   return (
@@ -76,7 +78,7 @@ export default function YPIletisimPage() {
                   )}
                   {[
                     { label: "Ad Soyad *", key: "name", type: "text", placeholder: "Adınız Soyadınız" },
-                    { label: "Telefon *", key: "phone", type: "tel", placeholder: "0532 000 00 00" },
+                    { label: "Telefon *", key: "phone", type: "tel", placeholder: "05xx xxx xx xx" },
                     { label: "E-posta", key: "email", type: "email", placeholder: "ornek@email.com" },
                   ].map(({ label, key, type, placeholder }) => (
                     <div key={key} style={{ marginBottom: 16 }}>

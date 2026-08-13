@@ -1,16 +1,25 @@
 // YourPoodle — /yourpoodle/p/olustur — Köpek profili oluşturma wizard
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Check, Camera, AlertCircle } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { useCustomer } from "@/contexts/CustomerContext";
+import { goBack } from "@/lib/goBack";
 
 const BREEDS = ["toy", "miniature", "standart", "moyen"];
 const BREED_TR: Record<string, string> = { toy: "Toy Poodle", miniature: "Minyatür Poodle", standart: "Standart Poodle", moyen: "Moyen Poodle" };
 const COLORS = ["Beyaz", "Siyah", "Bej/Krem", "Kahverengi", "Gri/Gümüş", "Kırmızı", "Kayısı", "Çikolata", "Bicolor"];
 const CITIES = ["İstanbul", "Ankara", "İzmir", "Bursa", "Antalya", "Samsun", "Adana", "Konya", "Eskişehir", "Diğer"];
+
+const STEPS = [
+  { label: "İsim & Adres", emoji: "🏷️" },
+  { label: "Fotoğraf", emoji: "📷" },
+  { label: "Bilgiler", emoji: "📋" },
+  { label: "Bio", emoji: "✍️" },
+  { label: "Gizlilik", emoji: "🔒" },
+];
 
 function slugify(s: string) {
   return s.toLowerCase()
@@ -32,6 +41,36 @@ export default function YPDogCreatePage() {
   const [form, setForm] = useState({
     name: "", slug: "", breed: "toy", birthYear: "", birthMonth: "", weightKg: "",
     color: "", gender: "", city: "", district: "", bio: "", isPrivate: false,
+  });
+
+  useEffect(() => {
+    document.title = "Profil Oluştur | YourPoodle";
+  }, []);
+
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      const y = parseInt(form.birthYear, 10);
+      const m = parseInt(form.birthMonth, 10);
+      const thisYear = new Date().getFullYear();
+      const birthDate = y >= 2010 && y <= thisYear && m >= 1 && m <= 12
+        ? `${y}-${String(m).padStart(2, "0")}-01` : undefined;
+      const r = await apiRequest("POST", "/api/dogs", {
+        name: form.name, slug: form.slug, breed: form.breed,
+        birthDate, weightKg: form.weightKg || undefined,
+        color: form.color, gender: form.gender,
+        city: form.city, district: form.district,
+        bio: form.bio, isPrivate: form.isPrivate,
+      });
+      const dog = await r.json();
+      if (!r.ok) throw new Error(dog.message || "Hata");
+      if (avatarFile && dog.slug) {
+        const fd = new FormData();
+        fd.append("avatar", avatarFile);
+        await fetch(`/api/dogs/${dog.slug}/avatar`, { method: "POST", body: fd });
+      }
+      return dog;
+    },
+    onSuccess: (dog) => navigate(`/yourpoodle/p/${dog.slug}`),
   });
 
   if (!isLoggedIn) {
@@ -74,38 +113,6 @@ export default function YPDogCreatePage() {
     checkSlug(s);
   };
 
-  const createMutation = useMutation({
-    mutationFn: async () => {
-      const birthDate = form.birthYear && form.birthMonth
-        ? `${form.birthYear}-${form.birthMonth.padStart(2, "0")}-01` : undefined;
-      const r = await apiRequest("POST", "/api/dogs", {
-        name: form.name, slug: form.slug, breed: form.breed,
-        birthDate, weightKg: form.weightKg || undefined,
-        color: form.color, gender: form.gender,
-        city: form.city, district: form.district,
-        bio: form.bio, isPrivate: form.isPrivate,
-      });
-      const dog = await r.json();
-      if (!r.ok) throw new Error(dog.message || "Hata");
-      // Upload avatar if selected
-      if (avatarFile && dog.slug) {
-        const fd = new FormData();
-        fd.append("avatar", avatarFile);
-        await fetch(`/api/dogs/${dog.slug}/avatar`, { method: "POST", body: fd });
-      }
-      return dog;
-    },
-    onSuccess: (dog) => navigate(`/yourpoodle/p/${dog.slug}`),
-  });
-
-  const STEPS = [
-    { label: "İsim & Adres", emoji: "🏷️" },
-    { label: "Fotoğraf", emoji: "📷" },
-    { label: "Bilgiler", emoji: "📋" },
-    { label: "Bio", emoji: "✍️" },
-    { label: "Gizlilik", emoji: "🔒" },
-  ];
-
   const canNext = [
     form.name.trim().length >= 1 && slugAvailable === true,
     true, // photo optional
@@ -115,11 +122,11 @@ export default function YPDogCreatePage() {
   ][step];
 
   return (
-    <YPLayout activeLink="/yourpoodle/club" constrain={false}>
-      <div style={{ maxWidth: "var(--yp-shell-max)", margin: "0 auto", padding: "0 0 80px" }}>
+    <YPLayout activeLink="/yourpoodle/club" constrain={false} hideBottomNav hideFooter>
+      <div style={{ maxWidth: "var(--yp-shell-max)", margin: "0 auto", padding: "0 0 96px" }}>
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", padding: "12px 16px", borderBottom: "1px solid #f0f0f0", background: "#fff", position: "sticky", top: 60, zIndex: 50 }}>
-          <button onClick={() => step > 0 ? setStep(s => s - 1) : navigate("/yourpoodle/club")}
+        <div style={{ display: "flex", alignItems: "center", padding: "12px 16px", borderBottom: "1px solid #f0f0f0", background: "#fff", position: "sticky", top: 0, zIndex: 50 }}>
+          <button onClick={() => step > 0 ? setStep(s => s - 1) : goBack(navigate, "/yourpoodle/club")}
             style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
             <ChevronLeft size={22} color="#333" />
           </button>
@@ -236,10 +243,16 @@ export default function YPDogCreatePage() {
               {/* Birth year/month */}
               <label style={{ display: "block", fontWeight: 700, fontSize: 13, marginBottom: 8, color: "#333" }}>Doğum (opsiyonel)</label>
               <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-                <input value={form.birthYear} onChange={e => set("birthYear", e.target.value)} placeholder="2022"
-                  type="number" min="2010" max="2026"
+                <input value={form.birthYear} onChange={e => {
+                  const y = e.target.value.replace(/\D/g, "").slice(0, 4);
+                  set("birthYear", y);
+                }} placeholder="2022"
+                  type="number" min="2010" max={new Date().getFullYear()}
                   style={{ width: "50%", padding: "10px 14px", borderRadius: 12, border: "1.5px solid #E5E7EB", fontSize: 14, fontFamily: "inherit", outline: "none" }} />
-                <input value={form.birthMonth} onChange={e => set("birthMonth", e.target.value)} placeholder="Ay (1-12)"
+                <input value={form.birthMonth} onChange={e => {
+                  const m = e.target.value.replace(/\D/g, "").slice(0, 2);
+                  set("birthMonth", m);
+                }} placeholder="Ay (1-12)"
                   type="number" min="1" max="12"
                   style={{ width: "50%", padding: "10px 14px", borderRadius: 12, border: "1.5px solid #E5E7EB", fontSize: 14, fontFamily: "inherit", outline: "none" }} />
               </div>
@@ -302,7 +315,12 @@ export default function YPDogCreatePage() {
         </div>
 
         {/* Footer nav */}
-        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#fff", borderTop: "1px solid #f0f0f0", padding: "12px 20px", display: "flex", gap: 10, maxWidth: "var(--yp-shell-max)", margin: "0 auto", zIndex: 100 }}>
+        <div style={{
+          position: "fixed", bottom: 0, left: 0, right: 0, background: "#fff",
+          borderTop: "1px solid #f0f0f0", padding: "12px 20px calc(12px + env(safe-area-inset-bottom))",
+          display: "flex", gap: 10, maxWidth: "var(--yp-shell-max)", margin: "0 auto", zIndex: 100,
+          boxSizing: "border-box", width: "100%",
+        }}>
           {step < STEPS.length - 1 ? (
             <>
               <button onClick={() => setStep(s => s - 1)} disabled={step === 0}

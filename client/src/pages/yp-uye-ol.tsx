@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { Eye, EyeOff, CheckCircle, ChevronLeft } from "lucide-react";
 import { IS_YP } from "@/lib/store";
+import { apiRequest } from "@/lib/queryClient";
 
 const P = "#5D3A1A";
 const BG = "#FAFAFA";
@@ -14,32 +15,61 @@ export default function YPUyeOlPage() {
   const [, navigate] = useLocation();
 
   const [form, setForm] = useState({
-    name: "", email: "", phone: "", password: "", password2: "", kvkk: false,
+    name: "", email: "", phone: "", password: "", password2: "", kvkk: false, otp: "",
   });
   const [showPw, setShowPw] = useState(false);
   const [showPw2, setShowPw2] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [socialMsg, setSocialMsg] = useState("");
+  const [countdown, setCountdown] = useState(0);
 
   const set = (k: keyof typeof form, v: string | boolean) =>
     setForm(f => ({ ...f, [k]: v }));
 
-  function validate() {
+  function validateBase() {
     const e: Record<string, string> = {};
     if (!form.name.trim()) e.name = "Ad soyad zorunlu";
     if (!form.email.match(/^[^@]+@[^@]+\.[^@]+$/)) e.email = "Geçerli e-posta girin";
     if (!form.phone.match(/^\+?[\d\s\-]{10,}$/)) e.phone = "Geçerli telefon girin";
-    if (form.password.length < 6) e.password = "Şifre en az 6 karakter olmalı";
+    if (form.password.length < 8) e.password = "Şifre en az 8 karakter olmalı";
     if (form.password !== form.password2) e.password2 = "Şifreler eşleşmiyor";
     if (!form.kvkk) e.kvkk = "KVKK onayı zorunlu";
     return e;
   }
 
+  async function sendOtp() {
+    const errs = validateBase();
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+    setErrors({});
+    setSendingOtp(true);
+    try {
+      const normalized = form.phone.replace(/\D/g, "");
+      await apiRequest("POST", "/api/otp/send", { phone: normalized });
+      setOtpSent(true);
+      setCountdown(60);
+      const t = setInterval(() => {
+        setCountdown((c) => {
+          if (c <= 1) { clearInterval(t); return 0; }
+          return c - 1;
+        });
+      }, 1000);
+    } catch (err: any) {
+      let msg = "SMS gönderilemedi";
+      try { msg = JSON.parse(String(err.message).replace(/^\d+:\s*/, "")).message; } catch {}
+      setErrors({ form: msg });
+    } finally {
+      setSendingOtp(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const errs = validate();
+    const errs = validateBase();
+    if (!otpSent) errs.otp = "Önce SMS doğrulama kodu alın";
+    if (!/^\d{6}$/.test(form.otp.trim())) errs.otp = "6 haneli doğrulama kodunu girin";
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setErrors({});
     setSubmitting(true);
@@ -54,14 +84,13 @@ export default function YPUyeOlPage() {
           email: form.email.trim(),
           phone: form.phone.trim(),
           password: form.password,
+          otp: form.otp.trim(),
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.status === 201) {
         setSuccess(true);
         setTimeout(() => navigate("/hesabim"), 1800);
-      } else if (res.status === 409) {
-        setErrors({ phone: data.message || "Bu telefon numarası zaten kayıtlı" });
       } else if (res.status === 429) {
         setErrors({ form: "Çok fazla deneme. Lütfen daha sonra tekrar deneyin." });
       } else {
@@ -139,7 +168,7 @@ export default function YPUyeOlPage() {
             <div style={{ textAlign: "center", marginBottom: 28 }}>
               <img src="/images/brand/logo.png" alt="YourPoodle" style={{ height: 40, width: "auto", display: "block", margin: "0 auto" }} />
               <h1 style={{ fontSize: 20, fontWeight: 800, color: "#111827", margin: "12px 0 4px" }}>Ücretsiz Üye Ol</h1>
-              <p style={{ fontSize: 13, color: "#6B7280", margin: 0 }}>Poodle topluluğuna katılın</p>
+              <p style={{ fontSize: 13, color: "#6B7280", margin: 0 }}>Telefon doğrulaması zorunludur</p>
             </div>
 
             <form onSubmit={handleSubmit} noValidate>
@@ -178,6 +207,33 @@ export default function YPUyeOlPage() {
                 }
               />
 
+              <div style={{ marginBottom: 18 }}>
+                <button
+                  type="button"
+                  onClick={sendOtp}
+                  disabled={sendingOtp || countdown > 0}
+                  style={{
+                    width: "100%", height: 44, borderRadius: 12, border: `1.5px solid ${P}`,
+                    background: countdown > 0 ? "#F9FAFB" : "#fff", color: P,
+                    fontSize: 14, fontWeight: 700, cursor: sendingOtp || countdown > 0 ? "default" : "pointer",
+                    fontFamily: "inherit", marginBottom: 10,
+                  }}
+                >
+                  {sendingOtp ? "SMS gönderiliyor…" : countdown > 0 ? `Yeniden gönder (${countdown}s)` : otpSent ? "Kodu yeniden gönder" : "SMS doğrulama kodu gönder"}
+                </button>
+                {otpSent && (
+                  <Field
+                    label="SMS Doğrulama Kodu (6 hane)"
+                    type="tel"
+                    value={form.otp}
+                    autoComplete="one-time-code"
+                    onChange={v => set("otp", v.replace(/\D/g, "").slice(0, 6))}
+                    error={errors.otp}
+                  />
+                )}
+                {!otpSent && errors.otp && <p style={{ margin: "0 0 8px", fontSize: 12, color: ERR }}>{errors.otp}</p>}
+              </div>
+
               <div style={{ marginBottom: 24 }}>
                 <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
                   <input type="checkbox" checked={form.kvkk}
@@ -199,37 +255,16 @@ export default function YPUyeOlPage() {
                 <p style={{ margin: "-8px 0 12px", fontSize: 13, color: "#EF4444", textAlign: "center" }}>{errors.form}</p>
               )}
 
-              <button type="submit" disabled={submitting}
+              <button type="submit" disabled={submitting || !otpSent}
                 style={{
                   width: "100%", height: 52, borderRadius: 14, border: "none",
-                  background: submitting ? "#D1D5DB" : `linear-gradient(135deg,${P},#A67C52)`,
-                  color: "#fff", fontSize: 16, fontWeight: 700, cursor: submitting ? "default" : "pointer",
+                  background: submitting || !otpSent ? "#D1D5DB" : `linear-gradient(135deg,${P},#A67C52)`,
+                  color: "#fff", fontSize: 16, fontWeight: 700, cursor: submitting || !otpSent ? "default" : "pointer",
                   fontFamily: "inherit",
                 }}>
                 {submitting ? "Hesap oluşturuluyor…" : "Üye Ol"}
               </button>
             </form>
-
-            <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0" }}>
-              <div style={{ flex: 1, height: 1, background: BORDER }} />
-              <span style={{ fontSize: 12, color: "#9CA3AF" }}>veya</span>
-              <div style={{ flex: 1, height: 1, background: BORDER }} />
-            </div>
-
-            {["Google ile Kayıt Ol", "Apple ile Kayıt Ol"].map(label => (
-              <button key={label} type="button"
-                onClick={() => setSocialMsg("Sosyal giriş yakında aktif olacak.")}
-                style={{
-                  width: "100%", height: 48, borderRadius: 12, border: `1.5px solid ${BORDER}`,
-                  background: "#fff", fontSize: 14, fontWeight: 600, color: "#374151",
-                  cursor: "pointer", fontFamily: "inherit", marginBottom: 10,
-                }}>
-                {label}
-              </button>
-            ))}
-            {socialMsg && (
-              <p style={{ textAlign: "center", fontSize: 12, color: "#8A7E72", margin: "0 0 8px" }}>{socialMsg}</p>
-            )}
 
             <p style={{ textAlign: "center", margin: "16px 0 0", fontSize: 13, color: "#6B7280" }}>
               Hesabınız var mı?{" "}

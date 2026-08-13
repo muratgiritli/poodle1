@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { useCustomer } from "@/contexts/CustomerContext";
+import { goBack } from "@/lib/goBack";
 
 /* ── Palette ─────────────────────────── */
 const P    = "#4B2BD6";
@@ -226,7 +227,7 @@ export default function YPPoodleProfilDuzenlePage() {
         {/* ── BREADCRUMB + TITLE ── */}
         <div style={{ padding: "14px 16px 0" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
-            <button onClick={() => navigate("/hesabim")} aria-label="Geri"
+            <button onClick={() => goBack(navigate, "/hesabim")} aria-label="Geri"
               style={{ background: "none", border: "none", cursor: "pointer",
                        display: "flex", alignItems: "center", padding: 0, color: GT }}>
               <ArrowLeft size={17} />

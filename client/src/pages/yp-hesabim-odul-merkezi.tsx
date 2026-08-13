@@ -1,17 +1,24 @@
 // Route: /hesabim/poodle-puanlari/odul-merkezi
-import { useState, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft, PawPrint, Clock, Search, SlidersHorizontal,
   Heart, Check, ChevronDown, ChevronUp, Rocket, Award, Crown,
   Ticket, Package, X, Scissors, ShoppingBag,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import { goBack } from "@/lib/goBack";
+import {
+  LOYALTY_BRAND as P,
+  LOYALTY_BRAND_DARK as PD,
+  LOYALTY_BRAND_LIGHT as PL,
+  enrichReward,
+  fetchLoyalty,
+  fetchRewards,
+} from "@/lib/loyalty-api";
 
 /* ── Palette ─────────────────────────── */
-const P    = "#5D3EBD";
-const PD   = "#4A22A0";
-const PL   = "#F5F0E6";
 const NAV  = "#1D1E9B";
 const DRK  = "#111827";
 const GT   = "#6B7280";
@@ -24,8 +31,6 @@ const GOLDB= "#FBBF24";
 const BG   = "#F9F9FB";
 
 /* ── Data ────────────────────────────── */
-const BALANCE = { total: 1275, tlValue: "127,50 TL", expiringPoints: 120, expiringDate: "31 Ağustos" };
-
 const CATS = [
   { key: "all",      label: "Tümü" },
   { key: "discount", label: "İndirim" },
@@ -36,13 +41,6 @@ const CATS = [
 ];
 
 type Cat = "all"|"discount"|"shipping"|"products"|"club"|"special";
-
-const POPULAR = [
-  { id:"pr-1", title:"50 TL İndirim",       points:500,  desc:"Min. sepet 500 TL",                   cat:"discount" as Cat, badge:"Çok Popüler", badgeStyle:"vp", icon:"coupon"   },
-  { id:"pr-2", title:"Ücretsiz Kargo",      points:300,  desc:"Min. sepet 250 TL",                   cat:"shipping" as Cat, badge:"Popüler",     badgeStyle:"p",  icon:"shipping"  },
-  { id:"pr-3", title:"%15 Bakım İndirimi",  points:750,  desc:"Tüm bakım ürünlerinde",               cat:"discount" as Cat, badge:"Sınırlı Süre",badgeStyle:"lt", icon:"care"      },
-  { id:"pr-4", title:"100 TL Mama İndirimi",points:1000, desc:"750 TL üzeri mama alışverişinde",     cat:"discount" as Cat, badge:"Stoklar Sınırlı",badgeStyle:"sk",icon:"food"   },
-];
 
 const PRODUCTS = [
   { id:"pp-1", name:"Buharlı Masaj Tarağı",    points:1200, origPrice:"399 TL",  stockLeft:8,  cat:"products" as Cat, img:"https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=200&h=200&fit=crop" },
@@ -57,10 +55,7 @@ const CLUBS = [
   { id:"cp-3", title:"Club Premium 1 Ay",             points:1500, icon:"crown",   disabled:true,  missing:225 },
 ];
 
-const EARNED = [
-  { id:"er-1", title:"Ücretsiz Kargo", status:"available", label:"Kullanılabilir", date:"12 Ağustos'a kadar geçerli" },
-  { id:"er-2", title:"25 TL İndirim",  status:"used",      label:"Kullanıldı",     date:"15 Temmuz 2026" },
-];
+const EARNED: Array<{ id: string; title: string; status: string; label: string; date: string }> = [];
 
 const FAQ = [
   { id:"faq-1", q:"Ödüller nasıl kullanılır?",  a:"Ödülü seçip 'Ödülü Al' butonuna basın. İndirim kuponları sepetinizde otomatik uygulanır." },
@@ -124,20 +119,36 @@ function RewardIcon({ icon, size=44 }: { icon:string; size?:number }) {
 /* ── Main Page ───────────────────────── */
 export default function YPOdulMerkeziPage() {
   const [, navigate] = useLocation();
-  const [balance, setBalance] = useState(BALANCE.total);
   const [activeCat, setActiveCat] = useState<Cat>("all");
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState(POPULAR[0]);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [expandedFaq, setExpandedFaq] = useState<string|null>(null);
   const [filterOpen, setFilterOpen] = useState(false);
   const [toast, setToast] = useState<string|null>(null);
-  const [earned, setEarned] = useState(EARNED);
   const popularRef = useRef<HTMLDivElement>(null);
+
+  const { data: loyalty } = useQuery({ queryKey: ["/api/customer/loyalty"], queryFn: fetchLoyalty });
+  const { data: rewardCatalog = [] } = useQuery({ queryKey: ["/api/customer/loyalty/rewards"], queryFn: fetchRewards });
+
+  const balance = loyalty?.balance ?? 0;
+  const popular = useMemo(
+    () => rewardCatalog.map(r => {
+      const e = enrichReward(r);
+      return {
+        ...e,
+        desc: e.minCart,
+        cat: (r.category === "shipping" ? "shipping" : r.category === "club" ? "club" : "discount") as Cat,
+        badge: e.badge ?? "Ödül",
+        badgeStyle: "p",
+      };
+    }),
+    [rewardCatalog],
+  );
+  const [selected, setSelected] = useState<(typeof popular)[0] | null>(null);
 
   const showToast = (msg:string) => { setToast(msg); setTimeout(()=>setToast(null), 3000); };
 
-  const filteredPopular = POPULAR.filter(r => {
+  const filteredPopular = popular.filter(r => {
     const matchCat = activeCat === "all" || r.cat === activeCat;
     const matchQ   = r.title.toLowerCase().includes(search.toLowerCase());
     return matchCat && matchQ;
@@ -149,28 +160,21 @@ export default function YPOdulMerkeziPage() {
     return matchCat && matchQ;
   });
 
-  const remaining = balance - (selected?.points || 0);
-  const canRedeem = balance >= (selected?.points || 0);
+  const activeSelected = selected ?? filteredPopular[0] ?? popular[0] ?? null;
+  const remaining = balance - (activeSelected?.points ?? 0);
+  const canRedeem = balance >= (activeSelected?.points ?? 0);
 
   function redeemSelected() {
-    if (!canRedeem) return;
-    navigate(`/hesabim/poodle-puanlari/odul-onayla/${selected.id}`);
+    if (!activeSelected || !canRedeem) return;
+    navigate(`/hesabim/poodle-puanlari/odul-onayla/${activeSelected.id}`);
   }
 
   function buyWithPoints(id: string) {
-    const p = PRODUCTS.find(x=>x.id===id);
-    if (!p) return;
-    if (balance < p.points) { showToast("Yeterli puanınız yok"); return; }
-    setBalance(b => b - p.points);
-    showToast(`${p.name} siparişiniz oluşturuldu ✓`);
+    navigate(`/hesabim/poodle-puanlari/odul-onayla/${id}`);
   }
 
-  function redeemPrivilege(id:string) {
-    const c = CLUBS.find(x=>x.id===id);
-    if (!c || c.disabled) return;
-    if (balance < c.points) { showToast("Yeterli puanınız yok"); return; }
-    setBalance(b => b - c.points);
-    showToast(`${c.title} tanımlandı ✓`);
+  function redeemPrivilege(id: string) {
+    navigate(`/hesabim/poodle-puanlari/odul-onayla/${id}`);
   }
 
   const badgeColors: Record<string,{bg:string;color:string}> = {
@@ -200,7 +204,7 @@ export default function YPOdulMerkeziPage() {
 
         {/* ── BREADCRUMB + TITLE ── */}
         <div style={{ padding:"12px 16px 10px" }}>
-          <button onClick={()=>navigate("/hesabim/poodle-puanlari")}
+          <button onClick={()=>goBack(navigate, "/hesabim/poodle-puanlari")}
             style={{ background:"none", border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:6, padding:0, marginBottom:8 }}>
             <ArrowLeft size={15} color={P} />
             <span style={{ fontSize:11, color:P, fontWeight:500 }}>Hesabım / PoodlePuanlarım / Ödül Merkezi</span>
@@ -225,12 +229,8 @@ export default function YPOdulMerkeziPage() {
             <div style={{ fontSize:20, fontWeight:800, color:"#fff", lineHeight:1 }}>
               {balance.toLocaleString("tr-TR")} <span style={{ fontSize:12, fontWeight:600 }}>PoodlePuan</span>
             </div>
-            <div style={{ fontSize:11, color:"rgba(255,255,255,.85)", marginTop:2 }}>{BALANCE.tlValue}</div>
-            <div style={{ display:"flex", alignItems:"center", gap:4, marginTop:4 }}>
-              <Clock size={10} color="rgba(255,255,255,.6)" />
-              <span style={{ fontSize:10, color:"rgba(255,255,255,.65)" }}>
-                {BALANCE.expiringPoints} puan {BALANCE.expiringDate}'ta sona erecek
-              </span>
+            <div style={{ fontSize:11, color:"rgba(255,255,255,.85)", marginTop:2 }}>
+              {(balance / 10).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL değerinde
             </div>
           </div>
           {/* Button */}
@@ -296,7 +296,7 @@ export default function YPOdulMerkeziPage() {
               <span style={{ fontSize:10, color:P, fontWeight:700 }}>2 gün 14 saat kaldı</span>
             </div>
           </div>
-          <button onClick={()=>{ const r=POPULAR[2]; setSelected(r); }}
+          <button onClick={()=>{ const r=filteredPopular[2] ?? popular[2]; if (r) setSelected(r); }}
             style={{ background:P, color:"#fff", border:"none", borderRadius:12,
                      padding:"9px 12px", fontSize:10, fontWeight:700, cursor:"pointer",
                      fontFamily:"inherit", whiteSpace:"nowrap", flexShrink:0 }}>
@@ -313,9 +313,13 @@ export default function YPOdulMerkeziPage() {
             </button>
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            {(filteredPopular.length > 0 ? filteredPopular : POPULAR).map(r => {
+            {filteredPopular.length === 0 ? (
+              <div style={{ gridColumn:"1 / -1", padding:"24px 8px", textAlign:"center", color:GT, fontSize:13 }}>
+                Ödül bulunamadı. Filtreleri değiştirmeyi deneyin.
+              </div>
+            ) : filteredPopular.map(r => {
               const bc = badgeColors[r.badgeStyle] || badgeColors.p;
-              const isSel = selected?.id === r.id;
+              const isSel = activeSelected?.id === r.id;
               const isFav = favorites.has(r.id);
               return (
                 <div key={r.id} style={{ background:"#fff", borderRadius:18,
@@ -389,7 +393,7 @@ export default function YPOdulMerkeziPage() {
                   <div style={{ fontSize:9, color:GRN, marginBottom:8, display:"flex", alignItems:"center", gap:3 }}>
                     <ShoppingBag size={9} color={GRN} /> Kargo ücretsiz
                   </div>
-                  <button onClick={()=>buyWithPoints(p.id)} disabled={!canBuy}
+                  <button onClick={()=>buyWithPoints(String(p.id).replace("pp-","rw-"))} disabled={!canBuy}
                     style={{ width:"100%", background: canBuy ? P : "#E5E7EB", color: canBuy ? "#fff" : "#9CA3AF",
                              border:"none", borderRadius:10, padding:"9px 0", fontSize:10, fontWeight:700,
                              cursor: canBuy ? "pointer" : "not-allowed", fontFamily:"inherit" }}>
@@ -407,11 +411,10 @@ export default function YPOdulMerkeziPage() {
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
             {CLUBS.map(c => (
               <div key={c.id}
-                onClick={()=>redeemPrivilege(c.id)}
                 style={{ background:"#fff", borderRadius:16, border:`1.5px solid ${GB}`,
                           padding:"12px 8px", textAlign:"center", display:"flex", flexDirection:"column",
-                          alignItems:"center", gap:4, opacity: c.disabled ? 0.65 : 1,
-                          cursor: c.disabled ? "not-allowed" : "pointer",
+                          alignItems:"center", gap:4, opacity:0.65,
+                          cursor:"not-allowed",
                           boxShadow:"0 1px 4px rgba(0,0,0,.05)" }}>
                 <div style={{ width:40, height:40, borderRadius:12, background:PL,
                               display:"flex", alignItems:"center", justifyContent:"center", marginBottom:2 }}>
@@ -427,14 +430,14 @@ export default function YPOdulMerkeziPage() {
                       {c.missing} puan eksik
                     </div>
                     <div style={{ width:"100%", background:"#E5E7EB", borderRadius:999, height:4, marginTop:2 }}>
-                      <div style={{ width:`${(BALANCE.total/c.points)*100}%`, background:P, borderRadius:999, height:"100%" }} />
+                      <div style={{ width:`${Math.min(100, (balance/c.points)*100)}%`, background:P, borderRadius:999, height:"100%" }} />
                     </div>
                   </>
                 ) : (
-                  <button onClick={e=>{ e.stopPropagation(); redeemPrivilege(c.id); }}
-                    style={{ marginTop:4, width:"100%", background:P, color:"#fff", border:"none",
+                  <button onClick={e=>{ e.stopPropagation(); redeemPrivilege(c.id); }} disabled
+                    style={{ marginTop:4, width:"100%", background:"#E5E7EB", color:"#9CA3AF", border:"none",
                              borderRadius:8, padding:"6px 0", fontSize:10, fontWeight:700,
-                             cursor:"pointer", fontFamily:"inherit" }}>
+                             cursor:"not-allowed", fontFamily:"inherit" }}>
                     Kullan
                   </button>
                 )}
@@ -444,21 +447,20 @@ export default function YPOdulMerkeziPage() {
         </div>
 
         {/* ── REDEMPTION BAR ── */}
-        {selected && (
+        {activeSelected && (
           <div style={{ margin:"0 16px 14px", background:"#fff", borderRadius:20,
-                        border:`2px solid ${P}`, padding:14, boxShadow:"0 2px 12px rgba(93,62,189,.15)" }}>
+                        border:`2px solid ${P}`, padding:14, boxShadow:"0 2px 12px rgba(93,58,26,.15)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:8 }}>
-              {/* Coupon icon */}
               <div style={{ width:48, height:48, borderRadius:14, background:PL,
                             display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                {selected.icon === "coupon"   && <Ticket  size={24} color={P} />}
-                {selected.icon === "shipping" && <Package size={24} color={P} />}
-                {selected.icon === "care"     && <Scissors size={24} color={P} />}
-                {selected.icon === "food"     && <ShoppingBag size={24} color={P} />}
+                {activeSelected.icon === "coupon"   && <Ticket  size={24} color={P} />}
+                {activeSelected.icon === "shipping" && <Package size={24} color={P} />}
+                {activeSelected.icon === "care"     && <Scissors size={24} color={P} />}
+                {activeSelected.icon === "food"     && <ShoppingBag size={24} color={P} />}
               </div>
               <div style={{ flex:1 }}>
-                <div style={{ fontSize:14, fontWeight:800, color:DRK, marginBottom:2 }}>{selected.title}</div>
-                <div style={{ fontSize:11, color:GT }}>{selected.points.toLocaleString("tr-TR")} PoodlePuan kullanılacak</div>
+                <div style={{ fontSize:14, fontWeight:800, color:DRK, marginBottom:2 }}>{activeSelected.title}</div>
+                <div style={{ fontSize:11, color:GT }}>{activeSelected.points.toLocaleString("tr-TR")} PoodlePuan kullanılacak</div>
                 <div style={{ fontSize:11, fontWeight:700, color:P }}>Kalan puan: {remaining.toLocaleString("tr-TR")}</div>
               </div>
               <button onClick={redeemSelected} disabled={!canRedeem}
@@ -485,9 +487,13 @@ export default function YPOdulMerkeziPage() {
           </div>
           <div style={{ background:"#fff", borderRadius:18, border:`1.5px solid ${GB}`,
                         boxShadow:"0 1px 4px rgba(0,0,0,.04)", overflow:"hidden" }}>
-            {earned.map((e,i) => (
+            {EARNED.length === 0 ? (
+              <div style={{ padding:"20px 14px", textAlign:"center", fontSize:12, color:GT }}>
+                Henüz tanımlanmış kuponunuz yok.
+              </div>
+            ) : EARNED.map((e,i) => (
               <div key={e.id} style={{ display:"flex", alignItems:"center", gap:12, padding:"14px 14px",
-                                        borderBottom: i<earned.length-1 ? `1px solid #F9FAFB` : "none" }}>
+                                        borderBottom: i<EARNED.length-1 ? `1px solid #F9FAFB` : "none" }}>
                 <div style={{ width:32, height:32, borderRadius:999, flexShrink:0,
                               background: e.status==="available" ? "#F0FDF4" : "#F3F4F6",
                               display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -556,7 +562,7 @@ export default function YPOdulMerkeziPage() {
                         display:"flex", alignItems:"center", gap:10 }}>
             <Clock size={16} color={ORG} style={{ flexShrink:0 }} />
             <span style={{ fontSize:11, color:"#1F2937", flex:1, lineHeight:1.45 }}>
-              120 puanın sona ermek üzere. 31 Ağustos'tan önce kullanmayı unutma.
+              Puanlarını ödül merkezinde kullanmayı unutma.
             </span>
             <button onClick={()=>popularRef.current?.scrollIntoView({ behavior:"smooth" })}
               style={{ border:`1.5px solid ${ORG}`, color:ORG, background:"none", borderRadius:10,

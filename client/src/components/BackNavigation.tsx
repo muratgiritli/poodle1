@@ -1,5 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { goBack } from "@/lib/goBack";
 
 export default function BackNavigation() {
   return (
@@ -7,7 +8,7 @@ export default function BackNavigation() {
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => window.history.back()}
+        onClick={() => goBack(undefined, "/")}
         className="text-muted-foreground gap-1.5 px-2"
         data-testid="button-back-navigation"
       >

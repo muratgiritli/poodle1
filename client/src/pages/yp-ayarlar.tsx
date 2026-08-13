@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { Bell, Lock, User, ChevronLeft, Check, Shield, Moon, Globe } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { useCustomer } from "@/contexts/CustomerContext";
+import { goBack } from "@/lib/goBack";
 
 export default function YPAyarlarPage() {
   const [, navigate] = useLocation();
@@ -21,13 +22,8 @@ export default function YPAyarlarPage() {
     newsletter: false,
   });
 
-  const [privacy, setPrivacy] = useState({
-    profilePublic: true,
-    dogPublic: true,
-    showInSearch: true,
-  });
-
   const save = async (section: string) => {
+    if (section === "gizlilik") return;
     // Save notification preferences to backend
     if (section === "bildirim") {
       try {
@@ -100,7 +96,7 @@ export default function YPAyarlarPage() {
 
         {/* Header */}
         <div style={{ background: "#fff", borderBottom: "1px solid #F0EAFF", padding: "12px 16px", display: "flex", alignItems: "center", gap: 10 }}>
-          <button onClick={() => navigate("/hesabim")}
+          <button onClick={() => goBack(navigate, "/hesabim")}
             style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", color: "#5D3A1A" }}>
             <ChevronLeft size={22} />
           </button>
@@ -150,11 +146,11 @@ export default function YPAyarlarPage() {
           </button>
         </div>
 
-        {/* Gizlilik */}
+        {/* Gizlilik — henüz aktif değil */}
         <div style={{ padding: "8px 0 4px 16px", fontSize: 11, fontWeight: 800, color: "#9CA3AF", letterSpacing: "0.08em", textTransform: "uppercase" }}>
           <Shield size={12} style={{ display: "inline", marginRight: 5 }} />GİZLİLİK
         </div>
-        <div className="ayar-section">
+        <div className="ayar-section" style={{ opacity: 0.72 }}>
           {([
             { key: "profilePublic" as const, label: "Profil Herkese Açık", desc: "Profilinizi giriş yapmadan görüntüleyebilirler" },
             { key: "dogPublic" as const, label: "Köpek Profili Herkese Açık", desc: "Poodle profiliniz arama sonuçlarında görünür" },
@@ -165,39 +161,29 @@ export default function YPAyarlarPage() {
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: "#1a1a1a" }}>{label}</div>
                 <div style={{ fontSize: 11.5, color: "#9CA3AF", marginTop: 2 }}>{desc}</div>
               </div>
-              <button className="toggle-track"
-                style={{ background: privacy[key] ? "#5D3A1A" : "#E5E7EB" }}
-                onClick={() => setPrivacy(p => ({ ...p, [key]: !p[key] }))}>
-                <div className="toggle-thumb" style={{ left: privacy[key] ? 23 : 3 }} />
-              </button>
+              <span style={{ fontSize: 11, color: "#9CA3AF", fontWeight: 700, background: "#F9FAFB", border: "1px solid #E5E7EB", borderRadius: 6, padding: "3px 8px" }}>Yakında</span>
             </div>
           ))}
         </div>
-        <div style={{ textAlign: "right", padding: "0 16px 8px" }}>
-          <button onClick={() => save("gizlilik")}
-            style={{ padding: "7px 18px", borderRadius: 10, border: "none", background: saved === "gizlilik" ? "#16A34A" : "#5D3A1A", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5, transition: "background 0.2s" }}>
-            {saved === "gizlilik" ? <><Check size={13} /> Kaydedildi</> : "Kaydet"}
-          </button>
-        </div>
 
-        {/* Güvenlik */}
+        {/* Güvenlik — kısmen yakında */}
         <div style={{ padding: "8px 0 4px 16px", fontSize: 11, fontWeight: 800, color: "#9CA3AF", letterSpacing: "0.08em", textTransform: "uppercase" }}>
           <Lock size={12} style={{ display: "inline", marginRight: 5 }} />GÜVENLİK
         </div>
-        <div className="ayar-section">
-          <div className="ayar-row" style={{ cursor: "pointer" }} onClick={() => navigate("/hesabim?tab=sifre")}>
+        <div className="ayar-section" style={{ opacity: 0.72 }}>
+          <div className="ayar-row">
             <div>
               <div style={{ fontSize: 13.5, fontWeight: 700, color: "#1a1a1a" }}>Şifre Değiştir</div>
               <div style={{ fontSize: 11.5, color: "#9CA3AF", marginTop: 2 }}>Hesap güvenliğiniz için düzenli olarak güncelleyin</div>
             </div>
-            <ChevronLeft size={16} color="#CCC" style={{ transform: "rotate(180deg)" }} />
+            <span style={{ fontSize: 11, color: "#9CA3AF", fontWeight: 700, background: "#F9FAFB", border: "1px solid #E5E7EB", borderRadius: 6, padding: "3px 8px" }}>Yakında</span>
           </div>
-          <div className="ayar-row" style={{ cursor: "pointer" }} onClick={() => navigate("/hesabim?tab=oturumlar")}>
+          <div className="ayar-row">
             <div>
               <div style={{ fontSize: 13.5, fontWeight: 700, color: "#1a1a1a" }}>Aktif Oturumlar</div>
               <div style={{ fontSize: 11.5, color: "#9CA3AF", marginTop: 2 }}>Hesabınıza giriş yapılan cihazları görün</div>
             </div>
-            <ChevronLeft size={16} color="#CCC" style={{ transform: "rotate(180deg)" }} />
+            <span style={{ fontSize: 11, color: "#9CA3AF", fontWeight: 700, background: "#F9FAFB", border: "1px solid #E5E7EB", borderRadius: 6, padding: "3px 8px" }}>Yakında</span>
           </div>
         </div>
 

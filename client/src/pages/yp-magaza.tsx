@@ -323,6 +323,9 @@ export default function YPMagazaPage() {
           min-height: 60vh;
         }
         .yp-mag-main h2 { font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif; }
+        @media (max-width: 767px) {
+          .yp-mag-hide-mobile { display: none !important; }
+        }
       `}</style>
       <Toast message={toast.message} visible={toast.visible} />
 
@@ -353,8 +356,9 @@ export default function YPMagazaPage() {
           </div>
         </form>
 
-        {/* ── Campaign banner ── */}
+        {/* ── Campaign banner (desktop only) ── */}
         <button
+          className="yp-mag-hide-mobile"
           onClick={() => navigate(`${BASE}/kuru-mama`)}
           aria-label="Kuru mama kampanyasına git"
           style={{ width:"100%", marginBottom:24, borderRadius:16, border:"none", cursor:"pointer",
@@ -375,9 +379,9 @@ export default function YPMagazaPage() {
           <div style={{ fontSize:48, lineHeight:1, flexShrink:0, marginLeft:12 }}>🐾</div>
         </button>
 
-        {/* ── Featured products strip ── */}
+        {/* ── Featured products strip (desktop only) ── */}
         {featuredProducts.length > 0 && (
-          <section style={{ marginBottom:28 }}>
+          <section className="yp-mag-hide-mobile" style={{ marginBottom:28 }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
               <h2 style={{ fontSize:16, fontWeight:800, color:"#111827", margin:0 }}>Öne Çıkan Ürünler</h2>
               <button onClick={() => navigate(`${BASE}/ara`)}

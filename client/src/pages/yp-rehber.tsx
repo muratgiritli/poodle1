@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { ChevronRight, Search, Heart, Brush, GraduationCap, Calculator } from "lucide-react";
 import { useLocation, useSearch } from "wouter";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import { IS_YP } from "@/lib/store";
+
+const BASE = IS_YP ? "" : "/yourpoodle";
 
 /* ── Design tokens ── */
 const P  = "#5D3A1A";
@@ -43,24 +46,24 @@ const SLUG_MAP: Record<string, { cat: string; slug: string } | { path: string }>
   "Ödülle Eğitim":                { cat: "egitim",  slug: "odulle-egitim" },
   "Seyahat ve Araba Eğitimi":     { cat: "egitim",  slug: "seyahat-araba-egitimi" },
   /* Araçlar — tools with dedicated pages navigate there directly */
-  "Günlük Mama Hesaplayıcı":      { path: "/yourpoodle/mama-hesaplama" },
+  "Günlük Mama Hesaplayıcı":      { path: "/mama-hesaplama" },
   "Su İhtiyacı Hesaplayıcı":      { cat: "araclar", slug: "su-ihtiyaci-hesaplama" },
   "İdeal Kilo Takibi":            { cat: "araclar", slug: "ideal-kilo-takibi" },
-  "Köpek Yaşı Hesaplayıcı":       { path: "/yourpoodle/yas-hesaplama" },
+  "Köpek Yaşı Hesaplayıcı":       { path: "/yas-hesaplama" },
   "Aşı Takvimi Oluştur":          { cat: "saglik",  slug: "asi-takvimi" },
   "Parazit Hatırlatıcısı":        { cat: "araclar", slug: "parazit-hatirlatici" },
   "Bakım Takvimi":                { cat: "araclar", slug: "bakim-takvimi" },
-  "Mama Karşılaştırma":           { path: "/yourpoodle/mama-bul" },
+  "Mama Karşılaştırma":           { path: "/mama-bul" },
   "Belirli Rehberi":              { cat: "araclar", slug: "beslenme-rehberi" },
   "Seyahat Kontrol Listesi":      { cat: "araclar", slug: "seyahat-kontrol-listesi" },
 };
 
 /* "Tümünü Gör" targets */
 const CATEGORY_FULL_PATH: Record<string, string> = {
-  saglik:  "/yourpoodle/saglik",
-  bakim:   "/yourpoodle/bakim",
-  egitim:  "/yourpoodle/egitim",
-  araclar: "/yourpoodle/rehber?cat=araclar",
+  saglik:  `${BASE}/saglik`,
+  bakim:   `${BASE}/bakim`,
+  egitim:  `${BASE}/egitim`,
+  araclar: `${BASE}/rehber?cat=araclar`,
 };
 
 /* ── Section definitions ── */
@@ -195,9 +198,9 @@ export default function YPRehberPage({ routeSlug: _routeSlug }: { routeSlug?: st
     const entry = SLUG_MAP[item];
     if (!entry) return;
     if ("path" in entry) {
-      navigate(entry.path);
+      navigate(`${BASE}${entry.path}`);
     } else {
-      navigate(`/yourpoodle/rehber/${entry.cat}/${entry.slug}`);
+      navigate(`${BASE}/rehber/${entry.cat}/${entry.slug}`);
     }
   };
 
@@ -219,14 +222,14 @@ export default function YPRehberPage({ routeSlug: _routeSlug }: { routeSlug?: st
       })).filter(s => s.items.length > 0 || s.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <YPLayout activeLink="/yourpoodle/rehber" constrain={false}>
+    <YPLayout activeLink={`${BASE}/rehber`} constrain={false}>
 
       <main className="yp-pw" style={{ padding:"20px 16px 16px", paddingBottom:96 }}>
 
         {/* Back pill when filtered by category param */}
         {catParam && (
           <button
-            onClick={() => navigate("/yourpoodle/rehber")}
+            onClick={() => navigate(`${BASE}/rehber`)}
             style={{ display:"flex", alignItems:"center", gap:6, marginBottom:14,
                      background:"none", border:"none", cursor:"pointer", fontFamily:"inherit",
                      fontSize:13, color:P, fontWeight:600, padding:0 }}>

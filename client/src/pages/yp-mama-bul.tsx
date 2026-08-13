@@ -4,153 +4,152 @@ import { ArrowLeft, Check, ShoppingCart, RotateCcw, Info } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { useCustomer } from "@/contexts/CustomerContext";
+import { useCart } from "@/contexts/CartContext";
 
 /* ─── Types ──────────────────────────────────────────────────── */
 interface StepOption { value: string; label: string; desc?: string; icon?: string; }
 type StepType = "radio" | "checkbox";
+interface StepGroup {
+  key: string;
+  type: StepType;
+  label: string;
+  options: StepOption[];
+}
 interface Step {
-  key: string; type: StepType; question: string; questionBold?: string; question2?: string;
-  hint: string; emoji: string; options: StepOption[];
-  infoBanner?: string; hasHero?: boolean;
+  emoji: string;
+  title: string;
+  hint: string;
+  groups: StepGroup[];
 }
 
-/* ─── Step config (11 steps) ─────────────────────────────────── */
+/* ─── Step config (4 compact steps) ──────────────────────────── */
 const STEPS: Step[] = [
   {
-    key: "age", type: "radio", hasHero: true,
     emoji: "🐾",
-    question: "Poodle'ınızın ", questionBold: "yaşı nedir?",
-    hint: "Yaşa göre besin ihtiyacı farklılaşır. Doğru seçimi birlikte yapalım.",
-    options: [
-      { value: "puppy",  label: "Yavru (0–12 ay)",    desc: "Besin ihtiyacı yüksek, büyüme dönemi", icon: "🌱" },
-      { value: "adult",  label: "Yetişkin (1–7 yaş)", desc: "Dengeli beslenme, enerji dengesi",      icon: "💪" },
-      { value: "senior", label: "Yaşlı (7+ yaş)",     desc: "Eklem desteği, düşük kalori",          icon: "❤️" },
+    title: "Yaş & boyut",
+    hint: "Besin ihtiyacı ve porsiyon için temel profil.",
+    groups: [
+      {
+        key: "age", type: "radio", label: "Yaş",
+        options: [
+          { value: "puppy",  label: "Yavru",    desc: "0–12 ay", icon: "🌱" },
+          { value: "adult",  label: "Yetişkin", desc: "1–7 yaş", icon: "💪" },
+          { value: "senior", label: "Yaşlı",    desc: "7+ yaş",  icon: "❤️" },
+        ],
+      },
+      {
+        key: "weight", type: "radio", label: "Kilo",
+        options: [
+          { value: "micro",    label: "1–2 kg", desc: "Micro",     icon: "🫧" },
+          { value: "toy",      label: "2–4 kg", desc: "Toy",       icon: "🐩" },
+          { value: "mini",     label: "4–9 kg", desc: "Minyatür",  icon: "🐕" },
+          { value: "standard", label: "9+ kg",  desc: "Standart",  icon: "🦮" },
+        ],
+      },
     ],
   },
   {
-    key: "weight", type: "radio", hasHero: true,
-    emoji: "⚖️",
-    question: "Poodle'ınızın ", questionBold: "kilosu?",
-    hint: "Doğru porsiyon hesabı için önemli",
-    infoBanner: "Kilonuza göre günlük mama miktarı ve öneriler size özel hazırlanır.",
-    options: [
-      { value: "micro",    label: "1–2 kg",  desc: "Micro / Teacup", icon: "🫧" },
-      { value: "toy",      label: "2–4 kg",  desc: "Toy Poodle",     icon: "🐩" },
-      { value: "mini",     label: "4–9 kg",  desc: "Minyatür",       icon: "🐕" },
-      { value: "standard", label: "9+ kg",   desc: "Standart",       icon: "🦮" },
-    ],
-  },
-  {
-    key: "neutered", type: "radio", hasHero: true,
-    emoji: "🏥",
-    question: "Kısırlaştırıldı mı?",
-    hint: "Kısır poodle'lerin kalori ihtiyacı daha azdır.",
-    infoBanner: "Doğru seçim, ideal kilo ve sağlıklı bir yaşam için önemlidir.",
-    options: [
-      { value: "yes", label: "Evet",  desc: "Light / kısır formül önerilir", icon: "✅" },
-      { value: "no",  label: "Hayır", desc: "Standart formül uygundur",       icon: "🔵" },
-    ],
-  },
-  {
-    key: "activity", type: "radio", hasHero: true,
     emoji: "🏃",
-    question: "Günlük ", questionBold: "aktivite seviyesi?",
-    hint: "Aktif poodle'ler daha fazla kalori harcar",
-    options: [
-      { value: "low",    label: "Düşük",  desc: "Çoğunlukla evde, kısa yürüyüş", icon: "🛋️" },
-      { value: "medium", label: "Orta",   desc: "Günlük 30–60 dk yürüyüş",       icon: "🚶" },
-      { value: "high",   label: "Yüksek", desc: "Aktif, uzun yürüyüşler",        icon: "🏃" },
+    title: "Yaşam tarzı",
+    hint: "Kalori ihtiyacını netleştiriyoruz.",
+    groups: [
+      {
+        key: "neutered", type: "radio", label: "Kısırlaştırıldı mı?",
+        options: [
+          { value: "yes", label: "Evet",  icon: "✅" },
+          { value: "no",  label: "Hayır", icon: "🔵" },
+        ],
+      },
+      {
+        key: "activity", type: "radio", label: "Aktivite",
+        options: [
+          { value: "low",    label: "Düşük",  icon: "🛋️" },
+          { value: "medium", label: "Orta",   icon: "🚶" },
+          { value: "high",   label: "Yüksek", icon: "🏃" },
+        ],
+      },
+      {
+        key: "weight_goal", type: "radio", label: "Kilo hedefi",
+        options: [
+          { value: "lose",     label: "Versin",  icon: "📉" },
+          { value: "maintain", label: "Korusun", icon: "⚖️" },
+          { value: "gain",     label: "Alsın",   icon: "📈" },
+        ],
+      },
     ],
   },
   {
-    key: "weight_goal", type: "radio", hasHero: true,
-    emoji: "🎯",
-    question: "Kilo ", questionBold: "hedefi", question2: " var mı?",
-    hint: "Buna göre kalori yoğunluğunu ayarlıyoruz.",
-    options: [
-      { value: "lose",     label: "Kilo vermesi gerekiyor", desc: "Kilo kontrolü ve yağ kaybı desteklenir.", icon: "📉" },
-      { value: "gain",     label: "Biraz kilo alması lazım", desc: "Sağlıklı kilo artışını destekler.",      icon: "📈" },
-      { value: "maintain", label: "Kilosunu korusun",        desc: "Mevcut kilosunu korumaya yardımcı olur.", icon: "⚖️" },
-    ],
-  },
-  {
-    key: "allergy", type: "radio", hasHero: true,
     emoji: "🌿",
-    question: "Bilinen ", questionBold: "alerjisi", question2: " var mı?",
-    hint: "Alerjen içerikli mamaları filtreliyoruz.",
-    options: [
-      { value: "none",    label: "Yok / Bilmiyorum",  desc: "Alerjisi yok veya bilmiyorum.",                    icon: "✅" },
-      { value: "chicken", label: "Tavuk alerjisi",     desc: "Tavuk proteinine karşı alerjisi var.",             icon: "🐔" },
-      { value: "grain",   label: "Tahıl hassasiyeti",  desc: "Tahıl içeriklerine karşı hassasiyeti var.",        icon: "🌾" },
-      { value: "fish",    label: "Balık alerjisi",     desc: "Balık proteinine karşı alerjisi var.",             icon: "🐟" },
-      { value: "other",   label: "Farklı bir alerji",  desc: "Yukarıdakiler dışında farklı bir alerjisi var.",   icon: "⚠️" },
+    title: "Sağlık",
+    hint: "Alerji ve hassasiyetleri filtreleriz.",
+    groups: [
+      {
+        key: "allergy", type: "radio", label: "Alerji",
+        options: [
+          { value: "none",    label: "Yok",   icon: "✅" },
+          { value: "chicken", label: "Tavuk", icon: "🐔" },
+          { value: "grain",   label: "Tahıl", icon: "🌾" },
+          { value: "fish",    label: "Balık", icon: "🐟" },
+          { value: "other",   label: "Diğer", icon: "⚠️" },
+        ],
+      },
+      {
+        key: "digestion", type: "radio", label: "Sindirim",
+        options: [
+          { value: "none",           label: "Normal",  icon: "✅" },
+          { value: "sensitive",      label: "Hassas",  icon: "🤢" },
+          { value: "very_sensitive", label: "Çok hassas", icon: "⚠️" },
+        ],
+      },
+      {
+        key: "coat", type: "radio", label: "Tüy & deri",
+        options: [
+          { value: "none",     label: "İyi",     icon: "✨" },
+          { value: "dull",     label: "Mat",     icon: "😔" },
+          { value: "scratch",  label: "Kaşıntı", icon: "🤚" },
+          { value: "shedding", label: "Dökülme", icon: "💇" },
+        ],
+      },
     ],
   },
   {
-    key: "coat", type: "radio", hasHero: true,
-    emoji: "✨",
-    question: "Tüy & deri ", questionBold: "durumu?",
-    hint: "Omega yağ asitleri tüy kalitesini artırır.",
-    options: [
-      { value: "none",     label: "Sağlıklı, sorun yok",  desc: "İdeal tüy & deri durumu",          icon: "✨" },
-      { value: "dull",     label: "Tüyleri mat / cansız",  desc: "Parlaklık ve canlılık desteği",    icon: "😔" },
-      { value: "scratch",  label: "Çok kaşınıyor",         desc: "Kaşıntı ve tahriş desteği",        icon: "🤚" },
-      { value: "shedding", label: "Aşırı dökülüyor",       desc: "Tüy dökülmesine karşı destek",    icon: "💇" },
-    ],
-  },
-  {
-    key: "digestion", type: "radio", hasHero: true,
-    emoji: "🫀",
-    question: "Sindirim hassasiyeti var mı?",
-    hint: "Hassas sindirim için özel formüller mevcuttur.",
-    options: [
-      { value: "none",           label: "Yok, sorun yok",         desc: "Normal sindirim, herhangi bir problem yok.",              icon: "✅" },
-      { value: "sensitive",      label: "Zaman zaman mide sorunu", desc: "Ara sıra kusma, ishal veya mide hassasiyeti yaşıyor.",   icon: "🤢" },
-      { value: "very_sensitive", label: "Çok hassas sindirim",     desc: "Sık sık sindirim problemi yaşıyor, özel mama gerekiyor.", icon: "⚠️" },
-    ],
-  },
-  {
-    key: "protein", type: "checkbox", hasHero: false,
-    emoji: "🥩",
-    question: "Tercih edilen protein?",
-    hint: "Poodle'ınızın en iyi sindireceği kaynakları seçebilirsiniz.",
-    infoBanner: "Birden fazla seçenek işaretleyebilirsiniz.",
-    options: [
-      { value: "chicken", label: "Tavuk",         desc: "Hafif ve sindirimi kolay protein kaynağıdır.",            icon: "🐔" },
-      { value: "lamb",    label: "Kuzu",           desc: "Yüksek besin değeri ve lezzetli bir kaynaktır.",          icon: "🐑" },
-      { value: "salmon",  label: "Somon / Balık",  desc: "Omega-3 kaynağı, tüy ve deri sağlığını destekler.",      icon: "🐟" },
-      { value: "rabbit",  label: "Tavşan",         desc: "Hipoalerjenik özellik gösterir, hassas köpekler için idealdir.", icon: "🐰" },
-      { value: "any",     label: "Fark etmez",     desc: "Protein kaynağı benim için önemli değil.",               icon: "🔀" },
-    ],
-  },
-  {
-    key: "budget", type: "checkbox", hasHero: false,
     emoji: "💳",
-    question: "Aylık mama bütçeniz?",
-    hint: "Her bütçe için kaliteli seçenekler var",
-    infoBanner: "Birden fazla seçenek işaretleyebilirsiniz.",
-    options: [
-      { value: "economy", label: "₺500–1.000",   desc: "Uygun fiyatlı, temel ihtiyaçları karşılayan mamalar.", icon: "💰" },
-      { value: "mid",     label: "₺1.000–2.000",  desc: "Dengeli içerik ve kalite, en popüler aralık.",        icon: "💳" },
-      { value: "premium", label: "₺2.000+",       desc: "Yüksek kaliteli içerik, özel formüller ve destekler.", icon: "⭐" },
-    ],
-  },
-  {
-    key: "package", type: "checkbox", hasHero: false,
-    emoji: "📦",
-    question: "Tercih edilen paket boyutu?",
-    hint: "Küçük paketler daha taze, büyükler daha ekonomik",
-    infoBanner: "Birden fazla seçenek işaretleyebilirsiniz.",
-    options: [
-      { value: "small",   label: "1–2 kg",   desc: "Taze kalır, değişiklik kolay",              icon: "📦" },
-      { value: "medium",  label: "3–5 kg",   desc: "Taze + ekonomik denge",                     icon: "🗃️" },
-      { value: "large",   label: "7–12 kg",  desc: "En ekonomik, depo gerektirir",              icon: "🏭" },
-      { value: "xl",      label: "13–20 kg", desc: "Büyük ırklar için ideal",                   icon: "📦" },
-      { value: "xxl",     label: "21–30 kg", desc: "Uzun süreli kullanım için uygun",            icon: "📦" },
-      { value: "bulk",    label: "30+ kg",   desc: "En avantajlı, toplu alım",                  icon: "📦" },
+    title: "Tercihler",
+    hint: "Birden fazla seçebilirsin.",
+    groups: [
+      {
+        key: "protein", type: "checkbox", label: "Protein",
+        options: [
+          { value: "chicken", label: "Tavuk",  icon: "🐔" },
+          { value: "lamb",    label: "Kuzu",   icon: "🐑" },
+          { value: "salmon",  label: "Somon",  icon: "🐟" },
+          { value: "rabbit",  label: "Tavşan", icon: "🐰" },
+          { value: "any",     label: "Fark etmez", icon: "🔀" },
+        ],
+      },
+      {
+        key: "budget", type: "checkbox", label: "Bütçe",
+        options: [
+          { value: "economy", label: "₺500–1K",  icon: "💰" },
+          { value: "mid",     label: "₺1–2K",    icon: "💳" },
+          { value: "premium", label: "₺2K+",     icon: "⭐" },
+        ],
+      },
+      {
+        key: "package", type: "checkbox", label: "Paket",
+        options: [
+          { value: "small",  label: "1–2 kg",  icon: "📦" },
+          { value: "medium", label: "3–5 kg",  icon: "🗃️" },
+          { value: "large",  label: "7–12 kg", icon: "🏭" },
+        ],
+      },
     ],
   },
 ];
+
+const CHECKBOX_KEYS = new Set(
+  STEPS.flatMap(s => s.groups.filter(g => g.type === "checkbox").map(g => g.key)),
+);
 
 const RESULT_META = [
   { label: "En Uygun Seçim",    emoji: "🏆", color: "#5D3A1A", bg: "#EDE5D8", gradient: "linear-gradient(135deg,#5D3A1A,#8B5E34)", reason: "Poodle'ınızın yaşı, kilosu ve ihtiyaçlarıyla birebir örtüşüyor." },
@@ -271,7 +270,7 @@ function buildReason(p: any, answers: Answers): string {
   return parts.length > 0 ? parts.join(" · ") : "Profilinize uygun seçim";
 }
 
-function pickRecommendations(products: any[], answers: Answers): Product[] {
+function pickRecommendations(products: any[], answers: Answers, rules: any[] = []): Product[] {
   if (!products.length) return [];
   // Only consider products that have been tagged with food metadata — this
   // ensures non-food products (accessories, supplements without metadata) don't
@@ -280,7 +279,22 @@ function pickRecommendations(products: any[], answers: Answers): Product[] {
   const candidates = products.filter(p => p.mamaMetadata != null);
   if (!candidates.length) return [];
   const scored = candidates.map(p => {
-    const score = scoreProduct(p, answers);
+    let score = scoreProduct(p, answers);
+    for (const rule of rules) {
+      if (!rule || rule.active === false) continue;
+      const ids = Array.isArray(rule.productIds) ? rule.productIds.map(Number) : [];
+      if (ids.includes(Number(p.id))) {
+        score += Number(rule.boost) || 0;
+      } else if (rule.match && typeof rule.match === "object") {
+        let ok = true;
+        for (const [k, v] of Object.entries(rule.match)) {
+          if (v == null || v === "") continue;
+          const ans = getStr(answers, k);
+          if (ans && String(ans) !== String(v)) { ok = false; break; }
+        }
+        if (ok && Object.keys(rule.match).length > 0) score += Number(rule.boost) || 0;
+      }
+    }
     const matchPct = Math.min(98, Math.max(40, score));
     return { id: p.id, name: p.name, price: p.price, img: p.img, originalPrice: p.originalPrice,
              mamaType: p.mamaType, mamaMetadata: p.mamaMetadata, score, matchPct,
@@ -298,124 +312,62 @@ function breedToWeight(breed?: string | null): string | undefined {
   return map[breed];
 }
 
-/* ─── Poodle SVG illustration ────────────────────────────────── */
-function PoodleIllustration() {
-  return (
-    <div style={{
-      width: 200, height: 200, borderRadius: "50%",
-      background: "linear-gradient(135deg, #5D3A1A 0%, #A67C52 100%)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      flexShrink: 0, position: "relative", overflow: "hidden",
-      boxShadow: "0 12px 40px rgba(123,63,228,0.28)",
-    }}>
-      {/* Decorative circles */}
-      <div style={{ position: "absolute", top: -20, right: -20, width: 80, height: 80, borderRadius: "50%", background: "rgba(255,255,255,0.08)" }} />
-      <div style={{ position: "absolute", bottom: -10, left: -10, width: 60, height: 60, borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
-      {/* Poodle emoji */}
-      <span style={{ fontSize: 88, lineHeight: 1, filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.2))", userSelect: "none" }}>🐩</span>
-      {/* Heart decoration */}
-      <span style={{ position: "absolute", top: 18, right: 22, fontSize: 20 }}>💜</span>
-      <span style={{ position: "absolute", bottom: 22, left: 20, fontSize: 16 }}>🐾</span>
-    </div>
-  );
-}
-
-/* ─── Progress tracker ───────────────────────────────────────── */
-function ProgressTracker({ current, total }: { current: number; total: number }) {
-  return (
-    <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "nowrap" }}>
-      {Array.from({ length: total }).map((_, i) => {
-        const done = i < current;
-        const active = i === current;
-        return (
-          <div key={i} style={{
-            width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 11, fontWeight: 700,
-            background: done ? "#5D3A1A" : active ? "#FAF7F0" : "#F5F0E6",
-            border: active ? "2px solid #5D3A1A" : done ? "2px solid #5D3A1A" : "2px solid #E5DDD0",
-            color: done ? "#fff" : active ? "#5D3A1A" : "#B0A69C",
-            transition: "all 0.3s ease",
-          }}>
-            {done ? <Check size={12} strokeWidth={3} /> : i + 1}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ─── InfoBanner ─────────────────────────────────────────────── */
-function InfoBanner({ text }: { text: string }) {
-  return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 10,
-      background: "#F5F0E6", borderRadius: 12,
-      padding: "12px 16px", marginBottom: 16,
-    }}>
-      <Info size={16} color="#5D3A1A" style={{ flexShrink: 0 }} />
-      <span style={{ fontSize: 13, color: "#3D2612", fontWeight: 500, lineHeight: 1.5 }}>{text}</span>
-    </div>
-  );
-}
-
-/* ─── OptionCard ─────────────────────────────────────────────── */
-function OptionCard({
-  opt, selected, onClick, type
+/* ─── Compact option chip ────────────────────────────────────── */
+function OptionChip({
+  opt, selected, onClick, type,
 }: {
   opt: StepOption; selected: boolean; onClick: () => void; type: StepType;
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       aria-pressed={selected}
       style={{
-        display: "flex", alignItems: "center", gap: 14,
+        display: "flex", alignItems: "center", gap: 4,
         background: selected ? "#FAF7F0" : "#fff",
-        border: `2px solid ${selected ? "#5D3A1A" : "#E5E7EB"}`,
-        borderRadius: 16, padding: "16px 18px",
+        border: `1px solid ${selected ? "#5D3A1A" : "#E8E0D4"}`,
+        borderRadius: 8, padding: "4px 5px",
         cursor: "pointer", textAlign: "left", width: "100%",
-        transition: "all 0.18s ease",
-        boxShadow: selected ? "0 4px 16px rgba(123,63,228,0.12)" : "0 1px 4px rgba(0,0,0,0.04)",
+        maxWidth: "100%", minWidth: 0, minHeight: 32,
+        boxSizing: "border-box", overflow: "hidden",
+        transition: "all 0.15s ease",
         WebkitTapHighlightColor: "transparent",
-      }}
-      onMouseEnter={e => {
-        if (!selected) (e.currentTarget as HTMLButtonElement).style.borderColor = "#D4C4B0";
-      }}
-      onMouseLeave={e => {
-        if (!selected) (e.currentTarget as HTMLButtonElement).style.borderColor = "#E5E7EB";
+        fontFamily: "inherit",
       }}
     >
       {opt.icon && (
-        <div style={{
-          width: 48, height: 48, borderRadius: 12, flexShrink: 0,
-          background: selected ? "#EDE5D8" : "#FAF7F0",
+        <span style={{
+          width: 18, height: 18, borderRadius: 5, flexShrink: 0,
+          background: selected ? "#EDE5D8" : "#F7F3EC",
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 22, transition: "background 0.18s",
+          fontSize: 10,
         }}>
           {opt.icon}
-        </div>
+        </span>
       )}
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: selected ? "#3D2612" : "#2C2118", lineHeight: 1.3, marginBottom: opt.desc ? 3 : 0 }}>
+      <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
+        <div style={{
+          fontSize: 11, fontWeight: 700, color: selected ? "#3D2612" : "#2C2118",
+          lineHeight: 1.15, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+        }}>
           {opt.label}
         </div>
         {opt.desc && (
-          <div style={{ fontSize: 12, color: selected ? "#5D3A1A" : "#6B7280", lineHeight: 1.4 }}>
-            {opt.desc}
-          </div>
+          <div style={{
+            fontSize: 9, color: "#8A8076", lineHeight: 1.1, marginTop: 0,
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>{opt.desc}</div>
         )}
       </div>
-      {/* Radio / Checkbox indicator */}
       <div style={{
-        width: 22, height: 22, flexShrink: 0,
-        borderRadius: type === "radio" ? "50%" : 6,
-        border: `2px solid ${selected ? "#5D3A1A" : "#D1D5DB"}`,
+        width: 13, height: 13, flexShrink: 0,
+        borderRadius: type === "radio" ? "50%" : 3,
+        border: `1.5px solid ${selected ? "#5D3A1A" : "#D1D5DB"}`,
         background: selected ? "#5D3A1A" : "#fff",
         display: "flex", alignItems: "center", justifyContent: "center",
-        transition: "all 0.18s",
       }}>
-        {selected && <Check size={12} color="#fff" strokeWidth={3} />}
+        {selected && <Check size={7} color="#fff" strokeWidth={3} />}
       </div>
     </button>
   );
@@ -425,10 +377,9 @@ function OptionCard({
 export default function YPMamaBulPage() {
   const [, navigate] = useLocation();
   const { isLoggedIn, isLoading: authLoading } = useCustomer();
-  const [step, setStep] = useState(0);
+  const { updateQty } = useCart();
   const [answers, setAnswers] = useState<Answers>({});
   const [done, setDone] = useState(false);
-  const [slideKey, setSlideKey] = useState(0);
   const [historyLoaded, setHistoryLoaded] = useState(false); // #34: notice
   const [addedIds, setAddedIds] = useState<Set<number>>(new Set()); // direct add-to-cart feedback
   const [clearingHistory, setClearingHistory] = useState(false); // #33: loading state
@@ -437,11 +388,16 @@ export default function YPMamaBulPage() {
   const historyApplied = useRef(false);
 
   // Keys for checkbox-type steps — stored as comma-joined strings in the DB
-  const CHECKBOX_KEYS = new Set(STEPS.filter(s => s.type === "checkbox").map(s => s.key));
+  // (module-level CHECKBOX_KEYS)
 
   const { data: products = [] } = useQuery<any[]>({
     queryKey: ["/api/yp-products"],
     staleTime: 10 * 60 * 1000,
+  });
+
+  const { data: mamaRules = [] } = useQuery<any[]>({
+    queryKey: ["/api/mama-bul/rules"],
+    staleTime: 60_000,
   });
 
   const { data: poodle } = useQuery<any>({
@@ -501,56 +457,63 @@ export default function YPMamaBulPage() {
     if (Object.keys(prefill).length > 0) setAnswers(a => ({ ...a, ...prefill }));
   }, [poodle]);
 
-  const currentStep = STEPS[step];
-
-  const handleSelect = (val: string) => {
-    if (currentStep.type === "radio") {
-      setAnswers(a => ({ ...a, [currentStep.key]: val }));
+  const handleSelect = (group: StepGroup, val: string) => {
+    if (group.type === "radio") {
+      setAnswers(a => ({ ...a, [group.key]: val }));
     } else {
-      // checkbox: toggle
       setAnswers(a => {
-        const prev = a[currentStep.key];
+        const prev = a[group.key];
         const arr: string[] = Array.isArray(prev) ? [...prev] : (prev ? [prev as string] : []);
         const idx = arr.indexOf(val);
         if (idx >= 0) arr.splice(idx, 1);
         else arr.push(val);
-        return { ...a, [currentStep.key]: arr };
+        return { ...a, [group.key]: arr };
       });
     }
   };
 
-  const isSelected = (val: string): boolean => {
-    const v = answers[currentStep.key];
+  const isSelected = (group: StepGroup, val: string): boolean => {
+    const v = answers[group.key];
     if (!v) return false;
     if (Array.isArray(v)) return v.includes(val);
     return v === val;
   };
 
-  const hasSelection = hasAnswer(answers, currentStep.key);
+  const allGroups = STEPS.flatMap(s => s.groups);
+  const hasSelection = allGroups.every(g => hasAnswer(answers, g.key));
 
-  const handleNext = () => {
-    if (step < STEPS.length - 1) {
-      setStep(s => s + 1);
-      setSlideKey(k => k + 1);
-    } else {
-      setDone(true);
-    }
+  const scrollTop = () => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   };
 
-  const handleBack = () => {
-    if (step > 0) { setStep(s => s - 1); setSlideKey(k => k + 1); }
-    else navigate("/yourpoodle");
+  const showResults = () => {
+    setDone(true);
+    import("@/lib/yp-analytics").then(({ track }) => {
+      track("food_finder_complete", { answers });
+    }).catch(() => {});
+    // Form en alttaydı — sonuçların başı görünsün
+    requestAnimationFrame(scrollTop);
+    setTimeout(scrollTop, 50);
   };
 
   // Correct page-specific document title — overrides static index.html title
   useEffect(() => {
     if (done) {
       document.title = "Mama Önerileri | Poodle'ınıza Özel | YourPoodle";
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
     } else {
       document.title = "Poodle Mama Bul | Kişisel Mama Önerisi | YourPoodle";
     }
     return () => { document.title = "YourPoodle"; };
   }, [done]);
+
+  useEffect(() => {
+    import("@/lib/yp-analytics").then(({ track }) => track("food_finder_start")).catch(() => {});
+  }, []);
 
   const buildPrefill = (): Answers => {
     if (!poodle) return {};
@@ -563,8 +526,10 @@ export default function YPMamaBulPage() {
   };
 
   const restart = () => {
-    setStep(0); setAnswers(buildPrefill()); setDone(false); setSlideKey(0);
+    setAnswers(buildPrefill()); setDone(false);
     savedRef.current = false; setHistoryLoaded(false);
+    requestAnimationFrame(scrollTop);
+    setTimeout(scrollTop, 50);
   };
 
   // #33: Clear all history
@@ -577,7 +542,7 @@ export default function YPMamaBulPage() {
     setClearingHistory(false);
   };
 
-  const recommendations = useMemo(() => pickRecommendations(products, answers), [products, answers]);
+  const recommendations = useMemo(() => pickRecommendations(products, answers, mamaRules), [products, answers, mamaRules]);
 
   useEffect(() => {
     if (!done || !isLoggedIn || savedRef.current || recommendations.length === 0) return;
@@ -604,13 +569,19 @@ export default function YPMamaBulPage() {
     background: "#F5F0E6",
     fontFamily: "'Inter', 'Plus Jakarta Sans', sans-serif",
     padding: "0 0 40px",
+    width: "100%",
+    maxWidth: "100%",
+    overflowX: "hidden",
+    boxSizing: "border-box",
   };
 
   const cardStyle: React.CSSProperties = {
-    maxWidth: 920, margin: "0 auto",
-    background: "#fff", borderRadius: 28,
-    boxShadow: "0 20px 60px rgba(123,63,228,0.08)",
+    maxWidth: 560, margin: "0 auto",
+    width: "100%",
+    background: "#fff", borderRadius: 20,
+    boxShadow: "0 8px 28px rgba(93,58,26,0.08)",
     overflow: "hidden",
+    boxSizing: "border-box",
   };
 
   /* ── Result screen ── */
@@ -620,20 +591,38 @@ export default function YPMamaBulPage() {
       boxShadow: "0 2px 20px rgba(0,0,0,0.07)", overflow: "hidden", marginBottom: 14,
     };
     return (
-      <YPLayout activeLink="/yourpoodle/mama-bul">
-        <div style={{ ...pageStyle, padding: "24px 16px 32px" }}>
+      <YPLayout activeLink="/yourpoodle/mama-bul" hideFooter>
+        <style>{`
+          .yp-mama-results-wrap, .yp-mama-results-wrap * { box-sizing: border-box; }
+          .yp-mama-results-wrap { width: 100%; max-width: 100%; overflow-x: hidden; }
+        `}</style>
+        <div className="yp-mama-results-wrap" style={{ ...pageStyle, padding: "16px 12px 32px" }}>
           <div style={{ ...cardStyle, padding: 0 }}>
             {/* Header */}
             <div style={{
               background: "linear-gradient(135deg, #3D2612 0%, #5D3A1A 50%, #A67C52 100%)",
-              padding: "32px 36px", position: "relative", overflow: "hidden", color: "#fff",
+              padding: "20px 18px 18px", position: "relative", overflow: "hidden", color: "#fff",
             }}>
               <div style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.07)" }} />
-              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, opacity: 0.75, marginBottom: 8, textTransform: "uppercase" }}>✓ Analiz Tamamlandı</div>
-              <div style={{ fontSize: 24, fontWeight: 900, marginBottom: 8, lineHeight: 1.25 }}>
-                Poodle'ınıza özel öneriler hazır! 🎉
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 8, position: "relative", zIndex: 1 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, opacity: 0.75, textTransform: "uppercase" }}>✓ Analiz Tamamlandı</div>
+                <button
+                  type="button"
+                  onClick={restart}
+                  style={{
+                    flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 5,
+                    background: "rgba(255,255,255,0.18)", border: "1px solid rgba(255,255,255,0.35)",
+                    borderRadius: 999, padding: "6px 12px", color: "#fff",
+                    fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                  }}
+                >
+                  <RotateCcw size={13} /> Yeni arama
+                </button>
               </div>
-              <div style={{ fontSize: 13, opacity: 0.82, lineHeight: 1.55 }}>
+              <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 6, lineHeight: 1.25, position: "relative", zIndex: 1 }}>
+                Poodle'ınıza özel öneriler hazır!
+              </div>
+              <div style={{ fontSize: 13, opacity: 0.82, lineHeight: 1.55, position: "relative", zIndex: 1 }}>
                 {getStr(answers, "age") === "puppy" ? "Yavru" : getStr(answers, "age") === "senior" ? "Yaşlı" : "Yetişkin"} profil ·{" "}
                 {(() => {
                   const p = answers.protein;
@@ -645,7 +634,21 @@ export default function YPMamaBulPage() {
             </div>
 
             {/* Results */}
-            <div style={{ padding: "24px 36px 36px" }}>
+            <div style={{ padding: "16px 14px 28px" }}>
+              <button
+                type="button"
+                onClick={restart}
+                style={{
+                  width: "100%", height: 42, borderRadius: 12, marginBottom: 14,
+                  background: "#EDE5D8", border: "1px solid #D4C4B0",
+                  fontSize: 13, fontWeight: 700, color: "#5D3A1A",
+                  cursor: "pointer", fontFamily: "inherit",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                }}
+              >
+                <RotateCcw size={14} /> Kriterleri değiştir · Yeni arama
+              </button>
+
               {recommendations.length > 0 && recommendations.every(p => (p.score ?? 0) < 0) && (
                 <div style={{ background: "#FFF7ED", borderRadius: 14, padding: "14px 16px", marginBottom: 16, fontSize: 13, color: "#C2410C", lineHeight: 1.6 }}>
                   <div style={{ fontWeight: 800, marginBottom: 4 }}>⚠️ Tam eşleşme bulunamadı</div>
@@ -653,7 +656,6 @@ export default function YPMamaBulPage() {
                 </div>
               )}
 
-              {/* #33: Clear history button */}
               {isLoggedIn && (
                 <div style={{ textAlign: "right", marginBottom: 8 }}>
                   <button
@@ -681,17 +683,17 @@ export default function YPMamaBulPage() {
                         </span>
                       )}
                     </div>
-                    <div style={{ display: "flex", gap: 14, alignItems: "flex-start", padding: "16px 16px 0" }}>
+                    <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "14px 12px 0", maxWidth: "100%" }}>
                       <div
-                        style={{ width: 80, height: 80, borderRadius: 16, background: "#F5F0E6", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, cursor: "pointer" }}
+                        style={{ width: 72, height: 72, borderRadius: 14, background: "#F5F0E6", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, cursor: "pointer" }}
                         onClick={() => navigate(`/yourpoodle/urun/${prod.id}`)}
                       >
                         {prod.img
                           ? <img src={prod.img} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "contain", padding: "6px" }} />
                           : <span>🐾</span>}
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: "#2C2118", lineHeight: 1.4, marginBottom: 6, cursor: "pointer" }}
+                      <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#2C2118", lineHeight: 1.4, marginBottom: 6, cursor: "pointer", wordBreak: "break-word" }}
                              onClick={() => navigate(`/yourpoodle/urun/${prod.id}`)}>
                           {prod.name}
                         </div>
@@ -713,15 +715,7 @@ export default function YPMamaBulPage() {
                       </button>
                       <button
                         onClick={() => {
-                          const LS_CART = "yp_cart_items";
-                          try {
-                            const raw = localStorage.getItem(LS_CART);
-                            const items: any[] = raw ? JSON.parse(raw) : [];
-                            const idx = items.findIndex((i: any) => i.id === prod.id);
-                            if (idx >= 0) { items[idx].qty += 1; }
-                            else { items.push({ id: prod.id, name: prod.name, price: prod.price, img: prod.img ?? null, qty: 1 }); }
-                            localStorage.setItem(LS_CART, JSON.stringify(items));
-                          } catch {}
+                          updateQty(String(prod.id), 1);
                           setAddedIds(prev => new Set(prev).add(prod.id));
                           setTimeout(() => setAddedIds(prev => { const s = new Set(prev); s.delete(prod.id); return s; }), 2000);
                         }}
@@ -748,15 +742,16 @@ export default function YPMamaBulPage() {
               </div>
 
               <button
+                type="button"
                 onClick={restart}
                 style={{
-                  width: "100%", height: 50, borderRadius: 16,
-                  background: "#EDE5D8", border: "none", fontSize: 15, fontWeight: 700,
+                  width: "100%", height: 46, borderRadius: 14,
+                  background: "#EDE5D8", border: "1px solid #D4C4B0", fontSize: 14, fontWeight: 700,
                   color: "#5D3A1A", cursor: "pointer", fontFamily: "inherit",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 }}
               >
-                <RotateCcw size={16} /> Yeniden Başla
+                <RotateCcw size={15} /> Yeni arama yap
               </button>
             </div>
           </div>
@@ -765,242 +760,197 @@ export default function YPMamaBulPage() {
     );
   }
 
-  /* ── Wizard screen ── */
-  const isCheckbox = currentStep.type === "checkbox";
-  const isLastStep = step === STEPS.length - 1;
-  const hasHero = currentStep.hasHero !== false;
-
+  /* ── Single-page form ── */
   return (
     <YPLayout activeLink="/yourpoodle/mama-bul" hideFooter>
-
       <style>{`
-        @keyframes yp-slide-in {
-          from { opacity: 0; transform: translateX(24px); }
-          to   { opacity: 1; transform: translateX(0); }
+        .yp-mama-form-wrap, .yp-mama-form-wrap * { box-sizing: border-box; }
+        .yp-mama-form-wrap {
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
+          padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
         }
-        .yp-wizard-slide { animation: yp-slide-in 0.22s cubic-bezier(.4,0,.2,1) both; }
+        .yp-mama-inner {
+          width: 100%;
+          max-width: 100%;
+          padding: 0 10px;
+          overflow-x: hidden;
+        }
+        .yp-opt-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 4px;
+          width: 100%;
+          max-width: 100%;
+        }
+        .yp-opt-grid > * { min-width: 0; max-width: 100%; }
+        /* Dar ekranda 3 sütun taşmasın — 2'ye düş */
+        .yp-opt-grid.cols-3,
+        .yp-opt-grid.cols-5 {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        @media (min-width: 380px) {
+          .yp-opt-grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+          .yp-opt-grid.cols-5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+        .yp-mama-section {
+          width: 100%;
+          max-width: 100%;
+          overflow: hidden;
+        }
+        .yp-mama-cta-bar {
+          width: 100%;
+          max-width: 100%;
+          left: 0;
+          right: 0;
+          box-sizing: border-box;
+        }
         @media (max-width: 899px) {
-          .yp-hero-row { flex-direction: column !important; }
-          .yp-hero-img { display: none !important; }
-          .yp-options-grid { grid-template-columns: 1fr !important; }
-          .yp-card-pad { padding: 20px 16px !important; }
-          .yp-card-header { padding: 16px 16px 0 !important; }
-          /* Hide in-card footer on mobile — replaced by fixed action bar */
-          .yp-footer { display: none !important; }
-          .yp-progress-tracker { display: none !important; }
-          .yp-mobile-progress { display: block !important; }
-          /* Fixed action bar visible only on mobile */
-          .yp-wizard-cta-bar { display: flex !important; flex-direction: column; }
-          /* Extra bottom pad so last option isn't hidden under the fixed bar */
-          .yp-wizard-page-wrap { padding-bottom: 140px !important; }
+          .yp-mama-desktop-cta { display: none !important; }
         }
         @media (min-width: 900px) {
-          .yp-mobile-progress { display: none !important; }
-          .yp-wizard-cta-bar { display: none !important; }
+          .yp-mama-cta-bar { display: none !important; }
+          .yp-mama-form-wrap { padding-bottom: 32px !important; }
         }
       `}</style>
 
-      <div style={pageStyle} className="yp-wizard-page-wrap">
-        {/* Page top padding */}
-        <div style={{ height: 20 }} />
-
-        <div style={{ padding: "0 16px" }}>
-          <div style={cardStyle}>
-            {/* Card header: step badge + progress tracker */}
-            <div className="yp-card-header" style={{ padding: "24px 36px 0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-              <div style={{
-                display: "inline-flex", alignItems: "center", gap: 6,
-                background: "#EDE5D8", borderRadius: 99, padding: "5px 14px",
-                fontSize: 13, fontWeight: 700, color: "#5D3A1A",
-              }}>
-                <span>{currentStep.emoji}</span>
-                Adım {step + 1} / {STEPS.length}
-              </div>
-              <div className="yp-progress-tracker">
-                <ProgressTracker current={step} total={STEPS.length} />
-              </div>
+      <div style={{ ...pageStyle, padding: "0 0 24px" }} className="yp-mama-form-wrap">
+        <div style={{ height: 8 }} />
+        <div className="yp-mama-inner">
+          <div style={{ ...cardStyle, borderRadius: 16, boxShadow: "0 4px 16px rgba(93,58,26,0.06)" }}>
+            <div style={{ padding: "12px 14px 0" }}>
+              <h1 style={{ fontSize: 17, fontWeight: 800, color: "#2C2118", margin: "0 0 2px", lineHeight: 1.25 }}>
+                Mama Bul
+              </h1>
+              <p style={{ fontSize: 12, color: "#6B7280", margin: 0, lineHeight: 1.4 }}>
+                Tüm soruları tek sayfada yanıtla, hemen önerileri gör.
+              </p>
             </div>
 
-            {/* Mobile thin progress bar */}
-            <div className="yp-mobile-progress" style={{ margin: "12px 16px 0", height: 4, background: "#EDE5D8", borderRadius: 99 }}>
-              <div style={{ height: 4, width: `${((step + 1) / STEPS.length) * 100}%`, background: "linear-gradient(90deg, #5D3A1A, #A67C52)", borderRadius: 99, transition: "width 0.4s" }} />
-            </div>
-
-            {/* #34: "Geçmişten yüklendi" notice */}
             {historyLoaded && (
-              <div style={{ margin: "10px 24px 0", padding: "8px 14px", borderRadius: 10, background: "#EDE5D8", border: "1px solid #D4C4B0", fontSize: 12, color: "#3D2612", display: "flex", alignItems: "center", gap: 6 }}>
-                <Info size={13} style={{ flexShrink: 0 }} />
-                Geçmiş aramanızdan yüklendi — istediğiniz yanıtları değiştirebilirsiniz.
-                <button onClick={() => setHistoryLoaded(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#5D3A1A", fontSize: 16, lineHeight: 1, padding: 0 }}>×</button>
+              <div style={{ margin: "10px 14px 0", padding: "6px 10px", borderRadius: 8, background: "#EDE5D8", border: "1px solid #D4C4B0", fontSize: 11, color: "#3D2612", display: "flex", alignItems: "center", gap: 6 }}>
+                <Info size={12} style={{ flexShrink: 0 }} />
+                Geçmiş aramanız yüklendi.
+                <button type="button" onClick={() => setHistoryLoaded(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#5D3A1A", fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
               </div>
             )}
 
-            {/* Step content */}
-            <div className={`yp-wizard-slide yp-card-pad`} key={`step-${slideKey}`} style={{ padding: "28px 36px" }}>
-
-              {hasHero ? (
-                /* Hero layout: text left, poodle right */
-                <div className="yp-hero-row" style={{ display: "flex", alignItems: "center", gap: 32, marginBottom: 28 }}>
-                  <div style={{ flex: 1 }}>
-                    <h2 style={{ fontSize: 28, fontWeight: 800, color: "#2C2118", margin: "0 0 10px", lineHeight: 1.25 }}>
-                      {currentStep.question}
-                      {(currentStep as any).questionBold && (
-                        <em style={{ fontStyle: "normal", color: "#5D3A1A", borderBottom: "2px solid #D4C4B0" }}>
-                          {(currentStep as any).questionBold}
-                        </em>
-                      )}
-                      {(currentStep as any).question2 || ""}
+            <div style={{ padding: "10px 10px 12px", width: "100%", overflow: "hidden" }}>
+              {STEPS.map((section) => (
+                <section
+                  key={section.title}
+                  className="yp-mama-section"
+                  style={{
+                    marginBottom: 10,
+                    padding: "8px 8px 6px",
+                    background: "#FAF7F0",
+                    border: "1px solid #EDE5D8",
+                    borderRadius: 12,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 2, minWidth: 0 }}>
+                    <span style={{ fontSize: 13, flexShrink: 0 }}>{section.emoji}</span>
+                    <h2 style={{ fontSize: 13, fontWeight: 800, color: "#2C2118", margin: 0, lineHeight: 1.2, minWidth: 0 }}>
+                      {section.title}
                     </h2>
-                    <p style={{ fontSize: 15, color: "#6B7280", margin: 0, lineHeight: 1.6 }}>{currentStep.hint}</p>
                   </div>
-                  <div className="yp-hero-img">
-                    <PoodleIllustration />
-                  </div>
-                </div>
-              ) : (
-                /* No-hero layout: centered text */
-                <div style={{ marginBottom: 24 }}>
-                  <h2 style={{ fontSize: 26, fontWeight: 800, color: "#2C2118", margin: "0 0 8px", lineHeight: 1.25 }}>
-                    {currentStep.question}
-                    {(currentStep as any).questionBold && (
-                      <em style={{ fontStyle: "normal", color: "#5D3A1A", borderBottom: "2px solid #D4C4B0" }}>
-                        {(currentStep as any).questionBold}
-                      </em>
-                    )}
-                    {(currentStep as any).question2 || ""}
-                  </h2>
-                  <p style={{ fontSize: 15, color: "#6B7280", margin: 0, lineHeight: 1.6 }}>{currentStep.hint}</p>
-                </div>
-              )}
-
-              {/* Info banner */}
-              {currentStep.infoBanner && <InfoBanner text={currentStep.infoBanner} />}
-
-              {/* Options grid */}
-              <div
-                className="yp-options-grid"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: currentStep.options.length === 2 ? "1fr 1fr" : currentStep.options.length === 3 ? "1fr 1fr 1fr" : "1fr 1fr",
-                  gap: 10,
-                }}
-              >
-                {currentStep.options.map(opt => (
-                  <OptionCard
-                    key={opt.value}
-                    opt={opt}
-                    selected={isSelected(opt.value)}
-                    onClick={() => handleSelect(opt.value)}
-                    type={currentStep.type}
-                  />
-                ))}
-              </div>
-
-              {/* Step 11 tip banner */}
-              {step === 10 && (
-                <div style={{
-                  display: "flex", alignItems: "flex-start", gap: 10,
-                  background: "#F5F0E6", borderRadius: 12, padding: "14px 16px", marginTop: 14,
-                  border: "1px solid #E5DDD0",
-                }}>
-                  <span style={{ fontSize: 18 }}>⭐</span>
-                  <span style={{ fontSize: 12, color: "#3D2612", lineHeight: 1.6, fontWeight: 500 }}>
-                    <strong>Önerimiz:</strong> 1–2 kg ve 3–5 kg paketleri dönüşümlü kullanarak hem tazeliği koruyabilir hem de ekonomik avantaj sağlayabilirsiniz.
-                  </span>
-                </div>
-              )}
+                  <p style={{ fontSize: 10.5, color: "#8A8076", margin: "0 0 6px", lineHeight: 1.35, wordBreak: "break-word" }}>
+                    {section.hint}
+                  </p>
+                  {section.groups.map(group => {
+                    const cols =
+                      group.options.length === 2 ? "" :
+                      group.options.length === 3 ? "cols-3" :
+                      group.options.length >= 5 ? "cols-5" : "";
+                    return (
+                      <div key={group.key} style={{ marginBottom: 4, width: "100%", maxWidth: "100%", overflow: "hidden" }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: "#8A8076", margin: "4px 0 3px", letterSpacing: 0.2 }}>
+                          {group.label}{group.type === "checkbox" ? " · çoklu" : ""}
+                        </div>
+                        <div className={`yp-opt-grid ${cols}`}>
+                          {group.options.map(opt => (
+                            <OptionChip
+                              key={opt.value}
+                              opt={opt}
+                              selected={isSelected(group, opt.value)}
+                              onClick={() => handleSelect(group, opt.value)}
+                              type={group.type}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </section>
+              ))}
             </div>
 
-            {/* Footer — desktop only (hidden on mobile via CSS) */}
-            <div className="yp-footer" style={{ padding: "0 36px 32px" }}>
+            <div className="yp-mama-desktop-cta" style={{ padding: "0 14px 14px" }}>
               <button
+                type="button"
                 disabled={!hasSelection}
-                onClick={handleNext}
+                onClick={showResults}
                 style={{
-                  width: "100%", height: 52, borderRadius: 9999,
+                  width: "100%", height: 44, borderRadius: 9999,
                   background: hasSelection
                     ? "linear-gradient(135deg, #5D3A1A 0%, #A67C52 100%)"
-                    : "#E2E2F0",
-                  border: "none", fontSize: 16, fontWeight: 800,
+                    : "#E8E0D4",
+                  border: "none", fontSize: 14, fontWeight: 800,
                   color: hasSelection ? "#fff" : "#9CA3AF",
                   cursor: hasSelection ? "pointer" : "not-allowed",
                   fontFamily: "inherit",
-                  boxShadow: hasSelection ? "0 6px 24px rgba(123,63,228,0.32)" : "none",
-                  transition: "all 0.2s",
-                  letterSpacing: "-0.2px",
                 }}
               >
-                {isLastStep ? "Sonuçları Gör →" : "Devam Et →"}
+                Sonuçları Gör →
               </button>
-
-              {step > 0 && (
-                <div style={{ textAlign: "center", marginTop: 14 }}>
-                  <button
-                    onClick={handleBack}
-                    style={{
-                      background: "none", border: "none", cursor: "pointer",
-                      fontSize: 14, color: "#9CA3AF", fontFamily: "inherit",
-                      display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 500,
-                    }}
-                  >
-                    <ArrowLeft size={14} /> Geri dön
-                  </button>
-                </div>
-              )}
+              <div style={{ textAlign: "center", marginTop: 8 }}>
+                <button type="button" onClick={() => navigate("/yourpoodle")}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "#9CA3AF", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 500 }}>
+                  <ArrowLeft size={12} /> Ana sayfa
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Mobile fixed CTA bar — sits above bottom nav, never covered ── */}
       <div
-        className="yp-wizard-cta-bar"
+        className="yp-mama-cta-bar"
         style={{
-          display: "none", /* shown via CSS on mobile */
+          display: "flex",
           position: "fixed",
           bottom: "calc(60px + env(safe-area-inset-bottom, 0px))",
-          left: 0, right: 0,
+          left: 0,
+          right: 0,
+          width: "100%",
+          maxWidth: "100%",
           background: "#fff",
-          borderTop: "1.5px solid #EDE5D8",
-          boxShadow: "0 -4px 24px rgba(123,63,228,0.12)",
-          padding: "12px 16px",
+          borderTop: "1px solid #EDE5D8",
+          boxShadow: "0 -4px 18px rgba(93,58,26,0.08)",
+          padding: "8px 12px",
           zIndex: 210,
+          boxSizing: "border-box",
         }}
       >
         <button
+          type="button"
           disabled={!hasSelection}
-          onClick={handleNext}
+          onClick={showResults}
           style={{
-            width: "100%", height: 52, borderRadius: 9999,
+            width: "100%", maxWidth: "100%", height: 44, borderRadius: 9999,
             background: hasSelection
               ? "linear-gradient(135deg, #5D3A1A 0%, #A67C52 100%)"
-              : "#E2E2F0",
-            border: "none", fontSize: 16, fontWeight: 800,
+              : "#E8E0D4",
+            border: "none", fontSize: 14, fontWeight: 800,
             color: hasSelection ? "#fff" : "#9CA3AF",
             cursor: hasSelection ? "pointer" : "not-allowed",
             fontFamily: "inherit",
-            boxShadow: hasSelection ? "0 6px 24px rgba(123,63,228,0.28)" : "none",
-            transition: "all 0.2s",
-            letterSpacing: "-0.2px",
+            boxSizing: "border-box",
           }}
         >
-          {isLastStep ? "Sonuçları Gör →" : "Devam Et →"}
+          Sonuçları Gör →
         </button>
-
-        {step > 0 && (
-          <button
-            onClick={handleBack}
-            style={{
-              width: "100%", marginTop: 8, padding: "10px 0",
-              background: "none", border: "none", cursor: "pointer",
-              fontSize: 14, color: "#9CA3AF", fontFamily: "inherit",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              gap: 6, fontWeight: 500, minHeight: 44,
-            }}
-          >
-            <ArrowLeft size={14} /> Geri dön
-          </button>
-        )}
       </div>
     </YPLayout>
   );

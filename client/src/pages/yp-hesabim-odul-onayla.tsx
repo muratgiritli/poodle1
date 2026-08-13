@@ -1,17 +1,25 @@
 // Route: /hesabim/poodle-puanlari/odul-onayla/:rewardId
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLocation, useParams } from "wouter";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, PawPrint, Coins, ShoppingCart, Ticket,
   Percent, Clock, ShieldCheck, Calendar, Tag, Hash,
   XCircle, ArrowRight, ChevronDown, ChevronUp, Check, X, Package,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import { goBack } from "@/lib/goBack";
+import { apiRequest } from "@/lib/queryClient";
+import {
+  LOYALTY_BRAND as P,
+  LOYALTY_BRAND_DARK as PD,
+  LOYALTY_BRAND_LIGHT as PL,
+  enrichReward,
+  fetchLoyalty,
+  fetchRewards,
+} from "@/lib/loyalty-api";
 
 /* ── Palette ─────────────────────────── */
-const P    = "#5D3EBD";
-const PD   = "#4A22A0";
-const PL   = "#F5F0E6";
 const DRK  = "#111827";
 const GT   = "#6B7280";
 const GB   = "#E5E7EB";
@@ -21,50 +29,21 @@ const GOLDB= "#FBBF24";
 const ORG  = "#EA580C";
 const BG   = "#F9F9FB";
 
-/* ── Reward map ─────────────────────── */
-const REWARDS: Record<string, {
-  id:string; title:string; couponLabel:string; badge:string;
-  description:string; pointsRequired:number; minCart:string;
-  validCategory:string; expiryDate:string; usage:string; combining:string;
-  icon:string;
-}> = {
-  "pr-1": {
-    id:"pr-1", title:"50 TL Alışveriş İndirimi", couponLabel:"50 TL İNDİRİM",
-    badge:"Çok Popüler", description:"Mağaza alışverişlerinde geçerlidir.",
-    pointsRequired:500, minCart:"500 TL", validCategory:"Tüm ürünler",
-    expiryDate:"31 Ağustos 2026", usage:"Tek kullanımlık",
-    combining:"Başka kuponlarla kullanılamaz", icon:"coupon",
-  },
-  "pr-2": {
-    id:"pr-2", title:"Ücretsiz Kargo", couponLabel:"ÜCRETSİZ KARGO",
-    badge:"Popüler", description:"Minimum sepet tutarı 250 TL.",
-    pointsRequired:300, minCart:"250 TL", validCategory:"Tüm siparişler",
-    expiryDate:"31 Ağustos 2026", usage:"Tek kullanımlık",
-    combining:"Başka kuponlarla kullanılamaz", icon:"shipping",
-  },
-  "pr-3": {
-    id:"pr-3", title:"%15 Bakım İndirimi", couponLabel:"%15 İNDİRİM",
-    badge:"Sınırlı Süre", description:"Tüm bakım ürünlerinde geçerlidir.",
-    pointsRequired:750, minCart:"300 TL", validCategory:"Bakım ürünleri",
-    expiryDate:"31 Ağustos 2026", usage:"Tek kullanımlık",
-    combining:"Başka kuponlarla kullanılamaz", icon:"care",
-  },
-  "pr-4": {
-    id:"pr-4", title:"100 TL Mama İndirimi", couponLabel:"100 TL İNDİRİM",
-    badge:"Stoklar Sınırlı", description:"750 TL üzeri mama alışverişinde geçerlidir.",
-    pointsRequired:1000, minCart:"750 TL", validCategory:"Mama ürünleri",
-    expiryDate:"31 Ağustos 2026", usage:"Tek kullanımlık",
-    combining:"Başka kuponlarla kullanılamaz", icon:"food",
-  },
+/* ── Reward defaults ─────────────────── */
+const DEFAULT_REWARD = {
+  id: "rw-50tl",
+  title: "50 TL Alışveriş İndirimi",
+  couponLabel: "50 TL İNDİRİM",
+  badge: "Ödül",
+  description: "Mağaza alışverişlerinde geçerlidir.",
+  pointsRequired: 500,
+  minCart: "500 TL",
+  validCategory: "Tüm ürünler",
+  expiryDate: "30 gün",
+  usage: "Tek kullanımlık",
+  combining: "Başka kuponlarla kullanılamaz",
+  icon: "coupon",
 };
-
-const CURRENT_BALANCE = 1275;
-
-const SUGGESTIONS = [
-  { id:"pr-2", title:"Ücretsiz Kargo",       points:300,  icon:"shipping" },
-  { id:"pr-3", title:"%15 Bakım İndirimi",   points:750,  icon:"care"     },
-  { id:"pr-4", title:"100 TL Mama İndirimi", points:1000, icon:"food"     },
-];
 
 const FAQ_ITEMS = [
   { id:"faq-1", q:"Puan iadesi yapılır mı?",    a:"Ödül kullanıldıktan sonra puan iadesi yapılmaz. Kullanılmamış kuponlar 30 gün içinde iade talep edilebilir." },
@@ -172,24 +151,74 @@ function SuggIcon({ icon }: { icon:string }) {
 /* ── Main Page ───────────────────────── */
 export default function YPOdulOnaylaPage() {
   const [, navigate] = useLocation();
+  const queryClient = useQueryClient();
   const params = useParams<{ rewardId?: string }>();
-  const rewardId = params.rewardId || "pr-1";
-  const reward = REWARDS[rewardId] || REWARDS["pr-1"];
+  const rewardId = params.rewardId || DEFAULT_REWARD.id;
+
+  const { data: loyalty } = useQuery({ queryKey: ["/api/customer/loyalty"], queryFn: fetchLoyalty });
+  const { data: catalog = [] } = useQuery({ queryKey: ["/api/customer/loyalty/rewards"], queryFn: fetchRewards });
+
+  const catalogItem = catalog.find(r => r.id === rewardId);
+  const enriched = catalogItem ? enrichReward(catalogItem) : null;
+  const reward = {
+    ...DEFAULT_REWARD,
+    id: rewardId,
+    title: enriched?.title ?? DEFAULT_REWARD.title,
+    pointsRequired: enriched?.points ?? DEFAULT_REWARD.pointsRequired,
+    minCart: enriched?.minCart?.replace("Min. sepet ", "") ?? DEFAULT_REWARD.minCart,
+    badge: enriched?.badge ?? DEFAULT_REWARD.badge,
+    icon: enriched?.icon ?? DEFAULT_REWARD.icon,
+    couponLabel: enriched?.title?.toUpperCase() ?? DEFAULT_REWARD.couponLabel,
+  };
+
+  const suggestions = useMemo(
+    () => catalog.filter(r => r.id !== rewardId).slice(0, 3).map(r => {
+      const e = enrichReward(r);
+      return { id: r.id, title: r.title, points: r.points, icon: e.icon };
+    }),
+    [catalog, rewardId],
+  );
+
+  const balance = loyalty?.balance ?? 0;
 
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsModalOpen, setTermsModalOpen] = useState(false);
-  const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState<string|null>(null);
   const [toast, setToast] = useState<string|null>(null);
 
-  const canConfirm = termsAccepted && CURRENT_BALANCE >= reward.pointsRequired;
-  const remaining  = CURRENT_BALANCE - reward.pointsRequired;
+  const canConfirm = termsAccepted && balance >= reward.pointsRequired;
+
+  const remaining = balance - reward.pointsRequired;
 
   const showToast = (msg:string) => { setToast(msg); setTimeout(()=>setToast(null), 3500); };
 
+  const redeemMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/customer/loyalty/redeem", {
+        rewardId: reward.id,
+        pointsCost: reward.pointsRequired,
+        title: reward.title,
+      });
+      return res.json() as Promise<{ ok: boolean; balance: number; message?: string }>;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/customer/loyalty"] });
+      const qs = new URLSearchParams({
+        title: reward.title,
+        points: String(reward.pointsRequired),
+        balance: String(data.balance ?? remaining),
+        message: data.message ?? "",
+      });
+      navigate(`/hesabim/poodle-puanlari/odul-hazir/${reward.id}?${qs.toString()}`);
+    },
+    onError: (err: Error) => {
+      showToast(err.message.replace(/^\d+:\s*/, "") || "Ödül kullanılamadı");
+    },
+  });
+
   function confirmRedeem() {
-    if (!termsAccepted) { showToast("Lütfen koşulları kabul edin"); return; }
-    navigate(`/hesabim/poodle-puanlari/odul-hazir/${rewardId}`);
+    if (!canConfirm || redeemMutation.isPending) return;
+    redeemMutation.mutate();
   }
 
   const DETAIL_ROWS = [
@@ -210,19 +239,12 @@ export default function YPOdulOnaylaPage() {
           onAccept={()=>setTermsAccepted(true)}
         />
       )}
-      {successModalOpen && (
-        <SuccessModal
-          title={reward.title}
-          onCenter={()=>{ setSuccessModalOpen(false); navigate("/hesabim/poodle-puanlari/odul-merkezi"); }}
-          onShop={()=>{ setSuccessModalOpen(false); navigate("/yourpoodle"); }}
-        />
-      )}
 
       <div className="yp-acct" style={{ margin:"0 auto", background:BG, minHeight:"100vh", paddingBottom:32, fontFamily:"Inter,sans-serif" }}>
 
         {/* ── BREADCRUMB ── */}
         <div style={{ padding:"12px 16px 6px" }}>
-          <button onClick={()=>navigate("/hesabim/poodle-puanlari/odul-merkezi")}
+          <button onClick={()=>goBack(navigate, "/hesabim/poodle-puanlari/odul-merkezi")}
             style={{ background:"none", border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:6, padding:0 }}>
             <ArrowLeft size={15} color={P} />
             <span style={{ fontSize:11, color:P, fontWeight:500 }}>Hesabım / PoodlePuanlarım / Ödülü Onayla</span>
@@ -319,7 +341,7 @@ export default function YPOdulOnaylaPage() {
                   <PawPrint size={10} color="#fff" strokeWidth={2.5}/>
                 </div>
                 <span style={{ fontSize:20, fontWeight:800, color:DRK }}>
-                  {CURRENT_BALANCE.toLocaleString("tr-TR")}
+                  {balance.toLocaleString("tr-TR")}
                 </span>
               </div>
               <div style={{ fontSize:10, color:"#9CA3AF", marginTop:2 }}>PoodlePuan</div>
@@ -431,12 +453,15 @@ export default function YPOdulOnaylaPage() {
 
         {/* ── ACTION BUTTONS ── */}
         <div style={{ padding:"0 16px 10px", display:"flex", flexDirection:"column", gap:10 }}>
-          <button onClick={confirmRedeem} disabled={!canConfirm}
+          <button onClick={confirmRedeem} disabled={!canConfirm || redeemMutation.isPending}
             style={{ width:"100%", background: canConfirm ? P : "#D4C4B0",
                      color:"#fff", border:"none", borderRadius:14, padding:"16px 0",
-                     fontSize:14, fontWeight:800, cursor: canConfirm ? "pointer" : "not-allowed",
+                     fontSize:14, fontWeight:800,
+                     cursor: canConfirm && !redeemMutation.isPending ? "pointer" : "not-allowed",
                      fontFamily:"inherit", transition:"background .2s" }}>
-            {reward.pointsRequired.toLocaleString("tr-TR")} Puan Kullan ve Ödülü Al
+            {redeemMutation.isPending
+              ? "İşleniyor..."
+              : `${reward.pointsRequired.toLocaleString("tr-TR")} Puan Kullan ve Ödülü Al`}
           </button>
           <button onClick={()=>navigate("/hesabim/poodle-puanlari/odul-merkezi")}
             style={{ width:"100%", background:"#fff", border:`2px solid ${P}`, color:P,
@@ -456,7 +481,7 @@ export default function YPOdulOnaylaPage() {
         <div style={{ padding:"0 16px 16px" }}>
           <div style={{ fontSize:13, fontWeight:800, color:DRK, marginBottom:12 }}>Bunları da beğenebilirsin</div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
-            {SUGGESTIONS.filter(s=>s.id!==rewardId).concat(SUGGESTIONS.filter(s=>s.id===rewardId)).slice(0,3).map(s => (
+            {suggestions.map(s => (
               <div key={s.id} style={{ background:"#fff", borderRadius:16, border:`1px solid ${GB}`,
                                         padding:"10px 8px", textAlign:"center", display:"flex",
                                         flexDirection:"column", alignItems:"center", gap:4,

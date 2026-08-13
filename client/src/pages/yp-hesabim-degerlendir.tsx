@@ -1,12 +1,15 @@
 // Route: /hesabim/destek-talepleri/degerlendir/:ticketId
 import { useState } from "react";
 import { useLocation, useParams } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import {
-  ArrowLeft, Check, BadgeCheck, Gift,
+  ArrowLeft, Check, BadgeCheck,
   ThumbsUp, ThumbsDown, CheckSquare, Square,
   FileText, Star,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import { goBack } from "@/lib/goBack";
+import { fetchSupportTicket, formatTicketDate, type SupportTicket } from "@/lib/support-api";
 
 /* ── Palette ─────────────────────────── */
 const P    = "#5D3EBD";
@@ -19,41 +22,7 @@ const GRN  = "#16A34A";
 const GRNB = "#F0FDF4";
 const GRNBR= "#BBF7D0";
 
-/* ── Mock data ───────────────────────── */
-const RATING_LABELS: Record<number, string> = {
-  1: "Çok Kötü",
-  2: "Kötü",
-  3: "Orta",
-  4: "Çok İyi",
-  5: "Mükemmel",
-};
-
-const TICKET_DATA: Record<string, {
-  ticketNumber: string; title: string; closedAt: string; solution: string;
-}> = {
-  "YP-4798": {
-    ticketNumber: "YP-4798",
-    title: "Tasma beden değişimi",
-    closedAt: "24 Temmuz 2026 • 01:06",
-    solution: "M beden değişimi onaylandı",
-  },
-  "YP-4612": {
-    ticketNumber: "YP-4612",
-    title: "Kargo teslimat gecikmesi",
-    closedAt: "12 Temmuz 2026 • 15:30",
-    solution: "Kargo teslimi sağlandı",
-  },
-};
-
-const FALLBACK_TICKET = {
-  ticketNumber: "YP-4798",
-  title: "Tasma beden değişimi",
-  closedAt: "24 Temmuz 2026 • 01:06",
-  solution: "M beden değişimi onaylandı",
-};
-
-const DEFAULT_COMMENT =
-  "Elif hanım tasma bedeni konusunda çok yardımcı oldu. Değişim süreci hızlı ilerledi, kargo bilgisi de net paylaşıldı.";
+const DEFAULT_COMMENT = "";
 
 const SATISFACTION_OPTIONS = [
   { id: "fast",     label: "Hızlı Yanıt",      defaultSelected: true  },
@@ -63,6 +32,14 @@ const SATISFACTION_OPTIONS = [
   { id: "clear",    label: "Açıklayıcı Bilgi",  defaultSelected: true  },
   { id: "tracking", label: "Takip Süreci",      defaultSelected: false },
 ];
+
+const RATING_LABELS: Record<number, string> = {
+  1: "Çok Kötü",
+  2: "Kötü",
+  3: "Orta",
+  4: "Çok İyi",
+  5: "Mükemmel",
+};
 
 /* ── Reusable star row ───────────────── */
 function StarRow({
@@ -120,9 +97,18 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
 export default function YPDegerlendirPage() {
   const [, navigate] = useLocation();
   const params = useParams<{ ticketId?: string }>();
-  const ticketId = params?.ticketId ?? "YP-4798";
+  const ticketId = params?.ticketId ?? "";
 
-  const ticket = TICKET_DATA[ticketId] ?? FALLBACK_TICKET;
+  const { data: ticket } = useQuery<SupportTicket | null>({
+    queryKey: ["/api/customer/support-tickets", ticketId],
+    queryFn: () => fetchSupportTicket(ticketId),
+    enabled: !!ticketId && /^\d+$/.test(ticketId),
+  });
+
+  const ticketNumber = ticket ? `#${ticket.id}` : ticketId ? `#${ticketId}` : "—";
+  const ticketTitle = ticket?.subject ?? "Destek talebi";
+  const ticketClosedAt = ticket?.updatedAt ? formatTicketDate(ticket.updatedAt) : "";
+  const ticketSolution = ticket?.body?.slice(0, 120) ?? "Talep kapatıldı";
 
   /* ── State ─────────────────────────── */
   const [overallRating, setOverallRating]   = useState(4);
@@ -134,6 +120,7 @@ export default function YPDegerlendirPage() {
   const [shareWithTeam, setShareWithTeam]   = useState(true);
   const [solution,      setSolution]        = useState<"yes"|"no">("yes");
   const [submitting,    setSubmitting]      = useState(false);
+  const [submitted,     setSubmitted]       = useState(false);
   const [toast,         setToast]           = useState("");
 
   /* ── Helpers ───────────────────────── */
@@ -147,15 +134,60 @@ export default function YPDegerlendirPage() {
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (overallRating < 1) { showToast("Lütfen bir puan verin"); return; }
     setSubmitting(true);
-    setTimeout(() => {
+    try {
+      const tags = SATISFACTION_OPTIONS.filter(o => selected.has(o.id)).map(o => o.label);
+      const summary = [
+        `[Destek değerlendirmesi] Genel: ${overallRating}/5 (${RATING_LABELS[overallRating]})`,
+        `Temsilci: ${agentRating}/5`,
+        `Çözüm yeterli: ${solution === "yes" ? "Evet" : "Hayır"}`,
+        tags.length ? `Memnuniyet: ${tags.join(", ")}` : null,
+        comment.trim() ? `Yorum: ${comment.trim()}` : null,
+        shareWithTeam ? null : "(Yorum destek ekibiyle paylaşılmasın)",
+      ].filter(Boolean).join("\n");
+
+      if (/^\d+$/.test(ticketId)) {
+        await fetch(`/api/customer/support-tickets/${encodeURIComponent(ticketId)}/messages`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ body: summary }),
+        });
+      }
+
+      setSubmitted(true);
+    } catch {
+      showToast("Gönderilemedi, tekrar deneyin");
+    } finally {
       setSubmitting(false);
-      navigate("/hesabim/destek-talepleri");
-      showToast("Değerlendirmeniz alındı ✓ +25 PoodlePuan hesabınıza eklendi");
-    }, 700);
+    }
   };
+
+  if (submitted) {
+    return (
+      <YPLayout activeLink="club" constrain={false}>
+        <div style={{ maxWidth: "var(--yp-shell-max)", margin: "0 auto", minHeight: "70vh",
+                      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                      padding: 32, fontFamily: "Inter, sans-serif", textAlign: "center" }}>
+          <div style={{ width: 56, height: 56, borderRadius: "50%", background: GRN,
+                        display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+            <Check size={26} color="#fff" strokeWidth={3} />
+          </div>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: DRK, margin: "0 0 8px" }}>Teşekkür ederiz!</h1>
+          <p style={{ fontSize: 14, color: GT, margin: "0 0 24px", lineHeight: 1.55, maxWidth: 320 }}>
+            Değerlendirmeniz kaydedildi. Geri bildiriminiz hizmetimizi geliştirmemize yardımcı olur.
+          </p>
+          <button onClick={() => navigate("/hesabim/destek-talepleri")}
+            style={{ padding: "12px 24px", borderRadius: 12, border: "none", background: P,
+                     color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+            Destek Taleplerine Dön
+          </button>
+        </div>
+      </YPLayout>
+    );
+  }
 
   return (
     <YPLayout activeLink="club" constrain={false}>
@@ -164,7 +196,7 @@ export default function YPDegerlendirPage() {
 
         {/* ── BREADCRUMB ── */}
         <div style={{ padding:"14px 16px 8px" }}>
-          <button onClick={() => navigate("/hesabim/destek-talepleri")}
+          <button onClick={() => goBack(navigate, "/hesabim/destek-talepleri")}
             style={{ display:"flex", alignItems:"center", gap:6, background:"none",
                      border:"none", cursor:"pointer", padding:0, fontFamily:"inherit" }}>
             <ArrowLeft size={15} color={P} />
@@ -184,9 +216,11 @@ export default function YPDegerlendirPage() {
           </div>
           <div style={{ fontSize:15, fontWeight:700, color:DRK }}>Talebiniz Çözüldü</div>
           <div style={{ fontSize:13, color:GT, marginTop:8, lineHeight:1.6, padding:"0 8px" }}>
-            #{ticket.ticketNumber} numaralı '{ticket.title}' talebiniz başarıyla kapatıldı.
+            {ticketNumber} numaralı '{ticketTitle}' talebiniz değerlendirilmeye hazır.
           </div>
-          <div style={{ fontSize:11, color:"#9CA3AF", marginTop:6 }}>{ticket.closedAt}</div>
+          {ticketClosedAt && (
+            <div style={{ fontSize:11, color:"#9CA3AF", marginTop:6 }}>{ticketClosedAt}</div>
+          )}
         </div>
 
         {/* ── MAIN RATING CARD ── */}
@@ -336,27 +370,13 @@ export default function YPDegerlendirPage() {
           </div>
         </div>
 
-        {/* ── REWARD BANNER ── */}
+        {/* ── THANK YOU NOTE ── */}
         <div style={{ margin:"0 16px 16px", background:PL, borderRadius:20, padding:"14px 16px" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-            <div style={{ flexShrink:0, position:"relative" }}>
-              <Gift size={26} color={P} />
-              <span style={{ position:"absolute", top:-6, right:-6, fontSize:13 }}>🏅</span>
-            </div>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:13, fontWeight:700, color:DRK }}>
-                Değerlendirmenize 25 PoodlePuan
-              </div>
-              <div style={{ fontSize:11, color:GT, marginTop:3 }}>
-                Yorumunuzu gönderdiğinizde hesabınıza eklenecek.
-              </div>
-            </div>
-            <div style={{
-              flexShrink:0, background:P, color:"#fff",
-              fontSize:12, fontWeight:700, padding:"5px 11px", borderRadius:20,
-            }}>
-              +25 Puan
-            </div>
+          <div style={{ fontSize:13, fontWeight:700, color:DRK }}>
+            Geri bildiriminiz bizim için değerli
+          </div>
+          <div style={{ fontSize:11, color:GT, marginTop:4, lineHeight:1.5 }}>
+            Değerlendirmeniz destek ekibimizle paylaşılır ve hizmet kalitemizi artırmamıza yardımcı olur.
           </div>
         </div>
 
@@ -399,17 +419,17 @@ export default function YPDegerlendirPage() {
             {/* Content */}
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ fontSize:10, color:GT, marginBottom:2 }}>Talep Özeti</div>
-              <div style={{ fontSize:12, fontWeight:700, color:P }}>#{ticket.ticketNumber}</div>
+              <div style={{ fontSize:12, fontWeight:700, color:P }}>{ticketNumber}</div>
               <div style={{ fontSize:13, fontWeight:700, color:DRK, marginTop:2,
                             overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                {ticket.title}
+                {ticketTitle}
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:4 }}>
                 <div style={{ width:7, height:7, borderRadius:"50%", background:"#22C55E" }} />
                 <span style={{ fontSize:10, color:GRN, fontWeight:700 }}>Çözüldü</span>
               </div>
               <div style={{ fontSize:11, color:GT, marginTop:4 }}>
-                Çözüm: {ticket.solution}
+                {ticketSolution}
               </div>
             </div>
             {/* Button */}

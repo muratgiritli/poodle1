@@ -52,6 +52,7 @@ import { computePaymentVisibility } from "@/lib/paymentVisibility";
 import { useCart } from "@/contexts/CartContext";
 
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { getAttributionPayload } from "@/lib/yp-analytics";
 import { useCustomer } from "@/contexts/CustomerContext";
 const paymentIcons: Record<string, typeof CreditCard> = {
   online: CreditCard,
@@ -78,7 +79,7 @@ export default function Checkout() {
   const [authStep, setAuthStep] = useState<"phone" | "otp" | "register">("phone");
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [authPhone, setAuthPhone] = useState("");
-  const [authOtpCode, setAuthOtpCode] = useState(["", "", "", ""]);
+  const [authOtpCode, setAuthOtpCode] = useState(["", "", "", "", "", ""]);
   const [authName, setAuthName] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [authIsExisting, setAuthIsExisting] = useState(false);
@@ -186,28 +187,15 @@ export default function Checkout() {
     setAuthErrors({});
     setAuthLoading(true);
     try {
-      let deviceToken: string | undefined;
-      try {
-        const tokens = JSON.parse(localStorage.getItem("jetgo_trusted_devices") || "{}");
-        deviceToken = tokens[normalized];
-      } catch {}
-      const res = await apiRequest("POST", "/api/otp/send", { phone: normalized, deviceToken });
+      const res = await apiRequest("POST", "/api/otp/send", { phone: normalized });
       const data = await res.json();
       if (data.trustedLogin && data.customer) {
         window.location.reload();
         return;
       }
-      setAuthIsExisting(data.isExisting);
-      if (data.isExisting && authMode === "register") {
-        setAuthMode("login");
-        setAuthErrors({ info: "Bu numara zaten kayıtlı. Giriş yapılıyor..." });
-      } else if (!data.isExisting && authMode === "login") {
-        setAuthMode("register");
-        setAuthErrors({ info: "Bu numara kayıtlı değil. Üyelik oluşturulacak." });
-      }
       setAuthStep("otp");
       setAuthCountdown(180);
-      setAuthOtpCode(["", "", "", ""]);
+      setAuthOtpCode(["", "", "", "", "", ""]);
       setTimeout(() => authOtpRefs.current[0]?.focus(), 100);
     } catch (err: any) {
       let msg = "SMS gönderilemedi";
@@ -223,9 +211,9 @@ export default function Checkout() {
     const newCode = [...authOtpCode];
     if (value.length > 1) {
       const digits = value.replace(/\D/g, "").split("");
-      for (let i = 0; i < 4; i++) newCode[i] = digits[i] || "";
+      for (let i = 0; i < 6; i++) newCode[i] = digits[i] || "";
       setAuthOtpCode(newCode);
-      authOtpRefs.current[Math.min(digits.length - 1, 3)]?.focus();
+      authOtpRefs.current[Math.min(digits.length - 1, 5)]?.focus();
       if (newCode.every(d => d !== "") && !authVerifyingRef.current) {
         authVerifyingRef.current = true;
         setTimeout(() => doAuthVerify(newCode.join("")), 150);
@@ -234,7 +222,7 @@ export default function Checkout() {
     }
     newCode[index] = value;
     setAuthOtpCode(newCode);
-    if (value && index < 3) authOtpRefs.current[index + 1]?.focus();
+    if (value && index < 5) authOtpRefs.current[index + 1]?.focus();
     if (newCode.every(d => d !== "") && !authVerifyingRef.current) {
       authVerifyingRef.current = true;
       setTimeout(() => doAuthVerify(newCode.join("")), 150);
@@ -255,11 +243,12 @@ export default function Checkout() {
       .then((otp: any) => {
         if (otp?.code) {
           const digits = otp.code.replace(/\D/g, "");
-          if (digits.length === 4) {
-            setAuthOtpCode(digits.split(""));
+          if (digits.length >= 6) {
+            const six = digits.slice(0, 6);
+            setAuthOtpCode(six.split(""));
             if (!authVerifyingRef.current) {
               authVerifyingRef.current = true;
-              setTimeout(() => doAuthVerify(digits), 150);
+              setTimeout(() => doAuthVerify(six), 150);
             }
           }
         }
@@ -269,7 +258,7 @@ export default function Checkout() {
   }, [authStep]);
 
   const doAuthVerify = async (code: string) => {
-    if (code.length !== 4) { authVerifyingRef.current = false; return; }
+    if (code.length !== 6) { authVerifyingRef.current = false; return; }
     setAuthErrors({});
     setAuthLoading(true);
     const normalized = authPhone.replace(/\D/g, "");
@@ -506,6 +495,10 @@ export default function Checkout() {
   useEffect(() => {
     if (beginCheckoutFiredRef.current) return;
     if (selectedProducts.length === 0) return;
+    beginCheckoutFiredRef.current = true;
+    import("@/lib/yp-analytics").then((yp) => {
+      yp.trackBeginCheckout(subtotal, selectedProducts.length);
+    }).catch(() => {});
     if (typeof window === "undefined" || !(window as any).gtag) return;
     try {
       (window as any).gtag("event", "begin_checkout", {
@@ -518,7 +511,6 @@ export default function Checkout() {
           quantity: qty,
         })),
       });
-      beginCheckoutFiredRef.current = true;
     } catch {}
   }, [selectedProducts, subtotal]);
 
@@ -726,6 +718,9 @@ export default function Checkout() {
           installmentTotal: Math.round(grandTotal * 100) / 100,
         };
       })() : {}),
+      analytics: (() => {
+        try { return getAttributionPayload(); } catch { return undefined; }
+      })(),
     };
   };
 
@@ -734,12 +729,7 @@ export default function Checkout() {
   const sendGuestOtp = async (normalized: string) => {
     setAuthLoading(true);
     try {
-      let deviceToken: string | undefined;
-      try {
-        const tokens = JSON.parse(localStorage.getItem("jetgo_trusted_devices") || "{}");
-        deviceToken = tokens[normalized];
-      } catch {}
-      const res = await apiRequest("POST", "/api/otp/send", { phone: normalized, deviceToken });
+      const res = await apiRequest("POST", "/api/otp/send", { phone: normalized });
       const data = await res.json();
       if (data.trustedLogin && data.customer) {
         setShowAuthModal(false);
@@ -750,7 +740,7 @@ export default function Checkout() {
         return;
       }
       setAuthCountdown(180);
-      setAuthOtpCode(["", "", "", ""]);
+      setAuthOtpCode(["", "", "", "", "", ""]);
       setTimeout(() => authOtpRefs.current[0]?.focus(), 100);
     } catch (err: any) {
       let msg = "SMS gönderilemedi";
@@ -775,7 +765,7 @@ export default function Checkout() {
     try {
       pendingOrderRef.current = buildOrderPayload();
       setAuthPhone(formatted);
-      setAuthOtpCode(["", "", "", ""]);
+      setAuthOtpCode(["", "", "", "", "", ""]);
       setAuthErrors({});
       setGuestMode(true);
       setShowAuthModal(true);
@@ -1022,7 +1012,7 @@ export default function Checkout() {
 
                 {authStep === "otp" && (
                   <>
-                    <p className="font-bold text-sm mb-1">SMS ile gelen 4 haneli kodu gir</p>
+                    <p className="font-bold text-sm mb-1">SMS ile gelen 6 haneli kodu gir</p>
                     <p className="text-xs text-white/70 mb-2">
                       {authPhone} numarasına gönderildi
                       {authCountdown > 0 && <span className="ml-1">({Math.floor(authCountdown / 60)}:{String(authCountdown % 60).padStart(2, "0")})</span>}

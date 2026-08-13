@@ -1,25 +1,26 @@
 // Route: /hesabim/ayarlar
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft, BadgeCheck, ChevronRight, User, Phone, Mail,
-  HeartPulse, UtensilsCrossed, Ruler, Bell, Shield, Ban,
+  HeartPulse, UtensilsCrossed, Ruler, Shield, Ban,
   Smartphone, Download, HelpCircle, MessageSquare, FileText,
-  LogOut, Trash2, X, ShieldCheck, Check,
+  LogOut, Trash2, X, ShieldCheck, PawPrint,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { useCustomer } from "@/contexts/CustomerContext";
+import { goBack } from "@/lib/goBack";
+import { IS_YP } from "@/lib/store";
 
-/* ── Palette ─────────────────────────── */
-const P   = "#4B2BD6";
+const BASE = IS_YP ? "" : "/yourpoodle";
+const P   = "#5D3A1A";
 const PL  = "#F5F0E6";
-const NAV = "#1D1E9B";
 const GT  = "#6B7280";
 const DRK = "#111827";
 const GB  = "#E5E7EB";
 const GBG = "#F9F9FB";
 
-/* ── LocalStorage key ───────────────── */
 const LS_KEY = "yourpoodle-settings";
 
 function loadNotifPrefs() {
@@ -30,7 +31,13 @@ function loadNotifPrefs() {
   return { orders: true, club: true, guide: true, campaigns: false };
 }
 
-/* ── Reusable Toggle ────────────────── */
+function maskPhone(phone?: string | null) {
+  if (!phone) return "Telefon eklenmemiş";
+  const d = phone.replace(/\D/g, "");
+  if (d.length < 7) return phone;
+  return `+90 ${d.slice(-10, -7)} ••• •• ${d.slice(-2)}`;
+}
+
 function Toggle({ on, toggle }: { on: boolean; toggle: () => void }) {
   return (
     <button onClick={toggle} role="switch" aria-checked={on}
@@ -48,7 +55,6 @@ function Toggle({ on, toggle }: { on: boolean; toggle: () => void }) {
   );
 }
 
-/* ── Section card ───────────────────── */
 function Card({ title, children }: { title?: string; children: React.ReactNode }) {
   return (
     <div style={{
@@ -65,35 +71,82 @@ function Card({ title, children }: { title?: string; children: React.ReactNode }
   );
 }
 
-/* ── Setting row ────────────────────── */
 function Row({
-  icon: Icon, label, value, subtitle, badge, actionLabel, onClick,
+  icon: Icon, label, value, subtitle, badge, actionLabel, onClick, disabled, disabledLabel,
 }: {
   icon: React.ElementType; label: string;
   value?: string; subtitle?: string; badge?: "verified";
   actionLabel?: string; onClick?: () => void;
+  disabled?: boolean; disabledLabel?: string;
 }) {
+  const inner = (
+    <>
+      <div style={{
+        width: 36, height: 36, borderRadius: 10, background: PL,
+        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+        opacity: disabled ? 0.55 : 1,
+      }}>
+        <Icon size={16} color={P} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: disabled ? GT : DRK }}>{label}</div>
+        {(value || subtitle) && (
+          <div style={{ fontSize: 11, color: GT, marginTop: 2,
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {value ?? subtitle}
+          </div>
+        )}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+        {badge === "verified" && (
+          <span style={{
+            fontSize: 10, fontWeight: 700, color: "#16A34A",
+            background: "#F0FDF4", padding: "2px 7px", borderRadius: 999,
+          }}>Doğrulandı</span>
+        )}
+        {disabled && (
+          <span style={{
+            fontSize: 10, fontWeight: 700, color: GT,
+            background: GBG, padding: "2px 7px", borderRadius: 999,
+            border: `1px solid ${GB}`,
+          }}>{disabledLabel ?? "Yakında"}</span>
+        )}
+        {!disabled && actionLabel && (
+          <span style={{ fontSize: 11, fontWeight: 700, color: P }}>{actionLabel}</span>
+        )}
+        {!disabled && <ChevronRight size={15} color="#D1D5DB" />}
+      </div>
+    </>
+  );
+
+  if (disabled) {
+    return (
+      <div style={{
+        width: "100%", display: "flex", alignItems: "center", gap: 10,
+        padding: "11px 0", borderBottom: `1px solid ${GB}`, opacity: 0.85,
+      }}>
+        {inner}
+      </div>
+    );
+  }
+
   return (
     <button onClick={onClick}
       style={{
         width: "100%", display: "flex", alignItems: "center", gap: 10,
-        padding: "11px 0", borderBottom: `1px solid ${GB}`,
-        background: "none", border: "none", borderTop: "none",
-        borderLeft: "none", borderRight: "none",
+        padding: "11px 0",
+        background: "none", border: "none", borderBottom: `1px solid ${GB}`,
         cursor: "pointer", fontFamily: "inherit", textAlign: "left",
       }}
       onMouseEnter={e => { e.currentTarget.style.background = GBG; }}
       onMouseLeave={e => { e.currentTarget.style.background = "none"; }}
     >
-      {/* Icon */}
       <div style={{
         width: 36, height: 36, borderRadius: 10, background: PL,
         display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
       }}>
         <Icon size={16} color={P} />
       </div>
-
-      {/* Content */}
       <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: DRK }}>{label}</div>
         {(value || subtitle) && (
@@ -103,8 +156,6 @@ function Row({
           </div>
         )}
       </div>
-
-      {/* Right */}
       <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
         {badge === "verified" && (
           <span style={{
@@ -121,27 +172,8 @@ function Row({
   );
 }
 
-/* ── Toggle row ─────────────────────── */
-function ToggleRow({ label, desc, on, toggle }: {
-  label: string; desc: string; on: boolean; toggle: () => void;
-}) {
-  return (
-    <div style={{
-      display: "flex", alignItems: "center", justifyContent: "space-between",
-      padding: "11px 0", borderBottom: `1px solid ${GB}`,
-    }}>
-      <div style={{ flex: 1, paddingRight: 10 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: DRK }}>{label}</div>
-        <div style={{ fontSize: 11, color: GT, marginTop: 2, lineHeight: 1.4 }}>{desc}</div>
-      </div>
-      <Toggle on={on} toggle={toggle} />
-    </div>
-  );
-}
-
-/* ── Edit Profile Modal ─────────────── */
-function EditProfileModal({ name, onSave, onClose }: {
-  name: string; onSave: (n: string) => void; onClose: () => void;
+function EditProfileModal({ name, onSave, onClose, saving }: {
+  name: string; onSave: (n: string) => void; onClose: () => void; saving?: boolean;
 }) {
   const [val, setVal] = useState(name);
   return (
@@ -162,38 +194,34 @@ function EditProfileModal({ name, onSave, onClose }: {
                      border:`1.5px solid ${GB}`, fontSize:14, fontFamily:"inherit",
                      color:DRK, outline:"none", boxSizing:"border-box" as any }} />
         </div>
-        <button style={{
-          width:"100%", padding:"10px 0", borderRadius:10,
-          border:`1.5px solid ${GB}`, background:"#fff",
-          fontSize:13, color:GT, cursor:"pointer", fontFamily:"inherit", marginBottom:10,
-        }}>Fotoğraf Değiştir</button>
         <div style={{ display:"flex", gap:10 }}>
           <button onClick={onClose}
             style={{ flex:1, padding:"12px 0", borderRadius:12, border:`1.5px solid ${GB}`,
                      background:"#fff", fontSize:14, fontWeight:600, color:GT,
                      cursor:"pointer", fontFamily:"inherit" }}>İptal</button>
-          <button onClick={() => onSave(val)}
+          <button onClick={() => onSave(val.trim())} disabled={saving || val.trim().length < 2}
             style={{ flex:1, padding:"12px 0", borderRadius:12, border:"none",
                      background:P, fontSize:14, fontWeight:700, color:"#fff",
-                     cursor:"pointer", fontFamily:"inherit" }}>Kaydet</button>
+                     cursor:"pointer", fontFamily:"inherit", opacity: saving || val.trim().length < 2 ? 0.6 : 1 }}>
+            Kaydet
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-/* ── Add Email Modal ────────────────── */
-function AddEmailModal({ onSave, onClose }: {
-  onSave: (e: string) => void; onClose: () => void;
+function AddEmailModal({ initial, onSave, onClose, saving }: {
+  initial?: string | null; onSave: (e: string) => void; onClose: () => void; saving?: boolean;
 }) {
-  const [val, setVal] = useState("");
+  const [val, setVal] = useState(initial || "");
   return (
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.5)",
                   display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:9999 }}>
       <div style={{ background:"#fff", borderRadius:"20px 20px 0 0",
                     padding:"24px 20px 36px", width:"100%", maxWidth: "var(--yp-shell-max)" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
-          <span style={{ fontSize:17, fontWeight:700, color:DRK }}>E-posta Ekle</span>
+          <span style={{ fontSize:17, fontWeight:700, color:DRK }}>E-posta</span>
           <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer" }}>
             <X size={20} color={GT} />
           </button>
@@ -211,17 +239,18 @@ function AddEmailModal({ onSave, onClose }: {
             style={{ flex:1, padding:"12px 0", borderRadius:12, border:`1.5px solid ${GB}`,
                      background:"#fff", fontSize:14, fontWeight:600, color:GT,
                      cursor:"pointer", fontFamily:"inherit" }}>İptal</button>
-          <button onClick={() => val && onSave(val)}
+          <button onClick={() => val && onSave(val.trim())} disabled={saving || !val.includes("@")}
             style={{ flex:1, padding:"12px 0", borderRadius:12, border:"none",
                      background:P, fontSize:14, fontWeight:700, color:"#fff",
-                     cursor:"pointer", fontFamily:"inherit" }}>Kaydet</button>
+                     cursor:"pointer", fontFamily:"inherit", opacity: saving || !val.includes("@") ? 0.6 : 1 }}>
+            Kaydet
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-/* ── Delete Confirm Modal ───────────── */
 function DeleteModal({ onConfirm, onClose }: {
   onConfirm: () => void; onClose: () => void;
 }) {
@@ -252,26 +281,63 @@ function DeleteModal({ onConfirm, onClose }: {
   );
 }
 
-/* ════════════════════════════
-   MAIN PAGE
-════════════════════════════ */
+type Dog = {
+  id: number;
+  slug: string;
+  name: string;
+  breed?: string;
+  avatar_url?: string | null;
+  birth_date?: string | null;
+};
+
+const BREED_TR: Record<string, string> = {
+  toy: "Toy Poodle",
+  miniature: "Minyatür Poodle",
+  standart: "Standart Poodle",
+  moyen: "Moyen Poodle",
+};
+
+function dogAge(birth?: string | null) {
+  if (!birth) return null;
+  const b = new Date(birth);
+  if (Number.isNaN(b.getTime())) return null;
+  const months = Math.floor((Date.now() - b.getTime()) / (1000 * 60 * 60 * 24 * 30.44));
+  if (months < 12) return `${months} ay`;
+  return `${Math.floor(months / 12)} yaş`;
+}
+
 export default function YPHesabimAyarlarPage() {
   const [, navigate] = useLocation();
-  const { isLoggedIn, logout } = useCustomer() as any;
+  const { isLoggedIn, isLoading, customer, logout, updateProfile } = useCustomer();
 
-  const [fullName, setFullName] = useState("Hacı Murat Giritli");
-  const [email, setEmail]       = useState<string | null>(null);
-  const [notif, setNotif]       = useState(loadNotifPrefs());
+  const [notif, setNotif] = useState(loadNotifPrefs());
   const [editOpen, setEditOpen] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [toast, setToast]       = useState("");
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState("");
 
   useEffect(() => {
-    if (isLoggedIn === false)
-      navigate("/yourpoodle/giris?returnTo=/hesabim/ayarlar");
-  }, [isLoggedIn]);
-  if (!isLoggedIn) return null;
+    document.title = "Hesap Ayarları | YourPoodle";
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && !isLoggedIn) {
+      navigate(`${BASE}/giris?returnTo=${encodeURIComponent("/hesabim/ayarlar")}`);
+    }
+  }, [isLoading, isLoggedIn, navigate]);
+
+  const { data: dogs = [] } = useQuery<Dog[]>({
+    queryKey: ["/api/my/dogs"],
+    enabled: !!isLoggedIn,
+    queryFn: async () => {
+      const r = await fetch("/api/my/dogs", { credentials: "include" });
+      if (!r.ok) return [];
+      return r.json();
+    },
+  });
+
+  const primaryDog = dogs[0] || null;
 
   const showToast = (m: string) => {
     setToast(m);
@@ -284,22 +350,59 @@ export default function YPHesabimAyarlarPage() {
     try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch {}
   };
 
-  const handleLogout = () => {
-    if (typeof logout === "function") logout();
-    navigate("/yourpoodle/giris");
-    showToast("Oturum kapatıldı");
+  const handleSaveName = async (name: string) => {
+    if (name.length < 2) return;
+    setSaving(true);
+    try {
+      await updateProfile({ name });
+      setEditOpen(false);
+      showToast("Profil güncellendi ✓");
+    } catch (e: any) {
+      showToast(e?.message || "Güncellenemedi");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDeleteConfirm = () => {
-    setDeleteOpen(false);
-    if (typeof logout === "function") logout();
-    navigate("/yourpoodle/giris");
-    showToast("Hesap silme talebi alındı");
+  const handleSaveEmail = async (email: string) => {
+    setSaving(true);
+    try {
+      await updateProfile({ email });
+      setEmailOpen(false);
+      showToast("E-posta kaydedildi ✓");
+    } catch (e: any) {
+      showToast(e?.message || "E-posta kaydedilemedi");
+    } finally {
+      setSaving(false);
+    }
   };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate(`${BASE}/giris`);
+  };
+
+  const handleDeleteConfirm = async () => {
+    setDeleteOpen(false);
+    showToast("Hesap silme talebi alındı");
+    await logout();
+    navigate(`${BASE}/giris`);
+  };
+
+  if (isLoading || !isLoggedIn) {
+    return (
+      <YPLayout activeLink="" constrain={false} hideFooter>
+        <div style={{ padding: 48, textAlign: "center", color: GT, fontSize: 14 }}>Yükleniyor...</div>
+      </YPLayout>
+    );
+  }
+
+  const fullName = customer?.name || "Üye";
+  const email = customer?.email || null;
+  const initials = fullName.split(/\s+/).map(p => p[0]).join("").slice(0, 2).toUpperCase();
 
   return (
-    <YPLayout activeLink="club" constrain={false}>
-      {/* ── Toast ── */}
+    <YPLayout activeLink="" constrain={false} hideFooter>
       {toast && (
         <div style={{
           position:"fixed", top:72, left:"50%", transform:"translateX(-50%)",
@@ -311,16 +414,13 @@ export default function YPHesabimAyarlarPage() {
         </div>
       )}
 
-      {/* ── Modals ── */}
       {editOpen && (
-        <EditProfileModal name={fullName}
-          onSave={n => { setFullName(n); setEditOpen(false); showToast("Profil güncellendi ✓"); }}
-          onClose={() => setEditOpen(false)} />
+        <EditProfileModal name={fullName} saving={saving}
+          onSave={handleSaveName} onClose={() => setEditOpen(false)} />
       )}
       {emailOpen && (
-        <AddEmailModal
-          onSave={e => { setEmail(e); setEmailOpen(false); showToast("E-posta eklendi ✓"); }}
-          onClose={() => setEmailOpen(false)} />
+        <AddEmailModal initial={email} saving={saving}
+          onSave={handleSaveEmail} onClose={() => setEmailOpen(false)} />
       )}
       {deleteOpen && (
         <DeleteModal onConfirm={handleDeleteConfirm} onClose={() => setDeleteOpen(false)} />
@@ -331,12 +431,10 @@ export default function YPHesabimAyarlarPage() {
         fontFamily:"'Inter',-apple-system,sans-serif",
         background:GBG, minHeight:"100vh", color:DRK, paddingBottom:24,
       }}>
-
-        {/* ── PAGE HEADER ── */}
         <div style={{ padding:"14px 14px 12px", background:"#fff",
                       borderBottom:`1px solid ${GB}`, marginBottom:10 }}>
           <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:10 }}>
-            <button onClick={() => navigate("/hesabim")}
+            <button onClick={() => goBack(navigate, "/hesabim")}
               style={{ background:"none", border:"none", cursor:"pointer", padding:0, display:"flex" }}>
               <ArrowLeft size={17} color={P} />
             </button>
@@ -351,25 +449,25 @@ export default function YPHesabimAyarlarPage() {
         </div>
 
         <div style={{ padding:"0 12px" }}>
-
-          {/* ── PROFILE CARD ── */}
           <div style={{
             background:"#fff", borderRadius:16, border:`1px solid ${GB}`,
             padding:"14px", marginBottom:10,
             display:"flex", alignItems:"center", gap:12,
           }}>
-            <img
-              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop"
-              alt="avatar"
-              style={{ width:56, height:56, borderRadius:"50%", objectFit:"cover",
-                       border:`2px solid ${PL}`, flexShrink:0 }}
-            />
+            <div style={{
+              width:56, height:56, borderRadius:"50%", background:PL,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              border:`2px solid ${PL}`, flexShrink:0,
+              fontSize:18, fontWeight:800, color:P,
+            }}>
+              {initials}
+            </div>
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ fontSize:15, fontWeight:800, color:DRK, overflow:"hidden",
                             textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                 {fullName}
               </div>
-              <div style={{ fontSize:11, color:GT, marginTop:2 }}>Üyelik: Temmuz 2026</div>
+              <div style={{ fontSize:11, color:GT, marginTop:2 }}>{maskPhone(customer?.phone)}</div>
               <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:4,
                             background:PL, borderRadius:999, width:"fit-content", padding:"3px 8px" }}>
                 <BadgeCheck size={12} color={P} />
@@ -387,81 +485,97 @@ export default function YPHesabimAyarlarPage() {
             </button>
           </div>
 
-          {/* ── KİŞİSEL BİLGİLER ── */}
           <Card title="Kişisel Bilgiler">
             <Row icon={User} label="Ad Soyad" value={fullName} onClick={() => setEditOpen(true)} />
-            <Row icon={Phone} label="Cep Telefonu" value="+90 532 ••• •• 47" badge="verified"
-                 onClick={() => alert("Telefon doğrulama yakında!")} />
+            <Row icon={Phone} label="Cep Telefonu" value={maskPhone(customer?.phone)} badge="verified"
+                 disabled disabledLabel="Değişiklik yakında" />
             <Row icon={Mail} label="E-posta Adresi"
                  value={email ?? "E-posta eklenmedi"}
                  actionLabel={email ? undefined : "Ekle"}
                  onClick={() => setEmailOpen(true)} />
           </Card>
 
-          {/* ── POODLE PROFİLİM + BİLDİRİM TERCİHLERİ (2-col) ── */}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
-
-            {/* Poodle Profilim */}
             <div style={{ background:"#fff", borderRadius:16, border:`1px solid ${GB}`,
                           overflow:"hidden", padding:"12px 12px 8px" }}>
               <div style={{ fontSize:13, fontWeight:700, color:DRK, marginBottom:8 }}>
                 Poodle Profilim
               </div>
-              {/* Tarçın mini card */}
-              <div style={{ display:"flex", alignItems:"center", gap:8,
-                            paddingBottom:8, borderBottom:`1px solid ${GB}`, marginBottom:8 }}>
-                <img
-                  src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=48&h=48&fit=crop"
-                  alt="Tarçın"
-                  style={{ width:38, height:38, borderRadius:"50%", objectFit:"cover", flexShrink:0 }}
-                />
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:12, fontWeight:700, color:DRK }}>Tarçın</div>
-                  <div style={{ fontSize:10, color:GT }}>Toy Poodle · 3 yaş</div>
+              {primaryDog ? (
+                <div style={{ display:"flex", alignItems:"center", gap:8,
+                              paddingBottom:8, borderBottom:`1px solid ${GB}`, marginBottom:8 }}>
+                  {primaryDog.avatar_url ? (
+                    <img src={primaryDog.avatar_url} alt={primaryDog.name}
+                      style={{ width:38, height:38, borderRadius:"50%", objectFit:"cover", flexShrink:0 }} />
+                  ) : (
+                    <div style={{
+                      width:38, height:38, borderRadius:"50%", background:PL, flexShrink:0,
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                    }}>
+                      <PawPrint size={16} color={P} />
+                    </div>
+                  )}
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:12, fontWeight:700, color:DRK }}>{primaryDog.name}</div>
+                    <div style={{ fontSize:10, color:GT }}>
+                      {BREED_TR[primaryDog.breed || ""] || primaryDog.breed || "Poodle"}
+                      {dogAge(primaryDog.birth_date) ? ` · ${dogAge(primaryDog.birth_date)}` : ""}
+                    </div>
+                  </div>
+                  <button onClick={() => navigate(`${BASE}/p/${primaryDog.slug}`)}
+                    style={{
+                      fontSize:9, fontWeight:700, color:P,
+                      background:"none", border:`1px solid ${P}`,
+                      borderRadius:7, padding:"3px 6px", cursor:"pointer", fontFamily:"inherit",
+                      flexShrink:0,
+                    }}>
+                    Profili Yönet
+                  </button>
                 </div>
-                <button onClick={() => navigate("/yourpoodle/p/tarcin")}
-                  style={{
-                    fontSize:9, fontWeight:700, color:P,
-                    background:"none", border:`1px solid ${P}`,
-                    borderRadius:7, padding:"3px 6px", cursor:"pointer", fontFamily:"inherit",
-                    flexShrink:0,
-                  }}>
-                  Profili Yönet
-                </button>
-              </div>
+              ) : (
+                <div style={{ paddingBottom:8, borderBottom:`1px solid ${GB}`, marginBottom:8 }}>
+                  <div style={{ fontSize:11, color:GT, marginBottom:8 }}>Henüz Poodle profili yok</div>
+                  <button onClick={() => navigate(`${BASE}/p/olustur`)}
+                    style={{
+                      fontSize:11, fontWeight:700, color:"#fff", background:P, border:"none",
+                      borderRadius:8, padding:"6px 10px", cursor:"pointer", fontFamily:"inherit",
+                    }}>
+                    Poodle Ekle
+                  </button>
+                </div>
+              )}
 
-              {/* Sub-rows */}
               {[
-                { Icon: HeartPulse, label:"Sağlık ve Bakım Bilgileri" },
-                { Icon: UtensilsCrossed, label:"Mama Tercihleri" },
-                { Icon: Ruler, label:"Ölçüler ve Beden Bilgileri" },
+                { Icon: HeartPulse, label: "Sağlık ve Bakım Bilgileri" },
+                { Icon: UtensilsCrossed, label: "Mama Tercihleri" },
+                { Icon: Ruler, label: "Ölçüler ve Beden Bilgileri" },
               ].map(({ Icon, label }, i, arr) => (
-                <button key={label}
-                  onClick={() => showToast(`${label} yakında`)}
+                <div key={label}
                   style={{
-                    width:"100%", display:"flex", alignItems:"center",
-                    justifyContent:"space-between",
-                    padding:"8px 0",
+                    width: "100%", display: "flex", alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "8px 0",
                     borderBottom: i < arr.length - 1 ? `1px solid ${GB}` : "none",
-                    background:"none", border:"none", borderTop:"none",
-                    borderLeft:"none", borderRight:"none",
-                    cursor:"pointer", fontFamily:"inherit",
+                    opacity: 0.75,
                   }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                    <div style={{ width:28, height:28, borderRadius:8, background:PL,
-                                  display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: PL,
+                                  display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <Icon size={14} color={P} />
                     </div>
-                    <span style={{ fontSize:11, fontWeight:600, color:DRK, textAlign:"left" }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: GT, textAlign: "left" }}>
                       {label}
                     </span>
                   </div>
-                  <ChevronRight size={13} color="#D1D5DB" />
-                </button>
+                  <span style={{
+                    fontSize: 9, fontWeight: 700, color: GT,
+                    background: GBG, padding: "2px 6px", borderRadius: 999,
+                    border: `1px solid ${GB}`,
+                  }}>Yakında</span>
+                </div>
               ))}
             </div>
 
-            {/* Bildirim Tercihleri */}
             <div style={{ background:"#fff", borderRadius:16, border:`1px solid ${GB}`,
                           overflow:"hidden", padding:"12px 12px 8px" }}>
               <div style={{ fontSize:13, fontWeight:700, color:DRK, marginBottom:8 }}>
@@ -489,31 +603,28 @@ export default function YPHesabimAyarlarPage() {
             </div>
           </div>
 
-          {/* ── GİZLİLİK VE GÜVENLİK ── */}
           <Card title="Gizlilik ve Güvenlik">
             <Row icon={Shield} label="Profil Gizliliği" subtitle="Herkese Açık"
-                 onClick={() => alert("Gizlilik seçenekleri yakında")} />
-            <Row icon={Ban} label="Engellenen Hesaplar" subtitle="2 hesap"
-                 onClick={() => alert("Engellenen hesaplar yakında")} />
-            <Row icon={Smartphone} label="Oturum Açılan Cihazlar" subtitle="1 cihaz"
-                 onClick={() => alert("Cihazlar yakında")} />
+                 disabled disabledLabel="Yakında" />
+            <Row icon={Ban} label="Engellenen Hesaplar"
+                 disabled disabledLabel="Yakında" />
+            <Row icon={Smartphone} label="Oturum Açılan Cihazlar"
+                 disabled disabledLabel="Yakında" />
             <Row icon={Download} label="Verilerimi İndir"
-                 onClick={() => showToast("Veri indirme talebi alındı ✓")} />
+                 disabled disabledLabel="Yakında" />
           </Card>
 
-          {/* ── DESTEK VE YASAL ── */}
           <Card title="Destek ve Yasal">
             <Row icon={HelpCircle} label="Yardım Merkezi"
-                 onClick={() => alert("Yardım Merkezi")} />
+                 onClick={() => navigate("/hesabim/yardim")} />
             <Row icon={MessageSquare} label="Bize Ulaşın"
-                 onClick={() => alert("İletişim")} />
+                 onClick={() => navigate(`${BASE}/iletisim`)} />
             <Row icon={ShieldCheck} label="Gizlilik Politikası"
-                 onClick={() => alert("Gizlilik Politikası")} />
-            <Row icon={FileText} label="Üyelik Sözleşmesi"
-                 onClick={() => alert("Üyelik Sözleşmesi")} />
+                 onClick={() => navigate(`${BASE}/gizlilik-politikasi`)} />
+            <Row icon={FileText} label="Kullanım Şartları"
+                 onClick={() => navigate(`${BASE}/kullanim-sartlari`)} />
           </Card>
 
-          {/* ── OTURUMU KAPAT ── */}
           <button onClick={handleLogout}
             style={{
               width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8,
@@ -525,7 +636,6 @@ export default function YPHesabimAyarlarPage() {
             <LogOut size={17} /> Oturumu Kapat
           </button>
 
-          {/* ── HESABI SİL ── */}
           <div style={{
             background:"#FEF2F2", border:"1px solid #FECACA",
             borderRadius:16, padding:"14px", marginBottom:12,
@@ -549,22 +659,6 @@ export default function YPHesabimAyarlarPage() {
             </button>
           </div>
 
-          {/* ── FOOTER ── */}
-          <div style={{ background:NAV, borderRadius:16, padding:"20px 16px" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
-              <span style={{ fontSize:22 }}>🐾</span>
-              <span style={{ fontSize:16, fontWeight:800, color:"#fff" }}>YourPoodle</span>
-            </div>
-            <div style={{ display:"flex", gap:16, marginBottom:10 }}>
-              {["Yardım","İletişim","KVKK"].map(l => (
-                <a key={l} href="#"
-                  style={{ fontSize:12, color:"rgba(255,255,255,.7)", textDecoration:"none" }}>
-                  {l}
-                </a>
-              ))}
-            </div>
-            <div style={{ fontSize:11, color:"rgba(255,255,255,.4)" }}>© 2026 YourPoodle</div>
-          </div>
         </div>
       </div>
     </YPLayout>

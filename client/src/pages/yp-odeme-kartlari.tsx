@@ -1,33 +1,40 @@
-import { CreditCard } from "lucide-react";
 import YPStaticPage from "@/components/yourpoodle/YPStaticPage";
 import { IS_YP } from "@/lib/store";
 
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 const CARDS = [
-  { name: "Visa", desc: "Visa kredi ve banka kartları kabul edilir." },
-  { name: "Mastercard", desc: "Mastercard kredi ve banka kartları kabul edilir." },
-  { name: "Troy", desc: "Yerli Troy kartlar ile güvenli ödeme yapılabilir." },
+  { name: "Visa", desc: "Visa kredi ve banka kartları kabul edilir.", src: "/images/payment/visa.svg" },
+  { name: "Mastercard", desc: "Mastercard kredi ve banka kartları kabul edilir.", src: "/images/payment/mastercard.svg" },
+  { name: "Troy", desc: "Yerli Troy kartlar ile güvenli ödeme yapılabilir.", src: "/images/payment/troy.svg" },
 ];
 
 export default function YPOdemeKartlariPage() {
   return (
     <YPStaticPage
-      title="Visa ve Mastercard"
+      title="Visa ve Mastercard Logoları"
       description="YourPoodle'da Visa, Mastercard ve Troy ile 3D Secure korumalı ödeme."
-      updatedDate="10 Ağustos 2026"
-      breadcrumb={[{ label: "Ana Sayfa", href: BASE || "/" }, { label: "Kart Logoları" }]}
+      updatedDate="13 Ağustos 2026"
+      breadcrumb={[{ label: "Ana Sayfa", href: BASE || "/" }, { label: "Visa ve Mastercard" }]}
     >
       <div className="sp-alert">
-        <strong>Güvenli kart ödemesi:</strong> Tüm işlemler 3D Secure ve SSL ile korunur. Kart bilgileriniz YourPoodle sunucularında saklanmaz.
+        <strong>Güvenli kart ödemesi:</strong> Tüm işlemler 3D Secure ve SSL ile korunur. Kart bilgileriniz YourPoodle sunucularında saklanmaz; ödeme iyzico üzerinden alınır.
+      </div>
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: 20, padding: "16px 20px", background: "#000", borderRadius: 12 }}>
+        <img
+          src="/images/payment/iyzico-cards-band.png"
+          alt="iyzico ile Öde — Mastercard, Visa, American Express, Troy"
+          style={{ height: 48, width: "auto", maxWidth: "100%" }}
+        />
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 12, marginBottom: 28 }}>
         {CARDS.map((c) => (
           <div key={c.name} style={{ border: "1px solid #E5DDD0", borderRadius: 14, padding: 18, background: "#fff" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <CreditCard size={18} color="#5D3A1A" />
-              <span style={{ fontWeight: 800, fontSize: 15 }}>{c.name}</span>
-            </div>
+            <img
+              src={c.src}
+              alt={c.name}
+              style={{ height: 40, width: "auto", display: "block", marginBottom: 12, borderRadius: 8 }}
+            />
             <p style={{ fontSize: 13, color: "#6B7280", margin: 0, lineHeight: 1.5 }}>{c.desc}</p>
           </div>
         ))}

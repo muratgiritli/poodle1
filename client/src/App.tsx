@@ -64,7 +64,6 @@ const AuthPage = lazy(() => import("@/pages/auth"));
 const SokakCanlariPage = lazy(() => import("@/pages/sokak-canlari"));
 const ProfilePage = lazy(() => import("@/pages/profile"));
 const YPHesabimPage = lazy(() => import("@/pages/yp-hesabim"));
-const YPPoodleProfilDuzenlePage = lazy(() => import("@/pages/yp-poodle-profili-duzenle"));
 const AbonePage = lazy(() => import("@/pages/abone"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 const CampaignPage = lazy(() => import("@/pages/campaign"));
@@ -132,7 +131,6 @@ const YPOdemeKartlariPage       = lazy(() => import("@/pages/yp-odeme-kartlari")
 const YPIyzicoPage              = lazy(() => import("@/pages/yp-iyzico"));
 const YPTeslimatIadePage        = lazy(() => import("@/pages/yp-teslimat-iade"));
 const YPCerezPolitikasiPage     = lazy(() => import("@/pages/yp-cerez-politikasi"));
-const YPKariyerPage             = lazy(() => import("@/pages/yp-kariyer"));
 const YPBayiBasvurusuPage       = lazy(() => import("@/pages/yp-bayi-basvurusu"));
 const YPFotografYarismasi       = lazy(() => import("@/pages/yp-fotograf-yarismasi"));
 const YPOzelTasarimPage         = lazy(() => import("@/pages/yp-ozel-tasarim"));
@@ -218,11 +216,16 @@ function useVisitTracking() {
         sessionStorage.setItem("jg_entry_ref", entryReferrer);
         sessionStorage.setItem("jg_utm_src", utmSource);
       }
+      // Legacy site_visits (Admin → Ziyaretçi)
       fetch("/api/track/visit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path: location, referrer: entryReferrer, utmSource }),
         keepalive: true,
+      }).catch(() => {});
+      // Phase 1 first-party event stream
+      import("@/lib/yp-analytics").then(({ track }) => {
+        track("page_view", { path: location });
       }).catch(() => {});
     } catch {}
   }, [location]);
@@ -249,7 +252,7 @@ function Router() {
         <Route path="/kategori/:animal/:subcategory/:brand" component={BrandProductsPage} />
         <Route path="/kategori/:animal/:subcategory" component={BrandsPage} />
         <Route path="/kategori/:animal" component={CategoryPage} />
-        <Route path="/odeme" component={Checkout} />
+        <Route path="/odeme" component={IS_YP ? YPOdemePage : Checkout} />
         <Route path="/odeme-sonuc" component={PaymentResultPage} />
         <Route path="/admin" component={AdminPage} />
         <Route path="/siparis-takip" component={OrderTrackingPage} />
@@ -263,6 +266,14 @@ function Router() {
         <Route path="/hesabim/club-paylasimlarim"   component={YPHesabimClubPaylasimlarimPage} />
         <Route path="/hesabim/bildirimler"          component={YPHesabimBildirimlerPage} />
         <Route path="/hesabim/ayarlar"              component={YPHesabimAyarlarPage} />
+        <Route path="/hesabim/kisisel">{() => <Redirect to="/hesabim/ayarlar" />}</Route>
+        <Route path="/hesabim/telefon">{() => <Redirect to="/hesabim/ayarlar" />}</Route>
+        <Route path="/hesabim/iletisim">{() => <Redirect to="/hesabim/ayarlar" />}</Route>
+        <Route path="/hesabim/gizlilik">{() => <Redirect to="/hesabim/ayarlar" />}</Route>
+        <Route path="/hesabim/puanlar">{() => <Redirect to="/hesabim/poodle-puanlari" />}</Route>
+        <Route path="/hesabim/kuponlar">{() => <Redirect to="/hesabim/poodle-puanlari/odul-merkezi" />}</Route>
+        <Route path="/hesabim/kaydedilenler">{() => <Redirect to="/hesabim/favoriler" />}</Route>
+        <Route path="/hesabim/hatirlatmalar">{() => <Redirect to="/yourpoodle/benim-poodleim" />}</Route>
         <Route path="/hesabim/yardim"               component={YPHesabimYardimPage} />
         <Route path="/hesabim/yardim/yeni-talep"    component={YPYeniTalepPage} />
         <Route path="/hesabim/yardim/talep/:ticketId" component={YPTalepDetayPage} />
@@ -273,30 +284,29 @@ function Router() {
         <Route path="/hesabim/poodle-puanlari/odul-onayla/:rewardId" component={YPOdulOnaylaPage} />
         <Route path="/hesabim/poodle-puanlari/odul-hazir/:rewardId" component={YPOdulHazirPage} />
         <Route path="/hesabim/poodle-puanlari/kazan" component={YPPuanKazanPage} />
-        <Route path="/yourpoodle/poodle-profili-duzenle" component={YPPoodleProfilDuzenlePage} />
+        <Route path="/yourpoodle/poodle-profili-duzenle">{() => <Redirect to="/yourpoodle/benim-poodleim" />}</Route>
         <Route path="/abone" component={AbonePage} />
         {/* Task 6: Demo routes blocked in production — code kept, access disabled */}
         {import.meta.env.DEV && <Route path="/demo" component={DemoLanding} />}
         {import.meta.env.DEV && <Route path="/demo1" component={Demo1Page} />}
         {import.meta.env.DEV && <Route path="/demo2" component={Demo2Page} />}
         {import.meta.env.DEV && <Route path="/demo-anasayfa" component={DemoAnasayfaPage as any} />}
-        <Route path="/yourpoodle/v2"             component={YourPoodleV2Page} />
-        <Route path="/yourpoodle/v3"             component={YourPoodleV3Page} />
-        <Route path="/yourpoodle/v4"             component={YourPoodleV4Page} />
-        <Route path="/yourpoodle/v5"             component={YourPoodleV5Page} />
-        <Route path="/yourpoodle/demo"           component={YourPoodleDemoPage} />
-        <Route path="/yourpoodle/demo2"          component={YourPoodleDemo2Page} />
-        <Route path="/yourpoodle/demo3"          component={YourPoodleDemo3Page} />
+        {import.meta.env.DEV && <Route path="/yourpoodle/v2"             component={YourPoodleV2Page} />}
+        {import.meta.env.DEV && <Route path="/yourpoodle/v3"             component={YourPoodleV3Page} />}
+        {import.meta.env.DEV && <Route path="/yourpoodle/v4"             component={YourPoodleV4Page} />}
+        {import.meta.env.DEV && <Route path="/yourpoodle/v5"             component={YourPoodleV5Page} />}
+        {import.meta.env.DEV && <Route path="/yourpoodle/demo"           component={YourPoodleDemoPage} />}
+        {import.meta.env.DEV && <Route path="/yourpoodle/demo2"          component={YourPoodleDemo2Page} />}
+        {import.meta.env.DEV && <Route path="/yourpoodle/demo3"          component={YourPoodleDemo3Page} />}
         <Route path="/yourpoodle"                component={YourPoodleHomePage} />
         <Route path="/yourpoodle/rehber/:category/:slug" component={YPRehberMakalePage} />
-        <Route path="/yourpoodle/rehber/:slug">
-          {(params) => <YPRehberPage routeSlug={params?.slug} />}
-        </Route>
+        <Route path="/yourpoodle/rehber/:slug" component={YPRehberMakalePage} />
         <Route path="/yourpoodle/rehber"         component={YPRehberPage} />
         <Route path="/yourpoodle/club/hakkimizda" component={YPClubHakkimizdaPage} />
         <Route path="/yourpoodle/club/mesajlar"  component={YPClubMesajlarPage} />
         <Route path="/yourpoodle/club/kesfet"    component={YPClubKesfetPage} />
         <Route path="/yourpoodle/club/kopekler"  component={YPClubKopeklerPage} />
+        <Route path="/yourpoodle/club/gonderi/:postId" component={YPGonderiDetayPage} />
         <Route path="/yourpoodle/club"           component={YPClubPage} />
         <Route path="/yourpoodle/p/olustur"      component={YPDogCreatePage} />
         <Route path="/yourpoodle/p/:slug/duzenle">
@@ -346,10 +356,10 @@ function Router() {
         <Route path="/yourpoodle/iyzico"               component={YPIyzicoPage} />
         <Route path="/yourpoodle/teslimat-iade"        component={YPTeslimatIadePage} />
         <Route path="/yourpoodle/hakkimizda"           component={YPHakkimizdaPage} />
+        <Route path="/yourpoodle/iletisim"             component={YPIletisimPage} />
         <Route path="/yourpoodle/cerez-politikasi"     component={YPCerezPolitikasiPage} />
         <Route path="/yourpoodle/hizmetler"             component={YPHizmetlerPage} />
         <Route path="/yourpoodle/benim-poodleim"       component={YPBenimPoodleimPage} />
-        <Route path="/yourpoodle/kariyer"              component={YPKariyerPage} />
         <Route path="/yourpoodle/bayi-basvurusu"       component={YPBayiBasvurusuPage} />
         <Route path="/yourpoodle/fotograf-yarismasi"   component={YPFotografYarismasi} />
         <Route path="/yourpoodle/ozel-tasarim"         component={YPOzelTasarimPage} />
@@ -399,11 +409,7 @@ function Router() {
         <Route path="/bildirimler"           component={YPBildirimlerPage} />
         {/* Rehber */}
         <Route path="/rehber/:category/:slug" component={YPRehberMakalePage} />
-        <Route path="/rehber/:slug">
-          {(params: any) => params
-            ? (IS_YP ? <YPRehberPage routeSlug={params?.slug} /> : <Redirect to={`/yourpoodle/rehber/${params.slug}`} />)
-            : null}
-        </Route>
+        <Route path="/rehber/:slug" component={YPRehberMakalePage} />
         <Route path="/rehber">
           {() => IS_YP ? <YPRehberPage /> : <Redirect to="/yourpoodle/rehber" />}
         </Route>
@@ -422,7 +428,6 @@ function Router() {
         <Route path="/mama-bul"              component={YPMamaBulPage} />
         <Route path="/uye-ol"                component={YPUyeOlPage} />
         <Route path="/sepet"                 component={YPSepetPage} />
-        <Route path="/odeme"                 component={YPOdemePage} />
         <Route path="/tesekkurler"           component={YPTesekkurlerPage} />
         {/* Hizmetler & profil */}
         <Route path="/hizmetler">
@@ -450,11 +455,13 @@ function Router() {
           {() => <YPLegalPage variant="kullanim-sartlari" />}
         </Route>
         <Route path="/mesafeli-satis-sozlesmesi">
-          {() => <YPLegalPage variant="mesafeli-satis" />}
+          {() => IS_YP ? <YPMesafeliSatisPage /> : <YPLegalPage variant="mesafeli-satis" />}
         </Route>
         {/* Physical store */}
         <Route path="/magazalar/atakum"      component={YPAtakumMagazaPage} />
-        <Route path="/gizlilik-sozlesmesi" component={GizlilikSozlesmesiPage} />
+        <Route path="/gizlilik-sozlesmesi">
+          {() => IS_YP ? <YPGizlilikPolitikasiPage /> : <GizlilikSozlesmesiPage />}
+        </Route>
         <Route path="/mesafeli-satis">
           {() => IS_YP ? <YPMesafeliSatisPage /> : <MesafeliSatisSozlesmesiPage />}
         </Route>
@@ -476,13 +483,14 @@ const LANDING_LIKE_ROUTES = new Set([
 ]);
 
 const YPCookieBanner = lazy(() => import("@/components/YPCookieBanner").then(m => ({ default: m.default })));
+const TrackingLoader = lazy(() => import("@/components/TrackingLoader").then(m => ({ default: m.default })));
 
 function AppShell() {
   const [location] = useLocation();
   const isAdmin = location.startsWith("/admin");
   // On the live yourpoodle.com domain ALL routes are YP → suppress legacy chrome.
   // On dev hosts, /yourpoodle/* and the canonical top-level YP paths are YP.
-  const YP_TOP = ["/magaza", "/club", "/rehber", "/ai-asistan", "/mama-bul", "/uye-ol", "/sepet", "/odeme", "/tesekkurler", "/giris", "/ara", "/araclar", "/etkinlikler", "/kampanyalar", "/hakkimizda", "/iletisim", "/sifremi-unuttum", "/siparis", "/kullanim-sartlari", "/mesafeli-satis-sozlesmesi", "/magazalar"];
+  const YP_TOP = ["/magaza", "/club", "/rehber", "/ai-asistan", "/mama-bul", "/uye-ol", "/sepet", "/odeme", "/tesekkurler", "/giris", "/ara", "/araclar", "/etkinlikler", "/kampanyalar", "/hakkimizda", "/iletisim", "/sifremi-unuttum", "/siparis", "/kullanim-sartlari", "/mesafeli-satis-sozlesmesi", "/magazalar", "/hesabim", "/benim-poodleim"];
   const isYP = IS_YP || location === "/" || location.startsWith("/yourpoodle") ||
     YP_TOP.some(p => location === p || location.startsWith(p + "/") || location.startsWith(p + "?"));
   const isDemo = isYP || location === "/demo" || location.startsWith("/demo-kampanya") || location === "/demo1" || location === "/demo2" || location === "/demo-anasayfa";
@@ -516,6 +524,12 @@ function AppShell() {
       )}
       {!isAdmin && !isDemo && <FloatingCartBar />}
       {!isAdmin && !isDemo && <BottomTabBar />}
+      {isYP && !isAdmin && (
+        <Suspense fallback={null}>
+          <YPCookieBanner />
+          <TrackingLoader />
+        </Suspense>
+      )}
     </>
   );
 }

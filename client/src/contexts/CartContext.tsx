@@ -417,6 +417,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
       saveBasket(updated);
       return updated;
     });
+    if (actualDelta !== 0) {
+      const p = dbProductsRef.current.find((x) => String(x.id) === id);
+      import("@/lib/yp-analytics").then((yp) => {
+        if (actualDelta > 0) {
+          yp.trackAddToCart(
+            { id, name: p?.name, price: p?.price },
+            actualDelta,
+          );
+        } else {
+          yp.trackRemoveFromCart(id, Math.abs(actualDelta));
+        }
+      }).catch(() => {});
+    }
     if (actualDelta > 0 && typeof window !== "undefined" && (window as any).gtag) {
       const p = dbProductsRef.current.find((x) => String(x.id) === id);
       if (p) {

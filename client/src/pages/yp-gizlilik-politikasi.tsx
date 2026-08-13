@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { ChevronLeft } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import { goBack } from "@/lib/goBack";
+import { YP_COMPANY } from "@/lib/yp-company";
 
 const CSS = `
   .giz-wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 64px; font-family: Inter, sans-serif; }
@@ -20,13 +22,13 @@ export default function YPGizlilikPolitikasi() {
   const [, navigate] = useLocation();
 
   useEffect(() => {
-    document.title = "Gizlilik Politikası | YourPoodle";
+    document.title = "Gizlilik Sözleşmesi | YourPoodle";
     const setMeta = (attr: string, key: string, val: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.content = val;
     };
-    setMeta("name", "description", "YourPoodle gizlilik politikası ve KVKK aydınlatma metni. Verilerinizi nasıl işlediğimizi öğrenin.");
+    setMeta("name", "description", "YourPoodle gizlilik sözleşmesi ve KVKK aydınlatma metni. Verilerinizi nasıl işlediğimizi öğrenin.");
     setMeta("name", "robots", "index, follow");
   }, []);
 
@@ -35,25 +37,28 @@ export default function YPGizlilikPolitikasi() {
       <style>{CSS}</style>
       <main>
         <div className="giz-wrap">
-          <button onClick={() => navigate(-1 as any)}
+          <button onClick={() => goBack(navigate, "/")}
             style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none", cursor:"pointer", color:"#888", fontSize:13, fontWeight:600, fontFamily:"Inter,sans-serif", marginBottom:28, padding:0 }}>
             <ChevronLeft size={16} /> Geri Dön
           </button>
 
-          <h1 style={{ fontSize:28, fontWeight:900, color:"#1a1a1a", marginBottom:8, letterSpacing:"-0.3px" }}>Gizlilik Politikası</h1>
-          <p style={{ fontSize:13, color:"#aaa", marginBottom:8 }}>Son güncelleme: 16 Temmuz 2026</p>
+          <h1 style={{ fontSize:28, fontWeight:900, color:"#1a1a1a", marginBottom:8, letterSpacing:"-0.3px" }}>Gizlilik Sözleşmesi</h1>
+          <p style={{ fontSize:13, color:"#aaa", marginBottom:8 }}>Son güncelleme: 13 Ağustos 2026</p>
           <p style={{ fontSize:13, color:"#888", marginBottom:32, lineHeight:1.6 }}>
-            Bu metin, 6698 sayılı <strong>Kişisel Verilerin Korunması Kanunu (KVKK)</strong> kapsamında hazırlanmış aydınlatma metnidir.
+            Bu metin, 6698 sayılı <strong>Kişisel Verilerin Korunması Kanunu (KVKK)</strong> kapsamında hazırlanmış gizlilik sözleşmesi / aydınlatma metnidir.
           </p>
 
           <div className="giz-section">
             <h2>1. Veri Sorumlusu</h2>
             <p>
-              Kişisel verileriniz, veri sorumlusu sıfatıyla <strong>Sizpa Yazılım ve Teknoloji A.Ş.</strong> ("Şirket") tarafından işlenmektedir.
+              Kişisel verileriniz, veri sorumlusu sıfatıyla <strong>{YP_COMPANY.legalName}</strong> ("Şirket")
+              tarafından YourPoodle platformu üzerinden işlenmektedir.
             </p>
             <ul>
-              <li><strong>Platform:</strong> YourPoodle</li>
-              <li><strong>E-posta:</strong> <a href="mailto:info@sizpa.com" style={{ color:"#5D3A1A" }}>info@sizpa.com</a></li>
+              <li><strong>Platform:</strong> {YP_COMPANY.brand} ({YP_COMPANY.siteUrl})</li>
+              <li><strong>Adres:</strong> {YP_COMPANY.fullAddress}</li>
+              <li><strong>Telefon:</strong> {YP_COMPANY.phoneDisplay}</li>
+              <li><strong>E-posta:</strong> <a href={`mailto:${YP_COMPANY.email}`} style={{ color:"#5D3A1A" }}>{YP_COMPANY.email}</a></li>
             </ul>
           </div>
 
@@ -173,10 +178,11 @@ export default function YPGizlilikPolitikasi() {
 
           <div className="giz-section" style={{ background:"#F5F0E6", borderRadius:16, padding:"20px", border:"none" }}>
             <h2 style={{ border:"none", paddingTop:0 }}>İletişim</h2>
-            <p>Gizlilik politikamız hakkında sorularınız için:</p>
+            <p>Gizlilik sözleşmemiz hakkında sorularınız için:</p>
             <ul style={{ marginTop:8 }}>
-              <li><strong>E-posta:</strong> <a href="mailto:info@sizpa.com" style={{ color:"#5D3A1A" }}>info@sizpa.com</a></li>
-              <li><strong>Veri Sorumlusu:</strong> Sizpa Yazılım ve Teknoloji A.Ş.</li>
+              <li><strong>E-posta:</strong> <a href={`mailto:${YP_COMPANY.email}`} style={{ color:"#5D3A1A" }}>{YP_COMPANY.email}</a></li>
+              <li><strong>Veri Sorumlusu:</strong> {YP_COMPANY.legalName}</li>
+              <li><strong>Adres:</strong> {YP_COMPANY.fullAddress}</li>
             </ul>
             <p style={{ marginTop:10, fontSize:13 }}>Kişisel Verileri Koruma Kurulu'na (KVKK) şikâyet hakkınız saklıdır: <a href="https://www.kvkk.gov.tr" target="_blank" rel="noopener noreferrer" style={{ color:"#5D3A1A" }}>www.kvkk.gov.tr</a></p>
           </div>

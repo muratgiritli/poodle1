@@ -1,6 +1,7 @@
 // Route: /hesabim/poodle-puanlari/odul-hazir/:rewardId
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLocation, useParams } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft, PawPrint, Copy, Check, X, ShoppingCart, Calendar,
   Tag, CheckCircle, ShoppingBag, Ticket, Percent, Bell,
@@ -8,11 +9,17 @@ import {
   Mail, MoreHorizontal, Sparkles, Gift, ArrowRight,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import { goBack } from "@/lib/goBack";
+import {
+  LOYALTY_BRAND as P,
+  LOYALTY_BRAND_DARK as PD,
+  LOYALTY_BRAND_LIGHT as PL,
+  enrichReward,
+  fetchLoyalty,
+  fetchRewards,
+} from "@/lib/loyalty-api";
 
 /* ── Palette ─────────────────────────── */
-const P    = "#5D3EBD";
-const PD   = "#4A22A0";
-const PL   = "#F5F0E6";
 const DRK  = "#111827";
 const GT   = "#6B7280";
 const GB   = "#E5E7EB";
@@ -20,39 +27,13 @@ const GRN  = "#16A34A";
 const GOLDB= "#FBBF24";
 const BG   = "#F9F9FB";
 
-/* ── Reward data map ─────────────────── */
-const REWARDS: Record<string,{
-  title:string; couponLabel:string; couponCode:string;
-  pointsUsed:number; discountAmount:string; minCart:string;
-  expiryDate:string; validFor:string; newBalance:number; newBalanceTl:string;
-}> = {
-  "pr-1": { title:"50 TL Alışveriş İndirimi", couponLabel:"50 TL İNDİRİM", couponCode:"POODLE50-84K2",
-    pointsUsed:500, discountAmount:"50 TL", minCart:"500 TL", expiryDate:"31 Ağustos 2026",
-    validFor:"Tüm ürünlerde geçerli", newBalance:775, newBalanceTl:"77,50 TL" },
-  "pr-2": { title:"Ücretsiz Kargo", couponLabel:"ÜCRETSİZ KARGO", couponCode:"KARGO50-FREE",
-    pointsUsed:300, discountAmount:"Ücretsiz", minCart:"250 TL", expiryDate:"31 Ağustos 2026",
-    validFor:"Tüm siparişlerde geçerli", newBalance:975, newBalanceTl:"97,50 TL" },
-  "pr-3": { title:"%15 Bakım İndirimi", couponLabel:"%15 İNDİRİM", couponCode:"BAKIM15-ODUL",
-    pointsUsed:750, discountAmount:"%15", minCart:"300 TL", expiryDate:"31 Ağustos 2026",
-    validFor:"Bakım ürünlerinde geçerli", newBalance:525, newBalanceTl:"52,50 TL" },
-  "pr-4": { title:"100 TL Mama İndirimi", couponLabel:"100 TL İNDİRİM", couponCode:"MAMA100-ODUL",
-    pointsUsed:1000, discountAmount:"100 TL", minCart:"750 TL", expiryDate:"31 Ağustos 2026",
-    validFor:"Mama ürünlerinde geçerli", newBalance:275, newBalanceTl:"27,50 TL" },
-};
-
-const TRANSACTION_NO = "PP-20260724-1842";
-const TRANSACTION_DATE = "24 Temmuz 2026 • 01:18";
+const OTHER_REWARDS: Array<{ id: string; title: string; status: string; expiry: string }> = [];
 
 const PRODUCTS = [
   { id:"sp-1", name:"Buharlı Masaj Tarağı",   price:"399 TL", img:"https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&h=300&fit=crop" },
   { id:"sp-2", name:"Göz Yaşı Bakım Losyonu", price:"289 TL", img:"https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&h=300&fit=crop" },
   { id:"sp-3", name:"Mor Air Mesh Tasma",      price:"249 TL", img:"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=300&h=300&fit=crop" },
   { id:"sp-4", name:"Toy Poodle Ödül Paketi",  price:"499 TL", img:"https://images.unsplash.com/photo-1581888227599-779811939961?w=300&h=300&fit=crop" },
-];
-
-const OTHER_REWARDS = [
-  { id:"or-1", title:"50 TL İndirim",   status:"Kullanılabilir", expiry:"31 Ağustos" },
-  { id:"or-2", title:"Ücretsiz Kargo",  status:"Kullanılabilir", expiry:"12 Ağustos" },
 ];
 
 const FAQ_ITEMS = [
@@ -128,8 +109,41 @@ function Toggle({ on, onToggle }: { on:boolean; onToggle:()=>void }) {
 export default function YPOdulHazirPage() {
   const [, navigate] = useLocation();
   const params = useParams<{ rewardId?: string }>();
-  const rewardId = params.rewardId || "pr-1";
-  const reward = REWARDS[rewardId] || REWARDS["pr-1"];
+  const rewardId = params.rewardId || "rw-50tl";
+
+  const searchParams = useMemo(
+    () => new URLSearchParams(typeof window !== "undefined" ? window.location.search : ""),
+    [],
+  );
+
+  const { data: loyalty } = useQuery({ queryKey: ["/api/customer/loyalty"], queryFn: fetchLoyalty });
+  const { data: catalog = [] } = useQuery({ queryKey: ["/api/customer/loyalty/rewards"], queryFn: fetchRewards });
+
+  const catalogItem = catalog.find(r => r.id === rewardId);
+  const enriched = catalogItem ? enrichReward(catalogItem) : null;
+  const pointsUsed = Number(searchParams.get("points") || enriched?.points || 0);
+  const title = searchParams.get("title") || enriched?.title || "Ödül";
+  const newBalance = Number(searchParams.get("balance") || loyalty?.balance || 0);
+  const apiMessage = searchParams.get("message") || "";
+  const couponCode = searchParams.get("code") || `POODLE-${rewardId.slice(-4).toUpperCase()}`;
+
+  const reward = {
+    title,
+    couponLabel: title.toUpperCase(),
+    couponCode,
+    pointsUsed,
+    discountAmount: title,
+    minCart: enriched?.minCart?.replace("Min. sepet ", "") ?? "—",
+    expiryDate: "30 gün",
+    validFor: "Sepette geçerli",
+    newBalance,
+    newBalanceTl: `${(newBalance / 10).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL`,
+  };
+
+  const transactionNo = searchParams.get("tx") || `PP-${Date.now()}`;
+  const transactionDate = new Date().toLocaleString("tr-TR", {
+    day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
+  });
 
   const [reminderOn, setReminderOn]   = useState(true);
   const [copiedCode, setCopiedCode]   = useState(false);
@@ -146,7 +160,7 @@ export default function YPOdulHazirPage() {
     showToast("Kupon kodu kopyalandı ✓");
   }
   function copyTxNo() {
-    navigator.clipboard.writeText(TRANSACTION_NO).catch(()=>{});
+    navigator.clipboard.writeText(transactionNo).catch(()=>{});
     setCopiedTx(true); setTimeout(()=>setCopiedTx(false), 2000);
     showToast("İşlem no kopyalandı ✓");
   }
@@ -183,7 +197,7 @@ export default function YPOdulHazirPage() {
 
         {/* ── BREADCRUMB ── */}
         <div style={{ padding:"12px 16px 6px" }}>
-          <button onClick={()=>navigate("/hesabim/poodle-puanlari/odul-merkezi")}
+          <button onClick={()=>goBack(navigate, "/hesabim/poodle-puanlari/odul-merkezi")}
             style={{ background:"none", border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:6, padding:0 }}>
             <ArrowLeft size={15} color={P}/>
             <span style={{ fontSize:11, color:P, fontWeight:500 }}>Hesabım / PoodlePuanlarım / Ödülünüz Hazır</span>
@@ -226,7 +240,7 @@ export default function YPOdulHazirPage() {
               <div style={{ fontSize:22, fontWeight:900, color:P, marginBottom:5, lineHeight:1.2 }}>Ödülünüz Hazır!</div>
               <div style={{ fontSize:12, color:GT, lineHeight:1.55 }}>
                 {reward.pointsUsed} PoodlePuan başarıyla kullanıldı.<br/>
-                {reward.discountAmount} indirim kuponunuz hesabınıza tanımlandı.
+                {apiMessage || `${reward.discountAmount} indirim kuponunuz hesabınıza tanımlandı.`}
               </div>
             </div>
           </div>
@@ -236,16 +250,16 @@ export default function YPOdulHazirPage() {
                         display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <div>
               <div style={{ fontSize:11, color:"#374151", fontWeight:600 }}>
-                İşlem No: {TRANSACTION_NO}
+                İşlem No: {transactionNo}
               </div>
-              <div style={{ fontSize:10, color:"#9CA3AF", marginTop:2 }}>{TRANSACTION_DATE}</div>
+              <div style={{ fontSize:10, color:"#9CA3AF", marginTop:2 }}>{transactionDate}</div>
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:10 }}>
               <button onClick={copyTxNo}
                 style={{ background:"none", border:"none", cursor:"pointer", padding:4 }}>
                 {copiedTx ? <Check size={14} color={GRN}/> : <Copy size={14} color={GT}/>}
               </button>
-              <div style={{ fontSize:10, color:"#9CA3AF" }}>📅 {TRANSACTION_DATE.split("•")[0].trim()}</div>
+              <div style={{ fontSize:10, color:"#9CA3AF" }}>📅 {transactionDate.split(",")[0]?.trim()}</div>
             </div>
           </div>
         </div>
@@ -501,7 +515,11 @@ export default function YPOdulHazirPage() {
           </div>
           <div style={{ background:"#fff", borderRadius:18, border:`1px solid ${GB}`,
                         overflow:"hidden", boxShadow:"0 1px 4px rgba(0,0,0,.04)" }}>
-            {OTHER_REWARDS.map((r, i) => (
+            {OTHER_REWARDS.length === 0 ? (
+              <div style={{ padding:"16px 14px", fontSize:12, color:GT, textAlign:"center" }}>
+                Başka aktif kuponunuz yok.
+              </div>
+            ) : OTHER_REWARDS.map((r, i) => (
               <div key={r.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"12px 14px",
                                         borderBottom: i<OTHER_REWARDS.length-1 ? `1px solid #F9FAFB` : "none" }}>
                 <div style={{ width:34, height:34, borderRadius:10, background:PL, flexShrink:0,

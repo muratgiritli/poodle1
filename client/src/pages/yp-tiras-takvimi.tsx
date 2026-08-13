@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { ChevronLeft, Scissors, Calendar } from "lucide-react";
 import { IS_YP } from "@/lib/store";
+import { goBack } from "@/lib/goBack";
 
 const P = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
@@ -15,10 +16,63 @@ const TIRAS_LABELS: Record<string, string> = {
   "continental": "Continental", "summer": "Yaz Kesimi",
 };
 
-function addDays(dateStr: string, days: number): string {
-  const d = new Date(dateStr);
+function addDaysRaw(dateStr: string, days: number): Date {
+  const d = new Date(dateStr + "T12:00:00");
   d.setDate(d.getDate() + days);
-  return d.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
+  return d;
+}
+
+function toIcsDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}${m}${day}`;
+}
+
+function buildIcs(events: { date: Date; label: string }[], tirasLabel: string): string {
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//YourPoodle//Tiras Takvimi//TR",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+  ];
+  events.forEach((ev, i) => {
+    const dt = toIcsDate(ev.date);
+    lines.push(
+      "BEGIN:VEVENT",
+      `UID:tiras-${dt}-${i}@yourpoodle.com`,
+      `DTSTAMP:${toIcsDate(new Date())}T120000Z`,
+      `DTSTART;VALUE=DATE:${dt}`,
+      `DTEND;VALUE=DATE:${dt}`,
+      `SUMMARY:Poodle Tıraş — ${tirasLabel}`,
+      `DESCRIPTION:${ev.label}`,
+      "END:VEVENT",
+    );
+  });
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n");
+}
+
+function downloadIcs(content: string, filename: string) {
+  const blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function googleCalendarUrl(date: Date, title: string, details: string): string {
+  const dt = toIcsDate(date);
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: title,
+    dates: `${dt}/${dt}`,
+    details,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
 export default function YPTirasTakvimiPage() {
@@ -27,20 +81,48 @@ export default function YPTirasTakvimiPage() {
   const [tirasType, setTirasType] = useState("teddy-bear");
   const [sonTiras, setSonTiras] = useState("");
   const [result, setResult] = useState<string[]>([]);
+  const [resultDates, setResultDates] = useState<Date[]>([]);
+  const [showCalMenu, setShowCalMenu] = useState(false);
 
   function hesapla(e: React.FormEvent) {
     e.preventDefault();
     if (!sonTiras) return;
     const aralik = TIRAS_ARALIGI[tirasType];
-    const dates = [1, 2, 3, 4].map(n => addDays(sonTiras, n * aralik));
-    setResult(dates);
+    const rawDates = [1, 2, 3, 4].map(n => addDaysRaw(sonTiras, n * aralik));
+    setResultDates(rawDates);
+    setResult(rawDates.map(d => d.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })));
+    setShowCalMenu(false);
+  }
+
+  const tirasLabel = TIRAS_LABELS[tirasType];
+
+  function handleDownloadIcs() {
+    if (resultDates.length === 0) return;
+    const events = resultDates.map((date, i) => ({
+      date,
+      label: `${i + 1}. bakım — ${tirasLabel} (${TIRAS_ARALIGI[tirasType]} gün aralık)`,
+    }));
+    downloadIcs(buildIcs(events, tirasLabel), "poodle-tiras-takvimi.ics");
+    setShowCalMenu(false);
+  }
+
+  function handleGoogleCalendar() {
+    if (resultDates.length === 0) return;
+    const first = resultDates[0];
+    const url = googleCalendarUrl(
+      first,
+      `Poodle Tıraş — ${tirasLabel}`,
+      `YourPoodle tıraş hatırlatıcısı. Sonraki bakım: ${result[0]}. Tip: ${tirasLabel}.`,
+    );
+    window.open(url, "_blank", "noopener,noreferrer");
+    setShowCalMenu(false);
   }
 
   return (
     <YPLayout constrain={false}>
       <div style={{ minHeight: "100vh", background: "#F5F0E6", paddingBottom: 48 }}>
         <div style={{ maxWidth: "var(--yp-shell-max)", margin: "0 auto", padding: "24px 20px 0" }}>
-          <button onClick={() => navigate(`${BASE}/araclar`)}
+          <button onClick={() => goBack(navigate, `${BASE}/araclar`)}
             style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", color: "#6B7280", fontSize: 13, fontWeight: 600, padding: 0, fontFamily: "inherit", marginBottom: 20 }}>
             <ChevronLeft size={16} /> Araçlar
           </button>
@@ -70,7 +152,7 @@ export default function YPTirasTakvimiPage() {
             </form>
             {result.length > 0 && (
               <div style={{ marginTop: 24, paddingTop: 24, borderTop: "1px solid #F3F4F6" }}>
-                <p style={{ fontSize: 14, fontWeight: 700, color: "#374151", margin: "0 0 14px" }}>Sonraki bakım tarihleri ({TIRAS_LABELS[tirasType]})</p>
+                <p style={{ fontSize: 14, fontWeight: 700, color: "#374151", margin: "0 0 14px" }}>Sonraki bakım tarihleri ({tirasLabel})</p>
                 {result.map((date, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: i === 0 ? "#F5F0E6" : "#F9F9FB", borderRadius: 10, marginBottom: 8 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -80,10 +162,24 @@ export default function YPTirasTakvimiPage() {
                     {i === 0 && <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", background: P, padding: "2px 8px", borderRadius: 9999 }}>Yaklaşan</span>}
                   </div>
                 ))}
-                <button onClick={() => alert("Takvime ekle özelliği yakında!")}
-                  style={{ marginTop: 12, width: "100%", height: 44, borderRadius: 12, border: "1.5px solid " + P, background: "#F5F0E6", color: P, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                  <Calendar size={15} /> Takvime Ekle
-                </button>
+                <div style={{ position: "relative", marginTop: 12 }}>
+                  <button type="button" onClick={() => setShowCalMenu(v => !v)}
+                    style={{ width: "100%", height: 44, borderRadius: 12, border: "1.5px solid " + P, background: "#F5F0E6", color: P, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                    <Calendar size={15} /> Takvime Ekle
+                  </button>
+                  {showCalMenu && (
+                    <div style={{ position: "absolute", left: 0, right: 0, top: "calc(100% + 6px)", background: "#fff", border: "1px solid #E5E7EB", borderRadius: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.1)", overflow: "hidden", zIndex: 10 }}>
+                      <button type="button" onClick={handleDownloadIcs}
+                        style={{ width: "100%", padding: "12px 16px", border: "none", background: "#fff", textAlign: "left", fontSize: 13, fontWeight: 600, color: "#374151", cursor: "pointer", fontFamily: "inherit", borderBottom: "1px solid #F3F4F6" }}>
+                        📥 .ics dosyası indir (Apple / Outlook)
+                      </button>
+                      <button type="button" onClick={handleGoogleCalendar}
+                        style={{ width: "100%", padding: "12px 16px", border: "none", background: "#fff", textAlign: "left", fontSize: 13, fontWeight: 600, color: "#374151", cursor: "pointer", fontFamily: "inherit" }}>
+                        📅 Google Takvim'e ekle
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

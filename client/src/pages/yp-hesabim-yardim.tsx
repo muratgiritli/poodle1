@@ -1,16 +1,23 @@
 // Route: /hesabim/yardim
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft, Search, Headphones, Package, RefreshCw, CreditCard,
   ShoppingBag, PawPrint, User, ChevronRight, MessageCircle,
   Mail, Phone, Plus, Minus, X,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import { goBack } from "@/lib/goBack";
+import {
+  SUPPORT_BRAND as P,
+  SUPPORT_BRAND_LIGHT as PL,
+  fetchSupportTickets,
+  formatTicketDate,
+  ticketStatusGroup,
+} from "@/lib/support-api";
 
 /* ── Palette ─────────────────────────── */
-const P   = "#4B2BD6";
-const PL  = "#F5F0E6";
 const NAV = "#1D1E9B";
 const DRK = "#111827";
 const GT  = "#6B7280";
@@ -95,6 +102,16 @@ export default function YPHesabimYardimPage() {
   const [liveOpen, setLiveOpen]     = useState(false);
   const [toast, setToast]           = useState("");
 
+  const { data: tickets = [] } = useQuery({
+    queryKey: ["/api/customer/support-tickets"],
+    queryFn: fetchSupportTickets,
+  });
+
+  const activeTicket = useMemo(
+    () => tickets.find(t => ticketStatusGroup(t.status) !== "solved") ?? null,
+    [tickets],
+  );
+
   const showToast = (m: string) => { setToast(m); setTimeout(()=>setToast(""), 2200); };
 
   const performSearch = () => {
@@ -129,7 +146,7 @@ export default function YPHesabimYardimPage() {
         <div style={{ padding:"14px 16px 12px", background:"#fff",
                       borderBottom:`1px solid ${GBR}`, marginBottom:12 }}>
           <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:12 }}>
-            <button onClick={() => navigate("/hesabim")}
+            <button onClick={() => goBack(navigate, "/hesabim")}
               style={{ background:"none", border:"none", cursor:"pointer", padding:0, display:"flex" }}>
               <ArrowLeft size={17} color={P} />
             </button>
@@ -219,7 +236,7 @@ export default function YPHesabimYardimPage() {
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
             {CATS.map(({ id, title, sub, Icon, bg, ic }) => (
               <button key={id}
-                onClick={() => showToast(`${title} - Yakında`)}
+                onClick={() => navigate("/hesabim/yardim/yeni-talep")}
                 style={{ background:"#fff", border:`1px solid ${GBR}`, borderRadius:16,
                          padding:"14px", textAlign:"left", cursor:"pointer",
                          fontFamily:"inherit", display:"flex", flexDirection:"column", gap:8 }}>
@@ -236,40 +253,54 @@ export default function YPHesabimYardimPage() {
           </div>
         </div>
 
-        {/* ── DEVAM EDEN DESTEK TALEBİ ── */}
         <div style={{ padding:"0 16px 16px" }}>
-          <div style={{ fontSize:14, fontWeight:700, color:DRK, marginBottom:12 }}>
-            Devam Eden Destek Talebiniz
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+            <span style={{ fontSize:14, fontWeight:700, color:DRK }}>
+              Devam Eden Destek Talebiniz
+            </span>
+            <button onClick={() => navigate("/hesabim/destek-talepleri")}
+              style={{ background:"none", border:"none", color:P, fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
+              Tümü
+            </button>
           </div>
+          {!activeTicket ? (
+            <div style={{ background:"#fff", border:`1px solid ${GBR}`, borderRadius:16, padding:"20px 14px", textAlign:"center" }}>
+              <div style={{ fontSize:13, color:GT, marginBottom:12 }}>Açık destek talebiniz yok.</div>
+              <button onClick={() => navigate("/hesabim/yardim/yeni-talep")}
+                style={{ background:P, color:"#fff", border:"none", borderRadius:12, padding:"9px 14px", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
+                Yeni Talep Oluştur
+              </button>
+            </div>
+          ) : (
           <button
-            onClick={() => showToast("Talep detayı yakında")}
+            onClick={() => navigate(`/hesabim/yardim/talep/${activeTicket.id}`)}
             style={{ width:"100%", background:"#fff", border:`1px solid ${GBR}`,
                      borderRadius:16, padding:"14px", cursor:"pointer", fontFamily:"inherit",
                      textAlign:"left" }}>
-            {/* Top row */}
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
-              <span style={{ fontSize:10, fontWeight:700, color:P,
-                             background:PL, padding:"3px 9px", borderRadius:999 }}>
-                Yanıt Bekleniyor
+              <span style={{ fontSize:10, fontWeight:700, color:P, background:PL, padding:"3px 9px", borderRadius:999 }}>
+                {ticketStatusGroup(activeTicket.status) === "replied" ? "Yanıtlandı" : "İnceleniyor"}
               </span>
               <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                <span style={{ fontSize:11, color:GT, fontWeight:500 }}>#YP-4821</span>
+                <span style={{ fontSize:11, color:GT, fontWeight:500 }}>#{activeTicket.id}</span>
                 <ChevronRight size={15} color="#D1D5DB" />
               </div>
             </div>
-            {/* Title */}
             <div style={{ fontSize:14, fontWeight:700, color:DRK, marginBottom:3 }}>
-              Eksik ürün bildirimi
+              {activeTicket.subject}
             </div>
-            <div style={{ fontSize:12, color:GT, marginBottom:12 }}>
-              Sipariş: YP-20260723
-            </div>
-            {/* Bottom row */}
+            {activeTicket.orderId != null && (
+              <div style={{ fontSize:12, color:GT, marginBottom:12 }}>
+                Sipariş: {activeTicket.orderId}
+              </div>
+            )}
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
                           borderTop:`1px solid ${GBR}`, paddingTop:12 }}>
-              <span style={{ fontSize:11, color:"#9CA3AF" }}>Son güncelleme: Bugün 14:32</span>
+              <span style={{ fontSize:11, color:"#9CA3AF" }}>
+                Son güncelleme: {formatTicketDate(activeTicket.updatedAt || activeTicket.createdAt)}
+              </span>
               <button
-                onClick={e => { e.stopPropagation(); navigate("/hesabim/yardim/talep/YP-4822"); }}
+                onClick={e => { e.stopPropagation(); navigate(`/hesabim/yardim/talep/${activeTicket.id}`); }}
                 style={{ fontSize:10, fontWeight:700, color:P, border:`1px solid ${P}`,
                          background:"#fff", borderRadius:8, padding:"5px 10px",
                          cursor:"pointer", fontFamily:"inherit" }}>
@@ -277,6 +308,7 @@ export default function YPHesabimYardimPage() {
               </button>
             </div>
           </button>
+          )}
         </div>
 
         {/* ── SIK SORULAN SORULAR ── */}

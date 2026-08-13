@@ -5,6 +5,7 @@ import { ArrowLeft, MapPin, Calendar, Clock, Users, Plus } from "lucide-react";
 import { getEvent } from "@/data/events";
 import { IS_YP } from "@/lib/store";
 import { useCustomer } from "@/contexts/CustomerContext";
+import { goBack } from "@/lib/goBack";
 
 const P = "#5D3A1A";
 const BASE = IS_YP ? "" : "/yourpoodle";
@@ -132,7 +133,7 @@ export default function YPEtkinlikDetayPage() {
       )}
       <div style={{ minHeight: "100vh", background: "#FAFAFA", paddingBottom: 64 }}>
         <div style={{ maxWidth: 760, margin: "0 auto", padding: "20px 20px 0" }}>
-          <button onClick={() => navigate(`${BASE}/etkinlikler`)}
+          <button onClick={() => goBack(navigate, `${BASE}/etkinlikler`)}
             style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: "#6B7280", fontSize: 13, fontWeight: 600, padding: 0, fontFamily: "inherit", marginBottom: 20 }}>
             <ArrowLeft size={16} /> Etkinlikler
           </button>

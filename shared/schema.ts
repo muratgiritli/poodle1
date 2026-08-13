@@ -57,6 +57,7 @@ export const products = pgTable("products", {
   stock: integer("stock").notNull().default(10),
   barcode: text("barcode"),
   costPrice: real("cost_price"),
+  criticalStock: integer("critical_stock").default(5),
   mamaType: text("mama_type"),
   preorderEnabled: boolean("preorder_enabled").notNull().default(false),
   isStreetAnimal: boolean("is_street_animal").notNull().default(false),
@@ -140,6 +141,9 @@ export const orders = pgTable("orders", {
   sourceSite: text("source_site"),
   cancelReason: text("cancel_reason"),
   cancelReasonText: text("cancel_reason_text"),
+  adminNote: text("admin_note"),
+  visitorId: text("visitor_id"),
+  sessionId: text("session_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -352,6 +356,9 @@ export const coupons = pgTable("coupons", {
   expiresAt: timestamp("expires_at"),
   customerId: integer("customer_id"),
   store: text("store").notNull().default("all"),
+  firstOrderOnly: boolean("first_order_only").notNull().default(false),
+  maxDiscountAmount: real("max_discount_amount"),
+  freeShipping: boolean("free_shipping").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -569,3 +576,86 @@ export const ipGeoCache = pgTable("ip_geo_cache", {
   resolvedAt: timestamp("resolved_at").notNull().defaultNow(),
 });
 export type IpGeoCache = typeof ipGeoCache.$inferSelect;
+
+/** Phase 1 first-party analytics — anonymous visitor identity */
+export const analyticsVisitors = pgTable("analytics_visitors", {
+  id: text("id").primaryKey(),
+  firstSeenAt: timestamp("first_seen_at").notNull().defaultNow(),
+  lastSeenAt: timestamp("last_seen_at").notNull().defaultNow(),
+  userId: integer("user_id"),
+  firstSource: text("first_source"),
+  firstMedium: text("first_medium"),
+  firstCampaign: text("first_campaign"),
+  firstLandingPage: text("first_landing_page"),
+  firstReferrer: text("first_referrer"),
+});
+export type AnalyticsVisitor = typeof analyticsVisitors.$inferSelect;
+
+export const analyticsSessions = pgTable("analytics_sessions", {
+  id: text("id").primaryKey(),
+  visitorId: text("visitor_id").notNull(),
+  userId: integer("user_id"),
+  startedAt: timestamp("started_at").notNull().defaultNow(),
+  lastActivityAt: timestamp("last_activity_at").notNull().defaultNow(),
+  landingPage: text("landing_page"),
+  entryReferrer: text("entry_referrer"),
+  utmSource: text("utm_source"),
+  utmMedium: text("utm_medium"),
+  utmCampaign: text("utm_campaign"),
+  utmContent: text("utm_content"),
+  utmTerm: text("utm_term"),
+  gclid: text("gclid"),
+  fbclid: text("fbclid"),
+  ttclid: text("ttclid"),
+  gbraid: text("gbraid"),
+  wbraid: text("wbraid"),
+  msclkid: text("msclkid"),
+  source: text("source"),
+  city: text("city"),
+  region: text("region"),
+  country: text("country"),
+  userAgent: text("user_agent"),
+  isBot: boolean("is_bot").notNull().default(false),
+  pageCount: integer("page_count").notNull().default(0),
+  device: text("device"),
+  os: text("os"),
+  browser: text("browser"),
+  sourceLabel: text("source_label"),
+  mediumNorm: text("medium_norm"),
+  isPaid: boolean("is_paid").notNull().default(false),
+  activeSeconds: integer("active_seconds").notNull().default(0),
+});
+export type AnalyticsSession = typeof analyticsSessions.$inferSelect;
+
+export const analyticsEvents = pgTable("analytics_events", {
+  id: serial("id").primaryKey(),
+  visitorId: text("visitor_id").notNull(),
+  sessionId: text("session_id").notNull(),
+  userId: integer("user_id"),
+  eventName: text("event_name").notNull(),
+  pageUrl: text("page_url"),
+  referrer: text("referrer"),
+  metadata: jsonb("metadata").notNull().default({}),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
+
+export const analyticsOrderAttribution = pgTable("analytics_order_attribution", {
+  orderId: integer("order_id").primaryKey(),
+  visitorId: text("visitor_id"),
+  sessionId: text("session_id"),
+  firstSource: text("first_source"),
+  firstMedium: text("first_medium"),
+  firstCampaign: text("first_campaign"),
+  lastSource: text("last_source"),
+  lastMedium: text("last_medium"),
+  lastCampaign: text("last_campaign"),
+  landingPage: text("landing_page"),
+  gclid: text("gclid"),
+  fbclid: text("fbclid"),
+  ttclid: text("ttclid"),
+  revenue: numeric("revenue"),
+  currency: text("currency").default("TRY"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+export type AnalyticsOrderAttribution = typeof analyticsOrderAttribution.$inferSelect;

@@ -4,6 +4,7 @@ import { ArrowLeft, ChevronRight, RotateCcw, Trash2 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import YPBreadcrumb from "@/components/YPBreadcrumb";
 import { useCustomer } from "@/contexts/CustomerContext";
+import { goBack } from "@/lib/goBack";
 
 const BREADCRUMBS = [
   { label: "Ana Sayfa", href: "/" },
@@ -257,7 +258,7 @@ export default function YPGecmisOnerilerPage() {
         {/* Header */}
         <section style={{ background: "linear-gradient(135deg, #5D3A1A 0%, #3D2612 100%)", padding: "28px 20px 24px", color: "#fff" }}>
           <button
-            onClick={() => navigate("/yourpoodle/profil")}
+            onClick={() => goBack(navigate, "/yourpoodle/profil")}
             style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 12, padding: "6px 14px 6px 10px", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontFamily: "'Inter', sans-serif", marginBottom: 16 }}
           >
             <ArrowLeft size={15} /> Profilim

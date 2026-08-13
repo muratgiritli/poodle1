@@ -52,11 +52,14 @@ interface Props {
   constrain?: boolean;
   authMode?: boolean;
   hideFooter?: boolean;
+  /** Show site footer on mobile too (default: desktop only). */
+  showMobileFooter?: boolean;
   hideHeader?: boolean;
+  hideBottomNav?: boolean;
 }
 
 export default function YPLayout({
-  children, activeLink = "", bottomNavActive, constrain = true, authMode = false, hideFooter = false, hideHeader = false,
+  children, activeLink = "", bottomNavActive, constrain = true, authMode = false, hideFooter = false, showMobileFooter = false, hideHeader = false, hideBottomNav = false,
 }: Props) {
   const effectiveBottomLink = bottomNavActive ?? activeLink;
   const [drawerOpen, setDrawerOpen]   = useState(false);
@@ -105,7 +108,13 @@ export default function YPLayout({
   const initials = customer?.name?.slice(0, 1).toUpperCase() || "";
 
   return (
-    <div style={{ fontFamily: "'DM Sans','Helvetica Neue',Arial,sans-serif", minHeight: "100vh", background: "#FAF8F4" }}>
+    <div
+      className={[
+        hideBottomNav || hideHeader ? "yp-chat-mode" : "",
+        showMobileFooter ? "yp-show-mobile-footer" : "",
+      ].filter(Boolean).join(" ") || undefined}
+      style={{ fontFamily: "'DM Sans','Helvetica Neue',Arial,sans-serif", minHeight: "100vh", background: "#FAF8F4" }}
+    >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap');
 
@@ -113,6 +122,7 @@ export default function YPLayout({
         .yp-mobile-hdr  { display: flex !important; }
         .yp-btm-nav     { display: block !important; }
         .yp-page-body   { padding-bottom: 80px; }
+        .yp-chat-mode .yp-page-body { padding-bottom: 0 !important; }
 
         /* ── Responsive page wrappers ──────────────────────── */
         /* Account inner: mobile 480px, desktop 860px */
@@ -133,6 +143,16 @@ export default function YPLayout({
         @media (min-width: 768px) {
           .yp-ai-sticky-bar { bottom: 0 !important; }
           .yp-ai-scroll     { padding-bottom: 0 !important; }
+        }
+
+        /* Site footer: hidden on mobile by default; desktop always; opt-in via .yp-show-mobile-footer */
+        .yp-site-footer { display: none !important; }
+        @media (min-width: 768px) {
+          .yp-site-footer { display: block !important; }
+        }
+        .yp-show-mobile-footer .yp-site-footer {
+          display: block !important;
+          padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
         }
 
         /* Tablet + desktop chrome */
@@ -463,7 +483,7 @@ export default function YPLayout({
       </div>
 
       {/* ════════════ UNIFIED MOBILE BOTTOM NAV ════════════ */}
-      {!authMode && <YPBottomNav />}
+      {!authMode && !hideBottomNav && <YPBottomNav />}
     </div>
   );
 }

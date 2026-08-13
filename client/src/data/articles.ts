@@ -579,3 +579,11 @@ export function getArticle(slug: string): Article | undefined {
 export function getArticlesByCategory(cat: string): Article[] {
   return MOCK_ARTICLES.filter(a => a.category === cat);
 }
+
+/** Lightweight list for admin: which guide pages can get product recommendations */
+export const GUIDE_ARTICLE_OPTIONS = MOCK_ARTICLES.map(a => ({
+  slug: a.slug,
+  title: a.title,
+  category: a.category,
+  categoryLabel: a.categoryLabel,
+}));

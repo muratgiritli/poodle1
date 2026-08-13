@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 500" role="img" aria-label="iyzico ile �de">
+  <rect width="780" height="500" rx="48" fill="#fff"/>
+  <!-- iyzico brand mark (blue wordmark style) -->
+  <g transform="translate(90 155)">
+    <circle cx="36" cy="36" r="36" fill="#1E64FF"/>
+    <text x="26" y="50" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="800" fill="#fff">i</text>
+    <text x="90" y="58" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="800" fill="#1E64FF" letter-spacing="-1">yzico</text>
+  </g>
+  <text x="390" y="360" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" fill="#111827">ile �de</text>
+  <text x="390" y="410" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#6B7280">G�venli �deme altyap1s1</text>
+</svg>

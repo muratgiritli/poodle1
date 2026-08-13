@@ -8,6 +8,7 @@ interface CustomerData {
   address: string | null;
   city: string | null;
   district: string | null;
+  email?: string | null;
   notifyStock: boolean;
   notifyCampaign: boolean;
 }
@@ -17,7 +18,7 @@ interface CustomerContextType {
   isLoading: boolean;
   isLoggedIn: boolean;
   login: (phone: string, password: string) => Promise<void>;
-  register: (phone: string, password: string, name: string, address?: string) => Promise<void>;
+  register: (phone: string, password: string, name: string, address?: string, otp?: string) => Promise<void>;
   loginWithOtp: (phone: string, code: string, name?: string, address?: string, city?: string, district?: string) => Promise<{ requiresRegistration?: boolean; isNewUser?: boolean; id?: number } & Record<string, any>>;
   logout: () => Promise<void>;
   updateProfile: (data: { name?: string; address?: string; city?: string | null; district?: string | null; email?: string | null; tcNo?: string | null }) => Promise<void>;
@@ -47,6 +48,10 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    try {
+      localStorage.removeItem("yp_trusted_devices");
+      localStorage.removeItem("jetgo_trusted_devices");
+    } catch { /* ignore */ }
     fetchMe();
   }, [fetchMe]);
 
@@ -71,8 +76,8 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
     setTimeout(syncLocalFavorites, 500);
   }, [syncLocalFavorites]);
 
-  const register = useCallback(async (phone: string, password: string, name: string, address?: string) => {
-    const res = await apiRequest("POST", "/api/customer/register", { phone, password, name, address });
+  const register = useCallback(async (phone: string, password: string, name: string, address?: string, otp?: string) => {
+    const res = await apiRequest("POST", "/api/customer/register", { phone, password, name, address, otp });
     const data = await res.json();
     setCustomer(data);
     setTimeout(syncLocalFavorites, 500);
@@ -84,13 +89,7 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
     if (data.requiresRegistration) {
       return data;
     }
-    if (data.deviceToken) {
-      try {
-        const tokens = JSON.parse(localStorage.getItem("jetgo_trusted_devices") || "{}");
-        tokens[phone] = data.deviceToken;
-        localStorage.setItem("jetgo_trusted_devices", JSON.stringify(tokens));
-      } catch {}
-    }
+    // Trusted device is set as HttpOnly cookie by the server — not stored in JS.
     setCustomer(data);
     setTimeout(syncLocalFavorites, 500);
     return data;
@@ -104,11 +103,8 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
     queryClient.removeQueries({ queryKey: ["/api/customer/favorites/details"] });
     queryClient.removeQueries({ queryKey: ["/api/customer/addresses"] });
     queryClient.removeQueries({ queryKey: ["/api/customer/pets"] });
-    // Task 7: Clear sensitive localStorage keys on logout
-    const YP_KEYS = [
-      "yp_ai_messages", "yp_ai_profile", "yp_cart_items",
-      "jetgo_trusted_devices",
-    ];
+    // Clear cart/AI local state. Pattern lock stays; trusted device is HttpOnly cookie.
+    const YP_KEYS = ["yp_ai_messages", "yp_ai_profile", "yp_cart_items"];
     YP_KEYS.forEach(k => { try { localStorage.removeItem(k); } catch {} });
   }, []);
 

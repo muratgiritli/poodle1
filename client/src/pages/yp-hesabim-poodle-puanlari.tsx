@@ -1,17 +1,27 @@
 // Route: /hesabim/poodle-puanlari
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft, PawPrint, Crown, PlusCircle, ShoppingBag, Clock,
   Plus, Minus, Ticket, Package, Scissors, ChevronDown, ChevronUp,
   Gift, X, Star, BadgePercent,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import { goBack } from "@/lib/goBack";
+import {
+  LOYALTY_BRAND as P,
+  LOYALTY_BRAND_DARK as PD,
+  LOYALTY_BRAND_LIGHT as PL_BRAND,
+  enrichReward,
+  fetchLoyalty,
+  fetchRewards,
+  filterTransactions,
+  formatLoyaltyDate,
+} from "@/lib/loyalty-api";
 
 /* ── Palette ─────────────────────────── */
-const P    = "#5D3EBD";
-const PD   = "#4A22A0";
-const PL   = "#F5F0E6";
+const PL   = PL_BRAND || "#F5F0E6";
 const NAV  = "#1D1E9B";
 const DRK  = "#111827";
 const GT   = "#6B7280";
@@ -20,44 +30,6 @@ const GRN  = "#16A34A";
 const RED  = "#DC2626";
 const GOLD = "#F59E0B";
 const GOLDB= "#FBBF24";
-
-/* ── Mock data ───────────────────────── */
-const BALANCE = {
-  total: 1275,
-  tlValue: "127,50 TL",
-  expiringPoints: 120,
-  expiringDate: "31 Ağustos",
-  tier: "Mor Poodle Üye",
-  nextTier: "Gold Poodle",
-  pointsToNextTier: 725,
-  tierProgress: 64,
-};
-
-const QUICK_STATS = [
-  { icon: PlusCircle,   label:"Bu Ay",    value:"+425 Puan",        color:P  },
-  { icon: ShoppingBag,  label:"Harcanan", value:"350 Puan",          color:P  },
-  { icon: Clock,        label:"Yaklaşan", value:"120 Puan",          color:P  },
-  { icon: Crown,        label:"Seviye",   value:"Mor Poodle Üye",    color:P  },
-];
-
-type Tx = {
-  id:string; type:"earn"|"spend"; title:string; subtitle?:string;
-  points:number; date:string; category:string;
-};
-const TRANSACTIONS: Tx[] = [
-  { id:"pt-1", type:"earn",  title:"Destek değerlendirmesi", subtitle:"Talep #YP-4798",                     points: 25,    date:"Bugün",    category:"support" },
-  { id:"pt-2", type:"earn",  title:"Sipariş alışverişi",     subtitle:"Sipariş #YP-20260723 • 1.338 TL",    points: 134,   date:"23 Temmuz",category:"order"   },
-  { id:"pt-3", type:"earn",  title:"Club paylaşımı",          subtitle:"Gönderiniz 100 beğeniye ulaştı",     points: 50,    date:"20 Temmuz",category:"club"    },
-  { id:"pt-4", type:"spend", title:"Kupon indirimi",          subtitle:"100 TL alışveriş indirimi",          points:-1000,  date:"20 Temmuz",category:"coupon"  },
-  { id:"pt-5", type:"earn",  title:"Günlük giriş serisi",     subtitle:"7 gün üst üste giriş",               points: 75,    date:"15 Temmuz",category:"daily"   },
-  { id:"pt-6", type:"earn",  title:"Rehber tamamlandı",       subtitle:"Toy Poodle Tuvalet Eğitimi",         points: 20,    date:"18 Temmuz",category:"guide"   },
-];
-
-const REWARDS = [
-  { id:"rw-1", title:"50 TL İndirim",      pointsCost:500, minCart:"Min. sepet 500 TL", type:"coupon"   },
-  { id:"rw-2", title:"Ücretsiz Kargo",     pointsCost:300, minCart:"Min. sepet 250 TL", type:"shipping" },
-  { id:"rw-3", title:"%15 Bakım İndirimi", pointsCost:750, minCart:"Min. sepet 300 TL", type:"care"     },
-];
 
 const EARN_TASKS = [
   { id:"et-1", title:"Poodle Profilini Tamamla",  points:100, btn:"Tamamla",   progress:80,  link:"/hesabim/ayarlar" },
@@ -82,7 +54,10 @@ function fmtPoints(n: number) {
 }
 
 /* ── UsePoints Modal ─────────────────── */
-function UsePointsModal({ onClose, navigate }: { onClose:()=>void; navigate:(p:string)=>void }) {
+function UsePointsModal({ onClose, navigate, rewards, balance }: {
+  onClose:()=>void; navigate:(p:string)=>void;
+  rewards: ReturnType<typeof enrichReward>[]; balance: number;
+}) {
   return (
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.5)",
                   display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:9999 }}>
@@ -94,16 +69,25 @@ function UsePointsModal({ onClose, navigate }: { onClose:()=>void; navigate:(p:s
             <X size={20} color={GT} />
           </button>
         </div>
-        {REWARDS.map(r => (
+        {rewards.length === 0 ? (
+          <div style={{ fontSize:13, color:GT, textAlign:"center", padding:"16px 0" }}>
+            Henüz kullanılabilir ödül yok.
+          </div>
+        ) : rewards.map(r => (
           <div key={r.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
                                    padding:"12px 0", borderBottom:`1px solid #F3F4F6` }}>
             <div>
               <div style={{ fontSize:13, fontWeight:600, color:DRK }}>{r.title}</div>
               <div style={{ fontSize:11, color:P, marginTop:2 }}>{r.pointsCost} Puan</div>
             </div>
-            <button style={{ background:P, color:"#fff", border:"none", borderRadius:10,
-                             padding:"7px 14px", fontSize:11, fontWeight:700, cursor:"pointer",
-                             fontFamily:"inherit" }}>
+            <button
+              onClick={() => navigate(`/hesabim/poodle-puanlari/odul-onayla/${r.id}`)}
+              disabled={balance < r.pointsCost}
+              style={{
+                background: balance >= r.pointsCost ? P : GB, color: balance >= r.pointsCost ? "#fff" : GT,
+                border:"none", borderRadius:10, padding:"7px 14px", fontSize:11, fontWeight:700,
+                cursor: balance >= r.pointsCost ? "pointer" : "not-allowed", fontFamily:"inherit",
+              }}>
               Kullan
             </button>
           </div>
@@ -168,20 +152,45 @@ export default function YPPoodlePuanlariPage() {
   const [activeTab,     setActiveTab]     = useState<Tab>("movements");
   const [filter,        setFilter]        = useState<Filter>("all");
   const [openFaq,       setOpenFaq]       = useState<string|null>(null);
-  const [balance,       setBalance]       = useState(BALANCE.total);
   const [useModal,      setUseModal]      = useState(false);
   const [earnModal,     setEarnModal]     = useState(false);
   const [showAll,       setShowAll]       = useState(false);
   const [toast,         setToast]         = useState("");
 
+  const { data: loyalty, isLoading } = useQuery({
+    queryKey: ["/api/customer/loyalty"],
+    queryFn: fetchLoyalty,
+  });
+  const { data: rewardCatalog = [] } = useQuery({
+    queryKey: ["/api/customer/loyalty/rewards"],
+    queryFn: fetchRewards,
+  });
+
+  const balance = loyalty?.balance ?? 0;
+  const transactions = loyalty?.transactions ?? [];
+  const rewards = useMemo(() => rewardCatalog.slice(0, 3).map(enrichReward), [rewardCatalog]);
+
+  const quickStats = useMemo(() => {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    let earnedMonth = 0;
+    let spentTotal = 0;
+    for (const tx of transactions) {
+      if (tx.amount > 0 && new Date(tx.createdAt) >= monthStart) earnedMonth += tx.amount;
+      if (tx.amount < 0) spentTotal += Math.abs(tx.amount);
+    }
+    return [
+      { icon: PlusCircle, label: "Bu Ay", value: earnedMonth ? `+${earnedMonth.toLocaleString("tr-TR")} Puan` : "—", color: P },
+      { icon: ShoppingBag, label: "Harcanan", value: spentTotal ? `${spentTotal.toLocaleString("tr-TR")} Puan` : "—", color: P },
+      { icon: Clock, label: "Hareket", value: `${transactions.length}`, color: P },
+      { icon: Crown, label: "Seviye", value: "Poodle Üye", color: P },
+    ];
+  }, [transactions]);
+
   const showToast = (m:string) => { setToast(m); setTimeout(()=>setToast(""), 2800); };
 
-  const useReward = (id:string) => {
-    const r = REWARDS.find(x => x.id === id);
-    if (!r) return;
-    if (balance < r.pointsCost) { showToast("Yeterli puan yok"); return; }
-    setBalance(b => b - r.pointsCost);
-    showToast("Ödül kullanıldı ✓");
+  const useReward = (id: string) => {
+    navigate(`/hesabim/poodle-puanlari/odul-onayla/${id}`);
   };
 
   const earnAction = (task: typeof EARN_TASKS[0]) => {
@@ -189,17 +198,11 @@ export default function YPPoodlePuanlariPage() {
     else showToast("Davet bağlantısı kopyalandı ✓");
   };
 
-  const filteredTx = TRANSACTIONS.filter(t => {
-    if (filter === "earned") return t.type === "earn";
-    if (filter === "spent")  return t.type === "spend";
-    return true;
-  });
+  const filteredTx = filterTransactions(transactions, filter);
   const visibleTx = showAll ? filteredTx : filteredTx.slice(0, 6);
 
-  /* Icon lookup per category */
-  const txIcon = (t: Tx) => {
-    if (t.type === "spend") return { Icon: Minus, bg:"#FEF2F2", ic:RED };
-    if (t.category === "club") return { Icon: Plus, bg:PL, ic:P };
+  const txIcon = (amount: number) => {
+    if (amount < 0) return { Icon: Minus, bg:"#FEF2F2", ic:RED };
     return { Icon: Plus, bg:"#F0FDF4", ic:GRN };
   };
 
@@ -210,7 +213,7 @@ export default function YPPoodlePuanlariPage() {
 
         {/* ── BREADCRUMB + HEADER ── */}
         <div style={{ padding:"14px 16px 10px" }}>
-          <button onClick={() => navigate("/hesabim")}
+          <button onClick={() => goBack(navigate, "/hesabim")}
             style={{ display:"flex", alignItems:"center", gap:6, background:"none",
                      border:"none", cursor:"pointer", padding:0, fontFamily:"inherit" }}>
             <ArrowLeft size={15} color={P} />
@@ -234,7 +237,7 @@ export default function YPPoodlePuanlariPage() {
                           background:"rgba(255,255,255,.18)", borderRadius:20,
                           padding:"3px 10px" }}>
               <Crown size={12} color={GOLDB} />
-              <span style={{ fontSize:10, color:"#fff", fontWeight:700 }}>Mor Poodle Üye</span>
+              <span style={{ fontSize:10, color:"#fff", fontWeight:700 }}>Poodle Üye</span>
             </div>
           </div>
           {/* Main row */}
@@ -254,16 +257,11 @@ export default function YPPoodlePuanlariPage() {
                 Kullanılabilir Puan
               </div>
               <div style={{ fontSize:24, fontWeight:800, color:"#fff", lineHeight:1.1 }}>
-                {balance.toLocaleString("tr-TR")} <span style={{ fontSize:14, fontWeight:600 }}>PoodlePuan</span>
+                {isLoading ? "…" : balance.toLocaleString("tr-TR")}{" "}
+                <span style={{ fontSize:14, fontWeight:600 }}>PoodlePuan</span>
               </div>
               <div style={{ fontSize:11, color:"#D4C4B0", marginTop:4 }}>
                 {(balance / 10).toLocaleString("tr-TR", { minimumFractionDigits:2 })} TL indirim değerinde
-              </div>
-              <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:6 }}>
-                <Clock size={11} color="rgba(255,255,255,.7)" />
-                <span style={{ fontSize:10, color:"rgba(255,255,255,.75)" }}>
-                  {BALANCE.expiringPoints} puan • {BALANCE.expiringDate}'ta sona erecek
-                </span>
               </div>
             </div>
             {/* Buttons */}
@@ -288,23 +286,17 @@ export default function YPPoodlePuanlariPage() {
         <div style={{ margin:"0 16px 14px", background:"#fff", borderRadius:20,
                       border:"1px solid #F3F4F6", boxShadow:"0 1px 4px rgba(0,0,0,.05)", padding:"14px 16px" }}>
           <div style={{ fontSize:13, fontWeight:700, color:DRK, marginBottom:12 }}>
-            Bir sonraki seviyeye {BALANCE.pointsToNextTier} puan kaldı
+            Puan kazanmaya devam edin
           </div>
-          {/* Bar */}
           <div style={{ position:"relative", height:10, background:PL, borderRadius:999,
                         overflow:"hidden", marginBottom:6 }}>
-            <div style={{ width:`${BALANCE.tierProgress}%`, height:"100%",
-                          background:P, borderRadius:999,
-                          display:"flex", alignItems:"center", justifyContent:"flex-end",
-                          paddingRight:4 }}>
-              <span style={{ fontSize:8, fontWeight:700, color:"#fff" }}>{BALANCE.tierProgress}%</span>
-            </div>
+            <div style={{ width:`${Math.min(100, Math.round((balance % 2000) / 20))}%`, height:"100%",
+                          background:P, borderRadius:999 }} />
           </div>
-          {/* Labels */}
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <div style={{ display:"flex", alignItems:"center", gap:4 }}>
               <Crown size={13} color={P} />
-              <span style={{ fontSize:11, fontWeight:700, color:P }}>Mor Poodle</span>
+              <span style={{ fontSize:11, fontWeight:700, color:P }}>Poodle Üye</span>
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:4 }}>
               <Crown size={13} color={GOLD} />
@@ -318,7 +310,7 @@ export default function YPPoodlePuanlariPage() {
 
         {/* ── QUICK STATS 2×2 ── */}
         <div style={{ padding:"0 16px 14px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
-          {QUICK_STATS.map(({ icon: Icon, label, value }) => (
+          {quickStats.map(({ icon: Icon, label, value }) => (
             <div key={label} style={{ background:"#fff", border:"1px solid #F3F4F6",
                                       borderRadius:14, padding:"12px" }}>
               <div style={{ width:32, height:32, borderRadius:10, background:PL,
@@ -370,8 +362,16 @@ export default function YPPoodlePuanlariPage() {
             </div>
             <div style={{ background:"#fff", borderRadius:16, border:"1px solid #F3F4F6",
                           padding:"0 14px" }}>
-              {visibleTx.map((t, i) => {
-                const { Icon, bg, ic } = txIcon(t);
+              {visibleTx.length === 0 ? (
+                <div style={{ padding:"28px 8px", textAlign:"center" }}>
+                  <PawPrint size={32} color={GB} style={{ margin:"0 auto 10px" }} />
+                  <div style={{ fontSize:14, fontWeight:600, color:DRK }}>Henüz puan hareketi yok</div>
+                  <div style={{ fontSize:12, color:GT, marginTop:4 }}>
+                    Alışveriş yaptıkça ve görevleri tamamladıkça hareketler burada görünür.
+                  </div>
+                </div>
+              ) : visibleTx.map((t, i) => {
+                const { Icon, bg, ic } = txIcon(t.amount);
                 const isLast = i === visibleTx.length - 1;
                 return (
                   <div key={t.id} style={{ display:"flex", alignItems:"center", gap:12,
@@ -385,25 +385,26 @@ export default function YPPoodlePuanlariPage() {
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ fontSize:13, fontWeight:600, color:DRK,
                                     overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                        {t.title}
+                        {t.description}
                       </div>
-                      {t.subtitle && (
-                        <div style={{ fontSize:11, color:GT, marginTop:1,
-                                      overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                          {t.subtitle}
+                      {t.orderId != null && (
+                        <div style={{ fontSize:11, color:GT, marginTop:1 }}>
+                          Sipariş #{t.orderId}
                         </div>
                       )}
-                      <div style={{ fontSize:10, color:"#9CA3AF", marginTop:2 }}>{t.date}</div>
+                      <div style={{ fontSize:10, color:"#9CA3AF", marginTop:2 }}>
+                        {formatLoyaltyDate(t.createdAt)}
+                      </div>
                     </div>
                     <div style={{ flexShrink:0, fontSize:13, fontWeight:700,
-                                  color: t.points > 0 ? GRN : RED }}>
-                      {t.points > 0 ? `+${fmtPoints(t.points)}` : `-${fmtPoints(t.points)}`} Puan
+                                  color: t.amount > 0 ? GRN : RED }}>
+                      {t.amount > 0 ? `+${fmtPoints(t.amount)}` : `-${fmtPoints(t.amount)}`} Puan
                     </div>
                   </div>
                 );
               })}
             </div>
-            {!showAll && (
+            {!showAll && filteredTx.length > 6 && (
               <button onClick={() => setShowAll(true)}
                 style={{ width:"100%", border:`2px solid ${P}`, color:P, background:"none",
                          borderRadius:14, padding:"13px 0", fontSize:13, fontWeight:700,
@@ -426,46 +427,32 @@ export default function YPPoodlePuanlariPage() {
               </button>
             </div>
             <div style={{ display:"flex", gap:12, overflowX:"auto", paddingBottom:4 }}>
-              {REWARDS.map(r => {
+              {rewards.length === 0 ? (
+                <div style={{ padding:"20px 8px", fontSize:13, color:GT }}>
+                  Ödül kataloğu yüklenemedi veya boş.
+                </div>
+              ) : rewards.map(r => {
                 const canUse = balance >= r.pointsCost;
+                const rewardType = r.icon === "shipping" ? "shipping" : r.icon === "care" ? "care" : "coupon";
                 return (
                   <div key={r.id} style={{ minWidth:148, background:"#fff", borderRadius:18,
                                            border:"1px solid #F3F4F6",
                                            boxShadow:"0 1px 5px rgba(0,0,0,.06)",
                                            overflow:"hidden", display:"flex", flexDirection:"column",
                                            flexShrink:0 }}>
-                    {/* Visual area */}
                     <div style={{ height:90, background:"#F9FAFB",
                                   display:"flex", alignItems:"center", justifyContent:"center" }}>
-                      {r.type === "coupon" && (
-                        <div style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
-                          <div style={{ background:PL, borderRadius:12, padding:"10px 14px",
-                                        textAlign:"center" }}>
-                            <div style={{ fontSize:11, color:P, fontWeight:700, marginBottom:2 }}>
-                              50 TL
-                            </div>
-                            <div style={{ fontSize:9, color:P, fontWeight:600 }}>İNDİRİM</div>
-                          </div>
+                      {rewardType === "coupon" && (
+                        <div style={{ background:PL, borderRadius:12, padding:"10px 14px", textAlign:"center" }}>
+                          <div style={{ fontSize:11, color:P, fontWeight:700 }}>İNDİRİM</div>
                         </div>
                       )}
-                      {r.type === "shipping" && (
-                        <Package size={36} color={P} />
-                      )}
-                      {r.type === "care" && (
-                        <div style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
-                          <BadgePercent size={32} color={P} />
-                          <span style={{ fontSize:9, color:P, fontWeight:700, marginTop:4 }}>%15</span>
-                        </div>
-                      )}
+                      {rewardType === "shipping" && <Package size={36} color={P} />}
+                      {rewardType === "care" && <BadgePercent size={32} color={P} />}
                     </div>
-                    {/* Content */}
                     <div style={{ padding:"10px 12px", flex:1, display:"flex", flexDirection:"column" }}>
-                      <div style={{ fontSize:13, fontWeight:700, color:DRK, marginBottom:3 }}>
-                        {r.title}
-                      </div>
-                      <div style={{ fontSize:11, color:P, fontWeight:600, marginBottom:2 }}>
-                        {r.pointsCost} Puan
-                      </div>
+                      <div style={{ fontSize:13, fontWeight:700, color:DRK, marginBottom:3 }}>{r.title}</div>
+                      <div style={{ fontSize:11, color:P, fontWeight:600, marginBottom:2 }}>{r.pointsCost} Puan</div>
                       <div style={{ fontSize:10, color:GT, marginBottom:10 }}>{r.minCart}</div>
                       <button onClick={() => useReward(r.id)}
                         disabled={!canUse}
@@ -520,15 +507,15 @@ export default function YPPoodlePuanlariPage() {
           </div>
         )}
 
-        {/* ── EXPIRATION BANNER ── */}
+        {balance > 0 && (
         <div style={{ margin:"0 16px 14px", background:"#FEF9C3", border:"1px solid #FDE68A",
                       borderRadius:18, padding:"12px 14px" }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
             <Clock size={20} color="#EA580C" style={{ flexShrink:0 }} />
             <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:13, fontWeight:700, color:DRK }}>Puanların boşa gitmesin</div>
+              <div style={{ fontSize:13, fontWeight:700, color:DRK }}>Puanlarını kullan</div>
               <div style={{ fontSize:11, color:"#374151", marginTop:3, lineHeight:1.5 }}>
-                120 PoodlePuan 31 Ağustos 2026 tarihinde sona erecek.
+                {balance.toLocaleString("tr-TR")} PoodlePuan ödül merkezinde indirime dönüşür.
               </div>
             </div>
             <button onClick={() => setUseModal(true)}
@@ -539,6 +526,7 @@ export default function YPPoodlePuanlariPage() {
             </button>
           </div>
         </div>
+        )}
 
         {/* ── FAQ ── */}
         <div style={{ padding:"0 16px 14px" }}>
@@ -605,7 +593,7 @@ export default function YPPoodlePuanlariPage() {
       </div>
 
       {/* ── MODALS ── */}
-      {useModal  && <UsePointsModal  onClose={() => setUseModal(false)}  navigate={navigate} />}
+      {useModal  && <UsePointsModal onClose={() => setUseModal(false)} navigate={navigate} rewards={rewardCatalog.map(enrichReward)} balance={balance} />}
       {earnModal && <HowToEarnModal  onClose={() => setEarnModal(false)} />}
 
       {/* ── TOAST ── */}

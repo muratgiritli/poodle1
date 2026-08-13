@@ -4,18 +4,30 @@ import { useCustomer } from "@/contexts/CustomerContext";
 import { apiRequest } from "@/lib/queryClient";
 import { IS_YP } from "@/lib/store";
 import {
-  ShieldCheck, MessageSquare, Lock, CheckCircle, Zap, Key,
+  ShieldCheck, MessageSquare, Lock, CheckCircle, Zap, Fingerprint,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import PatternLock from "@/components/PatternLock";
+import {
+  clearPatternLock,
+  getPatternLock,
+  clearLegacyTrustedDeviceStorage,
+  hashPattern,
+  isMobilePatternDevice,
+  savePatternLock,
+} from "@/lib/pattern-lock";
+import { safeInternalPath } from "@/lib/safe-redirect";
 
 const BASE = IS_YP ? "" : "/yourpoodle";
 
 /* ── Design tokens ── */
-const P      = "#4B2BD6";
-const PD     = "#3E27B3";
-const PLIGHT = "#F3F0FF";
+const P      = "#5D3A1A";
+const PD     = "#3D2612";
+const PLIGHT = "#F5F0E6";
 const PBADGE = "#EDE5D8";
 const GB     = "#E5E7EB";
+
+type Step = "phone" | "otp" | "register" | "pattern-unlock" | "pattern-setup" | "pattern-confirm";
 
 /* ── Phone formatter ── */
 function fmtPhone(v: string) {
@@ -42,7 +54,7 @@ function Toast({ message, visible }: { message: string; visible: boolean }) {
   return (
     <div style={{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)",
                   zIndex:999, pointerEvents:"none", opacity:visible?1:0, transition:"opacity 0.3s ease" }}>
-      <div style={{ background:"#1D1E9B", color:"#fff", padding:"12px 24px", borderRadius:999,
+      <div style={{ background:"#3D2612", color:"#fff", padding:"12px 24px", borderRadius:999,
                     fontSize:14, fontWeight:500, whiteSpace:"nowrap", boxShadow:"0 4px 16px rgba(0,0,0,0.25)" }}>
         {message}
       </div>
@@ -53,22 +65,34 @@ function Toast({ message, visible }: { message: string; visible: boolean }) {
 /* ── Main Page ── */
 export default function YPGirisPage() {
   const [, navigate] = useLocation();
-  const { isLoggedIn, loginWithOtp } = useCustomer();
+  const { isLoggedIn, loginWithOtp, refetch } = useCustomer();
+  const mobile = isMobilePatternDevice();
 
   /* Auth flow state */
   const [phone,             setPhone]             = useState("");
-  const [step,              setStep]              = useState<"phone"|"otp">("phone");
-  const [otp,               setOtp]               = useState(["","","",""] as string[]);
+  const [step,              setStep]              = useState<Step>("phone");
+  const [otp,               setOtp]               = useState(["","","","","",""] as string[]);
   const [smsSent,           setSmsSent]           = useState(false);
   const [countdown,         setCountdown]         = useState(60);
-  const [termsAccepted,     setTermsAccepted]     = useState(false);
+  const [termsAccepted,     setTermsAccepted]     = useState(() => isMobilePatternDevice());
   const [marketingAccepted, setMarketingAccepted] = useState(false);
   const [loading,           setLoading]           = useState(false);
   const [toast,             setToast]             = useState({ message:"", visible:false });
   const [phoneError,        setPhoneError]        = useState("");
+  const [patternError,      setPatternError]      = useState("");
+  const [patternReset,      setPatternReset]      = useState(0);
+  const [pendingPattern,    setPendingPattern]    = useState<number[] | null>(null);
+  const [patternFails,      setPatternFails]      = useState(0);
+  const [regName,           setRegName]           = useState("");
+  const [regError,          setRegError]          = useState("");
+  /** New user: OTP verified, waiting for pattern (mobile) + name before account creation */
+  const [pendingRegistration, setPendingRegistration] = useState(false);
   const otpRefs   = useRef<(HTMLInputElement|null)[]>([]);
   const verifying = useRef(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout>|null>(null);
+  const patternBooted = useRef(false);
+  /** After name registration, block auto-redirect until pattern is saved */
+  const awaitingPatternRef = useRef(false);
 
   /* Page title */
   useEffect(() => { document.title = "Giriş Yap | YourPoodle"; }, []);
@@ -76,9 +100,28 @@ export default function YPGirisPage() {
   /* Redirect if already logged in */
   const [returnTo] = useState(() => {
     const p = new URLSearchParams(window.location.search);
-    return p.get("returnTo") || `${BASE}/benim-poodleim`;
+    return safeInternalPath(p.get("returnTo"), `${BASE}/benim-poodleim`);
   });
-  useEffect(() => { if (isLoggedIn) navigate(returnTo); }, [isLoggedIn]);
+  useEffect(() => {
+    // Pattern setup must run after login; don't bounce to panel early.
+    if (!isLoggedIn) return;
+    if (awaitingPatternRef.current) return;
+    if (step === "pattern-setup" || step === "pattern-confirm" || step === "register") return;
+    navigate(returnTo);
+  }, [isLoggedIn, step, navigate, returnTo]);
+
+  /* Mobile: open pattern unlock if a saved pattern + trusted device exist */
+  useEffect(() => {
+    if (patternBooted.current || isLoggedIn) return;
+    patternBooted.current = true;
+    clearLegacyTrustedDeviceStorage();
+    if (!mobile) return;
+    const saved = getPatternLock();
+    if (!saved) return;
+    // Trusted device lives in HttpOnly cookie — show unlock UI; server validates cookie on send.
+    setPhone(fmtPhone(saved.phone));
+    setStep("pattern-unlock");
+  }, [mobile, isLoggedIn]);
 
   /* Countdown timer */
   useEffect(() => {
@@ -96,12 +139,33 @@ export default function YPGirisPage() {
   const fmtCountdown = (s: number) =>
     `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
 
+  const goToPatternSetup = (toastMsg = "Şimdi giriş deseni oluştur") => {
+    setStep("pattern-setup");
+    setPendingPattern(null);
+    setPatternError("");
+    setPatternReset(k => k + 1);
+    showToast(toastMsg);
+  };
+
+  const finishLogin = async (msg = "Hoş geldiniz! ✓") => {
+    showToast(msg);
+    await refetch();
+    setTimeout(() => navigate(returnTo), 600);
+  };
+
+  const offerPatternSetupOrFinish = () => {
+    if (!getPatternLock()) {
+      goToPatternSetup("Giriş başarılı — desen kilidini oluştur");
+      return;
+    }
+    finishLogin();
+  };
+
   /* Computed: can send SMS */
   const canSend = validPhone(phone) && termsAccepted;
 
   /* Send SMS */
   const sendSMS = async () => {
-    /* Inline validation instead of alert() */
     if (!validPhone(phone)) {
       setPhoneError("Geçerli bir cep telefonu numarası girin (5XX XXX XX XX)");
       return;
@@ -114,17 +178,16 @@ export default function YPGirisPage() {
     setLoading(true);
     try {
       const digits = phone.replace(/\D/g, "");
-      let deviceToken: string|undefined;
-      try { const t = JSON.parse(localStorage.getItem("jetgo_trusted_devices")||"{}"); deviceToken = t[digits]; } catch {}
-      const res  = await apiRequest("POST", "/api/otp/send", { phone: digits, deviceToken });
+      // If a pattern lock is set, skip cookie trusted-login so user can use SMS/pattern.
+      const hasPattern = getPatternLock()?.phone === digits;
+      const res  = await apiRequest("POST", "/api/otp/send", { phone: digits, forceSms: !!hasPattern });
       const data = await res.json();
       if (data.trustedLogin) {
-        showToast("Hoş geldiniz! ✓");
-        setTimeout(() => navigate(returnTo), 800);
+        await finishLogin();
         return;
       }
       setSmsSent(true); setStep("otp"); setCountdown(60);
-      verifying.current = false; setOtp(["","","",""]);
+      verifying.current = false; setOtp(["","","","","",""]);
       showToast("Doğrulama kodu gönderildi ✓");
       setTimeout(() => otpRefs.current[0]?.focus(), 300);
     } catch (e: any) {
@@ -137,18 +200,27 @@ export default function YPGirisPage() {
   /* Verify OTP */
   const verifyOTP = async (code?: string) => {
     const entered = code ?? otp.join("");
-    if (entered.length < 4) { showToast("4 haneli kodu girin"); return; }
+    if (entered.length < 6) { showToast("6 haneli kodu girin"); return; }
     if (verifying.current) return;
     verifying.current = true; setLoading(true);
     try {
       const digits = phone.replace(/\D/g, "");
       const data = await loginWithOtp(digits, entered);
       if (data?.requiresRegistration) {
-        showToast("Hesap oluşturulamadı. Lütfen tekrar deneyin.");
-        verifying.current = false; return;
+        setPendingRegistration(true);
+        setRegName("");
+        setRegError("");
+        verifying.current = false;
+        // Ad soyad önce; mobilde desen kilidi sonra
+        setStep("register");
+        showToast(mobile ? "Son adım: adını yaz, sonra desen çiz" : "Son adım: adınızı yazın");
+        return;
       }
-      showToast("Hoş geldiniz! ✓");
-      setTimeout(() => navigate(returnTo), 600);
+      import("@/lib/yp-analytics").then(({ track }) => {
+        track(data?.isNewUser ? "signup" : "login");
+      }).catch(() => {});
+      setPendingRegistration(false);
+      offerPatternSetupOrFinish();
     } catch (e: any) {
       let msg = "Geçersiz doğrulama kodu";
       try { msg = JSON.parse(e.message.replace(/^\d+:\s*/,"")).message; } catch {}
@@ -157,37 +229,184 @@ export default function YPGirisPage() {
     } finally { setLoading(false); }
   };
 
+  const completeRegistration = async () => {
+    const name = regName.trim();
+    if (name.length < 2) {
+      setRegError("Lütfen adınızı ve soyadınızı girin");
+      return;
+    }
+    setRegError("");
+    setLoading(true);
+    try {
+      const digits = phone.replace(/\D/g, "");
+      const code = otp.join("");
+      // Hold redirect: loginWithOtp sets isLoggedIn before we can switch to pattern step
+      awaitingPatternRef.current = true;
+      const data = await loginWithOtp(digits, code, name);
+      if (data?.requiresRegistration) {
+        awaitingPatternRef.current = false;
+        setRegError("Kayıt tamamlanamadı, tekrar deneyin");
+        return;
+      }
+      import("@/lib/yp-analytics").then(({ track }) => track("signup")).catch(() => {});
+      setPendingRegistration(false);
+
+      // Always require pattern for this phone after first registration
+      const saved = getPatternLock();
+      if (saved && saved.phone !== digits) {
+        clearPatternLock();
+      }
+      if (!getPatternLock() || getPatternLock()?.phone !== digits) {
+        goToPatternSetup("Üyelik aktif — şimdi güvenlik desenini çiz");
+        return;
+      }
+
+      awaitingPatternRef.current = false;
+      await finishLogin("Üyeliğin aktif edildi ✓");
+      return;
+    } catch (e: any) {
+      awaitingPatternRef.current = false;
+      let msg = "Kayıt tamamlanamadı";
+      try { msg = JSON.parse(e.message.replace(/^\d+:\s*/,"")).message; } catch {}
+      // OTP süresi dolduysa SMS adımına dön
+      if (/süre|bulunamadı|yeni kod/i.test(msg)) {
+        setPendingRegistration(false);
+        setStep("otp");
+        showToast(msg);
+      } else {
+        setRegError(msg);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
   /* Resend */
   const resendOTP = async () => {
     if (countdown > 0) return;
     const digits = phone.replace(/\D/g, "");
     try {
       await apiRequest("POST", "/api/otp/send", { phone: digits });
-      setCountdown(60); setOtp(["","","",""]); verifying.current = false;
+      setCountdown(60); setOtp(["","","","","",""]); verifying.current = false;
       showToast("Kod yeniden gönderildi");
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
     } catch { showToast("SMS gönderilemedi"); }
   };
 
   const changePhone = () => {
-    setStep("phone"); setSmsSent(false); setOtp(["","","",""]); setCountdown(0);
+    setStep("phone"); setSmsSent(false); setOtp(["","","","","",""]); setCountdown(0);
     verifying.current = false;
+    setPendingRegistration(false);
+    awaitingPatternRef.current = false;
+    setPendingPattern(null);
+    setRegName("");
+    setRegError("");
   };
 
   const handleOtpChange = (idx: number, val: string) => {
     if (!/^\d*$/.test(val)) return;
     if (val.length > 1) {
       const digits = val.replace(/\D/g,"").split("");
-      const next = ["","","",""].map((_,i) => digits[i]||"");
+      const next = ["","","","","",""].map((_,i) => digits[i]||"");
       setOtp(next);
-      otpRefs.current[Math.min(digits.length-1,3)]?.focus();
+      otpRefs.current[Math.min(digits.length-1,5)]?.focus();
       if (next.every(d=>d) && !verifying.current) verifyOTP(next.join(""));
       return;
     }
     const next = [...otp]; next[idx] = val; setOtp(next);
-    if (val && idx < 3) otpRefs.current[idx+1]?.focus();
+    if (val && idx < 5) otpRefs.current[idx+1]?.focus();
     if (next.every(d=>d) && !verifying.current) verifyOTP(next.join(""));
   };
+
+  const onPatternUnlock = async (nodes: number[]) => {
+    if (loading) return;
+    const saved = getPatternLock();
+    if (!saved) {
+      setStep("phone");
+      return;
+    }
+    setLoading(true);
+    setPatternError("");
+    try {
+      const hash = await hashPattern(nodes);
+      if (hash !== saved.patternHash) {
+        const fails = patternFails + 1;
+        setPatternFails(fails);
+        setPatternReset(k => k + 1);
+        if (fails >= 5) {
+          clearPatternLock();
+          setStep("phone");
+          setPatternFails(0);
+          showToast("Çok fazla hatalı desen. SMS ile giriş yapın.");
+        } else {
+          setPatternError(`Yanlış desen (${fails}/5)`);
+        }
+        return;
+      }
+      // Cookie is sent automatically with credentials; server validates HttpOnly yp_td.
+      const res = await apiRequest("POST", "/api/otp/send", { phone: saved.phone });
+      const data = await res.json();
+      if (data.trustedLogin) {
+        setPatternFails(0);
+        await finishLogin("Desen ile giriş başarılı ✓");
+        return;
+      }
+      clearPatternLock();
+      setPhone(fmtPhone(saved.phone));
+      setStep("phone");
+      showToast("Cihaz güveni sona erdi. SMS ile giriş yapın.");
+    } catch {
+      setPatternError("Giriş yapılamadı, tekrar deneyin");
+      setPatternReset(k => k + 1);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onPatternSetup = (nodes: number[]) => {
+    if (nodes.length < 4) {
+      setPatternError("En az 4 nokta birleştirin");
+      setPatternReset(k => k + 1);
+      return;
+    }
+    setPendingPattern(nodes);
+    setPatternError("");
+    setStep("pattern-confirm");
+    setPatternReset(k => k + 1);
+  };
+
+  const onPatternConfirm = async (nodes: number[]) => {
+    if (!pendingPattern) {
+      setStep("pattern-setup");
+      return;
+    }
+    const same =
+      nodes.length === pendingPattern.length &&
+      nodes.every((n, i) => n === pendingPattern[i]);
+    if (!same) {
+      setPatternError("Desenler eşleşmedi. Yeniden çizin.");
+      setPendingPattern(null);
+      setStep("pattern-setup");
+      setPatternReset(k => k + 1);
+      return;
+    }
+    const digits = phone.replace(/\D/g, "");
+    const hash = await hashPattern(nodes);
+    savePatternLock(digits, hash);
+    setPendingPattern(null);
+    setPatternError("");
+    awaitingPatternRef.current = false;
+    setPendingRegistration(false);
+    await finishLogin("Desen kaydedildi — üyeliğin aktif ✓");
+  };
+  const useSmsInstead = () => {
+    setStep("phone");
+    setPatternError("");
+    setPatternFails(0);
+  };
+
+  const showPhoneOtp = step === "phone" || step === "otp";
+  const showRegister = step === "register";
+  const showPattern = step === "pattern-unlock" || step === "pattern-setup" || step === "pattern-confirm";
 
   return (
     <YPLayout activeLink={`${BASE}/giris`} constrain={true} authMode={true} hideFooter={true}>
@@ -203,24 +422,130 @@ export default function YPGirisPage() {
           <div style={{ textAlign:"center", marginBottom:16 }}>
             <img src="/images/yp-poodle-hero.png" alt="YourPoodle"
               style={{ width:96, height:96, borderRadius:"50%", objectFit:"cover",
-                       margin:"0 auto", display:"block", border:"3px solid #F3F0FF" }} />
+                       margin:"0 auto", display:"block", border:`3px solid ${PLIGHT}` }} />
 
             <div style={{ display:"inline-flex", alignItems:"center", gap:6,
                           background:PBADGE, color:P, fontSize:12, fontWeight:600,
                           padding:"5px 14px", borderRadius:999, marginTop:12 }}>
-              <ShieldCheck size={14} />
-              Şifresiz ve Güvenli
+              {showPattern ? <Fingerprint size={14} /> : <ShieldCheck size={14} />}
+              {step === "pattern-unlock" ? "Desen ile Giriş" :
+               step === "pattern-setup" || step === "pattern-confirm" ? "Desen Kilidi" :
+               step === "register" ? "Hesap Oluştur" :
+               "Şifresiz ve Güvenli"}
             </div>
 
             <h1 style={{ fontSize:22, fontWeight:700, color:"#111827", margin:"14px 0 8px", lineHeight:1.2 }}>
-              Üye Ol veya Giriş Yap
+              {step === "pattern-unlock" ? "Desenini Çiz" :
+               step === "pattern-setup" ? "Desen Kilidi Oluştur" :
+               step === "pattern-confirm" ? "Deseni Tekrar Çiz" :
+               step === "register" ? "Seni Tanıyalım" :
+               "Üye Ol veya Giriş Yap"}
             </h1>
             <p style={{ fontSize:13, color:"#6B7280", margin:0, lineHeight:1.6, padding:"0 4px" }}>
-              Cep telefonu numaranızı yazın. SMS ile tek kullanımlık doğrulama kodu gönderelim.
+              {step === "pattern-unlock"
+                ? `Kayıtlı cihazında hızlı giriş için desenini çiz. (${maskPhone(phone.replace(/\D/g,""))})`
+                : step === "pattern-setup"
+                ? "Parmaklarınla bir desen çiz (en az 4 nokta). Kaydedince paneline gireceksin."
+                : step === "pattern-confirm"
+                ? "Aynı deseni bir kez daha çiz — ardından paneline geçeceksin."
+                : step === "register"
+                ? "Telefon doğrulandı. Adını yaz; ardından güvenlik desenini çizeceksin."
+                : "Cep telefonu numaranızı yazın. SMS ile tek kullanımlık doğrulama kodu gönderelim."}
             </p>
           </div>
 
+          {/* New user: name registration */}
+          {showRegister && (
+            <div style={{ marginTop:12 }}>
+              <label style={{ display:"block", fontSize:13, fontWeight:600, color:"#111827", marginBottom:8 }}>
+                Ad Soyad
+              </label>
+              <input
+                type="text"
+                autoComplete="name"
+                placeholder="Örn. Ayşe Yılmaz"
+                value={regName}
+                onChange={e => { setRegName(e.target.value); setRegError(""); }}
+                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); completeRegistration(); } }}
+                aria-label="Ad Soyad"
+                aria-invalid={!!regError}
+                style={{
+                  width:"100%", boxSizing:"border-box",
+                  border:`1.5px solid ${regError ? "#EF4444" : GB}`,
+                  borderRadius:12, padding:"14px 12px", fontSize:15,
+                  fontFamily:"inherit", color:"#111827", outline:"none",
+                }}
+              />
+              {regError && (
+                <p role="alert" style={{ fontSize:12, color:"#EF4444", margin:"6px 0 0", fontWeight:500 }}>
+                  {regError}
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={completeRegistration}
+                disabled={loading || regName.trim().length < 2}
+                style={{
+                  width:"100%", marginTop:14,
+                  background: (loading || regName.trim().length < 2) ? "#D4C4B0" : P,
+                  color:"#fff", border:"none", borderRadius:12, padding:"14px 0",
+                  fontSize:15, fontWeight:600,
+                  cursor: (loading || regName.trim().length < 2) ? "not-allowed" : "pointer",
+                  display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+                  fontFamily:"inherit",
+                }}>
+                <ShieldCheck size={18} />
+                {loading ? "Kaydediliyor..." : "Devam Et — Desen Çiz"}
+              </button>
+            </div>
+          )}
+
+          {/* Pattern unlock / setup (mobile only steps) */}
+          {showPattern && (
+            <div style={{ marginTop:8 }}>
+              <PatternLock
+                accent={P}
+                accentSoft={PLIGHT}
+                disabled={loading}
+                resetKey={`${step}-${patternReset}`}
+                onComplete={
+                  step === "pattern-unlock" ? onPatternUnlock :
+                  step === "pattern-setup" ? onPatternSetup :
+                  onPatternConfirm
+                }
+              />
+              {patternError && (
+                <p role="alert" style={{ fontSize:13, color:"#EF4444", textAlign:"center", marginTop:12, fontWeight:600 }}>
+                  {patternError}
+                </p>
+              )}
+              {loading && (
+                <p style={{ fontSize:13, color:"#6B7280", textAlign:"center", marginTop:12 }}>
+                  Doğrulanıyor...
+                </p>
+              )}
+
+              {step === "pattern-unlock" && (
+                <button
+                  type="button"
+                  onClick={useSmsInstead}
+                  style={{ width:"100%", marginTop:16, background:"none", border:`1px solid ${GB}`,
+                           borderRadius:12, padding:"12px 0", fontSize:14, fontWeight:600,
+                           color:P, cursor:"pointer", fontFamily:"inherit" }}>
+                  SMS ile giriş yap
+                </button>
+              )}
+
+              {(step === "pattern-setup" || step === "pattern-confirm") && (
+                <p style={{ fontSize:12, color:"#6B7280", textAlign:"center", marginTop:14, lineHeight:1.5 }}>
+                  Deseni kaydettikten sonra paneline yönlendirileceksin.
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Step 1: Phone */}
+          {showPhoneOtp && (
           <div style={{ marginTop:20 }}>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
               <div style={{ width:22, height:22, borderRadius:"50%", background:P, color:"#fff",
@@ -306,6 +631,7 @@ export default function YPGirisPage() {
               </div>
             )}
           </div>
+          )}
 
           {/* Step 2: OTP */}
           {smsSent && step === "otp" && (
@@ -381,9 +707,9 @@ export default function YPGirisPage() {
             </div>
           )}
 
-          {/* Consent Checkboxes */}
+          {/* Consent Checkboxes — desktop only; mobile’da gizli (terms auto-accept) */}
+          {showPhoneOtp && !mobile && (
           <div style={{ marginTop:20, display:"flex", flexDirection:"column", gap:12 }}>
-            {/* Terms checkbox — required, real toggle */}
             <label style={{ display:"flex", alignItems:"flex-start", gap:10, cursor:"pointer" }}>
               <input
                 type="checkbox"
@@ -424,7 +750,6 @@ export default function YPGirisPage() {
               </span>
             </label>
 
-            {/* Marketing checkbox — optional, real toggle */}
             <label style={{ display:"flex", alignItems:"flex-start", gap:10, cursor:"pointer" }}>
               <input
                 type="checkbox"
@@ -438,12 +763,14 @@ export default function YPGirisPage() {
               </span>
             </label>
           </div>
+          )}
 
-          {/* Value props bar */}
+          {/* Value props — ad soyad sonrası (desen adımında) */}
+          {showPattern && (step === "pattern-setup" || step === "pattern-confirm") && (
           <div style={{ marginTop:20, background:PLIGHT, borderRadius:14, padding:"16px 12px" }}>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
               {[
-                { Icon:Key,         label:"Şifre Yok" },
+                { Icon: Fingerprint, label: "Desen Kilit" },
                 { Icon:Zap,         label:"Hızlı Giriş" },
                 { Icon:ShieldCheck, label:"Güvenli Doğrulama" },
               ].map(({ Icon, label }) => (
@@ -454,8 +781,10 @@ export default function YPGirisPage() {
               ))}
             </div>
           </div>
+          )}
 
-          {/* Support link — real page, no mailto dead end */}
+          {/* Support link */}
+          {showPhoneOtp && (
           <div style={{ marginTop:16, marginBottom:4, textAlign:"center" }}>
             <span style={{ fontSize:12, color:"#6B7280" }}>
               Kod gelmedi mi? Destek ekibimizden yardım alın.{" "}
@@ -469,6 +798,7 @@ export default function YPGirisPage() {
               Destek Al
             </button>
           </div>
+          )}
 
         </div>
       </main>

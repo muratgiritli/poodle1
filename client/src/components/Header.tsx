@@ -4,6 +4,7 @@ import { useCustomer } from "@/contexts/CustomerContext";
 import Logo from "@/components/Logo";
 import SearchBar from "@/components/SearchBar";
 import { CURRENT_STORE } from "@/lib/store";
+import { goBack } from "@/lib/goBack";
 
 const NAV_ITEMS = [
   { name: "Köpek", href: "/kategori/kopek" },
@@ -47,7 +48,7 @@ export default function Header() {
           <div className="flex items-center gap-3">
             {!isHome && (
               <button
-                onClick={() => window.history.back()}
+                onClick={() => goBack(undefined, "/")}
                 className="text-white/80 hover:text-white transition-colors p-1 md:hidden"
                 data-testid="btn-header-back"
               >

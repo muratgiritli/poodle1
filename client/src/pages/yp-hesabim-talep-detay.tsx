@@ -1,6 +1,7 @@
 // Route: /hesabim/yardim/talep/:ticketId
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, Check, Sparkles, Copy, Tag, AlertCircle,
   Package, Calendar, Bell, FileText, Activity, MessageCircle,
@@ -8,57 +9,74 @@ import {
   Headphones, HelpCircle,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import { goBack } from "@/lib/goBack";
+import { apiRequest } from "@/lib/queryClient";
+import {
+  SUPPORT_BRAND as P,
+  SUPPORT_BRAND_LIGHT as PL,
+  fetchSupportTicket,
+  formatTicketDate,
+  statusLabelTr,
+  ticketStatusGroup,
+  type SupportMessage,
+} from "@/lib/support-api";
 
 /* ── Palette ─────────────────────────── */
-const P   = "#4B2BD6";
-const PL  = "#F5F0E6";
 const NAV = "#1D1E9B";
 const DRK = "#111827";
 const GT  = "#6B7280";
 const GB  = "#E5E7EB";
 const GBG = "#F9FAFB";
 
-/* ── Ticket data (mock) ──────────────── */
-const TICKET = {
-  ticketNumber: "YP-4822",
-  subject: "Sipariş ve Teslimat",
-  problem: "Eksik Ürün",
-  orderId: "#YP-20260723",
-  createdAt: "24 Temmuz 2026 • 00:52",
-  contactMethod: "Uygulama Bildirimi + SMS",
-  status: "Alındı",
-};
-
-/* ── Timeline steps ──────────────────── */
-const STEPS = [
-  { id:1, title:"Talebiniz oluşturuldu",  sub:"24 Temmuz • 00:52",                  status:"completed" },
-  { id:2, title:"Destek ekibi inceliyor", sub:"Talebiniz sıraya alındı",             status:"active"    },
-  { id:3, title:"Size yanıt verilecek",   sub:"Uygulama bildirimi ve SMS ile",       status:"pending"   },
-  { id:4, title:"Talep çözülecek",        sub:"Onayınızdan sonra kapatılacak",       status:"pending"   },
-] as const;
-
-/* ── Message type ────────────────────── */
-type Msg = { id:string; sender:"support"|"user"; text:string; time:string; };
+function buildSteps(status: string) {
+  const g = ticketStatusGroup(status);
+  return [
+    { id:1, title:"Talebiniz oluşturuldu",  sub:"Kayıt alındı",                  status:"completed" as const },
+    { id:2, title:"Destek ekibi inceliyor", sub:"Talebiniz sıraya alındı",        status: g === "open" ? "active" as const : "completed" as const },
+    { id:3, title:"Size yanıt verilecek",   sub:"Uygulama bildirimi ile",        status: g === "replied" ? "active" as const : g === "solved" ? "completed" as const : "pending" as const },
+    { id:4, title:"Talep çözülecek",        sub:"Onayınızdan sonra kapatılacak", status: g === "solved" ? "completed" as const : "pending" as const },
+  ];
+}
 
 /* ════════════════════════════
    MAIN PAGE
 ════════════════════════════ */
 export default function YPTalepDetayPage() {
   const [, navigate] = useLocation();
+  const queryClient = useQueryClient();
   const params = useParams<{ ticketId?: string }>();
-  const ticketId = params?.ticketId ?? "YP-4822";
+  const ticketId = params?.ticketId ?? "";
 
-  const [messages, setMessages] = useState<Msg[]>([
-    { id:"m1", sender:"support",
-      text:"Talebiniz bize ulaştı. Gelişmeleri bu sayfadan takip edebilirsiniz.",
-      time:"00:52" },
-  ]);
+  const { data: ticket, isLoading } = useQuery({
+    queryKey: ["/api/customer/support-tickets", ticketId],
+    queryFn: () => fetchSupportTicket(ticketId),
+    enabled: !!ticketId,
+  });
+
   const [newMsg, setNewMsg]   = useState("");
   const [copied, setCopied]   = useState(false);
   const [toast, setToast]     = useState("");
   const msgRef = useRef<HTMLDivElement>(null);
 
+  const messages: SupportMessage[] = ticket?.messages ?? [];
+  const STEPS = buildSteps(ticket?.status ?? "open");
+
   const showToast = (m: string) => { setToast(m); setTimeout(()=>setToast(""), 2200); };
+
+  const sendMutation = useMutation({
+    mutationFn: async (body: string) => {
+      await apiRequest("POST", `/api/customer/support-tickets/${encodeURIComponent(ticketId)}/messages`, { body });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/customer/support-tickets", ticketId] });
+      setNewMsg("");
+      showToast("Mesajınız iletildi");
+      setTimeout(() => msgRef.current?.scrollIntoView({ behavior:"smooth" }), 100);
+    },
+    onError: (err: Error) => {
+      showToast(err.message.replace(/^\d+:\s*/, "") || "Mesaj gönderilemedi");
+    },
+  });
 
   const copyTicket = () => {
     navigator.clipboard.writeText(`#${ticketId}`).catch(()=>{});
@@ -68,14 +86,31 @@ export default function YPTalepDetayPage() {
   };
 
   const sendMessage = () => {
-    if (!newMsg.trim()) return;
-    setMessages(prev => [...prev, {
-      id: Date.now().toString(), sender:"user", text:newMsg.trim(), time:"şimdi",
-    }]);
-    setNewMsg("");
-    showToast("Mesajınız iletildi");
-    setTimeout(()=>msgRef.current?.scrollIntoView({ behavior:"smooth" }), 100);
+    if (!newMsg.trim() || sendMutation.isPending) return;
+    sendMutation.mutate(newMsg.trim());
   };
+
+  if (isLoading) {
+    return (
+      <YPLayout activeLink="club" constrain={false}>
+        <div style={{ padding:48, textAlign:"center", color:GT }}>Talep yükleniyor...</div>
+      </YPLayout>
+    );
+  }
+
+  if (!ticket) {
+    return (
+      <YPLayout activeLink="club" constrain={false}>
+        <div style={{ padding:48, textAlign:"center" }}>
+          <div style={{ fontSize:15, fontWeight:600, color:DRK, marginBottom:8 }}>Talep bulunamadı</div>
+          <button onClick={() => navigate("/hesabim/destek-talepleri")}
+            style={{ background:P, color:"#fff", border:"none", borderRadius:12, padding:"10px 16px", cursor:"pointer", fontFamily:"inherit" }}>
+            Taleplere Dön
+          </button>
+        </div>
+      </YPLayout>
+    );
+  }
 
   return (
     <YPLayout activeLink="club" constrain={false}>
@@ -96,7 +131,7 @@ export default function YPTalepDetayPage() {
         <div style={{ padding:"14px 16px 10px", background:"#fff",
                       borderBottom:`1px solid ${GB}`, marginBottom:12 }}>
           <div style={{ display:"flex", alignItems:"center", gap:5, flexWrap:"wrap" as any }}>
-            <button onClick={() => navigate("/hesabim/yardim")}
+            <button onClick={() => goBack(navigate, "/hesabim/yardim")}
               style={{ background:"none", border:"none", cursor:"pointer", padding:0, display:"flex" }}>
               <ArrowLeft size={16} color={P} />
             </button>
@@ -191,11 +226,11 @@ export default function YPTalepDetayPage() {
                       border:`1px solid ${GB}`, padding:"16px 14px" }}>
           <div style={{ fontSize:14, fontWeight:700, color:DRK, marginBottom:12 }}>Talep Özeti</div>
           {[
-            { Icon:Tag,          label:"Konu",        value:TICKET.subject,       badge:"Alındı" },
-            { Icon:AlertCircle,  label:"Sorun",       value:TICKET.problem,       badge:null },
-            { Icon:Package,      label:"Sipariş",     value:TICKET.orderId,       badge:null },
-            { Icon:Calendar,     label:"Talep Tarihi",value:TICKET.createdAt,     badge:null },
-            { Icon:Bell,         label:"İletişim",    value:TICKET.contactMethod, badge:null },
+            { Icon:Tag,          label:"Konu",        value:ticket.category,       badge: statusLabelTr(ticket.status) },
+            { Icon:AlertCircle,  label:"Başlık",      value:ticket.subject,        badge:null },
+            { Icon:Package,      label:"Sipariş",     value: ticket.orderId != null ? `#${ticket.orderId}` : "—", badge:null },
+            { Icon:Calendar,     label:"Talep Tarihi",value:formatTicketDate(ticket.createdAt), badge:null },
+            { Icon:Bell,         label:"Durum",       value:statusLabelTr(ticket.status), badge:null },
           ].map(({ Icon, label, value, badge }, i, arr) => (
             <div key={label}
               style={{ display:"flex", alignItems:"center", gap:10,
@@ -221,45 +256,10 @@ export default function YPTalepDetayPage() {
           ))}
         </div>
 
-        {/* ── EKLİ DOSYALAR ── */}
         <div style={{ margin:"0 12px 12px", background:"#fff", borderRadius:18,
                       border:`1px solid ${GB}`, padding:"16px 14px" }}>
           <div style={{ fontSize:14, fontWeight:700, color:DRK, marginBottom:12 }}>Ekli Dosyalar</div>
-          <div style={{ display:"flex", gap:10 }}>
-            {/* paket.jpg */}
-            <button onClick={() => showToast("Dosya önizleme yakında!")}
-              style={{ flex:1, display:"flex", alignItems:"center", gap:8, background:GBG,
-                       border:`1px solid ${GB}`, borderRadius:12, padding:"10px",
-                       cursor:"pointer", fontFamily:"inherit", textAlign:"left" as any }}>
-              <img
-                src="https://images.unsplash.com/photo-1544568100-847a948583b9?w=80&h=80&fit=crop"
-                alt="paket.jpg"
-                style={{ width:40, height:40, borderRadius:8, objectFit:"cover", flexShrink:0 }}
-              />
-              <div style={{ minWidth:0 }}>
-                <div style={{ fontSize:11, fontWeight:700, color:DRK,
-                              overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                  paket.jpg
-                </div>
-                <div style={{ fontSize:10, color:GT }}>412 KB</div>
-              </div>
-            </button>
-
-            {/* fatura.pdf */}
-            <button onClick={() => showToast("Dosya önizleme yakında!")}
-              style={{ flex:1, display:"flex", alignItems:"center", gap:8, background:GBG,
-                       border:`1px solid ${GB}`, borderRadius:12, padding:"10px",
-                       cursor:"pointer", fontFamily:"inherit", textAlign:"left" as any }}>
-              <div style={{ width:40, height:40, borderRadius:8, background:"#FEF2F2",
-                            display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                <FileText size={18} color="#DC2626" />
-              </div>
-              <div style={{ minWidth:0 }}>
-                <div style={{ fontSize:11, fontWeight:700, color:DRK }}>fatura.pdf</div>
-                <div style={{ fontSize:10, color:GT }}>186 KB</div>
-              </div>
-            </button>
-          </div>
+          <div style={{ fontSize:12, color:GT }}>Bu talebe dosya eklenmemiş.</div>
         </div>
 
         {/* ── TİMELINE ── */}
@@ -320,7 +320,11 @@ export default function YPTalepDetayPage() {
             Talebinize mesaj ekleyin
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-            {messages.map(msg => {
+            {messages.length === 0 ? (
+              <div style={{ fontSize:12, color:GT, padding:"8px 4px" }}>
+                Henüz mesaj yok. Aşağıdan ek bilgi yazabilirsiniz.
+              </div>
+            ) : messages.map(msg => {
               const isSupport = msg.sender === "support";
               return (
                 <div key={msg.id}
@@ -344,13 +348,12 @@ export default function YPTalepDetayPage() {
                           YourPoodle Destek
                         </div>
                       )}
-                      <div style={{ fontSize:13, color: isSupport ? DRK : "#fff",
-                                    lineHeight:1.5 }}>
-                        {msg.text}
+                      <div style={{ fontSize:13, color: isSupport ? DRK : "#fff", lineHeight:1.5 }}>
+                        {msg.body}
                       </div>
                       <div style={{ fontSize:10, color: isSupport ? "#9CA3AF" : "rgba(255,255,255,.6)",
                                     textAlign:"right", marginTop:4 }}>
-                        {msg.time}
+                        {formatTicketDate(msg.createdAt).split(", ").slice(-1)[0] || "şimdi"}
                       </div>
                     </div>
                   </div>
@@ -379,11 +382,11 @@ export default function YPTalepDetayPage() {
               <Camera size={18} color="#9CA3AF" />
             </button>
             <button onClick={sendMessage}
-              disabled={!newMsg.trim()}
+              disabled={!newMsg.trim() || sendMutation.isPending}
               style={{
                 width:36, height:36, borderRadius:"50%",
-                background: newMsg.trim() ? P : "#D1D5DB",
-                border:"none", cursor: newMsg.trim() ? "pointer" : "not-allowed",
+                background: newMsg.trim() && !sendMutation.isPending ? P : "#D1D5DB",
+                border:"none", cursor: newMsg.trim() && !sendMutation.isPending ? "pointer" : "not-allowed",
                 display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
               }}>
               <Send size={15} color="#fff" />
