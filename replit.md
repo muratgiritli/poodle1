@@ -29,6 +29,38 @@ The application employs a modern web architecture:
     - **Analytics**: GA4 E-commerce events for `view_item`, `add_to_cart`, `begin_checkout`, and `purchase`.
     - **Social Proof**: Real-time anonymized recent order toasts for FOMO effect.
 
+## Admin Şifre Kurtarma
+
+Admin paneline erişim kaybedildiğinde üç kurtarma yöntemi vardır:
+
+### Yöntem 1 — ADMIN_BOOTSTRAP_PASSWORD değiştirme (Önerilen)
+Sunucu, her başlangıçta `ADMIN_BOOTSTRAP_PASSWORD` değerini kayıtlı hash ile karşılaştırır.
+Eğer farklıysa, `admin` kullanıcısının şifresini otomatik olarak günceller.
+
+1. Replit Secrets'ta `ADMIN_BOOTSTRAP_PASSWORD` değerini yeni, güçlü bir şifreyle güncelleyin (min 12 karakter).
+2. Sunucuyu yeniden başlatın.
+3. Yeni şifreyle giriş yapın.
+
+### Yöntem 2 — Süper admin, başka bir kullanıcının şifresini sıfırlama
+Giriş yapabiliyorsanız (örn. başka bir süper admin hesabıyla):
+```
+POST /api/admin/staff/:id/force-reset-password
+Body: { "newPassword": "YeniGüçlüŞifre123!" }
+```
+Hedef kullanıcı bir sonraki girişte şifresini değiştirmek zorunda kalır (`must_change_password = true`).
+
+### Yöntem 3 — Veritabanı üzerinden manuel güncelleme
+Doğrudan PostgreSQL erişiminiz varsa:
+```sql
+-- Yeni şifre hash'i oluşturun (Node.js):
+-- const bcrypt = require('bcryptjs'); bcrypt.hash('YeniŞifre123!', 10).then(console.log)
+-- Ardından:
+UPDATE users
+SET password = '<bcrypt_hash>',
+    must_change_password = false
+WHERE username = 'admin';
+```
+
 ## External Dependencies
 - **OpenAI**: AI-powered pet care Q&A chatbot.
 - **NetGSM**: SMS OTPs for customer authentication and admin order notifications.

@@ -363,8 +363,10 @@ const PgSession = pgSession(session);
 
 async function ensureAdminExists() {
   const existing = await storage.getUserByUsername("admin");
+  const bootstrap = String(process.env.ADMIN_BOOTSTRAP_PASSWORD || "").trim();
+
   if (!existing) {
-    const bootstrap = String(process.env.ADMIN_BOOTSTRAP_PASSWORD || "").trim();
+    // ── First-run: create the admin account ──────────────────────────────────
     if (bootstrap.length < 12) {
       console.error(
         "[security] No admin user and ADMIN_BOOTSTRAP_PASSWORD missing/weak (min 12 chars). Admin bootstrap skipped — set the env var and restart.",
@@ -383,6 +385,35 @@ async function ensureAdminExists() {
       );
     } catch { /* column may not exist yet */ }
     console.info("[security] Default admin created from ADMIN_BOOTSTRAP_PASSWORD (value not logged)");
+    return;
+  }
+
+  // ── Recovery sync: if ADMIN_BOOTSTRAP_PASSWORD is set, valid, and does NOT
+  //    match the stored hash, update the stored password.  This lets an operator
+  //    regain access to a locked-out admin account by changing the env var and
+  //    restarting the server — without needing to touch the database directly.
+  if (
+    bootstrap.length >= 12 &&
+    bootstrap !== DEFAULT_ADMIN_PASSWORD &&
+    bootstrap !== LEGACY_DEFAULT_ADMIN_PASSWORD
+  ) {
+    const matches = await bcrypt.compare(bootstrap, existing.password);
+    if (!matches) {
+      const hashed = await bcrypt.hash(bootstrap, 10);
+      await sharedPool.query(
+        `UPDATE users SET password = $1, must_change_password = false WHERE username = 'admin'`,
+        [hashed],
+      );
+      try {
+        await writeAuditLog(sharedPool, {
+          action: "admin.bootstrap_password_sync",
+          entityType: "user",
+          entityId: existing.id,
+          meta: { reason: "ADMIN_BOOTSTRAP_PASSWORD changed — password synced on startup" },
+        });
+      } catch { /* audit table may not exist on first boot */ }
+      console.info("[security] Admin password synced from updated ADMIN_BOOTSTRAP_PASSWORD (value not logged)");
+    }
   }
 }
 
@@ -3155,6 +3186,52 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       res.json(after.rows[0]);
     } catch (e: any) {
       res.status(500).json({ message: e?.message || "Güncellenemedi" });
+    }
+  });
+
+  // Force-reset any admin user's password without knowing the current password.
+  // Only super_admin can call this.  The target user will be required to change
+  // their password on next login (must_change_password = true).
+  app.post("/api/admin/staff/:id/force-reset-password", requireAdmin, requireSuperAdmin, async (req, res) => {
+    try {
+      const id = String(req.params.id);
+      const sess = req.session as any;
+      const newPassword = String(req.body?.newPassword || "");
+      if (newPassword.length < 12) {
+        return res.status(400).json({ message: "Yeni şifre en az 12 karakter olmalı" });
+      }
+      if (newPassword === LEGACY_DEFAULT_ADMIN_PASSWORD || newPassword === DEFAULT_ADMIN_PASSWORD) {
+        return res.status(400).json({ message: "Varsayılan şifreyi kullanamazsınız" });
+      }
+      const cur = await sharedPool.query(
+        `SELECT id, username, role FROM users WHERE id = $1`,
+        [id]
+      );
+      if (!cur.rows[0]) return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+      // A super_admin resetting their OWN password still goes through change-password
+      // (which requires the old password); force-reset is for resetting OTHER accounts.
+      if (String(sess.userId) === id) {
+        return res.status(400).json({ message: "Kendi şifrenizi bu endpoint ile sıfırlayamazsınız; /api/admin/change-password kullanın" });
+      }
+      const hashed = await bcrypt.hash(newPassword, 10);
+      await sharedPool.query(
+        `UPDATE users SET password = $1, must_change_password = true WHERE id = $2`,
+        [hashed, id]
+      );
+      const actor = auditActorFromReq(req);
+      await writeAuditLog(sharedPool, {
+        actorUserId: actor.userId,
+        actorUsername: actor.username,
+        action: "staff.force_reset_password",
+        entityType: "user",
+        entityId: id,
+        after: { username: cur.rows[0].username, mustChangePassword: true },
+        ip: actor.ip,
+      });
+      res.json({ ok: true, mustChangePassword: true, username: cur.rows[0].username });
+    } catch (e: any) {
+      console.error("force-reset-password:", e?.message);
+      res.status(500).json({ message: "Şifre sıfırlanamadı" });
     }
   });
 
