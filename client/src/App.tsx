@@ -243,15 +243,27 @@ function Router() {
         <Route path="/kapida-odeme-petshop" component={AdLanding} />
         <Route path="/petshop-kapida-odeme" component={AdLanding} />
         <Route path="/getir-petshop" component={AdLanding} />
-        <Route path="/kategori" component={CategoriesOverview} />
-        <Route path="/acik-mama/:animal" component={AcikMamaPage} />
-        <Route path="/veteriner/:subcategory" component={VeterinerSubPage} />
-        <Route path="/urun/:id/:slug?" component={ProductDetailPage} />
-        <Route path="/urun-demo/:id/:slug?" component={ProductDetailDemoPage} />
-        <Route path="/siparis/:animal/:subcategory/:brand" component={BrandProductsPage} />
-        <Route path="/kategori/:animal/:subcategory/:brand" component={BrandProductsPage} />
-        <Route path="/kategori/:animal/:subcategory" component={BrandsPage} />
-        <Route path="/kategori/:animal" component={CategoryPage} />
+        {IS_YP ? (
+          <>
+            <Route path="/kuru-mama" component={YPKuruMamaPage} />
+            <Route path="/kategori/:slug">
+              {(params) => <YPKategoriPage routeSlug={params?.slug} />}
+            </Route>
+            <Route path="/urun/:id/:slug?" component={lazy(() => import("@/pages/yp-urun"))} />
+          </>
+        ) : (
+          <>
+            <Route path="/kategori" component={CategoriesOverview} />
+            <Route path="/acik-mama/:animal" component={AcikMamaPage} />
+            <Route path="/veteriner/:subcategory" component={VeterinerSubPage} />
+            <Route path="/urun/:id/:slug?" component={ProductDetailPage} />
+            <Route path="/urun-demo/:id/:slug?" component={ProductDetailDemoPage} />
+            <Route path="/siparis/:animal/:subcategory/:brand" component={BrandProductsPage} />
+            <Route path="/kategori/:animal/:subcategory/:brand" component={BrandProductsPage} />
+            <Route path="/kategori/:animal/:subcategory" component={BrandsPage} />
+            <Route path="/kategori/:animal" component={CategoryPage} />
+          </>
+        )}
         <Route path="/odeme" component={IS_YP ? YPOdemePage : Checkout} />
         <Route path="/odeme-sonuc" component={PaymentResultPage} />
         <Route path="/admin" component={AdminPage} />
