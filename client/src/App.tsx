@@ -435,6 +435,7 @@ function Router() {
         <Route path="/sifremi-unuttum/dogrulama" component={YPSifreSifirlaPage} />
         <Route path="/sifremi-unuttum"       component={YPSifremiUnuttumPage} />
         <Route path="/ai-asistan"            component={YPAiAsistanPage} />
+        <Route path="/kuru-mama"             component={YPKuruMamaPage} />
         <Route path="/mama-bul"              component={YPMamaBulPage} />
         <Route path="/uye-ol"                component={YPUyeOlPage} />
         <Route path="/sepet"                 component={YPSepetPage} />
