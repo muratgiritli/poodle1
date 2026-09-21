@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import {
-  ArrowLeft, Bell, MessageCircle, Package, Heart, MapPin, PawPrint,
-  Settings, ChevronRight, HelpCircle, LogOut, Plus, Camera, Bookmark,
+  ArrowLeft, Bell, Package, Heart, MapPin, PawPrint,
+  Settings, ChevronRight, HelpCircle, LogOut, Plus, Bookmark,
   Ticket, User, Smartphone, Shield,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
@@ -224,7 +224,6 @@ export default function YPHesabimPage() {
       bg: "#FFF7ED",
       color: "#C2410C",
     },
-    { label: "Club Paylaşımlarım", sub: primaryDog ? String(primaryDog.post_count || 0) : null, Icon: Camera, href: "/hesabim/club-paylasimlarim", bg: "#F5F0E6", color: P },
     { label: "Kaydettiklerim", sub: null, Icon: Bookmark, href: "/hesabim/favoriler", bg: "#FEFCE8", color: "#A16207" },
     { label: "Bildirimler", sub: unread?.count ? `${unread.count} yeni` : null, Icon: Bell, href: NOTIF_PATH, bg: "#FEE2E2", color: "#DC2626" },
     { label: "Hesap Ayarları", sub: null, Icon: Settings, href: "/hesabim/ayarlar", bg: "#F3F4F6", color: "#4B5563" },
@@ -288,16 +287,12 @@ export default function YPHesabimPage() {
                 </span>
               )}
             </button>
-            <button type="button" aria-label="Mesajlar" onClick={() => navigate(`${BASE}/club/mesajlar`)}
-              style={{ width: 40, height: 40, background: "none", border: "none", cursor: "pointer" }}>
-              <MessageCircle size={20} color="#374151" strokeWidth={1.75} />
-            </button>
           </div>
         </div>
 
         <div style={{ padding: "14px 16px 6px" }}>
           <div style={{ fontSize: 20, fontWeight: 800, color: "#111827" }}>Merhaba, {firstName}</div>
-          <div style={{ fontSize: 13, color: "#6B7280", marginTop: 2 }}>Sipariş, Poodle ve Club burada</div>
+          <div style={{ fontSize: 13, color: "#6B7280", marginTop: 2 }}>Sipariş ve Poodle burada</div>
         </div>
 
         {/* Profile */}
@@ -368,7 +363,7 @@ export default function YPHesabimPage() {
           {!primaryDog ? (
             <div style={{ textAlign: "center", padding: "8px 0 4px" }}>
               <p style={{ fontSize: 13, color: "#6B7280", marginBottom: 12, lineHeight: 1.45 }}>
-                Henüz Poodle profilin yok. Oluşturunca Club ve Mama Bul kişiselleşir.
+                Henüz Poodle profilin yok. Oluşturunca Mama Bul kişiselleşir.
               </p>
               <button type="button" onClick={() => navigate(`${BASE}/p/olustur`)}
                 style={{
@@ -405,7 +400,7 @@ export default function YPHesabimPage() {
                   </button>
                   <button type="button" onClick={() => navigate(`${BASE}/p/${primaryDog.slug}`)}
                     style={{ background: "#fff", color: P, border: `1.5px solid ${P}`, borderRadius: 10, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-                    Club Profili
+                    Profili Gör
                   </button>
                 </div>
               </div>
@@ -490,40 +485,17 @@ export default function YPHesabimPage() {
           </div>
         )}
 
-        {/* Club summary if dog exists */}
+        {/* Poodle puan shortcut when dog exists */}
         {primaryDog && (
           <div style={{ margin: "0 16px 14px" }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "#111827", marginBottom: 8 }}>Club Aktivitem</div>
-            <div style={{ background: "#fff", borderRadius: 14, border: `1px solid ${GB}`, padding: 14 }}>
-              <div style={{ display: "flex", justifyContent: "space-around", marginBottom: 12 }}>
-                {[
-                  { v: primaryDog.post_count || 0, l: "Paylaşım" },
-                  { v: primaryDog.follower_count || 0, l: "Takipçi" },
-                  { v: primaryDog.following_count || 0, l: "Takip" },
-                ].map(x => (
-                  <div key={x.l} style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: "#111827" }}>{x.v}</div>
-                    <div style={{ fontSize: 11, color: "#6B7280" }}>{x.l}</div>
-                  </div>
-                ))}
-              </div>
-              <button type="button" onClick={() => navigate("/hesabim/club-paylasimlarim")}
-                style={{
-                  width: "100%", border: `1.5px solid ${P}`, color: P, background: "#fff",
-                  borderRadius: 10, padding: "9px 0", fontSize: 13, fontWeight: 700,
-                  cursor: "pointer", fontFamily: "inherit", marginBottom: 8,
-                }}>
-                Paylaşımlarımı Gör
-              </button>
-              <button type="button" onClick={() => navigate("/hesabim/poodle-puanlari")}
-                style={{
-                  width: "100%", border: "none", color: "#fff", background: P,
-                  borderRadius: 10, padding: "9px 0", fontSize: 13, fontWeight: 700,
-                  cursor: "pointer", fontFamily: "inherit",
-                }}>
-                Poodle Puanları
-              </button>
-            </div>
+            <button type="button" onClick={() => navigate("/hesabim/poodle-puanlari")}
+              style={{
+                width: "100%", border: "none", color: "#fff", background: P,
+                borderRadius: 12, padding: "12px 0", fontSize: 13, fontWeight: 700,
+                cursor: "pointer", fontFamily: "inherit",
+              }}>
+              Poodle Puanları
+            </button>
           </div>
         )}
 

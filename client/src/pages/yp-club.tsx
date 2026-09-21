@@ -618,7 +618,7 @@ export default function YPClubPage() {
   const visiblePosts = nearbyEmpty ? [] : posts;
 
   return (
-    <YPLayout activeLink={`${BASE}/club`} constrain={false} hideFooter>
+    <YPLayout activeLink={`${BASE}/club`} constrain={false} showMobileFooter>
       <Toast message={toast.message} visible={toast.visible} />
 
       {storyIdx !== null && stories.length > 0 && (

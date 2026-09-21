@@ -36,7 +36,6 @@ const CATS = [
   { key: "discount", label: "İndirim" },
   { key: "shipping", label: "Ücretsiz Kargo" },
   { key: "products", label: "Ürünler" },
-  { key: "club",     label: "Club" },
   { key: "special",  label: "Özel Fırsatlar" },
 ];
 

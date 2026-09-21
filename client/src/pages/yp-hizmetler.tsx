@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "wouter";
 import {
   Search, Bot, BookOpen, ShoppingBag, Truck, HelpCircle,
-  Users, PawPrint, ChevronRight,
+  PawPrint, ChevronRight,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { IS_YP } from "@/lib/store";
@@ -48,15 +48,6 @@ const SERVICES: Service[] = [
     desc: "Veteriner onaylı makaleler: beslenme, bakım, sağlık, eğitim ve daha fazlası.",
     href: `${BASE}/rehber`,
     cta: "Rehberi Aç",
-  },
-  {
-    icon: Users,
-    color: "#EC4899",
-    bg: "#FDF2F8",
-    title: "Club",
-    desc: "Diğer Toy Poodle sahipleriyle bağlantı kurun, deneyim paylaşın, toplulukta yerinizi alın.",
-    href: `${BASE}/club`,
-    cta: "Topluluğa Katıl",
   },
   {
     icon: ShoppingBag,

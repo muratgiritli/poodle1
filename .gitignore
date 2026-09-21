@@ -9,3 +9,11 @@ vite.config.ts.*
 .env.local
 .env.production
 _git_tmp/
+
+# Local work that is not the site
+_invoice_work/
+_syllabi_work/
+server/_*.py
+server/_*.mjs
+server/_img_fix.json
+tmp-*.png

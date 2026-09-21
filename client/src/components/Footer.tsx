@@ -15,10 +15,8 @@ const YP_PLATFORM_LINKS = [
 ];
 
 const YP_COMMUNITY_LINKS = [
-  { label: "Poodle Club", href: "/yourpoodle/club", icon: Users },
+  { label: "Poodle Rehberi", href: "/yourpoodle/rehber", icon: Users },
   { label: "Etkinlikler", href: "/yourpoodle/etkinlikler", icon: Users },
-  { label: "Topluluk", href: "/yourpoodle/topluluk", icon: Users },
-  { label: "Profil Oluştur", href: "/yourpoodle/profil", icon: Users },
 ];
 
 const SUPPORT_LINKS = [
@@ -65,9 +63,9 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Topluluk */}
+          {/* Keşfet */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-4">Topluluk</h3>
+            <h3 className="text-white font-bold text-lg mb-4">Keşfet</h3>
             <ul className="space-y-2">
               {YP_COMMUNITY_LINKS.map((link) => {
                 const Icon = link.icon;

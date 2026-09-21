@@ -120,7 +120,6 @@ export default function YPAyarlarPage() {
         </div>
         <div className="ayar-section">
           {([
-            { key: "newPost" as const, label: "Yeni Club Paylaşımı", desc: "Takip ettiğiniz poodle'lar paylaşım yaptığında" },
             { key: "eventReminder" as const, label: "Etkinlik Hatırlatıcısı", desc: "Kayıtlı etkinlikleriniz için 24 saat öncesinden" },
             { key: "orderStatus" as const, label: "Sipariş Güncellemeleri", desc: "Sipariş durumu değiştiğinde SMS & bildirim" },
             { key: "promotions" as const, label: "Kampanya & İndirimler", desc: "Özel fırsatlar ve yeni ürünler" },

@@ -6,7 +6,6 @@ dist
 !.env.example
 _git_tmp
 artifacts
-attached_assets
 screenshots
 *.md
 .github

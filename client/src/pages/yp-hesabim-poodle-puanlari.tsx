@@ -33,14 +33,13 @@ const GOLDB= "#FBBF24";
 
 const EARN_TASKS = [
   { id:"et-1", title:"Poodle Profilini Tamamla",  points:100, btn:"Tamamla",   progress:80,  link:"/hesabim/ayarlar" },
-  { id:"et-2", title:"Club'da İlk Yorumunu Yap",  points:20,  btn:"Club'a Git",progress:null,link:"/yourpoodle/club" },
   { id:"et-3", title:"Arkadaşını Davet Et",        points:250, btn:"Davet Et",  progress:null,link:null },
 ];
 
 const FAQ_ITEMS = [
   { id:"faq-1",
     q:"PoodlePuan Nasıl Çalışır?",
-    a:"Her alışverişte, Club paylaşımında ve rehber tamamladığınızda puan kazanırsınız. 10 PoodlePuan = 1 TL indirim değerindedir." },
+    a:"Her alışverişte ve rehber tamamladığınızda puan kazanırsınız. 10 PoodlePuan = 1 TL indirim değerindedir." },
   { id:"faq-2",
     q:"Seviye Avantajları",
     a:"Mor Poodle üyeler standart oranda puan kazanır. Gold seviyede alışverişlerden %5 daha fazla puan kazanırsınız." },
@@ -107,7 +106,6 @@ function UsePointsModal({ onClose, navigate, rewards, balance }: {
 function HowToEarnModal({ onClose }: { onClose:()=>void }) {
   const ways = [
     "🛍 Her 10 TL alışverişte 1 PoodlePuan",
-    "🐾 Club'da gönderi paylaştığında +10 Puan",
     "📖 Her rehber tamamlandığında +20 Puan",
     "⭐ Destek değerlendirmesinde +25 Puan",
     "🔥 Günlük girişlerde seri bonusu (7 gün = +75 Puan)",
@@ -223,7 +221,7 @@ export default function YPPoodlePuanlariPage() {
             PoodlePuanlarım
           </h1>
           <p style={{ margin:0, fontSize:12, color:GT, lineHeight:1.45 }}>
-            Alışveriş yapın, Club'a katılın, puan kazanın ve ödülleri kullanın.
+            Alışveriş yapın, puan kazanın ve ödülleri kullanın.
           </p>
         </div>
 
@@ -568,7 +566,7 @@ export default function YPPoodlePuanlariPage() {
                 Her hareketin ödüle dönüşür!
               </div>
               <div style={{ fontSize:12, color:GT, marginTop:4, lineHeight:1.5 }}>
-                Alışveriş, Club ve Rehber ile her gün puan kazan.
+                Alışveriş ve Rehber ile her gün puan kazan.
               </div>
             </div>
           </div>

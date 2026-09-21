@@ -259,6 +259,14 @@ export default function YPHesabimFavorilerimPage() {
 
   return (
     <YPLayout activeLink="" constrain={false}>
+      <style>{`
+        @media (min-width: 768px) {
+          .ypf-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 16px !important; }
+        }
+        @media (min-width: 1100px) {
+          .ypf-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 18px !important; }
+        }
+      `}</style>
       {toast && (
         <div style={{
           position: "fixed", top: 72, left: "50%", transform: "translateX(-50%)",
@@ -343,7 +351,7 @@ export default function YPHesabimFavorilerimPage() {
             <div style={{ textAlign: "center", padding: "40px 0", color: GT }}>Yükleniyor…</div>
           ) : (
             <>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div className="ypf-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 {displayed.map(product => (
                   <ProductCard
                     key={product.id}

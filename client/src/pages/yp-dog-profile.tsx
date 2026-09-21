@@ -295,13 +295,7 @@ export default function YPDogProfilePage({ routeSlug }: { routeSlug?: string }) 
           {/* Action buttons */}
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
             {dog.isOwner ? (
-              <>
-                <button onClick={() => navigate(`/yourpoodle/p/${dog.slug}/duzenle`)} style={followBtnStyle}>Profili Düzenle</button>
-                <button onClick={() => navigate(`/yourpoodle/club`)}
-                  style={{ width: 42, height: 42, borderRadius: 12, border: "1.5px solid #E5E7EB", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Plus size={18} color="#555" />
-                </button>
-              </>
+              <button onClick={() => navigate(`/yourpoodle/p/${dog.slug}/duzenle`)} style={followBtnStyle}>Profili Düzenle</button>
             ) : (
               <>
                 <button onClick={() => isLoggedIn ? followMutation.mutate() : navigate("/yourpoodle/giris")}
@@ -353,9 +347,6 @@ export default function YPDogProfilePage({ routeSlug }: { routeSlug?: string }) 
                 <div style={{ padding: "64px 24px", textAlign: "center", color: "#aaa" }}>
                   <div style={{ fontSize: 48, marginBottom: 12 }}>📷</div>
                   <div style={{ fontWeight: 700, fontSize: 15, color: "#555" }}>Henüz gönderi yok</div>
-                  {dog.isOwner && (
-                    <div style={{ fontSize: 13, marginTop: 6, color: "#888" }}>Club'a giderek ilk gönderini paylaş!</div>
-                  )}
                 </div>
               ) : (
                 <div style={{ padding: "12px" }}>

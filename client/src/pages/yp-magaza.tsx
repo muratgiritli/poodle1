@@ -1,14 +1,13 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Search, ChevronRight, Plus, Check, AlertCircle,
+  Search, ChevronRight,
   Package, Droplets, Soup, Candy, Briefcase, Home, ToyBrick,
   UtensilsCrossed, Link, HeartPulse, Scissors, Sparkles,
   Smile, Baby, Bug, Eye, Wand2,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
-import { useCart } from "@/contexts/CartContext";
 import { IS_YP } from "@/lib/store";
 
 const BASE = IS_YP ? "" : "/yourpoodle";
@@ -16,15 +15,7 @@ const BASE = IS_YP ? "" : "/yourpoodle";
 /* ── Tokens ── */
 const P   = "#5D3A1A";
 const PL  = "#F5F0E6";
-const GB  = "#E5DDD0";
-
-/* ── Slugify helper ── */
-function slugify(str: string) {
-  return str.toLowerCase()
-    .replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ş/g,"s")
-    .replace(/ı/g,"i").replace(/ö/g,"o").replace(/ç/g,"c")
-    .replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-}
+const GB  = "#E8E0D4";
 
 /* ── Accent map ── */
 const COLOR_MAP = {
@@ -58,7 +49,6 @@ const SLUG_TO_SUBCAT: Record<string, string> = {
   "bit-pire-parazit":    "bit-pire-parazit",
   "goz-kulak-bakimi":    "goz-kulak-bakim",
   "tiras-ekipmanlari":   "tras-ekipmanlari",
-  "acik-mama":           "acik-mama",
 };
 
 /* ── Category data ── */
@@ -81,131 +71,7 @@ const CATEGORIES: Cat[] = [
   { id:"c15", name:"Bit, Pire ve Parazit",   color:"green",  Icon:Bug,              slug:"bit-pire-parazit"    },
   { id:"c16", name:"Göz ve Kulak Bakımı",    color:"purple", Icon:Eye,              slug:"goz-kulak-bakimi"    },
   { id:"c17", name:"Tıraş Ekipmanları",      color:"yellow", Icon:Wand2,            slug:"tiras-ekipmanlari"   },
-  { id:"c18", name:"Açık Mama",              color:"orange", Icon:UtensilsCrossed,  slug:"acik-mama"           },
 ];
-
-/* ── Inline toast ── */
-function Toast({ message, visible }: { message:string; visible:boolean }) {
-  return (
-    <div style={{ position:"fixed", bottom:88, left:"50%", transform:"translateX(-50%)",
-                  zIndex:999, pointerEvents:"none", opacity:visible?1:0, transition:"opacity 0.3s" }}>
-      <div style={{ background:"#3D2612", color:"#fff", padding:"10px 22px", borderRadius:999,
-                    fontSize:13, fontWeight:500, whiteSpace:"nowrap", boxShadow:"0 4px 16px rgba(0,0,0,0.25)" }}>
-        {message}
-      </div>
-    </div>
-  );
-}
-
-/* ── Product card skeleton ── */
-function ProductSkeleton() {
-  return (
-    <div style={{ flexShrink:0, width:148, borderRadius:14, border:`1px solid ${GB}`,
-                  background:"#fff", overflow:"hidden" }}>
-      <div style={{ width:"100%", height:120, background:"#F3F4F6", animation:"shimmer 1.4s infinite" }} />
-      <div style={{ padding:"10px 10px 12px" }}>
-        <div style={{ height:12, background:"#F3F4F6", borderRadius:6, marginBottom:6 }} />
-        <div style={{ height:12, background:"#F3F4F6", borderRadius:6, width:"60%", marginBottom:10 }} />
-        <div style={{ height:30, background:"#F3F4F6", borderRadius:8 }} />
-      </div>
-    </div>
-  );
-}
-
-/* ── Product card ── */
-function ProductCard({ product, onNavigate }: {
-  product: any;
-  onNavigate: (id: number, name: string) => void;
-}) {
-  const { updateQty, basket } = useCart();
-  const [added, setAdded] = useState(false);
-  const sid = String(product.id);
-  const inCart = (basket[sid] || 0) > 0;
-
-  const handleAdd = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const ok = updateQty(sid, 1);
-    if (ok !== false) {
-      setAdded(true);
-      setTimeout(() => setAdded(false), 1500);
-    }
-  };
-
-  const hasDiscount = product.originalPrice && product.originalPrice > product.price;
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-label={`${product.name} ürününe git`}
-      onClick={() => onNavigate(product.id, product.name)}
-      onKeyDown={e => { if (e.key === "Enter" || e.key === " ") onNavigate(product.id, product.name); }}
-      style={{ flexShrink:0, width:148, borderRadius:14, border:`1px solid ${GB}`,
-               background:"#fff", overflow:"hidden", cursor:"pointer",
-               transition:"box-shadow 0.15s, transform 0.15s",
-               boxShadow:"0 1px 4px rgba(0,0,0,0.05)" }}
-      onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 4px 12px rgba(93,58,26,0.12)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-      onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.05)"; e.currentTarget.style.transform = "translateY(0)"; }}
-    >
-      {/* Image */}
-      <div style={{ position:"relative", width:"100%", height:120, background:"#F9FAFB", overflow:"hidden" }}>
-        {product.img ? (
-          <img
-            src={product.img}
-            alt={product.name}
-            loading="lazy"
-            style={{ width:"100%", height:"100%", objectFit:"contain", padding:6 }}
-          />
-        ) : (
-          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <Package size={36} color="#D1D5DB" />
-          </div>
-        )}
-        {hasDiscount && (
-          <div style={{ position:"absolute", top:6, left:6, background:"#EF4444", color:"#fff",
-                        fontSize:10, fontWeight:800, padding:"2px 6px", borderRadius:6 }}>
-            %{Math.round((1 - product.price / product.originalPrice) * 100)} İndirim
-          </div>
-        )}
-        {inCart && !added && (
-          <div style={{ position:"absolute", top:6, right:6, width:18, height:18,
-                        background:P, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <Check size={11} color="#fff" strokeWidth={3} />
-          </div>
-        )}
-      </div>
-
-      {/* Info */}
-      <div style={{ padding:"8px 10px 10px" }}>
-        <p style={{ fontSize:12, fontWeight:500, color:"#374151", lineHeight:1.4,
-                    margin:"0 0 6px", overflow:"hidden", display:"-webkit-box",
-                    WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
-          {product.name}
-        </p>
-        <div style={{ display:"flex", alignItems:"baseline", gap:4, marginBottom:8 }}>
-          <span style={{ fontSize:14, fontWeight:800, color:"#111827" }}>
-            {product.price.toLocaleString("tr-TR")} ₺
-          </span>
-          {hasDiscount && (
-            <span style={{ fontSize:11, color:"#9CA3AF", textDecoration:"line-through" }}>
-              {product.originalPrice.toLocaleString("tr-TR")} ₺
-            </span>
-          )}
-        </div>
-        <button
-          aria-label={`${product.name} sepete ekle`}
-          onClick={handleAdd}
-          style={{ width:"100%", padding:"7px 0", borderRadius:8, border:"none",
-                   background: added ? "#16A34A" : P,
-                   color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer",
-                   fontFamily:"inherit", display:"flex", alignItems:"center",
-                   justifyContent:"center", gap:5, transition:"background 0.2s" }}>
-          {added ? <><Check size={13} /> Eklendi</> : <><Plus size={13} /> Sepete Ekle</>}
-        </button>
-      </div>
-    </div>
-  );
-}
 
 /* ── Category row ── */
 function CategoryRow({ cat, count, onClick }: { cat:Cat; count:number|null; onClick:()=>void }) {
@@ -213,34 +79,35 @@ function CategoryRow({ cat, count, onClick }: { cat:Cat; count:number|null; onCl
   const badge = count === null
     ? null
     : count === 0
-      ? <span style={{ fontSize:11, fontWeight:500, color:"#9CA3AF", background:"#F3F4F6",
-                        padding:"2px 8px", borderRadius:999, whiteSpace:"nowrap" }}>Yakında</span>
-      : <span style={{ fontSize:11, fontWeight:600, color:"#6B7280", background:"#F3F4F6",
-                        padding:"2px 8px", borderRadius:999, whiteSpace:"nowrap" }}>{count} ürün</span>;
+      ? <span className="yp-mag-badge" style={{ fontSize:11, fontWeight:600, color:"#9A8B7A", background:PL,
+                        padding:"3px 8px", borderRadius:999, whiteSpace:"nowrap" }}>Yakında</span>
+      : <span className="yp-mag-badge" style={{ fontSize:11, fontWeight:650, color:"#7A6A58", background:PL,
+                        padding:"3px 8px", borderRadius:999, whiteSpace:"nowrap" }}>{count} ürün</span>;
   return (
     <div
+      className="yp-mag-cat"
       role="button"
       aria-label={`${cat.name} kategorisine git`}
       tabIndex={0}
       onClick={onClick}
       onKeyDown={e => { if (e.key === "Enter" || e.key === " ") onClick(); }}
       style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
-               padding:"12px", marginBottom:8, borderRadius:12,
-               border:`1px solid ${c.border}`, background:c.bg,
+               padding:"12px", marginBottom:8, borderRadius:16,
+               border:`1px solid ${GB}`, background:"#fff",
                cursor:"pointer", transition:"box-shadow 0.15s, transform 0.15s" }}
-      onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)"; e.currentTarget.style.transform = "scale(1.01)"; }}
-      onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "scale(1)"; }}>
-      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-        <div style={{ width:40, height:40, borderRadius:8, background:"#fff",
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 4px 14px rgba(93,58,26,0.08)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "translateY(0)"; }}>
+      <div className="yp-mag-cat-top" style={{ display:"flex", alignItems:"center", gap:12 }}>
+        <div style={{ width:40, height:40, borderRadius:12, background:PL,
                       border:`1px solid ${c.border}`, display:"flex", alignItems:"center",
                       justifyContent:"center", flexShrink:0 }}>
           <cat.Icon size={20} color={c.icon} strokeWidth={1.75} />
         </div>
-        <span style={{ fontSize:14, fontWeight:500, color:"#111827" }}>{cat.name}</span>
+        <span style={{ fontSize:14, fontWeight:650, color:"#2C2118" }}>{cat.name}</span>
       </div>
-      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+      <div className="yp-mag-cat-meta" style={{ display:"flex", alignItems:"center", gap:8 }}>
         {badge}
-        <ChevronRight size={18} color={c.icon} />
+        <ChevronRight className="yp-mag-chevron" size={18} color={c.icon} />
       </div>
     </div>
   );
@@ -250,8 +117,6 @@ function CategoryRow({ cat, count, onClick }: { cat:Cat; count:number|null; onCl
 export default function YPMagazaPage() {
   const [, navigate] = useLocation();
   const [searchQ, setSearchQ] = useState("");
-  const [toast,   setToast]   = useState({ message:"", visible:false });
-  const toastTimer = useRef<ReturnType<typeof setTimeout>|null>(null);
 
   /* ?kategori=mama redirect → mama PLP */
   useEffect(() => {
@@ -265,34 +130,11 @@ export default function YPMagazaPage() {
     document.title = "Poodle Ürünleri: Mama, Aksesuar ve Oyuncaklar | YourPoodle";
   }, []);
 
-  const showToast = useCallback((msg: string) => {
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    setToast({ message:msg, visible:true });
-    toastTimer.current = setTimeout(() => setToast(t => ({ ...t, visible:false })), 2500);
-  }, []);
-
   /* Category counts */
   const { data: categoryCounts = {} } = useQuery<Record<string, number>>({
     queryKey: ["/api/yp-category-counts"],
     staleTime: 5 * 60 * 1000,
   });
-
-  /* YP products for featured strip — real images only, sorted by stock desc */
-  const { data: ypProducts = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/yp-products"],
-    staleTime: 5 * 60 * 1000,
-  });
-  const featuredProducts = useMemo(() =>
-    ypProducts
-      .filter((p: any) => !!p.img && p.stock > 0 && p.isActive !== false)
-      .sort((a: any, b: any) => b.stock - a.stock)
-      .slice(0, 8),
-  [ypProducts]);
-
-  /* Navigate to product detail */
-  const goProduct = useCallback((id: number, name: string) => {
-    navigate(`${BASE}/urun/${id}/${slugify(name)}`);
-  }, [navigate]);
 
   /* Search submit */
   const handleSearch = (e: React.FormEvent) => {
@@ -310,13 +152,6 @@ export default function YPMagazaPage() {
   return (
     <YPLayout activeLink={`${BASE}/magaza`} constrain={false}>
       <style>{`
-        @keyframes shimmer {
-          0%   { opacity:1; }
-          50%  { opacity:0.5; }
-          100% { opacity:1; }
-        }
-        .yp-mag-scroll::-webkit-scrollbar { display:none; }
-        /* Content area — footer sits below and handles bottom nav clearance */
         .yp-mag-main {
           padding: 16px 16px 24px;
           background: #FAF8F4;
@@ -326,30 +161,57 @@ export default function YPMagazaPage() {
         @media (max-width: 767px) {
           .yp-mag-hide-mobile { display: none !important; }
         }
+        @media (min-width: 768px) {
+          .yp-mag-main { padding: 32px 28px 80px !important; max-width: 1180px; }
+          .yp-cat-grid { grid-template-columns: repeat(3, minmax(0,1fr)) !important; gap: 16px !important; }
+          .yp-mag-h1 { font-size: 26px !important; }
+          .yp-mag-search { border-radius: 14px !important; }
+          .yp-mag-cat {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            justify-content: space-between !important;
+            padding: 18px 16px !important;
+            margin-bottom: 0 !important;
+            min-height: 132px;
+            gap: 16px;
+          }
+          .yp-mag-cat-top { width: 100%; }
+          .yp-mag-chevron { display: none; }
+        }
+        @media (min-width: 1100px) {
+          .yp-cat-grid { grid-template-columns: repeat(4, minmax(0,1fr)) !important; gap: 18px !important; }
+        }
       `}</style>
-      <Toast message={toast.message} visible={toast.visible} />
 
       <main className="yp-pw yp-mag-main">
 
         {/* ── Search bar ── */}
+        <header style={{ marginBottom: 16 }}>
+          <h1 className="yp-mag-h1" style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#2C2118", letterSpacing: "-0.02em" }}>
+            Mağaza
+          </h1>
+          <p style={{ margin: "6px 0 0", fontSize: 14, color: "#7A6A58", lineHeight: 1.4 }}>
+            Kuru mama, aksesuar ve bakım ürünleri
+          </p>
+        </header>
+
         <form onSubmit={handleSearch} style={{ marginBottom:20 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:0,
-                        border:`1.5px solid ${GB}`, borderRadius:12,
-                        background:"#fff", overflow:"hidden",
-                        boxShadow:"0 1px 4px rgba(0,0,0,0.06)" }}>
-            <Search size={16} color="#9CA3AF" style={{ marginLeft:14, flexShrink:0 }} />
+          <div className="yp-mag-search" style={{ display:"flex", alignItems:"center", gap:10,
+                        border:`1px solid ${GB}`, borderRadius:14,
+                        background:"#fff", padding:"4px 4px 4px 14px" }}>
+            <Search size={18} color="#B0A69C" strokeWidth={1.75} style={{ flexShrink:0 }} />
             <input
               value={searchQ}
               onChange={e => setSearchQ(e.target.value)}
               type="search"
-              placeholder="Poodle ürünlerinde ara..."
-              style={{ flex:1, border:"none", outline:"none", padding:"12px 10px",
-                       fontSize:14, color:"#111827", fontFamily:"inherit",
+              placeholder="Marka veya ürün ara"
+              style={{ flex:1, border:"none", outline:"none", padding:"10px 4px",
+                       fontSize:15, color:"#2C2118", fontFamily:"inherit",
                        background:"transparent" }}
             />
             <button type="submit"
-              style={{ background:P, color:"#fff", border:"none",
-                       padding:"12px 16px", fontSize:13, fontWeight:600,
+              style={{ background:P, color:"#fff", border:"none", borderRadius:12,
+                       padding:"10px 16px", fontSize:13, fontWeight:700,
                        cursor:"pointer", fontFamily:"inherit", flexShrink:0 }}>
               Ara
             </button>
@@ -379,48 +241,27 @@ export default function YPMagazaPage() {
           <div style={{ fontSize:48, lineHeight:1, flexShrink:0, marginLeft:12 }}>🐾</div>
         </button>
 
-        {/* ── Featured products strip (desktop only) ── */}
-        {featuredProducts.length > 0 && (
-          <section className="yp-mag-hide-mobile" style={{ marginBottom:28 }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
-              <h2 style={{ fontSize:16, fontWeight:800, color:"#111827", margin:0 }}>Öne Çıkan Ürünler</h2>
-              <button onClick={() => navigate(`${BASE}/ara`)}
-                style={{ background:"none", border:"none", cursor:"pointer", fontFamily:"inherit",
-                          fontSize:12, fontWeight:600, color:P, padding:"4px 0" }}>
-                Tümü →
-              </button>
-            </div>
-            {isLoading ? (
-              <div style={{ display:"flex", gap:10, overflowX:"auto", paddingBottom:4 }} className="yp-mag-scroll">
-                {[1,2,3,4].map(i => <ProductSkeleton key={i} />)}
-              </div>
-            ) : (
-              <div style={{ display:"flex", gap:10, overflowX:"auto", paddingBottom:4 }} className="yp-mag-scroll">
-                {featuredProducts.map(p => (
-                  <ProductCard key={p.id} product={p} onNavigate={goProduct} />
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-
         {/* ── Category divider ── */}
-        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
-          <div style={{ flex:1, height:1, background:GB }} />
-          <h2 style={{ fontSize:14, fontWeight:700, color:"#6B7280", margin:0, whiteSpace:"nowrap" }}>
-            Tüm Kategoriler
-          </h2>
-          <div style={{ flex:1, height:1, background:GB }} />
+        <div style={{ fontSize:11, fontWeight:700, color:"#9A8B7A", marginBottom:10, letterSpacing:0.3 }}>
+          KATEGORİLER
         </div>
 
         {/* ── Category grid — ALL categories always visible ── */}
         <div className="yp-cat-grid">
           {CATEGORIES.map(cat => {
-            const subcat = SLUG_TO_SUBCAT[cat.slug];
             const countsLoaded = Object.keys(categoryCounts).length > 0;
-            const count = countsLoaded
-              ? (subcat ? (categoryCounts[subcat] ?? null) : null)
-              : null;
+            let count: number | null = null;
+            if (countsLoaded) {
+              if (cat.slug === "kuru-mama") {
+                count =
+                  (categoryCounts["kuru-mama"] ??
+                    ((categoryCounts["kopek-kuru-mama"] || 0) +
+                      (categoryCounts["mama-markalari"] || 0)));
+              } else {
+                const subcat = SLUG_TO_SUBCAT[cat.slug];
+                count = subcat ? (categoryCounts[subcat] ?? 0) : null;
+              }
+            }
             return (
               <CategoryRow key={cat.id} cat={cat} count={count} onClick={() => goCat(cat)} />
             );

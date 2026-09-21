@@ -1,16 +1,18 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Package, Check, ShoppingCart } from "lucide-react";
+import { Search, Package, Check, ChevronLeft } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { useCart } from "@/contexts/CartContext";
-import { searchArticles, searchPosts, POPULAR_SEARCHES } from "@/data/searchResults";
+import { searchArticles, POPULAR_SEARCHES } from "@/data/searchResults";
 import { IS_YP } from "@/lib/store";
+import { goBack } from "@/lib/goBack";
 
 const P    = "#5D3A1A";
+const GB   = "#E8E0D4";
 const BASE = IS_YP ? "" : "/yourpoodle";
 
-type Tab = "tumü" | "urunler" | "rehber" | "club";
+type Tab = "tumü" | "urunler" | "rehber";
 
 /* ── helpers ─────────────────────────────────────────────────────── */
 function slugify(str: string) {
@@ -24,159 +26,123 @@ function fmtPrice(n: number) {
   return n.toLocaleString("tr-TR") + " TL";
 }
 
-/* ── Toast ───────────────────────────────────────────────────────── */
-function Toast({ message, visible }: { message: string; visible: boolean }) {
-  return (
-    <div style={{
-      position:"fixed", bottom:88, left:"50%", transform:"translateX(-50%)",
-      zIndex:9999, pointerEvents:"none", opacity:visible?1:0, transition:"opacity 0.3s",
-    }}>
-      <div style={{
-        background:"#3D2612", color:"#fff", padding:"10px 22px", borderRadius:999,
-        fontSize:13, fontWeight:500, whiteSpace:"nowrap", boxShadow:"0 4px 16px rgba(0,0,0,0.25)",
-      }}>
-        {message}
-      </div>
-    </div>
-  );
-}
-
 /* ── Product Card ─────────────────────────────────────────────────── */
 function ProductCard({
   product,
   onNavigate,
-  onAddToCart,
 }: {
   product: any;
   onNavigate: (id: number, name: string) => void;
-  onAddToCart: (product: any) => void;
 }) {
-  const { basket } = useCart();
+  const { updateQty, basket } = useCart();
+  const [added, setAdded] = useState(false);
   const sid = String(product.id);
   const inCart = (basket[sid] || 0) > 0;
-  const [added, setAdded] = useState(false);
-
-  const hasDiscount = product.originalPrice && product.originalPrice > product.price;
-  const discountPct = hasDiscount
-    ? Math.round((1 - product.price / product.originalPrice) * 100)
-    : 0;
   const outOfStock = !product.stock || product.stock <= 0;
+  const hasDiscount = product.originalPrice && product.originalPrice > product.price;
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (outOfStock) return;
-    onAddToCart(product);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1500);
+    const ok = updateQty(sid, 1);
+    if (ok !== false) {
+      setAdded(true);
+      setTimeout(() => setAdded(false), 1400);
+    }
   };
 
   return (
-    <div
+    <article
       role="button"
       tabIndex={0}
-      aria-label={`${product.name} ürününe git`}
+      aria-label={product.name}
       onClick={() => onNavigate(product.id, product.name)}
       onKeyDown={e => { if (e.key === "Enter" || e.key === " ") onNavigate(product.id, product.name); }}
       style={{
-        background:"#fff", border:"1px solid #E5E7EB", borderRadius:12,
-        overflow:"hidden", display:"flex", flexDirection:"column",
-        boxShadow:"0 1px 4px rgba(0,0,0,0.06)", cursor:"pointer",
-        transition:"box-shadow 0.15s, transform 0.15s",
+        background: "#fff", borderRadius: 16, border: `1px solid ${GB}`,
+        overflow: "hidden", display: "flex", flexDirection: "column",
+        height: "100%", cursor: "pointer",
       }}
-      onMouseEnter={e => { e.currentTarget.style.boxShadow="0 4px 12px rgba(93,58,26,0.10)"; e.currentTarget.style.transform="translateY(-1px)"; }}
-      onMouseLeave={e => { e.currentTarget.style.boxShadow="0 1px 4px rgba(0,0,0,0.06)"; e.currentTarget.style.transform="translateY(0)"; }}
     >
-      {/* Image */}
-      <div style={{ position:"relative", width:"100%", paddingTop:"100%", background:"#F9FAFB", overflow:"hidden" }}>
-        <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-          {product.img ? (
-            <img
-              src={product.img}
-              alt={product.name}
-              loading="lazy"
-              onError={e => { (e.target as HTMLImageElement).style.display="none"; }}
-              style={{ width:"100%", height:"100%", objectFit:"contain", padding:8 }}
-            />
-          ) : (
-            <Package size={40} color="#D1D5DB" />
-          )}
-        </div>
-        {hasDiscount && (
-          <div style={{
-            position:"absolute", top:6, left:6, background:"#EF4444",
-            color:"#fff", fontSize:10, fontWeight:800, padding:"2px 7px", borderRadius:6,
-          }}>
-            %{discountPct} İndirim
+      <div style={{
+        position: "relative", width: "100%", aspectRatio: "1 / 1", flexShrink: 0,
+        background: "#EFE8DE", overflow: "hidden",
+      }}>
+        {product.img ? (
+          <img src={product.img} alt="" decoding="async"
+            onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+            style={{
+              position: "absolute", inset: 0, width: "100%", height: "100%",
+              objectFit: "contain", objectPosition: "center", padding: 10, boxSizing: "border-box",
+            }} />
+        ) : (
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Package size={36} color="#D1C4B0" strokeWidth={1.5} />
           </div>
         )}
+        {hasDiscount && (
+          <span style={{
+            position: "absolute", top: 10, left: 10, background: "#EF4444", color: "#fff",
+            borderRadius: 8, padding: "3px 8px", fontSize: 10, fontWeight: 800, zIndex: 1,
+          }}>
+            %{Math.round((1 - product.price / product.originalPrice) * 100)}
+          </span>
+        )}
         {inCart && !added && (
-          <div style={{
-            position:"absolute", top:6, right:6, width:20, height:20,
-            background:P, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center",
+          <span style={{
+            position: "absolute", top: 10, right: 10, width: 22, height: 22, borderRadius: "50%",
+            background: "#DC2626", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1,
           }}>
             <Check size={12} color="#fff" strokeWidth={3} />
-          </div>
+          </span>
         )}
       </div>
 
-      {/* Info */}
-      <div style={{ padding:"10px 10px 12px", flex:1, display:"flex", flexDirection:"column" }}>
-        <p style={{
-          fontSize:12, fontWeight:500, color:"#374151", lineHeight:1.4,
-          margin:"0 0 4px", flex:1,
-          overflow:"hidden", display:"-webkit-box",
-          WebkitLineClamp:2, WebkitBoxOrient:"vertical",
+      <div style={{ padding: "10px 10px 12px", display: "flex", flexDirection: "column", gap: 6, flex: 1 }}>
+        {product.brandName && !String(product.brandName).toLowerCase().includes("yourpoodle") && (
+          <div style={{ fontSize: 11, fontWeight: 600, color: "#9A8B7A", letterSpacing: 0.2, height: 16, overflow: "hidden" }}>
+            {product.brandName}
+          </div>
+        )}
+        <h3 style={{
+          fontSize: 13, fontWeight: 650, color: "#2C2118", lineHeight: 1.35, margin: 0,
+          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden",
+          height: 34,
         }}>
           {product.name}
-        </p>
-
-        <div style={{ marginBottom:8 }}>
+        </h3>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: "auto" }}>
           {hasDiscount && (
-            <span style={{ fontSize:11, color:"#9CA3AF", textDecoration:"line-through", display:"block" }}>
+            <span style={{ fontSize: 11, color: "#B0A69C", textDecoration: "line-through" }}>
               {fmtPrice(product.originalPrice)}
             </span>
           )}
-          <span style={{ fontSize:17, fontWeight:800, color:P }}>
-            {fmtPrice(product.price)}
-          </span>
+          <span style={{ fontSize: 16, fontWeight: 800, color: P }}>{fmtPrice(product.price)}</span>
         </div>
-
         <button
+          type="button"
           aria-label={`${product.name} sepete ekle`}
           onClick={handleAdd}
           disabled={outOfStock}
           style={{
-            width:"100%", padding:"9px 0", borderRadius:10, border:"none",
-            background: outOfStock ? "#E5E7EB" : added ? "#16A34A" : P,
-            color: outOfStock ? "#9CA3AF" : "#fff",
-            fontSize:13, fontWeight:700, cursor: outOfStock ? "not-allowed" : "pointer",
-            fontFamily:"inherit", display:"flex", alignItems:"center",
-            justifyContent:"center", gap:5, transition:"background 0.2s",
+            width: "100%", marginTop: 2, padding: "6px 0", borderRadius: 8, border: "none",
+            background: outOfStock ? "#FACC15" : added ? "#15803D" : "#DC2626",
+            color: outOfStock ? "#713F12" : "#fff",
+            fontSize: 12, fontWeight: 700, cursor: outOfStock ? "not-allowed" : "pointer",
+            fontFamily: "inherit",
           }}
         >
-          {outOfStock
-            ? "Tükendi"
-            : added
-              ? <><Check size={14} /> Eklendi</>
-              : <><ShoppingCart size={14} /> Sepete Ekle</>
-          }
+          {outOfStock ? "Tükendi" : added ? "Eklendi" : "Sepete Ekle"}
         </button>
       </div>
-    </div>
+    </article>
   );
 }
 
 /* ── Skeleton ─────────────────────────────────────────────────────── */
 function SkeletonCard() {
   return (
-    <div style={{ borderRadius:12, border:"1px solid #E5E7EB", background:"#fff", overflow:"hidden" }}>
-      <div style={{ paddingTop:"100%", background:"#F3F4F6", animation:"ypa-shimmer 1.4s infinite" }} />
-      <div style={{ padding:"10px 10px 12px" }}>
-        <div style={{ height:12, background:"#F3F4F6", borderRadius:6, marginBottom:6, animation:"ypa-shimmer 1.4s infinite" }} />
-        <div style={{ height:12, background:"#F3F4F6", borderRadius:6, width:"60%", marginBottom:10, animation:"ypa-shimmer 1.4s infinite" }} />
-        <div style={{ height:36, background:"#F3F4F6", borderRadius:10, animation:"ypa-shimmer 1.4s infinite" }} />
-      </div>
-    </div>
+    <div style={{ borderRadius: 16, background: "#EDE7DE", aspectRatio: "0.72", animation: "ypa-shimmer 1.4s infinite" }} />
   );
 }
 
@@ -184,11 +150,8 @@ function SkeletonCard() {
 export default function YPAraPage() {
   const [, navigate] = useLocation();
   const q = new URLSearchParams(window.location.search).get("q") ?? "";
-  const { updateQty } = useCart();
 
   const [tab, setTab] = useState<Tab>("tumü");
-  const [toast, setToast] = useState({ message:"", visible:false });
-  const toastTimer = useRef<ReturnType<typeof setTimeout>|null>(null);
 
   useEffect(() => { document.title = q ? `Arama: ${q} | YourPoodle` : "Arama | YourPoodle"; }, [q]);
 
@@ -201,12 +164,6 @@ export default function YPAraPage() {
       track("search", { query: q.trim().slice(0, 120) });
     }).catch(() => {});
   }, [q]);
-
-  const showToast = useCallback((msg: string) => {
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    setToast({ message:msg, visible:true });
-    toastTimer.current = setTimeout(() => setToast(t => ({...t, visible:false})), 2500);
-  }, []);
 
   /* Fetch ALL YP products (no subcategory filter) */
   const { data: rawProducts = [], isLoading } = useQuery<any[]>({
@@ -232,42 +189,49 @@ export default function YPAraPage() {
 
   /* Static article/post search (kept as-is) */
   const articles = useMemo(() => searchArticles(q), [q]);
-  const posts    = useMemo(() => searchPosts(q), [q]);
 
-  const totalCount = matchedProducts.length + articles.length + posts.length;
+  const totalCount = matchedProducts.length + articles.length;
 
   const tabs: { key: Tab; label: string; count: number }[] = [
     { key: "tumü",    label: "Tümü",    count: totalCount },
     { key: "urunler", label: "Ürünler", count: matchedProducts.length },
     { key: "rehber",  label: "Rehber",  count: articles.length },
-    { key: "club",    label: "Club",    count: posts.length },
   ];
 
   const goProduct = useCallback((id: number, name: string) => {
     navigate(`${BASE}/urun/${id}/${slugify(name)}`);
   }, [navigate]);
 
-  const handleAddToCart = useCallback((product: any) => {
-    const sid = String(product.id);
-    const blocked = updateQty(sid, 1);
-    if (blocked === true) {
-      showToast("Stok kalmadı!");
-    } else {
-      showToast("✓ Sepete eklendi");
-    }
-  }, [updateQty, showToast]);
-
   return (
-    <YPLayout activeLink={`${BASE}/magaza`} constrain={false}>
+    <YPLayout activeLink={`${BASE}/magaza`} constrain={false} hideFooter>
       <style>{`
-        @keyframes ypa-shimmer { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        @keyframes ypa-shimmer { 0%,100%{opacity:1} 50%{opacity:.45} }
+        @media (min-width: 768px) {
+          .ypa-wrap { max-width: 1180px !important; padding: 32px 28px 80px !important; }
+          .ypa-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 18px !important; }
+        }
+        @media (min-width: 1100px) {
+          .ypa-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 20px !important; }
+        }
       `}</style>
-      <Toast message={toast.message} visible={toast.visible} />
+      <div style={{ minHeight:"70vh", background:"#FAF8F4", paddingBottom:80 }}>
+        <div className="ypa-wrap" style={{ maxWidth:1100, margin:"0 auto", padding:"20px 16px 110px" }}>
 
-      <div style={{ minHeight:"100vh", background:"#FAFAFA", paddingBottom:80 }}>
-        <div style={{ maxWidth:900, margin:"0 auto", padding:"24px 16px 0" }}>
+          <button
+            type="button"
+            onClick={() => goBack(navigate, `${BASE}/magaza`)}
+            aria-label="Mağazaya dön"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 4,
+              background: "none", border: "none", cursor: "pointer",
+              color: P, fontSize: 13, fontWeight: 700, padding: 0, marginBottom: 10,
+              fontFamily: "inherit",
+            }}
+          >
+            <ChevronLeft size={16} /> Mağaza
+          </button>
 
-          <h1 style={{ fontSize:22, fontWeight:800, color:"#111827", margin:"0 0 4px" }}>
+          <h1 style={{ fontSize:26, fontWeight:800, color:"#2C2118", margin:"0 0 4px", letterSpacing:"-0.02em" }}>
             Arama Sonuçları
           </h1>
           {q && (
@@ -289,7 +253,7 @@ export default function YPAraPage() {
                     fontSize:13, fontWeight: tab===t.key ? 700 : 500,
                     cursor:"pointer", fontFamily:"inherit",
                   }}>
-                  {t.label} ({isLoading && t.key !== "rehber" && t.key !== "club" ? "…" : t.count})
+                  {t.label} ({isLoading && t.key !== "rehber" ? "…" : t.count})
                 </button>
               ))}
             </div>
@@ -323,7 +287,7 @@ export default function YPAraPage() {
                   )}
 
                   {isLoading ? (
-                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                    <div className="ypa-grid" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                       {Array.from({length:4}).map((_,i) => <SkeletonCard key={i} />)}
                     </div>
                   ) : matchedProducts.length > 0 ? (
@@ -331,13 +295,12 @@ export default function YPAraPage() {
                       <p style={{ fontSize:13, color:"#6B7280", margin:"0 0 12px" }}>
                         {matchedProducts.length} ürün bulundu
                       </p>
-                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                      <div className="ypa-grid" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                         {matchedProducts.map((product: any) => (
                           <ProductCard
                             key={product.id}
                             product={product}
                             onNavigate={goProduct}
-                            onAddToCart={handleAddToCart}
                           />
                         ))}
                       </div>
@@ -390,36 +353,6 @@ export default function YPAraPage() {
                 </div>
               )}
 
-              {/* ── Club posts section ── */}
-              {(tab === "tumü" || tab === "club") && posts.length > 0 && (
-                <div style={{ marginBottom:32 }}>
-                  {tab === "tumü" && (
-                    <h2 style={{ fontSize:16, fontWeight:700, color:"#111827", margin:"0 0 14px" }}>
-                      Club
-                    </h2>
-                  )}
-                  <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                    {posts.map((p: any) => (
-                      <div key={p.id} onClick={() => navigate(`${BASE}/club/gonderi/${p.id}`)}
-                        style={{ background:"#fff", borderRadius:14, padding:"14px 18px",
-                                 cursor:"pointer", boxShadow:"0 1px 6px rgba(0,0,0,0.05)" }}>
-                        <div style={{ display:"flex", gap:10, alignItems:"center" }}>
-                          <span style={{ fontSize:28 }}>{p.avatar}</span>
-                          <div>
-                            <p style={{ margin:0, fontWeight:700, fontSize:14, color:"#111827" }}>
-                              @{p.username}
-                            </p>
-                            <p style={{ margin:0, fontSize:13, color:"#6B7280" }}>
-                              {p.caption.slice(0, 80)}…
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* ── All-tabs empty state ── */}
               {!isLoading && totalCount === 0 && tab === "tumü" && (
                 <div style={{ textAlign:"center", padding:"48px 0" }}>
@@ -447,12 +380,6 @@ export default function YPAraPage() {
                 </div>
               )}
 
-              {/* ── Club tab empty state ── */}
-              {tab === "club" && posts.length === 0 && (
-                <div style={{ textAlign:"center", padding:"48px 0", color:"#6B7280" }}>
-                  <p style={{ fontSize:15 }}>"{q}" için club gönderisi bulunamadı.</p>
-                </div>
-              )}
             </>
           )}
         </div>

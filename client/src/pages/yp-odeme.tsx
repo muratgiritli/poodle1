@@ -10,8 +10,7 @@ import { PROVINCE_NAMES, districtsOf } from "@shared/turkeyLocations";
 import { goBack } from "@/lib/goBack";
 import { IS_YP } from "@/lib/store";
 import { loadCheckoutDraft, clearCheckoutDraft } from "@/lib/checkout-draft";
-import { useSurchargeRate, surchargeLabel } from "@/hooks/useSurchargeRate";
-import { resolveYpShipping, ypCardSurcharge, type DeliveryNeighborhood } from "@/lib/yp-shipping";
+import { resolveYpShipping, type DeliveryNeighborhood } from "@/lib/yp-shipping";
 import { getAttributionPayload } from "@/lib/yp-analytics";
 
 const BASE = IS_YP ? "" : "/yourpoodle";
@@ -93,7 +92,6 @@ export default function YPOdemePage() {
   const [couponError, setCouponError]     = useState("");
   const [couponHint, setCouponHint]       = useState("");
 
-  const surchargeRate = useSurchargeRate();
   const { data: deliveryNeighborhoods = [] } = useQuery<DeliveryNeighborhood[]>({
     queryKey: ["/api/delivery-neighborhoods"],
     staleTime: 60_000,
@@ -206,8 +204,7 @@ export default function YPOdemePage() {
     [subtotal, addressBlob, deliveryNeighborhoods],
   );
   const shipping = couponFreeShipping ? 0 : shipInfo.shipping;
-  const cardSurcharge = ypCardSurcharge(subtotal, surchargeRate);
-  const total = Math.max(0, subtotal - couponDiscount + shipping + cardSurcharge);
+  const total = Math.max(0, subtotal - couponDiscount + shipping);
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
   const beginCheckoutFired = useRef(false);
 
@@ -759,12 +756,6 @@ export default function YPOdemePage() {
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#16A34A", fontWeight: 700, marginBottom: 6 }}>
                   <span>Kupon İndirimi</span>
                   <span>-₺{couponDiscount.toLocaleString("tr-TR")}</span>
-                </div>
-              )}
-              {cardSurcharge > 0 && (
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#555", marginBottom: 6 }}>
-                  <span>Kart işlem farkı ({surchargeLabel(surchargeRate)})</span>
-                  <span>+₺{cardSurcharge.toLocaleString("tr-TR")}</span>
                 </div>
               )}
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 17, fontWeight: 900, color: "#1a1a1a" }}>

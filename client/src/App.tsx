@@ -100,12 +100,9 @@ const YourPoodleDemoPage  = lazy(() => import("@/pages/yourpoodle-demo"));
 const YourPoodleDemo2Page = lazy(() => import("@/pages/yourpoodle-demo2"));
 const YourPoodleDemo3Page = lazy(() => import("@/pages/yourpoodle-demo3"));
 const YPRehberPage        = lazy(() => import("@/pages/yp-rehber"));
-const YPClubPage          = lazy(() => import("@/pages/yp-club"));
-const YPClubHakkimizdaPage= lazy(() => import("@/pages/yp-club-hakkimizda"));
 const YPBilgiPage         = lazy(() => import("@/pages/yp-bilgi"));
 const YPMagazaPage        = lazy(() => import("@/pages/yp-magaza"));
 const YPGirisPage         = lazy(() => import("@/pages/yp-giris"));
-const YPToplulukPage      = lazy(() => import("@/pages/yp-topluluk"));
 const YPMamaPage          = lazy(() => import("@/pages/yp-mama"));
 const YPEgitimPage        = lazy(() => import("@/pages/yp-egitim"));
 const YPSaglikPage        = lazy(() => import("@/pages/yp-saglik"));
@@ -139,16 +136,12 @@ const YPSepetPage         = lazy(() => import("@/pages/yp-sepet"));
 const YPDogCreatePage     = lazy(() => import("@/pages/yp-dog-create"));
 const YPDogProfilePage    = lazy(() => import("@/pages/yp-dog-profile"));
 const YPDogEditPage       = lazy(() => import("@/pages/yp-dog-edit"));
-const YPClubKesfetPage    = lazy(() => import("@/pages/yp-club-kesfet"));
-const YPClubKopeklerPage  = lazy(() => import("@/pages/yp-club-kopekler"));
-const YPClubMesajlarPage  = lazy(() => import("@/pages/yp-club-mesajlar"));
 const YPOdemePage         = lazy(() => import("@/pages/yp-odeme"));
 const YPTesekkurlerPage   = lazy(() => import("@/pages/yp-tesekkurler"));
 const YPSiparislerimPage  = lazy(() => import("@/pages/yp-siparislerim"));
 const YPHesabimSiparislerimPage = lazy(() => import("@/pages/yp-hesabim-siparislerim"));
 const YPHesabimFavorilerimPage  = lazy(() => import("@/pages/yp-hesabim-favorilerim"));
 const YPHesabimAdreslerimPage         = lazy(() => import("@/pages/yp-hesabim-adreslerim"));
-const YPHesabimClubPaylasimlarimPage  = lazy(() => import("@/pages/yp-hesabim-club-paylasimlarim"));
 const YPHesabimBildirimlerPage        = lazy(() => import("@/pages/yp-hesabim-bildirimler"));
 const YPHesabimAyarlarPage            = lazy(() => import("@/pages/yp-hesabim-ayarlar"));
 const YPHesabimYardimPage             = lazy(() => import("@/pages/yp-hesabim-yardim"));
@@ -246,6 +239,12 @@ function Router() {
         {IS_YP ? (
           <>
             <Route path="/kuru-mama" component={YPKuruMamaPage} />
+            <Route path="/kategori/acik-mama">
+              {() => <Redirect to="/magaza" />}
+            </Route>
+            <Route path="/acik-mama/:animal?">
+              {() => <Redirect to="/magaza" />}
+            </Route>
             <Route path="/kategori/:slug">
               {(params) => <YPKategoriPage routeSlug={params?.slug} />}
             </Route>
@@ -275,7 +274,7 @@ function Router() {
         <Route path="/hesabim/siparisler" component={YPHesabimSiparislerimPage} />
         <Route path="/hesabim/favoriler"  component={YPHesabimFavorilerimPage} />
         <Route path="/hesabim/adresler"              component={YPHesabimAdreslerimPage} />
-        <Route path="/hesabim/club-paylasimlarim"   component={YPHesabimClubPaylasimlarimPage} />
+        <Route path="/hesabim/club-paylasimlarim">{() => <Redirect to="/hesabim" />}</Route>
         <Route path="/hesabim/bildirimler"          component={YPHesabimBildirimlerPage} />
         <Route path="/hesabim/ayarlar"              component={YPHesabimAyarlarPage} />
         <Route path="/hesabim/kisisel">{() => <Redirect to="/hesabim/ayarlar" />}</Route>
@@ -314,12 +313,12 @@ function Router() {
         <Route path="/yourpoodle/rehber/:category/:slug" component={YPRehberMakalePage} />
         <Route path="/yourpoodle/rehber/:slug" component={YPRehberMakalePage} />
         <Route path="/yourpoodle/rehber"         component={YPRehberPage} />
-        <Route path="/yourpoodle/club/hakkimizda" component={YPClubHakkimizdaPage} />
-        <Route path="/yourpoodle/club/mesajlar"  component={YPClubMesajlarPage} />
-        <Route path="/yourpoodle/club/kesfet"    component={YPClubKesfetPage} />
-        <Route path="/yourpoodle/club/kopekler"  component={YPClubKopeklerPage} />
-        <Route path="/yourpoodle/club/gonderi/:postId" component={YPGonderiDetayPage} />
-        <Route path="/yourpoodle/club"           component={YPClubPage} />
+        <Route path="/yourpoodle/club/hakkimizda">{() => <Redirect to="/yourpoodle" />}</Route>
+        <Route path="/yourpoodle/club/mesajlar">{() => <Redirect to="/yourpoodle" />}</Route>
+        <Route path="/yourpoodle/club/kesfet">{() => <Redirect to="/yourpoodle" />}</Route>
+        <Route path="/yourpoodle/club/kopekler">{() => <Redirect to="/yourpoodle" />}</Route>
+        <Route path="/yourpoodle/club/gonderi/:postId">{() => <Redirect to="/yourpoodle" />}</Route>
+        <Route path="/yourpoodle/club">{() => <Redirect to="/yourpoodle" />}</Route>
         <Route path="/yourpoodle/p/olustur"      component={YPDogCreatePage} />
         <Route path="/yourpoodle/p/:slug/duzenle">
           {(params) => <YPDogEditPage routeSlug={params?.slug} />}
@@ -335,7 +334,8 @@ function Router() {
         </Route>
         <Route path="/yourpoodle/giris"          component={YPGirisPage} />
         <Route path="/yourpoodle/uye-ol"         component={YPUyeOlPage} />
-        <Route path="/yourpoodle/topluluk"       component={YPToplulukPage} />
+        <Route path="/yourpoodle/topluluk">{() => <Redirect to="/yourpoodle" />}</Route>
+        <Route path="/topluluk">{() => <Redirect to={IS_YP ? "/" : "/yourpoodle"} />}</Route>
         <Route path="/yourpoodle/mama"           component={YPMamaPage} />
         <Route path="/yourpoodle/egitim"       component={YPEgitimPage} />
         <Route path="/yourpoodle/saglik"       component={YPSaglikPage} />
@@ -388,11 +388,11 @@ function Router() {
         <Route path="/pati-blog" component={PatiBlogPage} />
         <Route path="/blog/:slug" component={BlogPostRoute} />
         <Route path="/blog" component={BlogListRoute} />
-        <Route path="/sss" component={SSSPage} />
+        <Route path="/sss">{() => IS_YP ? <YPSSSPage /> : <SSSPage />}</Route>
         <Route path="/kvkk" component={KVKKPage} />
         <Route path="/gizlilik" component={GizlilikPage} />
         <Route path="/kullanim-kosullari" component={KullanimKosullariPage} />
-        <Route path="/cerez-politikasi" component={CerezPage} />
+        <Route path="/cerez-politikasi">{() => IS_YP ? <YPCerezPolitikasiPage /> : <CerezPage />}</Route>
         <Route path="/islem-rehberi" component={IslemRehberiPage} />
         {/* ─── Top-level canonical YP routes (yourpoodle.com) ─── */}
         {/* Order flow */}
@@ -408,15 +408,13 @@ function Router() {
           {() => IS_YP ? <YPMagazaPage /> : <Redirect to="/yourpoodle/magaza" />}
         </Route>
         {/* Club */}
-        <Route path="/club/gonderi/:postId"  component={YPGonderiDetayPage} />
-        <Route path="/club/profil/:username" component={YPProfilPage} />
-        <Route path="/club/hakkimizda"       component={YPClubHakkimizdaPage} />
-        <Route path="/club/mesajlar"         component={YPClubMesajlarPage} />
-        <Route path="/club/kesfet"           component={YPClubKesfetPage} />
-        <Route path="/club/kopekler"         component={YPClubKopeklerPage} />
-        <Route path="/club">
-          {() => IS_YP ? <YPClubPage /> : <Redirect to="/yourpoodle/club" />}
-        </Route>
+        <Route path="/club/gonderi/:postId">{() => <Redirect to={IS_YP ? "/" : "/yourpoodle"} />}</Route>
+        <Route path="/club/profil/:username">{() => <Redirect to={IS_YP ? "/" : "/yourpoodle"} />}</Route>
+        <Route path="/club/hakkimizda">{() => <Redirect to={IS_YP ? "/" : "/yourpoodle"} />}</Route>
+        <Route path="/club/mesajlar">{() => <Redirect to={IS_YP ? "/" : "/yourpoodle"} />}</Route>
+        <Route path="/club/kesfet">{() => <Redirect to={IS_YP ? "/" : "/yourpoodle"} />}</Route>
+        <Route path="/club/kopekler">{() => <Redirect to={IS_YP ? "/" : "/yourpoodle"} />}</Route>
+        <Route path="/club">{() => <Redirect to={IS_YP ? "/" : "/yourpoodle"} />}</Route>
         {/* Bildirimler */}
         <Route path="/bildirimler"           component={YPBildirimlerPage} />
         {/* Rehber */}
@@ -502,7 +500,7 @@ function AppShell() {
   const isAdmin = location.startsWith("/admin");
   // On the live yourpoodle.com domain ALL routes are YP → suppress legacy chrome.
   // On dev hosts, /yourpoodle/* and the canonical top-level YP paths are YP.
-  const YP_TOP = ["/magaza", "/club", "/rehber", "/ai-asistan", "/mama-bul", "/uye-ol", "/sepet", "/odeme", "/tesekkurler", "/giris", "/ara", "/araclar", "/etkinlikler", "/kampanyalar", "/hakkimizda", "/iletisim", "/sifremi-unuttum", "/siparis", "/kullanim-sartlari", "/mesafeli-satis-sozlesmesi", "/magazalar", "/hesabim", "/benim-poodleim"];
+  const YP_TOP = ["/magaza", "/club", "/rehber", "/ai-asistan", "/mama-bul", "/uye-ol", "/sepet", "/odeme", "/tesekkurler", "/giris", "/ara", "/araclar", "/etkinlikler", "/kampanyalar", "/hakkimizda", "/iletisim", "/sifremi-unuttum", "/siparis", "/kullanim-sartlari", "/mesafeli-satis-sozlesmesi", "/magazalar", "/hesabim", "/benim-poodleim", "/sss", "/cerez-politikasi", "/gizlilik-politikasi", "/teslimat-iade", "/iade", "/kargo", "/guvenli-alisveris", "/ssl", "/mesafeli-satis"];
   const isYP = IS_YP || location === "/" || location.startsWith("/yourpoodle") ||
     YP_TOP.some(p => location === p || location.startsWith(p + "/") || location.startsWith(p + "?"));
   const isDemo = isYP || location === "/demo" || location.startsWith("/demo-kampanya") || location === "/demo1" || location === "/demo2" || location === "/demo-anasayfa";

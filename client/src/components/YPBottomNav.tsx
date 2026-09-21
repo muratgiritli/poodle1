@@ -59,12 +59,11 @@ const BookIcon = () => (
   </svg>
 );
 
-const ClubIcon = () => (
+const StoreIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="9" cy="8" r="3" />
-    <circle cx="17" cy="9" r="2.4" />
-    <path d="M3.5 19c.8-3 2.8-4.5 5.5-4.5s4.7 1.5 5.5 4.5" />
-    <path d="M14.8 19c.35-1.7 1.4-2.7 3-2.7 1.3 0 2.3.7 2.9 2" />
+    <path d="M3 9h18l-1 11H4L3 9z" />
+    <path d="M3 9l2-5h14l2 5" />
+    <path d="M9 22V12h6v10" />
   </svg>
 );
 
@@ -73,7 +72,7 @@ const TABS = [
   { label: "Mama Bul", href: `${BASE}/mama-bul`, Icon: SearchIcon },
   { label: "Sepet", href: `${BASE}/sepet`, Icon: CartIcon, isCart: true },
   { label: "Rehber", href: `${BASE}/rehber`, Icon: BookIcon },
-  { label: "Club", href: `${BASE}/club`, Icon: ClubIcon },
+  { label: "Mağaza", href: `${BASE}/magaza`, Icon: StoreIcon },
 ];
 
 function normPath(p: string) {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Search, X, Check, Package, ArrowRight, ChevronLeft, Star, ChevronDown } from "lucide-react";
+import { Search, X, Check, Package, ArrowRight, ChevronLeft, ChevronDown } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
 import { useCart } from "@/contexts/CartContext";
 import { IS_YP } from "@/lib/store";
@@ -29,10 +29,6 @@ function slugify(str: string) {
     .replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s")
     .replace(/ı/g, "i").replace(/ö/g, "o").replace(/ç/g, "c")
     .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-}
-
-function demoRating(id: number): number {
-  return 4 + ((id * 7) % 11) / 10; // 4.0–5.0
 }
 
 function productTags(p: any): string[] {
@@ -158,7 +154,6 @@ function ProductCard({ product, onNavigate }: { product: any; onNavigate: (id: n
   const outOfStock = !product.stock || product.stock <= 0;
   const hasDiscount = product.originalPrice && product.originalPrice > product.price;
   const tags = productTags(product);
-  const rating = demoRating(product.id);
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -180,23 +175,37 @@ function ProductCard({ product, onNavigate }: { product: any; onNavigate: (id: n
       style={{
         background: "#fff", borderRadius: 16, border: `1px solid ${GB}`,
         overflow: "hidden", display: "flex", flexDirection: "column",
+        height: "100%",
         cursor: "pointer",
       }}
     >
       <div style={{
-        aspectRatio: "3/4", background: "#FAF8F4", position: "relative",
-        display: "flex", alignItems: "center", justifyContent: "center", padding: 12,
+        position: "relative", width: "100%", aspectRatio: "1 / 1", flexShrink: 0,
+        background: "#EFE8DE", overflow: "hidden",
       }}>
         {product.img ? (
-          <img src={product.img} alt="" loading="lazy"
-            style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-        ) : (
+          <img src={product.img} alt="" decoding="async"
+            onError={e => {
+              const el = e.target as HTMLImageElement;
+              el.style.display = "none";
+              const fb = el.parentElement?.querySelector("[data-img-fallback]") as HTMLElement | null;
+              if (fb) fb.style.display = "flex";
+            }}
+            style={{
+              position: "absolute", inset: 0, width: "100%", height: "100%",
+              objectFit: "contain", objectPosition: "center", padding: 10, boxSizing: "border-box",
+            }} />
+        ) : null}
+        <div data-img-fallback style={{
+          display: product.img ? "none" : "flex",
+          position: "absolute", inset: 0, alignItems: "center", justifyContent: "center",
+        }}>
           <Package size={36} color="#D1C4B0" strokeWidth={1.5} />
-        )}
+        </div>
         {hasDiscount && (
           <span style={{
             position: "absolute", top: 10, left: 10, background: "#EF4444", color: "#fff",
-            borderRadius: 8, padding: "3px 8px", fontSize: 10, fontWeight: 800,
+            borderRadius: 8, padding: "3px 8px", fontSize: 10, fontWeight: 800, zIndex: 1,
           }}>
             %{Math.round((1 - product.price / product.originalPrice) * 100)}
           </span>
@@ -204,23 +213,23 @@ function ProductCard({ product, onNavigate }: { product: any; onNavigate: (id: n
         {inCart && !added && (
           <span style={{
             position: "absolute", top: 10, right: 10, width: 22, height: 22, borderRadius: "50%",
-            background: P, display: "flex", alignItems: "center", justifyContent: "center",
+            background: "#DC2626", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1,
           }}>
             <Check size={12} color="#fff" strokeWidth={3} />
           </span>
         )}
       </div>
 
-      <div style={{ padding: "12px 12px 14px", display: "flex", flexDirection: "column", gap: 7, flex: 1 }}>
-        {product.brandName && (
-          <div style={{ fontSize: 11, fontWeight: 600, color: "#9A8B7A", letterSpacing: 0.2 }}>
+      <div style={{ padding: "10px 10px 12px", display: "flex", flexDirection: "column", gap: 6, flex: 1 }}>
+        {product.brandName && !String(product.brandName).toLowerCase().includes("yourpoodle") && (
+          <div style={{ fontSize: 11, fontWeight: 600, color: "#9A8B7A", letterSpacing: 0.2, height: 16, overflow: "hidden" }}>
             {product.brandName}
           </div>
         )}
         <h3 style={{
           fontSize: 13, fontWeight: 650, color: "#2C2118", lineHeight: 1.35, margin: 0,
           display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden",
-          minHeight: 34,
+          height: 34,
         }}>
           {product.name}
         </h3>
@@ -238,11 +247,6 @@ function ProductCard({ product, onNavigate }: { product: any; onNavigate: (id: n
           </div>
         )}
 
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-          <Star size={12} color="#D97706" fill="#D97706" />
-          <span style={{ fontSize: 12, fontWeight: 700, color: "#6B5A48" }}>{rating.toFixed(1)}</span>
-        </div>
-
         <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: "auto" }}>
           {hasDiscount && (
             <span style={{ fontSize: 11, color: "#B0A69C", textDecoration: "line-through" }}>
@@ -258,10 +262,10 @@ function ProductCard({ product, onNavigate }: { product: any; onNavigate: (id: n
           onClick={handleAdd}
           disabled={outOfStock}
           style={{
-            width: "100%", marginTop: 2, padding: "10px 0", borderRadius: 12, border: "none",
-            background: outOfStock ? "#EDE7DE" : added ? "#15803D" : P,
-            color: outOfStock ? "#9A8B7A" : "#fff",
-            fontSize: 13, fontWeight: 700, cursor: outOfStock ? "not-allowed" : "pointer",
+            width: "100%", marginTop: 2, padding: "6px 0", borderRadius: 8, border: "none",
+            background: outOfStock ? "#FACC15" : added ? "#15803D" : "#DC2626",
+            color: outOfStock ? "#713F12" : "#fff",
+            fontSize: 12, fontWeight: 700, cursor: outOfStock ? "not-allowed" : "pointer",
             fontFamily: "inherit",
           }}
         >
@@ -337,11 +341,18 @@ export default function YPKuruMamaPage() {
 
   const mamaProducts = useMemo(() =>
     rawProducts.filter((p: any) => {
+      // Only show products with a real stored image (no broken hotlinks / proxy)
+      const img = String(p?.img || "");
+      if (!img.startsWith("/api/product-image")) return false;
+      const brand = String(p.brandName || "").toLowerCase();
+      if (brand.includes("yourpoodle")) return false;
       const sub = (p.subcategory || "").toLowerCase();
       const cat = (p.category || "").toLowerCase();
       const name = (p.name || "").toLowerCase();
       return (
         sub === "kopek-kuru-mama" ||
+        sub === "mama-markalari" ||
+        sub === "odul-kemik" ||
         sub.includes("kuru") ||
         (cat.includes("mama") && name.includes("kuru"))
       );
@@ -350,7 +361,10 @@ export default function YPKuruMamaPage() {
 
   const brands = useMemo(() => {
     const set = new Set<string>();
-    mamaProducts.forEach((p: any) => { if (p.brandName) set.add(p.brandName); });
+    mamaProducts.forEach((p: any) => {
+      const b = p.brandName;
+      if (b && !String(b).toLowerCase().includes("yourpoodle")) set.add(b);
+    });
     return Array.from(set).sort((a, b) => a.localeCompare(b, "tr"));
   }, [mamaProducts]);
 
@@ -380,12 +394,14 @@ export default function YPKuruMamaPage() {
         return db - da;
       });
     } else {
-      // popular: in-stock first, then rating, then discount
+      // popular: in-stock first, then discount
       sorted.sort((a, b) => {
         const sa = (a.stock || 0) > 0 ? 1 : 0;
         const sb = (b.stock || 0) > 0 ? 1 : 0;
         if (sb !== sa) return sb - sa;
-        return demoRating(b.id) - demoRating(a.id);
+        const da = a.originalPrice && a.originalPrice > a.price ? 1 - a.price / a.originalPrice : 0;
+        const db = b.originalPrice && b.originalPrice > b.price ? 1 - b.price / b.originalPrice : 0;
+        return db - da;
       });
     }
     return sorted;
@@ -436,18 +452,19 @@ export default function YPKuruMamaPage() {
         .ykm-hscroll::-webkit-scrollbar { display:none; }
         @keyframes ykm-pulse { 0%,100%{opacity:1} 50%{opacity:.45} }
         .ykm-skel { animation: ykm-pulse 1.3s ease-in-out infinite; }
-        @media (min-width: 900px) {
-          .ykm-grid { grid-template-columns: repeat(3, minmax(0,1fr)) !important; }
+        @media (min-width: 768px) {
+          .ykm-wrap { max-width: 1180px !important; padding: 32px 28px 80px !important; }
+          .ykm-grid { grid-template-columns: repeat(3, minmax(0,1fr)) !important; gap: 18px !important; }
         }
-        @media (min-width: 1200px) {
-          .ykm-grid { grid-template-columns: repeat(4, minmax(0,1fr)) !important; }
+        @media (min-width: 1100px) {
+          .ykm-grid { grid-template-columns: repeat(4, minmax(0,1fr)) !important; gap: 20px !important; }
         }
       `}</style>
 
       <Toast message={toast.message} visible={toast.visible} />
 
       <div style={{ background: "#FAF8F4", minHeight: "70vh" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "20px 16px 110px" }}>
+        <div className="ykm-wrap" style={{ maxWidth: 1100, margin: "0 auto", padding: "20px 16px 110px" }}>
 
           <header style={{ marginBottom: 16 }}>
             <button

@@ -8,8 +8,8 @@ import { CURRENT_STORE } from "@/lib/store";
 // Backed by the shared /api/public-settings query so every caller dedupes to a
 // single request.
 export function useSurchargeRate(): number {
-  const { data } = useQuery<Record<string, string>>({ queryKey: ["/api/public-settings"] });
-  return parseSurchargeRate(data?.card_surcharge_percent);
+  // YourPoodle: listed product prices are final — no +% card/havale fee.
+  return 0;
 }
 
 // Per-product non-cash surcharge overrides. jetgomarket-only feature: a stored

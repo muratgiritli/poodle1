@@ -7,6 +7,7 @@ import {
   PawPrint, Search, Heart, ShoppingCart, ChevronDown, X, Users,
 } from "lucide-react";
 import YPFooter from "./YPFooter";
+import YPWhatsAppButton from "./YPWhatsAppButton";
 import YPBottomNav from "@/components/YPBottomNav";
 
 /**
@@ -33,13 +34,16 @@ const DRAWER_LINKS_BASE = [
   { label: "Ana Sayfa",   href: BASE || "/" },
   { label: "Rehber",      href: `${BASE}/rehber` },
   { label: "Mama Bul",    href: `${BASE}/mama-bul` },
-  { label: "Araçlar",     href: "/yourpoodle/bilgi" },
+  { label: "Araçlar",     href: `${BASE}/araclar` },
   { label: "AI Asistan",  href: `${BASE}/ai-asistan` },
   { label: "Mağaza",      href: `${BASE}/magaza` },
+  { label: "Kampanyalar", href: `${BASE}/kampanyalar` },
+  { label: "Hizmetler",   href: `${BASE}/hizmetler` },
+  { label: "Benim Poodle'ım", href: `${BASE}/benim-poodleim` },
+  { label: "Sipariş Takip",   href: `${BASE}/siparis-takip` },
   { label: "Sağlık",      href: "/yourpoodle/saglik" },
   { label: "Bakım",       href: "/yourpoodle/bakim" },
   { label: "Eğitim",      href: "/yourpoodle/egitim" },
-  { label: "Topluluk",    href: "/yourpoodle/topluluk" },
   { label: "Etkinlik",    href: "/yourpoodle/etkinlikler" },
   { label: "Bildirimler", href: "/yourpoodle/bildirimler" },
   { label: "Ayarlar",     href: "/yourpoodle/ayarlar" },
@@ -196,6 +200,7 @@ export default function YPLayout({
           .yp-cat-grid { grid-template-columns: repeat(3,1fr); }
         }
 
+        .yp-desktop-hdr { box-shadow: 0 1px 0 rgba(93,58,26,.08); }
         .yp-nav-item { transition: background 0.15s, color 0.15s; cursor: pointer; }
         .yp-nav-item:hover { background: #F5F0E6 !important; color: #5D3A1A !important; }
         .yp-nav-item:hover svg { color: #5D3A1A !important; }
@@ -204,6 +209,12 @@ export default function YPLayout({
         .yp-search-inp:focus { outline: none; border-color: #A67C52 !important; }
         .yp-profile-drop { animation: yp-fade-in 0.12s ease; }
         @keyframes yp-fade-in { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+        .yp-desktop-link:focus-visible,
+        .yp-desktop-action:focus-visible,
+        .yp-mobile-action:focus-visible {
+          outline: 3px solid rgba(166,124,82,.45);
+          outline-offset: 2px;
+        }
       `}</style>
 
       {/* ════════════ DESKTOP HEADER ════════════ */}
@@ -211,41 +222,42 @@ export default function YPLayout({
 
         {/* ── Duyuru çubuğu — auth sayfalarında gösterilmez ── */}
         {!authMode && (
-          <div style={{ background: "#5D3A1A", color: "#fff", textAlign: "center", padding: "9px 20px", fontSize: 13.5, fontWeight: 500 }}>
-            🎁 Üye ol, özel kampanya ve fırsatları kaçırma
+          <div style={{ background: "#3B2414", color: "rgba(255,255,255,.88)", textAlign: "center", padding: "7px 20px", fontSize: 12, fontWeight: 650, letterSpacing: ".015em" }}>
+            Üye ol, özel kampanya ve fırsatları kaçırma
           </div>
         )}
 
         {/* ── Ana satır (logo + nav + search + auth) ── */}
-        <div style={{ background: "#fff", borderBottom: "1px solid #F3F4F6", padding: "0 40px" }}>
-          <div style={{ maxWidth: 1260, margin: "0 auto", display: "flex", alignItems: "center", height: 64, gap: 20 }}>
+        <div style={{ background: "rgba(255,252,248,.97)", borderBottom: "1px solid #EEE4D8", padding: "0 32px", backdropFilter: "blur(14px)" }}>
+          <div style={{ maxWidth: 1280, margin: "0 auto", display: "flex", alignItems: "center", height: 70, gap: 24 }}>
 
             {/* Logo */}
             <Link href={BASE || "/"}>
               <img
                 src="/images/brand/logo.png"
                 alt="YourPoodle"
-                style={{ height: 42, width: "auto", objectFit: "contain", cursor: "pointer", flexShrink: 0, display: "block" }}
+                style={{ height: 44, width: "auto", objectFit: "contain", cursor: "pointer", flexShrink: 0, display: "block" }}
               />
             </Link>
 
             {/* Center nav links */}
             {!authMode && (
-              <nav style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: 16 }}>
+              <nav aria-label="Ana menü" style={{ display: "flex", alignItems: "center", gap: 3, marginLeft: 14 }}>
                 {([
                   { label: "Mağaza",          href: `${BASE}/magaza` },
-                  { label: "Hizmetler",        href: `${BASE}/hizmetler` },
+                  { label: "Mama Bul",         href: `${BASE}/mama-bul` },
                   { label: "Rehber",           href: `${BASE}/rehber` },
-                  { label: "Topluluk",         href: `${BASE}/club` },
+                  { label: "AI Asistan",       href: `${BASE}/ai-asistan` },
+                  { label: "Hizmetler",        href: `${BASE}/hizmetler` },
                   { label: "Benim Poodle'ım",  href: `${BASE}/benim-poodleim` },
                 ] as { label: string; href: string }[]).map(({ label, href }) => {
                   const active = isActive(activeLink, href);
                   return (
-                    <Link key={href} href={href}>
+                    <Link className="yp-desktop-link" key={href} href={href}>
                       <div style={{
-                        padding: "6px 12px", borderRadius: 8, cursor: "pointer",
-                        fontSize: 14, fontWeight: active ? 700 : 500,
-                        color: active ? "#5D3A1A" : "#374151",
+                        padding: "9px 12px", borderRadius: 10, cursor: "pointer",
+                        fontSize: 13.5, fontWeight: active ? 750 : 600,
+                        color: active ? "#5D3A1A" : "#4D443C",
                         background: active ? "#F5F0E6" : "transparent",
                         transition: "background 0.15s, color 0.15s",
                         whiteSpace: "nowrap",
@@ -299,14 +311,14 @@ export default function YPLayout({
                   </div>
                 ) : (
                   <>
-                    <button onClick={() => navigate(`${BASE}/giris`)}
-                      style={{ background: "none", border: "1.5px solid #D1D5DB", borderRadius: 9999, cursor: "pointer", fontSize: 14, fontWeight: 600, color: "#374151", fontFamily: "inherit", padding: "8px 18px", whiteSpace: "nowrap" }}
+                    <button className="yp-desktop-action" onClick={() => navigate(`${BASE}/giris`)}
+                      style={{ background: "#fff", border: "1px solid #D9CDBF", borderRadius: 12, cursor: "pointer", fontSize: 13, fontWeight: 700, color: "#4D443C", fontFamily: "inherit", padding: "10px 16px", whiteSpace: "nowrap" }}
                       onMouseEnter={e => (e.currentTarget.style.borderColor = "#5D3A1A")}
-                      onMouseLeave={e => (e.currentTarget.style.borderColor = "#D1D5DB")}>
+                      onMouseLeave={e => (e.currentTarget.style.borderColor = "#D9CDBF")}>
                       Giriş Yap
                     </button>
-                    <button onClick={() => navigate(`${BASE}/uye-ol`)}
-                      style={{ padding: "9px 20px", borderRadius: 9999, border: "none", background: "#5D3A1A", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                    <button className="yp-desktop-action" onClick={() => navigate(`${BASE}/uye-ol`)}
+                      style={{ padding: "11px 18px", borderRadius: 12, border: "none", background: "#5D3A1A", color: "#fff", fontSize: 13, fontWeight: 750, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
                       onMouseEnter={e => (e.currentTarget.style.background = "#4A2E14")}
                       onMouseLeave={e => (e.currentTarget.style.background = "#5D3A1A")}>
                       Üye Ol
@@ -315,9 +327,10 @@ export default function YPLayout({
                 )}
 
                 {/* Sepet */}
-                <button className="yp-util-btn" onClick={() => navigate(`${BASE}/sepet`)}
-                  style={{ width: 42, height: 42, borderRadius: "50%", border: "1.5px solid #E5E7EB", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, position: "relative" }}>
-                  <ShoppingCart size={18} color="#374151" strokeWidth={1.8} />
+                <button className="yp-util-btn yp-desktop-action" onClick={() => navigate(`${BASE}/sepet`)}
+                  aria-label="Sepetim"
+                  style={{ width: 42, height: 42, borderRadius: 12, border: "1px solid #D9CDBF", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, position: "relative" }}>
+                  <ShoppingCart size={18} color="#4D443C" strokeWidth={1.8} />
                   {cartCount > 0 && (
                     <span style={{ position: "absolute", top: -3, right: -3, background: "#EF4444", color: "#fff", fontSize: 9, fontWeight: 800, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #fff" }}>
                       {cartCount > 9 ? "9+" : cartCount}
@@ -376,12 +389,13 @@ export default function YPLayout({
       {/* ════════════ MOBILE HEADER ════════════ */}
       {!hideHeader && <header className="yp-mobile-hdr" style={{
         position: "sticky", top: 0, zIndex: 100,
-        background: "#fff",
-        borderBottom: "1px solid #F3F4F6",
+        background: "rgba(255,252,248,.97)",
+        borderBottom: "1px solid #EDE3D7",
+        backdropFilter: "blur(14px)",
         alignItems: "center",
         justifyContent: authMode ? "center" : "space-between",
-        padding: "0 12px",
-        height: 60,
+        padding: "0 14px",
+        height: 62,
         boxSizing: "border-box",
       }}>
         {authMode ? (
@@ -393,13 +407,13 @@ export default function YPLayout({
             {/* Left: logo only — same as homepage */}
             <Link href={BASE || "/"}>
               <img src="/images/brand/logo.png" alt="YourPoodle"
-                style={{ height: 34, width: "auto", objectFit: "contain", cursor: "pointer" }} />
+                style={{ height: 35, width: "auto", objectFit: "contain", cursor: "pointer" }} />
             </Link>
 
             {/* Right: search · account · cart — same icon cluster as homepage */}
             <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
               {/* Account */}
-              <button onClick={() => navigate(isLoggedIn ? "/hesabim" : `${BASE}/giris`)}
+              <button className="yp-mobile-action" onClick={() => navigate(isLoggedIn ? "/hesabim" : `${BASE}/giris`)}
                 aria-label={isLoggedIn ? "Profilim" : "Giriş yap"}
                 style={{ width: 44, height: 44, background: "none", border: "none", cursor: "pointer",
                          display: "flex", alignItems: "center", justifyContent: "center",
@@ -421,7 +435,7 @@ export default function YPLayout({
                 )}
               </button>
               {/* Cart */}
-              <button onClick={() => navigate(`${BASE}/sepet`)} aria-label="Sepetim"
+              <button className="yp-mobile-action" onClick={() => navigate(`${BASE}/sepet`)} aria-label="Sepetim"
                 style={{ width: 44, height: 44, background: "none", border: "none", cursor: "pointer",
                          display: "flex", alignItems: "center", justifyContent: "center",
                          borderRadius: 8, color: "#374151", position: "relative" }}>
@@ -445,24 +459,23 @@ export default function YPLayout({
       {/* ════════════ MOBILE CATEGORY TABS (same as homepage) ════════════ */}
       {!hideHeader && !authMode && (
         <nav className="yp-mobile-hdr" aria-label="Kategori menüsü" style={{
-          background: "#fff", borderBottom: "1px solid #F3F4F6",
-          overflowX: "auto", display: "flex", padding: "0 4px",
-          scrollbarWidth: "none", position: "sticky", top: 60, zIndex: 99,
+          background: "#FFFCF8", borderBottom: "1px solid #EDE3D7",
+          overflowX: "auto", display: "flex", padding: "0 8px",
+          scrollbarWidth: "none", position: "sticky", top: 62, zIndex: 99,
         }}>
           {([
             { label: "Mağaza",     href: `${BASE}/magaza` },
             { label: "Mama Bul",   href: `${BASE}/mama-bul` },
             { label: "Rehber",     href: `${BASE}/rehber` },
             { label: "AI Asistan", href: `${BASE}/ai-asistan` },
-            { label: "Club",       href: `${BASE}/club` },
           ] as const).map(({ label, href }) => {
             const active = isActive(effectiveBottomLink, href);
             return (
               <button key={href} onClick={() => navigate(href)}
                 style={{
-                  flex: "none", padding: "12px 10px", fontSize: 14, fontWeight: active ? 700 : 500,
-                  color: active ? "#5D3A1A" : "#111827", background: "none", border: "none",
-                  borderBottom: `2.5px solid ${active ? "#5D3A1A" : "transparent"}`,
+                  flex: "none", padding: "11px 11px", fontSize: 13, fontWeight: active ? 750 : 600,
+                  color: active ? "#5D3A1A" : "#5F554C", background: "none", border: "none",
+                  borderBottom: `2px solid ${active ? "#5D3A1A" : "transparent"}`,
                   cursor: "pointer", whiteSpace: "nowrap", minHeight: 44,
                   display: "flex", alignItems: "center", fontFamily: "inherit",
                   transition: "color 0.15s, border-color 0.15s",
@@ -484,6 +497,7 @@ export default function YPLayout({
 
       {/* ════════════ UNIFIED MOBILE BOTTOM NAV ════════════ */}
       {!authMode && !hideBottomNav && <YPBottomNav />}
+      <YPWhatsAppButton hidden={authMode} />
     </div>
   );
 }

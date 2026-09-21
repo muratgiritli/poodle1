@@ -59,14 +59,11 @@ const STREAK_DAYS: StreakDay[] = [
 
 const TODAY_TASKS: EarnTask[] = [
   { id:"dt-1", title:"Günlük giriş yap",           category:"daily", section:"today", points:10, progress:1, progressMax:1, status:"claimed",  buttonLabel:"Alındı",    buttonDisabled:true, icon:"login" },
-  { id:"dt-2", title:"Club'da bir gönderiye yorum yap", category:"club",  section:"today", points:20, progress:0, progressMax:1, status:"pending", buttonLabel:"Göreve Git", icon:"comment", link:"/club" },
   { id:"dt-3", title:"Bir rehber yazısı oku",       category:"guide", section:"today", points:15, progress:0, progressMax:1, status:"pending", buttonLabel:"Oku",        icon:"book",    link:"/rehber" },
   { id:"dt-4", title:"AI Asistan'a bir soru sor",   category:"daily", section:"today", points:10, progress:0, progressMax:1, status:"pending", buttonLabel:"Sor",        icon:"ai",      link:"/ai-asistan" },
 ];
 
 const WEEKLY_TASKS: EarnTask[] = [
-  { id:"wt-1", title:"3 Club paylaşımı yap",    category:"club",  section:"weekly", points:75,  progress:1, progressMax:3, status:"in_progress", buttonLabel:"Göreve Git", icon:"post",     link:"/club" },
-  { id:"wt-2", title:"5 faydalı yorum bırak",   category:"club",  section:"weekly", points:50,  progress:2, progressMax:5, status:"in_progress", buttonLabel:"Göreve Git", icon:"comments", link:"/club" },
   { id:"wt-3", title:"2 rehber tamamla",        category:"guide", section:"weekly", points:40,  progress:0, progressMax:2, status:"pending",     buttonLabel:"Göreve Git", icon:"guide",    link:"/rehber" },
   { id:"wt-4", title:"Mağazadan alışveriş yap", category:"shop",  section:"weekly", points:100, progress:0, progressMax:1, status:"pending",     buttonLabel:"Göreve Git", icon:"cart",     link:"/magaza" },
 ];
@@ -79,7 +76,6 @@ const ONETIME_TASKS: EarnTask[] = [
 ];
 
 const COMPLETED_TASKS: CompletedTask[] = [
-  { id:"ct-1", title:"Club'da gönderi beğen",  points:5,  date:"24 Temmuz 2026" },
   { id:"ct-2", title:"Favorilere ürün ekle",   points:5,  date:"23 Temmuz 2026" },
   { id:"ct-3", title:"Günlük giriş serisi",    points:15, date:"23 Temmuz 2026" },
 ];
@@ -91,7 +87,6 @@ const FAQ_ITEMS = [
 ];
 
 const SHOPPING_MULTIPLIERS = [
-  { label:"Club Üyesi", multiplier:"x2" },
   { label:"Seçili Ürünler", multiplier:"x3" },
   { label:"Doğum Gününde", multiplier:"x5" },
 ];
@@ -352,7 +347,6 @@ export default function YPPuanKazanPage() {
           {([
             { key:"all",   label:"Tümü"   },
             { key:"daily", label:"Günlük" },
-            { key:"club",  label:"Club"   },
             { key:"shop",  label:"Mağaza" },
             { key:"guide", label:"Rehber" },
           ] as { key:FilterTab; label:string }[]).map(t => (

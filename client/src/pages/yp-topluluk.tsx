@@ -1,12 +1,14 @@
-// Topluluk → Club redirect (Seçenek A: tek topluluk merkezi = /club)
+// Topluluk — Club gizli; ana sayfaya yönlendir
 import { useEffect } from "react";
 import { useLocation } from "wouter";
+import { IS_YP } from "@/lib/store";
+
+const HOME = IS_YP ? "/" : "/yourpoodle";
 
 export default function Topluluk() {
   const [, navigate] = useLocation();
   useEffect(() => {
-    // 301-style client redirect — Club is the single community hub
-    navigate("/yourpoodle/club?tab=akis", { replace: true });
-  }, []);
+    navigate(HOME, { replace: true });
+  }, [navigate]);
   return null;
 }

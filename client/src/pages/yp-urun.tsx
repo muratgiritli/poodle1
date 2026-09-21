@@ -1,9 +1,13 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ShoppingCart, Heart, Plus, Minus, Share2, Star, ChevronDown, ArrowRight } from "lucide-react";
+import { ChevronLeft, ShoppingCart, Heart, Plus, Minus, Share2, ArrowRight } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
+import YPProductReviews, { reviewSummary, useProductReviews } from "@/components/yourpoodle/YPProductReviews";
+import YPRecentlyViewed from "@/components/yourpoodle/YPRecentlyViewed";
+import YPStockAlert from "@/components/yourpoodle/YPStockAlert";
 import { useCustomer } from "@/contexts/CustomerContext";
+import { addRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { useCart } from "@/contexts/CartContext";
 import { apiRequest } from "@/lib/queryClient";
 import { goBack } from "@/lib/goBack";
@@ -36,13 +40,9 @@ interface Product {
   img?: string; stock: number; isActive: boolean;
   mamaType?: string; subcategory?: string; brandName?: string; brandSlug?: string;
   animal?: string; barcode?: string; skt?: string; longDescription?: string;
+  metaTitle?: string; metaDescription?: string; metaKeywords?: string;
   mamaMetadata?: MamaMetadata | null;
 }
-interface Review {
-  id: number; reviewerName: string; rating: number; comment: string;
-  reviewDate: string; createdAt?: string; helpfulCount?: number;
-}
-
 function sanitizeHtml(html: string): string {
   return html
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
@@ -51,65 +51,11 @@ function sanitizeHtml(html: string): string {
     .replace(/javascript:/gi, "");
 }
 
-function maskReviewerName(name: string): string {
-  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "Anonim";
-  const first = parts[0];
-  if (parts.length === 1) return first;
-  return `${first} ${parts[parts.length - 1].charAt(0).toUpperCase()}.`;
-}
-
-function parseReviewDate(r: Review): Date | null {
-  if (r.createdAt) {
-    const d = new Date(r.createdAt);
-    if (!Number.isNaN(d.getTime())) return d;
-  }
-  const raw = String(r.reviewDate || "").trim();
-  const m = raw.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})$/);
-  if (m) {
-    const d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
-    if (!Number.isNaN(d.getTime())) return d;
-  }
-  const iso = new Date(raw);
-  return Number.isNaN(iso.getTime()) ? null : iso;
-}
-
-function withinLast3Months(d: Date): boolean {
-  return Date.now() - d.getTime() <= 90 * 24 * 60 * 60 * 1000 && d.getTime() <= Date.now();
-}
-
-function formatTrDate(d: Date): string {
-  return d.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
-}
-
 function slugify(str: string) {
   return str.toLowerCase()
     .replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s")
     .replace(/ı/g, "i").replace(/ö/g, "o").replace(/ç/g, "c")
     .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-}
-
-function demoReviews(productId: number): Review[] {
-  const names = ["Ayşe Yılmaz", "Mehmet Demir", "Zeynep Kaya", "Can Öztürk", "Elif Şahin"];
-  const comments = [
-    "Toy Poodle'ımız çok sevdi, mide rahatsızlığı olmadı. Paket taze geldi.",
-    "Mama Bul önerisiyle aldık, gerçekten uyumlu. Tüy kalitesi düzeldi.",
-    "Fiyat/performans iyi. Günlük porsiyon rehberi işe yaradı.",
-    "Küçük ırk için uygun granül boyutu. Köpeğimiz iştahla yiyor.",
-    "Kargo hızlıydı, SKT uzak. Tekrar sipariş vereceğiz.",
-  ];
-  return Array.from({ length: 5 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (5 + ((productId * 17 + i * 31) % 80)));
-    return {
-      id: -(i + 1),
-      reviewerName: names[(productId + i) % names.length],
-      rating: 4 + ((productId + i) % 2),
-      comment: comments[(productId + i) % comments.length],
-      reviewDate: formatTrDate(d),
-      createdAt: d.toISOString(),
-    };
-  });
 }
 
 const LABEL_MAP: Record<string, Record<string, string>> = {
@@ -161,39 +107,20 @@ function buildBenefits(product: Product): MamaBenefit[] {
   return out.slice(0, 3);
 }
 
-function StarRow({ value, size = 16, onClick }: { value: number; size?: number; onClick?: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={`${value.toFixed(1)} yıldız`}
-      style={{
-        display: "inline-flex", gap: 2, alignItems: "center",
-        background: "none", border: "none", padding: 0,
-        cursor: onClick ? "pointer" : "default",
-      }}
-    >
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Star key={i} size={size} color="#D97706" fill={i <= Math.round(value) ? "#D97706" : "none"} strokeWidth={1.8} />
-      ))}
-    </button>
-  );
-}
-
 export default function YPUrunPage() {
   const params = useParams<{ id: string; slug?: string }>();
   const [, navigate] = useLocation();
   const productId = Number(params.id);
   const { updateQty, itemCount } = useCart();
-  const reviewsRef = useRef<HTMLDivElement>(null);
 
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
-  const [reviewsOpen, setReviewsOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
   const { isLoggedIn } = useCustomer();
+  const { data: reviews = [] } = useProductReviews(productId);
+  const ratingSummary = useMemo(() => reviewSummary(reviews), [reviews]);
 
   useEffect(() => {
     if (!isLoggedIn || !productId) return;
@@ -223,64 +150,89 @@ export default function YPUrunPage() {
 
   const product = allProducts.find(p => p.id === productId);
 
-  const related = useMemo(() => {
-    if (!product) return [];
-    const sub = product.subcategory;
-    return allProducts
-      .filter((p) => p.id !== product.id && p.subcategory === sub)
-      .slice(0, 4);
-  }, [allProducts, product]);
+  type CrossSellSection = { id: number; title: string; products: Product[] };
+  const { data: productDetail } = useQuery<{ crossSellSections?: CrossSellSection[] }>({
+    queryKey: ["/api/product-detail", productId],
+    queryFn: async () => {
+      const r = await fetch(`/api/product-detail/${productId}`);
+      if (!r.ok) return { crossSellSections: [] };
+      return r.json();
+    },
+    enabled: Number.isFinite(productId) && productId > 0,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const alsoBought = useMemo(() => {
+    const sections = productDetail?.crossSellSections || [];
+    const seen = new Set<number>();
+    const out: Product[] = [];
+    for (const s of sections) {
+      for (const p of s.products || []) {
+        if (!p?.id || p.id === productId || seen.has(p.id)) continue;
+        seen.add(p.id);
+        out.push(p);
+      }
+    }
+    return out.slice(0, 8);
+  }, [productDetail, productId]);
 
   const catSchema = useMemo(() => getCategorySchema(product?.subcategory), [product?.subcategory]);
   const showSktRow = categoryShowsSkt(product?.subcategory);
 
-  const { data: apiReviews = [] } = useQuery<Review[]>({
-    queryKey: ["/api/reviews", productId],
-    queryFn: async () => {
-      const r = await fetch(`/api/reviews/${productId}`);
-      if (!r.ok) return [];
-      return r.json();
-    },
-    enabled: Number.isFinite(productId) && productId > 0,
-    staleTime: 60_000,
-  });
-
-  const reviews = useMemo(() => {
-    const source = (Array.isArray(apiReviews) && apiReviews.length > 0) ? apiReviews : demoReviews(productId || 1);
-    return source
-      .map((r) => ({ ...r, _date: parseReviewDate(r) }))
-      .filter((r) => r._date && withinLast3Months(r._date))
-      .sort((a, b) => (b._date!.getTime() - a._date!.getTime()))
-      .map(({ _date, ...r }) => ({
-        ...r,
-        reviewerName: maskReviewerName(r.reviewerName),
-        reviewDate: _date ? formatTrDate(_date) : r.reviewDate,
-      }));
-  }, [apiReviews, productId]);
-
-  const avgRating = useMemo(() => {
-    if (reviews.length === 0) return 5;
-    return reviews.reduce((s, r) => s + (Number(r.rating) || 0), 0) / reviews.length;
-  }, [reviews]);
-
-  const openReviews = () => {
-    setReviewsOpen(true);
-    setTimeout(() => reviewsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-  };
-
   useEffect(() => {
     if (!product) return;
-    document.title = `${product.name} | YourPoodle Mağaza`;
+    const title = product.metaTitle || `${product.name} | YourPoodle Mağaza`;
+    const description =
+      product.metaDescription ||
+      `${product.name} — YourPoodle Mağaza'da. Toy Poodle sahipleri için seçilmiş mama. Yalnızca online kredi kartı ile ödeme.`;
+    document.title = title;
     const setMeta = (attr: string, key: string, val: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.content = val;
     };
-    setMeta("name", "description", `${product.name} — YourPoodle Mağaza'da. Toy Poodle sahipleri için seçilmiş mama.`);
-    setMeta("property", "og:title", product.name);
+    setMeta("name", "description", description);
+    if (product.metaKeywords) setMeta("name", "keywords", product.metaKeywords);
+    setMeta("property", "og:title", title);
+    setMeta("property", "og:description", description);
     setMeta("property", "og:image", product.img || "");
     setMeta("property", "og:type", "product");
-  }, [product]);
+    setMeta("name", "robots", "index,follow,max-image-preview:large");
+
+    // Product JSON-LD for Google / AI search
+    const ldId = "yp-product-jsonld";
+    document.getElementById(ldId)?.remove();
+    const script = document.createElement("script");
+    script.id = ldId;
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: product.name,
+      image: product.img ? [product.img] : undefined,
+      description,
+      brand: product.brandName ? { "@type": "Brand", name: product.brandName } : undefined,
+      sku: product.barcode || String(product.id),
+      // Only emitted when real published reviews exist — never fabricated.
+      aggregateRating: ratingSummary.count > 0
+        ? {
+            "@type": "AggregateRating",
+            ratingValue: Number(ratingSummary.average.toFixed(1)),
+            reviewCount: ratingSummary.count,
+          }
+        : undefined,
+      offers: {
+        "@type": "Offer",
+        url: typeof window !== "undefined" ? window.location.href : undefined,
+        priceCurrency: "TRY",
+        price: product.price,
+        availability: (product.stock || 0) > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        acceptedPaymentMethod: "http://purl.org/goodrelations/v1#PaymentMethodCreditCard",
+      },
+    });
+    document.head.appendChild(script);
+    return () => { document.getElementById(ldId)?.remove(); };
+  }, [product, ratingSummary.count, ratingSummary.average]);
 
   const addToCart = useCallback(() => {
     if (!product) return;
@@ -291,6 +243,12 @@ export default function YPUrunPage() {
 
   useEffect(() => {
     if (!product) return;
+    addRecentlyViewed({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      img: product.img,
+    });
     import("@/lib/yp-analytics").then((yp) => {
       yp.trackProductView({ id: product.id, name: product.name, price: product.price });
     }).catch(() => {});
@@ -326,8 +284,8 @@ export default function YPUrunPage() {
 
   if (isLoading) {
     return (
-      <YPLayout>
-        <div style={{ padding: "32px 20px", maxWidth: 720, margin: "0 auto" }}>
+      <YPLayout constrain={false}>
+        <div className="yp-urun-skel" style={{ padding: "32px 20px", maxWidth: 720, margin: "0 auto" }}>
           <div style={{ height: 220, borderRadius: 12, background: "#e8e8e8", marginBottom: 16, animation: "pulse 1.5s ease-in-out infinite" }} />
           {[120, 80, 160].map((w, i) => (
             <div key={i} style={{ height: 18, borderRadius: 8, background: "#e8e8e8", marginBottom: 12, width: w * 3, maxWidth: "100%", animation: "pulse 1.5s ease-in-out infinite" }} />
@@ -339,7 +297,7 @@ export default function YPUrunPage() {
 
   if (!product) {
     return (
-      <YPLayout>
+      <YPLayout constrain={false}>
         <div style={{ padding: "64px 24px", textAlign: "center" }}>
           <h1 style={{ fontSize: 20, fontWeight: 800, color: "#1a1a1a", marginBottom: 8 }}>Ürün bulunamadı</h1>
           <button onClick={() => navigate(`${BASE}/magaza`)}
@@ -355,7 +313,7 @@ export default function YPUrunPage() {
   const na = product.mamaMetadata?.nutritionalAnalysis;
 
   return (
-    <YPLayout>
+    <YPLayout constrain={false}>
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
         .yp-urun-page { max-width: 960px; margin: 0 auto; padding: 0 0 120px; }
@@ -363,11 +321,46 @@ export default function YPUrunPage() {
         .yp-urun-buy { padding: 18px 16px 0; }
         .yp-urun-related-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         @media (min-width: 768px) {
-          .yp-urun-hero { display: grid !important; grid-template-columns: 1.15fr 0.85fr; gap: 28px; align-items: start; padding: 28px 24px 0; }
-          .yp-urun-img-wrap { border-radius: 16px; border: 1px solid #E8E0D4 !important; aspect-ratio: 16/10 !important; }
-          .yp-urun-buy { padding: 0; }
+          .yp-urun-skel { max-width: 1180px !important; padding: 40px 24px !important; }
+          .yp-urun-page { max-width: 1180px; padding: 8px 24px 72px; }
+          .yp-urun-hero {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1.1fr) minmax(340px, 420px);
+            gap: 36px;
+            align-items: start;
+            padding: 20px 0 8px;
+          }
+          .yp-urun-img-wrap {
+            border-radius: 22px;
+            border: 1px solid #E8E0D4 !important;
+            aspect-ratio: 1 / 1 !important;
+            min-height: 440px;
+            box-shadow: 0 12px 40px rgba(93, 58, 26, 0.08);
+            background: linear-gradient(180deg, #fff 0%, #FBF8F3 100%);
+          }
+          .yp-urun-buy {
+            padding: 28px 26px !important;
+            background: #fff;
+            border: 1px solid #EDE5D8;
+            border-radius: 22px;
+            box-shadow: 0 10px 36px rgba(93, 58, 26, 0.07);
+            position: sticky;
+            top: 96px;
+          }
           .yp-urun-back { display: none !important; }
-          .yp-urun-related-grid { grid-template-columns: repeat(4, 1fr); }
+          .yp-urun-related-grid { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+          .yp-urun-body { padding: 32px 0 0 !important; }
+          .yp-urun-title { font-size: 26px !important; line-height: 1.28 !important; }
+          .yp-urun-price { font-size: 32px !important; }
+          .yp-urun-benefits { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
+          .yp-urun-cta { height: 52px !important; border-radius: 14px !important; font-size: 15px !important; }
+        }
+        @media (min-width: 1100px) {
+          .yp-urun-hero {
+            grid-template-columns: minmax(0, 1.15fr) minmax(380px, 460px);
+            gap: 48px;
+          }
+          .yp-urun-img-wrap { min-height: 520px; }
         }
       `}</style>
 
@@ -428,20 +421,10 @@ export default function YPUrunPage() {
                 {product.brandName}
               </div>
             )}
-            <h1 style={{ fontSize: 22, fontWeight: 900, color: "#1a1a1a", lineHeight: 1.25, margin: "0 0 10px" }}>{product.name}</h1>
-
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-              <StarRow value={avgRating} onClick={openReviews} />
-              <button type="button" onClick={openReviews}
-                style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: "inherit",
-                         fontSize: 13, fontWeight: 600, color: "#6B7280", display: "inline-flex", alignItems: "center", gap: 4 }}>
-                {avgRating.toFixed(1)} · {reviews.length} değerlendirme
-                <ChevronDown size={14} style={{ transform: reviewsOpen ? "rotate(180deg)" : "none", transition: "transform .15s" }} />
-              </button>
-            </div>
+            <h1 className="yp-urun-title" style={{ fontSize: 22, fontWeight: 900, color: "#1a1a1a", lineHeight: 1.25, margin: "0 0 14px" }}>{product.name}</h1>
 
             <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 14 }}>
-              <span style={{ fontSize: 28, fontWeight: 900, color: P }}>
+              <span className="yp-urun-price" style={{ fontSize: 28, fontWeight: 900, color: P }}>
                 ₺{Number(product.price).toLocaleString("tr-TR", { minimumFractionDigits: 0 })}
               </span>
               {product.originalPrice && product.originalPrice > product.price && (
@@ -470,6 +453,10 @@ export default function YPUrunPage() {
                 : <span style={{ fontSize: 12, fontWeight: 700, color: "#DC2626", background: "#FEF2F2", borderRadius: 20, padding: "4px 12px" }}>✗ Tükendi</span>}
             </div>
 
+            {!inStock && (
+              <YPStockAlert productId={product.id} productName={product.name} />
+            )}
+
             {inStock && (
               <div style={{ display: "flex", gap: 10, marginBottom: 16, alignItems: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", border: "1.5px solid #E5E7EB", borderRadius: 12, overflow: "hidden", background: "#fff" }}>
@@ -483,8 +470,8 @@ export default function YPUrunPage() {
                     <Plus size={15} />
                   </button>
                 </div>
-                <button onClick={addToCart}
-                  style={{ flex: 1, height: 48, borderRadius: 12, border: "none", background: added ? "#059669" : P, color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>
+                <button className="yp-urun-cta" onClick={addToCart}
+                  style={{ flex: 1, height: 48, borderRadius: 12, border: "none", background: added ? "#059669" : "#DC2626", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>
                   {added ? "✓ Sepete Eklendi!" : "Sepete Ekle"}
                 </button>
               </div>
@@ -492,8 +479,9 @@ export default function YPUrunPage() {
 
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {[
-                { emoji: "🚚", text: "Hızlı Kargo" },
-                { emoji: "🔒", text: "Güvenli Ödeme" },
+                { emoji: "💳", text: "Sadece Online Kart" },
+                { emoji: "🚚", text: "Türkiye Geneli Kargo" },
+                { emoji: "🔒", text: "SSL Güvenli Ödeme" },
               ].map(p => (
                 <div key={p.text} style={{ display: "flex", alignItems: "center", gap: 5, background: PL, borderRadius: 20, padding: "6px 12px" }}>
                   <span style={{ fontSize: 13 }}>{p.emoji}</span>
@@ -504,14 +492,14 @@ export default function YPUrunPage() {
           </div>
         </div>
 
-        <div style={{ padding: "20px 16px 0" }}>
+        <div className="yp-urun-body" style={{ padding: "20px 16px 0" }}>
           {/* 3 benefits */}
           {benefits.length > 0 && (
             <div style={{ marginBottom: 24 }}>
               <h2 style={{ fontSize: 15, fontWeight: 800, color: "#1a1a1a", marginBottom: 12 }}>
                 {catSchema.showMamaBulCta ? "Neden bu mama?" : "Öne çıkan özellikler"}
               </h2>
-              <div style={{ display: "grid", gap: 10 }}>
+              <div className="yp-urun-benefits" style={{ display: "grid", gap: 10 }}>
                 {benefits.map((b, i) => (
                   <div key={b.title} style={{
                     display: "flex", gap: 12, alignItems: "flex-start",
@@ -597,40 +585,7 @@ export default function YPUrunPage() {
             </div>
           )}
 
-          {/* Reviews */}
-          <div ref={reviewsRef} style={{ marginBottom: 24, scrollMarginTop: 72 }}>
-            <button
-              type="button"
-              onClick={() => setReviewsOpen((o) => !o)}
-              style={{
-                width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-                background: PL, border: "none", borderRadius: 12, padding: "14px 16px",
-                cursor: "pointer", fontFamily: "inherit",
-              }}
-            >
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-                <StarRow value={avgRating} size={14} />
-                <span style={{ fontSize: 14, fontWeight: 800, color: "#1a1a1a" }}>
-                  Değerlendirmeler ({reviews.length})
-                </span>
-              </span>
-              <ChevronDown size={18} color={P} style={{ transform: reviewsOpen ? "rotate(180deg)" : "none", transition: "transform .15s" }} />
-            </button>
-            {reviewsOpen && (
-              <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 12 }}>
-                {reviews.map((r) => (
-                  <div key={r.id} style={{ background: "#fff", border: "1px solid #E5E7EB", borderRadius: 12, padding: "14px 16px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6, gap: 8 }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>{r.reviewerName}</span>
-                      <span style={{ fontSize: 11, color: "#9CA3AF" }}>{r.reviewDate}</span>
-                    </div>
-                    <div style={{ marginBottom: 8 }}><StarRow value={Number(r.rating) || 5} size={13} /></div>
-                    <p style={{ margin: 0, fontSize: 13.5, color: "#4B5563", lineHeight: 1.55 }}>{r.comment}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <YPProductReviews productId={productId} />
 
           {catSchema.showMamaBulCta && (
           <button
@@ -652,18 +607,14 @@ export default function YPUrunPage() {
           </button>
           )}
 
-          {/* Related */}
-          {related.length > 0 && (
+          {/* Also bought — managed in Admin → Birlikte Alınan */}
+          {alsoBought.length > 0 && (
             <div style={{ marginBottom: 24 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                <h2 style={{ fontSize: 15, fontWeight: 800, color: "#1a1a1a", margin: 0 }}>Benzer ürünler</h2>
-                <button type="button" onClick={() => navigate(`${BASE}${catSchema.listPath}`)}
-                  style={{ background: "none", border: "none", color: P, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-                  Tümü
-                </button>
-              </div>
+              <h2 style={{ fontSize: 15, fontWeight: 800, color: "#1a1a1a", margin: "0 0 12px" }}>
+                Bu ürünü alanlar bu ürünleri de alıyor
+              </h2>
               <div className="yp-urun-related-grid">
-                {related.map((p) => (
+                {alsoBought.map((p) => (
                   <button
                     key={p.id}
                     type="button"
@@ -692,6 +643,8 @@ export default function YPUrunPage() {
               </div>
             </div>
           )}
+
+          <YPRecentlyViewed excludeId={product.id} />
         </div>
       </div>
 
@@ -709,7 +662,7 @@ export default function YPUrunPage() {
             </button>
           </div>
           <button onClick={addToCart}
-            style={{ flex: 1, height: 44, borderRadius: 12, border: "none", background: added ? "#059669" : P, color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>
+            style={{ flex: 1, height: 44, borderRadius: 12, border: "none", background: added ? "#059669" : "#DC2626", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>
             {added ? "✓ Eklendi!" : `Sepete Ekle — ₺${(product.price * qty).toLocaleString("tr-TR")}`}
           </button>
         </div>

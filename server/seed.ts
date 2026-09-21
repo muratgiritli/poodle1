@@ -3,6 +3,8 @@ import { brandCategories, products, breedStats, crossSellSections, crossSellItem
 import { eq, and, sql } from "drizzle-orm";
 import { downloadAndSaveImage, hasProductImage } from "./image-service";
 import brandDataJson from "./brand_data.json";
+import { seedBulkKuruMama } from "./seed-kuru-mama-catalog";
+import { seedEnuygunCategories } from "./seed-enuygun-categories";
 
 interface BrandProductData {
   brandName: string;
@@ -1041,6 +1043,8 @@ export async function seedDatabase() {
     await seedCrossSellSections();
     await seedCampaignItems();
     await seedYPMamaMetadata();
+    await seedBulkKuruMama();
+    await seedEnuygunCategories();
     await seedYPCategoryImages();
   }
 

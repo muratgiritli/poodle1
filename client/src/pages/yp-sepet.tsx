@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import {
   ChevronLeft, CheckCircle, X, Trash2,
-  Truck, MapPin, ChevronRight, Tag,
+  Truck, Tag,
   Lock, ShieldCheck, Plus, Minus, ShoppingCart,
 } from "lucide-react";
 import YPLayout from "@/components/yourpoodle/YPLayout";
@@ -12,8 +12,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useQuery } from "@tanstack/react-query";
 import { goBack } from "@/lib/goBack";
 import { saveCheckoutDraft } from "@/lib/checkout-draft";
-import { useSurchargeRate, surchargeLabel } from "@/hooks/useSurchargeRate";
-import { resolveYpShipping, ypCardSurcharge, type DeliveryNeighborhood } from "@/lib/yp-shipping";
+import { resolveYpShipping, type DeliveryNeighborhood } from "@/lib/yp-shipping";
 import PaymentCardLogos from "@/components/yourpoodle/PaymentCardLogos";
 
 const BASE = IS_YP ? "" : "/yourpoodle";
@@ -27,109 +26,6 @@ const GB  = "#E5E7EB";
 
 function fmt(n: number) { return n.toLocaleString("tr-TR"); }
 
-
-function AddressModal({ onSelect, onClose }: {
-  onSelect: (a: { id: number; label: string; text: string; city?: string; district?: string }) => void;
-  onClose: () => void;
-}) {
-  const [, navigate] = useLocation();
-  const [sel, setSel] = useState<string | null>(null);
-  const [addresses, setAddresses] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/customer/addresses")
-      .then(r => r.ok ? r.json() : Promise.reject(r.status))
-      .then(data => { setAddresses(data); if (data.length > 0) setSel(String(data[0].id)); })
-      .catch(() => setAddresses([]))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const selected = addresses.find(a => String(a.id) === sel);
-
-  return (
-    <div style={{ position:"fixed",inset:0,zIndex:200,display:"flex",alignItems:"flex-end",
-                  justifyContent:"center",background:"rgba(0,0,0,0.5)" }}
-      onClick={onClose}>
-      <div style={{ maxWidth: "var(--yp-shell-max)",width:"100%",background:"#fff",borderRadius:"20px 20px 0 0",
-                    padding:"24px 20px 36px" }}
-        onClick={e=>e.stopPropagation()}>
-        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20 }}>
-          <span style={{ fontSize:16,fontWeight:700 }}>Teslimat Adresi Seçin</span>
-          <button onClick={onClose} style={{ background:"none",border:"none",cursor:"pointer",display:"flex" }}>
-            <X size={20} color="#6B7280" />
-          </button>
-        </div>
-        {loading && <p style={{ textAlign:"center",color:"#9CA3AF",padding:"20px 0" }}>Yükleniyor…</p>}
-        {!loading && addresses.length === 0 && (
-          <div style={{ textAlign: "center", padding: "8px 0 16px" }}>
-            <p style={{ color: "#6B7280", marginBottom: 12, fontSize: 13, lineHeight: 1.5 }}>
-              Kayıtlı adresin yok. Ödeme sayfasında teslimat adresini girebilirsin.
-            </p>
-            <button
-              onClick={onClose}
-              style={{
-                width: "100%", background: P, border: "none", color: "#fff",
-                borderRadius: 12, padding: "12px 0", fontSize: 14, fontWeight: 700,
-                cursor: "pointer", fontFamily: "inherit", marginBottom: 8,
-              }}
-            >
-              Tamam, ödemede gireceğim
-            </button>
-          </div>
-        )}
-        {addresses.map(a=>(
-          <div key={a.id} onClick={()=>setSel(String(a.id))}
-            style={{ display:"flex",alignItems:"center",gap:12,padding:"12px 16px",
-                     marginBottom:8,borderRadius:12,
-                     border:`2px solid ${String(a.id)===sel?P:GB}`,
-                     background:String(a.id)===sel?PL:"#fff",cursor:"pointer" }}>
-            <div style={{ width:18,height:18,borderRadius:"50%",
-                          border:`2px solid ${String(a.id)===sel?P:"#9CA3AF"}`,
-                          display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-              {String(a.id)===sel && <div style={{ width:9,height:9,borderRadius:"50%",background:P }} />}
-            </div>
-            <div>
-              <p style={{ fontSize:14,fontWeight:600,color:"#111827" }}>{a.label || "Adres"}</p>
-              <p style={{ fontSize:12,color:"#6B7280" }}>{[a.district, a.city].filter(Boolean).join(", ") || a.detail || a.address || ""}</p>
-            </div>
-          </div>
-        ))}
-        <button onClick={()=>navigate(`${BASE}/hesabim/adresler?yeni=1`)}
-          style={{ width:"100%",background:"none",border:`1.5px dashed ${GB}`,
-                   borderRadius:10,padding:"10px 0",fontSize:13,color:"#6B7280",
-                   cursor:"pointer",marginBottom:16,fontFamily:"inherit" }}>
-          + Yeni Adres Ekle
-        </button>
-        <button
-          disabled={!selected}
-          onClick={()=>{ if(!selected) return;
-            const street = String(selected.detail || selected.address || "")
-              .replace(/^[^\n]*·[^\n]*\n?/, "").trim();
-            let city = String(selected.city || "");
-            let district = String(selected.district || "");
-            if (district.includes("·")) {
-              const [d, c] = district.split("·").map((x: string) => x.trim());
-              district = d || "";
-              if (c) city = city || c;
-            }
-            onSelect({
-              id: Number(selected.id),
-              label: String(selected.label || "Adres"),
-              text: street,
-              city,
-              district,
-            });
-            onClose();
-          }}
-          style={{ width:"100%",background:selected?P:"#D1D5DB",color:"#fff",border:"none",borderRadius:12,
-                   padding:"13px 0",fontSize:14,fontWeight:700,cursor:selected?"pointer":"default",fontFamily:"inherit" }}>
-          Kaydet
-        </button>
-      </div>
-    </div>
-  );
-}
 
 function Toast({ msg, onHide }: { msg:string; onHide:()=>void }) {
   return (
@@ -166,13 +62,10 @@ export default function YPSepetPage() {
     .filter(Boolean) as { id: string; product: any; quantity: number }[];
 
   const [showBanner, setShowBanner]     = useState(true);
-  const [address, setAddress]           = useState<{ id: number; label: string; text: string; city?: string; district?: string } | null>(null);
-  const [showAddrModal, setShowAddrModal] = useState(false);
   const [couponInput, setCouponInput]   = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number; label: string; freeShipping?: boolean }|null>(null);
   const [toastMsg, setToastMsg]         = useState<string|null>(null);
 
-  const surchargeRate = useSurchargeRate();
   const { data: deliveryNeighborhoods = [] } = useQuery<DeliveryNeighborhood[]>({
     queryKey: ["/api/delivery-neighborhoods"],
     staleTime: 60_000,
@@ -186,18 +79,13 @@ export default function YPSepetPage() {
   const saleSubtotal  = items.reduce((s, i) => s + i.product.price * i.quantity, 0);
   const origSubtotal  = items.reduce((s, i) => s + (i.product.originalPrice ?? i.product.price) * i.quantity, 0);
   const productDiscount  = Math.max(0, origSubtotal - saleSubtotal);
-  const addressBlob = useMemo(
-    () => [address?.text, address?.district, address?.city].filter(Boolean).join(", "),
-    [address],
-  );
   const shipInfo = useMemo(
-    () => resolveYpShipping(saleSubtotal, addressBlob, deliveryNeighborhoods),
-    [saleSubtotal, addressBlob, deliveryNeighborhoods],
+    () => resolveYpShipping(saleSubtotal, "", deliveryNeighborhoods),
+    [saleSubtotal, deliveryNeighborhoods],
   );
   const shippingCost  = appliedCoupon?.freeShipping ? 0 : shipInfo.shipping;
   const couponDiscount   = appliedCoupon?.discount ?? 0;
-  const cardSurcharge = ypCardSurcharge(saleSubtotal, surchargeRate);
-  const total         = Math.max(0, saleSubtotal + shippingCost - couponDiscount + cardSurcharge);
+  const total         = Math.max(0, saleSubtotal + shippingCost - couponDiscount);
   const freeShipPct   = Math.min((saleSubtotal / shipInfo.freeLimit) * 100, 100);
   const itemCount     = items.reduce((s, i) => s + i.quantity, 0);
 
@@ -247,13 +135,6 @@ export default function YPSepetPage() {
       couponFreeShipping: !!appliedCoupon?.freeShipping,
       deliveryId: "standard",
       deliveryPrice: shippingCost,
-      ...(address ? {
-        addressId: address.id,
-        addressLabel: address.label,
-        addressText: address.text,
-        city: address.city,
-        district: address.district,
-      } : {}),
     });
     if (!isLoggedIn) {
       navigate(`${BASE}/giris?returnTo=${encodeURIComponent(`${BASE}/odeme`)}`);
@@ -414,20 +295,6 @@ export default function YPSepetPage() {
           </div>
         ))}
 
-        {/* ══ CARD SURCHARGE NOTE ══════════════════════════ */}
-        {cardSurcharge > 0 && (
-          <div style={{ margin:"0 16px 12px",background:PL,borderRadius:14,padding:"12px 16px",
-                        display:"flex",alignItems:"center",gap:12 }}>
-            <ShieldCheck size={18} color={P} style={{ flexShrink:0 }} />
-            <div>
-              <p style={{ fontSize:11,fontWeight:600,color:"#374151" }}>Online kart ödemesi</p>
-              <p style={{ fontSize:13,fontWeight:700,color:P }}>
-                İşlem farkı {surchargeLabel(surchargeRate)} · +{fmt(cardSurcharge)} TL (toplama dahil)
-              </p>
-            </div>
-          </div>
-        )}
-
         {/* ══ SHIPPING PROGRESS ════════════════════════════ */}
         <div style={{ margin:"0 16px 12px",background:"#fff",borderRadius:14,
                       border:`1px solid ${GB}`,padding:"14px 16px" }}>
@@ -447,41 +314,6 @@ export default function YPSepetPage() {
               ? `${shipInfo.matched.name}: ${fmt(shipInfo.freeLimit)} TL üzeri ücretsiz (aksi halde ${fmt(shipInfo.fee)} TL)`
               : `${fmt(shipInfo.freeLimit)} TL üzeri ücretsiz kargo (altı ${fmt(shipInfo.fee)} TL)`}
           </p>
-        </div>
-
-        {/* ══ DELIVERY ═════════════════════════════════════ */}
-        <div style={{ margin:"0 16px 12px" }}>
-          <p style={{ fontSize:13,fontWeight:700,color:"#111827",marginBottom:10 }}>Teslimat</p>
-          <div style={{ display:"flex",alignItems:"center",gap:12,padding:"12px 14px",
-                        borderRadius:12,border:`2px solid ${P}`,background:"#FAFAFF" }}>
-            <Truck size={18} color={P} style={{ flexShrink: 0 }} />
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize:13,fontWeight:600,color:"#111827" }}>
-                Standart Teslimat — {shippingCost === 0 ? "Ücretsiz" : `${fmt(shippingCost)} TL`}
-              </p>
-              <p style={{ fontSize:11,color:"#9CA3AF",marginTop:2 }}>
-                Adres / bölgeye göre hesaplanır · ödeme sayfasında kesinleşir
-              </p>
-            </div>
-          </div>
-          {/* Address — optional here; required on payment page */}
-          <button onClick={()=>setShowAddrModal(true)}
-            style={{ display:"flex",alignItems:"center",justifyContent:"space-between",
-                     width:"100%",marginTop:10,background:"#F9FAFB",border:`1px solid ${GB}`,
-                     borderRadius:12,padding:"13px 16px",cursor:"pointer",fontFamily:"inherit" }}>
-            <div style={{ display:"flex",alignItems:"center",gap:8, textAlign: "left" }}>
-              <MapPin size={17} color={P} />
-              <div>
-                <span style={{ fontSize:13,color:"#374151", display: "block" }}>
-                  {address ? `${address.label} — ${address.text}` : "Teslimat adresi (opsiyonel)"}
-                </span>
-                {!address && (
-                  <span style={{ fontSize:11, color:"#9CA3AF" }}>Ödeme sayfasında da girebilirsin</span>
-                )}
-              </div>
-            </div>
-            <ChevronRight size={17} color="#9CA3AF" />
-          </button>
         </div>
 
         {/* ══ COUPON ═══════════════════════════════════════ */}
@@ -540,12 +372,6 @@ export default function YPSepetPage() {
                 {couponDiscount>0?`-${fmt(couponDiscount)} TL`:"0 TL"}
               </span>
             </div>
-            {cardSurcharge > 0 && (
-              <div style={{ display:"flex",justifyContent:"space-between" }}>
-                <span style={{ fontSize:13,color:"#374151" }}>Kart işlem farkı ({surchargeLabel(surchargeRate)})</span>
-                <span style={{ fontSize:13,color:"#374151" }}>+{fmt(cardSurcharge)} TL</span>
-              </div>
-            )}
           </div>
           <div style={{ height:1,background:"#F3F4F6",margin:"14px 0" }} />
           <div style={{ display:"flex",justifyContent:"space-between",alignItems:"baseline" }}>
@@ -577,9 +403,6 @@ export default function YPSepetPage() {
         </div>
 
       </div>
-
-      {/* ══ ADDRESS MODAL ═══════════════════════════════════ */}
-      {showAddrModal && <AddressModal onSelect={setAddress} onClose={()=>setShowAddrModal(false)} />}
 
       {/* ══ TOAST ════════════════════════════════════════════ */}
       {toastMsg && <Toast msg={toastMsg} onHide={()=>setToastMsg(null)} />}

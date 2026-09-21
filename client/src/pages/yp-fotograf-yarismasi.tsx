@@ -6,7 +6,7 @@ export default function YPFotografYarismasi() {
       title="Fotoğraf Yarışması"
       description="YourPoodle Sonbahar Poodle Fotoğraf Yarışması: katılım kuralları, ödüller ve son başvuru tarihi."
       updatedDate="16 Temmuz 2026"
-      breadcrumb={[{ label:"Ana Sayfa", href:"/yourpoodle" }, { label:"Club", href:"/yourpoodle/club" }, { label:"Fotoğraf Yarışması" }]}
+      breadcrumb={[{ label:"Ana Sayfa", href:"/yourpoodle" }, { label:"Fotoğraf Yarışması" }]}
     >
       {/* Hero */}
       <div style={{ background:"linear-gradient(135deg,#5D3A1A,#A67C52)", borderRadius:18, padding:"24px 20px", marginBottom:32, position:"relative", overflow:"hidden" }}>
@@ -40,7 +40,7 @@ export default function YPFotografYarismasi() {
       <div className="sp-section">
         <h2>Katılım Koşulları</h2>
         <ol>
-          <li>YourPoodle Club üyesi olmanız gerekir (ücretsiz kayıt).</li>
+          <li>YourPoodle üyesi olmanız gerekir (ücretsiz kayıt).</li>
           <li>Fotoğraf kendi Poodle'ınıza ait olmalıdır.</li>
           <li>Kişi başı en fazla <strong>3 fotoğraf</strong> gönderilebilir.</li>
           <li>Fotoğraflar daha önce başka bir yarışmada ödül almamış olmalıdır.</li>
@@ -52,10 +52,9 @@ export default function YPFotografYarismasi() {
       <div className="sp-section">
         <h2>Nasıl Katılırım?</h2>
         <ol>
-          <li>YourPoodle Club'a giriş yapın.</li>
-          <li>Ana Sayfa sekmesinde "Paylaş" butonuna tıklayın.</li>
+          <li>YourPoodle hesabınıza giriş yapın.</li>
           <li>Fotoğrafınızı yükleyin ve açıklamaya <strong>#SonbaharPoodle2026</strong> etiketini ekleyin.</li>
-          <li>Paylaşımınız otomatik olarak yarışmaya dahil edilir.</li>
+          <li>Paylaşımınız yarışmaya dahil edilir.</li>
         </ol>
       </div>
 
@@ -64,7 +63,7 @@ export default function YPFotografYarismasi() {
         <p>Kazananlar 5–10 Eylül 2026 tarihleri arasında topluluk oylaması (%60) ve jüri değerlendirmesi (%40) kombinasyonuyla belirlenir. Sonuçlar 12 Eylül 2026'da açıklanır.</p>
       </div>
 
-      <a href="/yourpoodle/club?tab=akis" className="sp-cta-btn">Club'a Katıl ve Paylaş →</a>
+      <a href="/yourpoodle/uye-ol" className="sp-cta-btn">Üye Ol ve Katıl →</a>
     </YPStaticPage>
   );
 }

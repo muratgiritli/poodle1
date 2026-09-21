@@ -81,7 +81,7 @@ export default function YourPoodleShell({ children, activeTab = "home" }: Props)
         <div className="yp-btm-nav-root fixed bottom-0 left-0 right-0 yp-shell mx-auto bg-white rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.08)] z-50">
           <div className="flex justify-around items-center h-20 px-2 pb-2">
             {navItem("home", <Home className="h-[22px] w-[22px]" strokeWidth={2.5} />, "Home", "/yourpoodle")}
-            {navItem("guide", <Users className="h-[22px] w-[22px]" strokeWidth={2.5} />, "Club", "/yourpoodle/rehber")}
+            {navItem("guide", <Users className="h-[22px] w-[22px]" strokeWidth={2.5} />, "Rehber", "/yourpoodle/rehber")}
             <Link href="/yourpoodle">
               <div className="flex flex-col items-center justify-center w-16 -mt-8 cursor-pointer">
                 <div className="bg-purple-600 text-white p-4 rounded-full shadow-[0_8px_20px_rgba(93,58,26,0.4)]">

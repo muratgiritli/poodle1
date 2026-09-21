@@ -173,16 +173,16 @@ function cargoSeoStaticBlock(store: StoreConfig): string {
 function ypSeoStaticBlock(): string {
   return (
     `<div id="seo-static" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0;padding:0;margin:-1px;">\n` +
-    `      <h1>YourPoodle — Toy Poodle Sahipleri İçin Mama, Bakım ve Topluluk Platformu</h1>\n` +
-    `      <p>Toy Poodle ve Miniature Poodle sahipleri için kuru mama, yaş mama, oyuncak, bakım ürünleri ve taşıma çantaları. Türkiye geneline hızlı kargo. Mama Bul sihirbazı, AI asistan ve Poodle topluluğu da burada.</p>\n` +
+    `      <h1>YourPoodle — Toy Poodle Sahipleri İçin Mama ve Bakım Platformu</h1>\n` +
+    `      <p>Toy Poodle ve Miniature Poodle sahipleri için kuru mama, yaş mama, oyuncak, bakım ürünleri ve taşıma çantaları. Türkiye geneline hızlı kargo. Mama Bul sihirbazı ve AI asistan da burada.</p>\n` +
     `      <h2>Toy Poodle Kuru Mama Çeşitleri</h2>\n` +
     `      <p>Royal Canin Poodle, Pro Plan Small &amp; Mini, Hill's Science Plan, N&amp;D Pumpkin ve Reflex Plus Poodle gibi küçük ırk ve toy ırk kuru mamalar. Marka, yaş ve kg filtreleriyle kolayca seçin.</p>\n` +
     `      <h2>Toy Poodle Bakım ve Tıraş Ürünleri</h2>\n` +
     `      <p>Poodle tüy bakımı için şampuan, tıraş makası, tarak, kulak ve göz bakım ürünleri. Poodle tıraş modelleri ve bakım takvimi rehberi.</p>\n` +
     `      <h2>Poodle Taşıma Çantası ve Kulübeler</h2>\n` +
     `      <p>Toy Poodle için uçuşa uygun taşıma çantaları, plastik ve metal kulübeler, yumuşak taşıma torbaları. Küçük ırk ölçülerine göre filtrelenmiş ürünler.</p>\n` +
-    `      <h2>Poodle Topluluk, Rehber ve AI Asistan</h2>\n` +
-    `      <p>Türkiye'nin en büyük Toy Poodle topluluğu: etkinlikler, bakım rehberleri, eğitim içerikleri, sağlık asistanı ve Mama Bul sihirbazı.</p>\n` +
+    `      <h2>Poodle Rehber ve AI Asistan</h2>\n` +
+    `      <p>Bakım rehberleri, eğitim içerikleri, sağlık asistanı ve Mama Bul sihirbazı.</p>\n` +
     `      <nav aria-label="YourPoodle site haritası">\n` +
     `        <ul>\n` +
     `          <li><a href="/yourpoodle">YourPoodle ana sayfa</a></li>\n` +
@@ -192,7 +192,6 @@ function ypSeoStaticBlock(): string {
     `          <li><a href="/yourpoodle/mama-bul">Poodle mama bulma sihirbazı</a></li>\n` +
     `          <li><a href="/yourpoodle/rehber">Poodle bakım rehberleri</a></li>\n` +
     `          <li><a href="/yourpoodle/ai-asistan">AI Poodle sağlık asistanı</a></li>\n` +
-    `          <li><a href="/yourpoodle/club">Poodle topluluğu ve etkinlikler</a></li>\n` +
     `          <li><a href="/yourpoodle/hizmetler">YourPoodle hizmetleri</a></li>\n` +
     `        </ul>\n` +
     `      </nav>\n` +
@@ -366,10 +365,12 @@ function injectProductMeta(html: string, p: ProductMeta, urlPath: string, store:
   const cleanPath = urlPath.split("?")[0].split("#")[0];
   const slug = slugify(p.name);
   const canonical = `${store.domain}/urun/${p.id}/${slug}`;
-  const title = escapeHtml(p.metaTitle || `${p.name} - Samsun Petshop | ${store.shortName}`);
+  const title = escapeHtml(p.metaTitle || `${p.name} | ${store.shortName} Mağaza`);
   const description = escapeHtml(
     p.metaDescription ||
-      `${p.name} en uygun fiyatla ${store.name}'ta. Aynı gün teslimat, kapıda ödeme. ${p.price} TL.`,
+      (store.commerce?.onlinePaymentOnly
+        ? `${p.name} — ${store.shortName}'ta. Türkiye geneli kargo, yalnızca online kredi kartı ile güvenli ödeme. ${p.price} TL.`
+        : `${p.name} en uygun fiyatla ${store.name}'ta. ${p.price} TL.`),
   );
   const keywords = p.metaKeywords ? escapeHtml(p.metaKeywords) : "";
   const image = p.img && /^https?:\/\//.test(p.img) ? p.img : `${store.domain}${store.seo.ogImage}`;
@@ -404,6 +405,9 @@ function injectProductMeta(html: string, p: ProductMeta, urlPath: string, store:
       price: p.price,
       availability: "https://schema.org/InStock",
       seller: { "@type": "Organization", name: store.name },
+      ...(store.commerce?.onlinePaymentOnly
+        ? { acceptedPaymentMethod: "http://purl.org/goodrelations/v1#PaymentMethodCreditCard" }
+        : {}),
     },
   };
   const ldScript = `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, "\\u003c")}</script>`;
@@ -752,7 +756,6 @@ function buildYPSeoStaticBlock(meta: YPMeta, urlPath: string): string {
     { href: "/yourpoodle/ai-asistan",label: "AI Poodle asistanı" },
     { href: "/yourpoodle/bilgi",     label: "Poodle araçları ve hesaplama" },
     { href: "/yourpoodle/magaza",    label: "Poodle ürünleri mağazası" },
-    { href: "/yourpoodle/club",      label: "Poodle topluluğu" },
   ].filter(l => l.href !== urlPath);
   return (
     `<div id="seo-static" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0;padding:0;margin:-1px;">\n` +

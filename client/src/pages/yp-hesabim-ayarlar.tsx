@@ -583,7 +583,6 @@ export default function YPHesabimAyarlarPage() {
               </div>
               {[
                 { key:"orders",    label:"Sipariş Bildirimleri",    desc:"Sipariş durumu ve kargo bilgileri" },
-                { key:"club",      label:"Club Bildirimleri",        desc:"Club etkinlikleri ve özel içerikler" },
                 { key:"guide",     label:"Rehber Önerileri",         desc:"Rehber içerikleri ve öneriler" },
                 { key:"campaigns", label:"Kampanya ve İndirimler",   desc:"Özel kampanyalar ve indirim fırsatları" },
               ].map(({ key, label, desc }, i, arr) => (

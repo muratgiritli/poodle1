@@ -127,12 +127,8 @@ export default function YPBildirimlerPage() {
             <div style={{ fontSize: 52, marginBottom: 16 }}>🔔</div>
             <div style={{ fontSize: 17, fontWeight: 800, color: "#1a1a1a", marginBottom: 8 }}>Henüz Bildirim Yok</div>
             <p style={{ fontSize: 13, color: "#9CA3AF", maxWidth: 260 }}>
-              Takipçileriniz beğeni veya yorum yaptığında burada göreceksiniz.
+              Sipariş ve hesap bildirimleriniz burada görünecek.
             </p>
-            <button onClick={() => navigate("/yourpoodle/club")}
-              style={{ marginTop: 20, padding: "10px 24px", borderRadius: 12, border: "none", background: "#5D3A1A", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
-              Club'a Git
-            </button>
           </div>
         ) : (
           <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: 8 }}>

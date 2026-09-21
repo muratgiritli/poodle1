@@ -831,16 +831,6 @@ export default function Egitim() {
             Eğitim Ürünleri →
           </button>
         </div>
-        {/* Topluluk */}
-        <div style={{ background:"#CCFBF1", borderRadius:18, padding:"18px 20px", textAlign:"center" }}>
-          <div style={{ fontSize:22, marginBottom:6 }}>🐾</div>
-          <div style={{ fontSize:14, fontWeight:800, color:"#111", marginBottom:3 }}>Topluluğa Katıl</div>
-          <div style={{ fontSize:12, color:"#555", marginBottom:12 }}>Diğer Poodle sahipleriyle eğitim ipuçlarını paylaşın.</div>
-          <button onClick={()=>navigate("/yourpoodle/club")}
-            style={{ height:40, borderRadius:12, border:"none", background:"#0D9488", color:"#fff", fontSize:13, fontWeight:800, padding:"0 22px", cursor:"pointer" }}>
-            Club'a Git
-          </button>
-        </div>
       </div>
 
       <div style={{ height:24 }}/>

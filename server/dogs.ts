@@ -109,21 +109,6 @@ async function migrate(pool: Pool) {
   await pool.query(`ALTER TABLE club_posts ADD COLUMN IF NOT EXISTS visibility TEXT NOT NULL DEFAULT 'public';`);
   await pool.query(`ALTER TABLE club_posts ADD COLUMN IF NOT EXISTS moderated_at TIMESTAMPTZ;`);
   await pool.query(`ALTER TABLE club_posts ADD COLUMN IF NOT EXISTS moderated_by TEXT;`);
-  await pool.query(`ALTER TABLE club_post_comments ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN NOT NULL DEFAULT false;`);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS club_reports (
-      id SERIAL PRIMARY KEY,
-      post_id INTEGER REFERENCES club_posts(id) ON DELETE CASCADE,
-      comment_id INTEGER REFERENCES club_post_comments(id) ON DELETE CASCADE,
-      reporter_user_id INTEGER REFERENCES customers(id) ON DELETE SET NULL,
-      reason TEXT,
-      status TEXT NOT NULL DEFAULT 'open',
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      resolved_at TIMESTAMPTZ,
-      resolved_by TEXT
-    );
-  `);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS club_post_likes (
@@ -142,6 +127,21 @@ async function migrate(pool: Pool) {
       user_id    INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
       content    TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  await pool.query(`ALTER TABLE club_post_comments ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN NOT NULL DEFAULT false;`);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS club_reports (
+      id SERIAL PRIMARY KEY,
+      post_id INTEGER REFERENCES club_posts(id) ON DELETE CASCADE,
+      comment_id INTEGER REFERENCES club_post_comments(id) ON DELETE CASCADE,
+      reporter_user_id INTEGER REFERENCES customers(id) ON DELETE SET NULL,
+      reason TEXT,
+      status TEXT NOT NULL DEFAULT 'open',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      resolved_at TIMESTAMPTZ,
+      resolved_by TEXT
     );
   `);
 
@@ -243,61 +243,179 @@ async function migrate(pool: Pool) {
 
 /** Demo Club content when DB has no posts (local / empty installs). */
 async function seedClubDemo(pool: Pool) {
-  const cnt = await pool.query(`SELECT COUNT(*)::int AS c FROM club_posts`);
-  if ((cnt.rows[0]?.c ?? 0) > 0) return;
-  const owners = await pool.query(`SELECT id FROM customers ORDER BY id ASC LIMIT 1`);
-  if (!owners.rows.length) return;
-  const userId = owners.rows[0].id as number;
+  // Ensure customer profile city/district columns exist (used by Yakınımda tab).
+  await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS city TEXT`);
+  await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS district TEXT`);
 
-  const demos = [
-    {
-      slug: "luna-club", name: "Luna", breed: "toy", city: "İstanbul",
-      avatar: "/images/poodle-avatar-1.jpg",
-      content: "Sabah yürüyüşü tamam ☀️ #poodle #istanbul",
-      image: "/images/poodle-hero.jpg", likes: 12, hoursAgo: 2,
-    },
-    {
-      slug: "max-club", name: "Max", breed: "miniature", city: "Ankara",
-      avatar: "/images/poodle-avatar-2.jpg",
-      content: "Yeni topumla ilk oyun! 🎾 #oyun #poodle",
-      image: "/images/poodle-hero_2.jpg", likes: 8, hoursAgo: 8,
-    },
-    {
-      slug: "bella-club", name: "Bella", breed: "toy", city: "İzmir",
-      avatar: "/images/poodle-avatar-3.jpg",
-      content: "Kuaförden çıktık, pırıl pırıl ✨ #bakim #toypoodle",
-      image: "/images/yp-poodle-hero.png", likes: 21, hoursAgo: 20,
-    },
-    {
-      slug: "coco-club", name: "Coco", breed: "moyen", city: "İstanbul",
-      avatar: "/images/poodle-avatar-4.jpg",
-      content: "Parkta yeni dostlar 🐾 #yakınımda #club",
-      image: "/images/poodle-hero.png", likes: 5, hoursAgo: 30,
-    },
+  const force = process.env.CLUB_FORCE_SEED === "1";
+  const cnt = await pool.query(`SELECT COUNT(*)::int AS c FROM club_posts`);
+  const postCount = cnt.rows[0]?.c ?? 0;
+  if (!force && postCount >= 12) return;
+
+  // bcrypt hash of ClubDemo1! (cost 10)
+  const demoPass = "$2b$10$PmQHyphJE7VO6qgG7ozphuSN7sX2AdnsCQ1dne2HK2N9xlYkYpeSy";
+
+  const people = [
+    { phone: "5551000001", name: "Ayşe Yılmaz", city: "İstanbul", district: "Kadıköy" },
+    { phone: "5551000002", name: "Mehmet Demir", city: "Ankara", district: "Çankaya" },
+    { phone: "5551000003", name: "Zeynep Kaya", city: "İzmir", district: "Karşıyaka" },
+    { phone: "5551000004", name: "Can Öztürk", city: "İstanbul", district: "Beşiktaş" },
+    { phone: "5551000005", name: "Elif Şahin", city: "Bursa", district: "Nilüfer" },
+    { phone: "5551000006", name: "Burak Arslan", city: "İstanbul", district: "Üsküdar" },
+    { phone: "5551000007", name: "Deniz Aydın", city: "Antalya", district: "Muratpaşa" },
+    { phone: "5551000008", name: "Selin Çelik", city: "Ankara", district: "Keçiören" },
   ];
 
-  for (const d of demos) {
-    let dogId: number;
-    const existing = await pool.query(`SELECT id FROM dogs WHERE slug=$1`, [d.slug]);
-    if (existing.rows.length) {
-      dogId = existing.rows[0].id;
+  const customerIds: number[] = [];
+  for (const p of people) {
+    const existing = await pool.query(`SELECT id FROM customers WHERE phone=$1`, [p.phone]);
+    if (existing.rows[0]) {
+      await pool.query(
+        `UPDATE customers SET name=$2, city=$3, district=$4 WHERE id=$1`,
+        [existing.rows[0].id, p.name, p.city, p.district],
+      );
+      customerIds.push(existing.rows[0].id);
     } else {
-      const ins = await pool.query(`
-        INSERT INTO dogs (user_id, slug, name, breed, city, bio, avatar_url, is_public, is_private, post_count)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,true,false,1)
-        RETURNING id
-      `, [userId, d.slug, d.name, d.breed, d.city, `${d.name} Club demosu`, d.avatar]);
-      dogId = ins.rows[0].id;
+      const ins = await pool.query(
+        `INSERT INTO customers (phone, password, name, city, district, address)
+         VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
+        [p.phone, demoPass, p.name, p.city, p.district, `${p.district}, ${p.city}`],
+      );
+      customerIds.push(ins.rows[0].id);
     }
-    const tags = JSON.stringify(
-      [...(d.content.match(/#[\p{L}\p{N}_]+/gu) ?? [])].map(h => h.slice(1).toLowerCase()),
-    );
-    await pool.query(`
-      INSERT INTO club_posts (dog_id, user_id, content, image_urls, hashtags, visibility, like_count, created_at)
-      VALUES ($1,$2,$3,$4::jsonb,$5::jsonb,'public',$6, NOW() - ($7::int * INTERVAL '1 hour'))
-    `, [dogId, userId, d.content, JSON.stringify([d.image]), tags, d.likes, d.hoursAgo]);
   }
-  console.log("[dogs] Club demo seed complete");
+
+  const dogDefs = [
+    { owner: 0, slug: "luna-toy", name: "Luna", breed: "toy", city: "İstanbul", avatar: "/images/poodle-avatar-1.jpg", bio: "Kadıköy'ün tatlı Toy Poodle'ı 💕" },
+    { owner: 1, slug: "max-mini", name: "Max", breed: "miniature", city: "Ankara", avatar: "/images/poodle-avatar-2.jpg", bio: "Parkların kralı 🎾" },
+    { owner: 2, slug: "bella-izmir", name: "Bella", breed: "toy", city: "İzmir", avatar: "/images/poodle-avatar-3.jpg", bio: "Kuaför sonrası hep pırıl pırıl ✨" },
+    { owner: 3, slug: "coco-besiktas", name: "Coco", breed: "moyen", city: "İstanbul", avatar: "/images/poodle-avatar-4.jpg", bio: "Beşiktaş sahilinde koşarız 🌊" },
+    { owner: 4, slug: "misha-bursa", name: "Misha", breed: "toy", city: "Bursa", avatar: "/images/poodle-avatar-1.jpg", bio: "İlk kez Club'da 🐾" },
+    { owner: 5, slug: "rocky-uskudar", name: "Rocky", breed: "miniature", city: "İstanbul", avatar: "/images/poodle-avatar-2.jpg", bio: "Üsküdar gün batımı + poodle" },
+    { owner: 6, slug: "pearl-antalya", name: "Pearl", breed: "toy", city: "Antalya", avatar: "/images/poodle-avatar-3.jpg", bio: "Akdeniz çocuğu ☀️" },
+    { owner: 7, slug: "teddy-ankara", name: "Teddy", breed: "toy", city: "Ankara", avatar: "/images/poodle-avatar-4.jpg", bio: "Oyuncak koleksiyoncusu 🧸" },
+    { owner: 0, slug: "olive-luna-kardes", name: "Olive", breed: "miniature", city: "İstanbul", avatar: "/images/poodle-avatar-2.jpg", bio: "Luna'nın kardeşi" },
+    { owner: 3, slug: "kiwi-poodle", name: "Kiwi", breed: "toy", city: "İstanbul", avatar: "/images/poodle-avatar-1.jpg", bio: "Yeni tıraş, yeni ben ✂️" },
+  ];
+
+  const dogIds: number[] = [];
+  for (const d of dogDefs) {
+    const userId = customerIds[d.owner];
+    const existing = await pool.query(`SELECT id FROM dogs WHERE slug=$1`, [d.slug]);
+    if (existing.rows[0]) {
+      await pool.query(
+        `UPDATE dogs SET name=$2, breed=$3, city=$4, bio=$5, avatar_url=$6, is_public=true, is_private=false, user_id=$7 WHERE id=$1`,
+        [existing.rows[0].id, d.name, d.breed, d.city, d.bio, d.avatar, userId],
+      );
+      dogIds.push(existing.rows[0].id);
+    } else {
+      const ins = await pool.query(
+        `INSERT INTO dogs (user_id, slug, name, breed, city, bio, avatar_url, is_public, is_private, gender, weight_kg)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,true,false,'female',3.2) RETURNING id`,
+        [userId, d.slug, d.name, d.breed, d.city, d.bio, d.avatar],
+      );
+      dogIds.push(ins.rows[0].id);
+    }
+  }
+
+  const posts = [
+    { dog: 0, user: 0, content: "Sabah yürüyüşü tamam ☀️ Kadıköy sahili harika! #poodle #istanbul #toypoodle", image: "/images/poodle-hero.jpg", likes: 18, comments: 3, hoursAgo: 1 },
+    { dog: 1, user: 1, content: "Yeni topumla ilk oyun! Kim oynamak ister? 🎾 #oyun #poodle #ankara", image: "/images/poodle-hero_2.jpg", likes: 12, comments: 2, hoursAgo: 3 },
+    { dog: 2, user: 2, content: "Kuaförden çıktık, pırıl pırıl ✨ #bakim #toypoodle #izmir", image: "/images/yp-poodle-hero.png", likes: 27, comments: 4, hoursAgo: 5 },
+    { dog: 3, user: 3, content: "Parkta yeni dostlar edindik 🐾 #yakınımda #club #istanbul", image: "/images/poodle-hero.png", likes: 9, comments: 1, hoursAgo: 7 },
+    { dog: 4, user: 4, content: "İlk Club gönderim! Merhaba herkese 💕 #yeniüye #poodle", image: "/images/poodle-avatar-1.jpg", likes: 15, comments: 2, hoursAgo: 9 },
+    { dog: 5, user: 5, content: "Üsküdar'da gün batımı + Rocky = mükemmel kombin 🌅 #uskudar #poodle", image: "/images/poodle-hero.jpg", likes: 22, comments: 3, hoursAgo: 11 },
+    { dog: 6, user: 6, content: "Antalya güneşi + mini poodle ☀️ Kim buradaysa yazsın! #antalya #toypoodle", image: "/images/poodle-hero_2.jpg", likes: 14, comments: 1, hoursAgo: 14 },
+    { dog: 7, user: 7, content: "Oyuncak dağını temizledik... 5 dakika sonra yine dağıldı 😅 #teddy #ankara", image: "/images/yp-poodle-hero.png", likes: 31, comments: 5, hoursAgo: 16 },
+    { dog: 8, user: 0, content: "Ablam Luna ile park keyfi 👯‍♀️ #kardeş #poodle #istanbul", image: "/images/poodle-hero.png", likes: 11, comments: 2, hoursAgo: 18 },
+    { dog: 9, user: 3, content: "Yeni tıraşım nasıl olmuş? ✂️ #tıraş #toypoodle", image: "/images/poodle-avatar-3.jpg", likes: 19, comments: 3, hoursAgo: 2 },
+    { dog: 0, user: 0, content: "Mama saati! Royal Canin önerisi olan var mı? #mama #toypoodle", image: "/images/poodle-hero_2.jpg", likes: 8, comments: 4, hoursAgo: 20 },
+    { dog: 1, user: 1, content: "Ankara'da poodle yürüyüş grubu kursak? 🙋‍♂️ #ankara #topluluk", image: "/images/poodle-avatar-2.jpg", likes: 16, comments: 6, hoursAgo: 22 },
+    { dog: 2, user: 2, content: "İzmir sahilinde rüzgarlı bir sabah 🌊 #izmir #poodle", image: "/images/poodle-hero.jpg", likes: 13, comments: 1, hoursAgo: 26 },
+    { dog: 5, user: 5, content: "Story için taze foto — 24 saat içinde! 📸 #story #poodle", image: "/images/yp-poodle-hero.png", likes: 7, comments: 0, hoursAgo: 4 },
+    { dog: 3, user: 3, content: "Beşiktaş sahil koşusu bitti, şimdi ödül maması 🦴 #egzersiz", image: "/images/poodle-hero.png", likes: 10, comments: 2, hoursAgo: 6 },
+  ];
+
+  // Only insert posts if forcing or still under target (avoid dupes by content+dog marker)
+  for (const p of posts) {
+    const dogId = dogIds[p.dog];
+    const userId = customerIds[p.user];
+    const exists = await pool.query(
+      `SELECT id FROM club_posts WHERE dog_id=$1 AND content=$2 LIMIT 1`,
+      [dogId, p.content],
+    );
+    if (exists.rows[0]) continue;
+    const tags = JSON.stringify(
+      [...(p.content.match(/#[\p{L}\p{N}_]+/gu) ?? [])].map((h) => h.slice(1).toLowerCase()),
+    );
+    const ins = await pool.query(
+      `INSERT INTO club_posts (dog_id, user_id, content, image_urls, hashtags, visibility, like_count, comment_count, created_at)
+       VALUES ($1,$2,$3,$4::jsonb,$5::jsonb,'public',$6,$7, NOW() - ($8::int * INTERVAL '1 hour'))
+       RETURNING id`,
+      [dogId, userId, p.content, JSON.stringify([p.image]), tags, p.likes, p.comments, p.hoursAgo],
+    );
+    const postId = ins.rows[0].id as number;
+
+    // Sample comments from other members
+    const commentTexts = [
+      "Çok tatlısınız 😍",
+      "Harika görünüyor!",
+      "Biz de gelelim mi parkta?",
+      "Mama önerisi için DM atın 🙌",
+      "Story'yi kaçırmayın!",
+    ];
+    const nComments = Math.min(p.comments, commentTexts.length);
+    for (let i = 0; i < nComments; i++) {
+      const commenter = customerIds[(p.user + 1 + i) % customerIds.length];
+      await pool.query(
+        `INSERT INTO club_post_comments (post_id, user_id, content, created_at)
+         VALUES ($1,$2,$3, NOW() - ($4::int * INTERVAL '1 hour') + ($5::int * INTERVAL '1 minute'))`,
+        [postId, commenter, commentTexts[i], p.hoursAgo, i * 3],
+      );
+    }
+
+    // Sample likes
+    const likeN = Math.min(p.likes, customerIds.length);
+    for (let i = 0; i < likeN; i++) {
+      const liker = customerIds[(p.user + i) % customerIds.length];
+      await pool.query(
+        `INSERT INTO club_post_likes (post_id, user_id) VALUES ($1,$2) ON CONFLICT (post_id, user_id) DO NOTHING`,
+        [postId, liker],
+      );
+    }
+  }
+
+  // Follows: everyone follows a few dogs (for Takip + stories)
+  for (let u = 0; u < customerIds.length; u++) {
+    for (let d = 0; d < dogIds.length; d++) {
+      if (dogDefs[d].owner === u) continue; // can't follow own dog
+      if ((u + d) % 3 === 0) continue; // sparse graph
+      await pool.query(
+        `INSERT INTO dog_follows (follower_user_id, dog_id, status)
+         VALUES ($1,$2,'active') ON CONFLICT (follower_user_id, dog_id) DO NOTHING`,
+        [customerIds[u], dogIds[d]],
+      );
+    }
+  }
+
+  // Refresh counters
+  await pool.query(`
+    UPDATE dogs d SET
+      post_count = (SELECT COUNT(*) FROM club_posts cp WHERE cp.dog_id = d.id),
+      follower_count = (SELECT COUNT(*) FROM dog_follows f WHERE f.dog_id = d.id AND f.status='active'),
+      following_count = (
+        SELECT COUNT(*) FROM dog_follows f
+        JOIN dogs d2 ON d2.id = f.dog_id
+        WHERE f.follower_user_id = d.user_id AND f.status='active'
+      )
+  `);
+  await pool.query(`
+    UPDATE club_posts cp SET
+      like_count = (SELECT COUNT(*) FROM club_post_likes l WHERE l.post_id = cp.id),
+      comment_count = (SELECT COUNT(*) FROM club_post_comments c WHERE c.post_id = cp.id AND COALESCE(c.is_hidden,false)=false)
+  `);
+
+  console.log(`[dogs] Club demo seed complete — ${customerIds.length} members, ${dogIds.length} dogs, posts enriched`);
 }
 
 /* ─── Helpers ────────────────────────────────────────── */
@@ -1498,4 +1616,23 @@ export async function registerDogRoutes(app: Express, pool: Pool) {
   });
 
   console.log("[dogs] Routes registered");
+
+  // One-shot: admin can (re)seed demo club members/posts
+  app.post("/api/admin/club/seed-demo", requireAdmin, requireClubMod, async (_req, res) => {
+    try {
+      process.env.CLUB_FORCE_SEED = "1";
+      await seedClubDemo(pool);
+      delete process.env.CLUB_FORCE_SEED;
+      const stats = await pool.query(`
+        SELECT
+          (SELECT COUNT(*)::int FROM customers WHERE phone LIKE '555100000%') AS demo_members,
+          (SELECT COUNT(*)::int FROM dogs) AS dogs,
+          (SELECT COUNT(*)::int FROM club_posts) AS posts,
+          (SELECT COUNT(*)::int FROM dog_follows) AS follows
+      `);
+      res.json({ ok: true, ...stats.rows[0] });
+    } catch (e: any) {
+      res.status(500).json({ message: e?.message || "Seed failed" });
+    }
+  });
 }

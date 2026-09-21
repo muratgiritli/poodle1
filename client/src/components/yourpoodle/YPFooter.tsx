@@ -1,4 +1,4 @@
-import { Truck, RefreshCcw, ShieldCheck, CreditCard, MapPin, Phone, Mail, Clock, Instagram, Facebook, Youtube, Twitter } from "lucide-react";
+import { Truck, RefreshCcw, ShieldCheck, CreditCard, MapPin, Phone, Mail, Clock, Instagram, Facebook, Youtube, Twitter, MessageCircle } from "lucide-react";
 import { IS_YP } from "@/lib/store";
 import { YP_COMPANY } from "@/lib/yp-company";
 import PaymentCardLogos from "./PaymentCardLogos";
@@ -17,6 +17,8 @@ const COLUMNS = [
     title: "Kurumsal",
     links: [
       { label: "Hakkımızda",               href: `${B}/hakkimizda` },
+      { label: "Atakum Mağazamız",         href: `${B}/magazalar/atakum` },
+      { label: "Bayi Başvurusu",           href: `${B}/bayi-basvurusu` },
       { label: "SSL Sertifikası",          href: `${B}/ssl` },
       { label: "Teslimat ve İade Şartları", href: `${B}/teslimat-iade` },
       { label: "Gizlilik Sözleşmesi",      href: `${B}/gizlilik-politikasi` },
@@ -27,6 +29,7 @@ const COLUMNS = [
     title: "Mağaza",
     links: [
       { label: "Tüm Ürünler",        href: `${B}/magaza` },
+      { label: "Kampanyalar",         href: `${B}/kampanyalar` },
       { label: "Kuru Mamalar",        href: `${B}/kuru-mama` },
       { label: "Yaş Mamalar",         href: `${B}/kategori/yas-mama` },
       { label: "Oyuncaklar",          href: `${B}/kategori/oyuncaklar` },
@@ -38,6 +41,7 @@ const COLUMNS = [
     title: "Destek",
     links: [
       { label: "İletişim",             href: `${B}/iletisim` },
+      { label: "Sipariş Takip",        href: `${B}/siparis-takip` },
       { label: "Sık Sorulan Sorular",  href: `${B}/sss` },
       { label: "Kargo ve Teslimat",    href: `${B}/kargo` },
       { label: "İade ve Değişim",      href: `${B}/iade` },
@@ -47,13 +51,13 @@ const COLUMNS = [
     ],
   },
   {
-    title: "Topluluk",
+    title: "Keşfet",
     links: [
-      { label: "Topluluk Akışı",   href: `${B}/club?tab=akis` },
-      { label: "Köpek Dizini",     href: `${B}/club/kopekler` },
-      { label: "YourPoodle Club",  href: `${B}/club` },
       { label: "Sağlık Asistanı",  href: `${B}/ai-asistan` },
       { label: "Poodle Rehberi",   href: `${B}/rehber` },
+      { label: "Poodle Araçları",  href: `${B}/araclar` },
+      { label: "Hizmetler",        href: `${B}/hizmetler` },
+      { label: "Benim Poodle'ım",  href: `${B}/benim-poodleim` },
       { label: "Etkinlikler",      href: `${B}/etkinlikler` },
     ],
   },
@@ -66,8 +70,11 @@ const SOCIALS = [
   { Icon: Twitter,   href: "https://twitter.com/yourpoodle",    label: "Twitter/X" },
 ];
 
+const WA_HREF = `https://wa.me/${YP_COMPANY.phoneTel.replace(/\D/g, "")}?text=${encodeURIComponent("Merhaba, YourPoodle hakkında yardım almak istiyorum.")}`;
+
 const CONTACT = [
   { Icon: Phone,  content: "0 850 840 3959", href: "tel:+908508403959" },
+  { Icon: MessageCircle, content: "WhatsApp Destek", href: WA_HREF },
   { Icon: Mail,   content: "info@sizpa.com",  href: "mailto:info@sizpa.com" },
   { Icon: Clock,  content: "Hft. içi & Hft. sonu 09:00 – 22:00", href: undefined },
   { Icon: MapPin, content: "Türkiye geneline hızlı teslimat", href: undefined },
@@ -88,7 +95,7 @@ const orgSchema = {
     "addressRegion": YP_COMPANY.city,
     "addressCountry": "TR",
   },
-  "description": "Türkiye geneline kargo ile Toy Poodle e-ticaret ve topluluk platformu.",
+  "description": "Türkiye geneline kargo ile Toy Poodle e-ticaret platformu.",
   "areaServed": "TR",
   "sameAs": [
     "https://instagram.com/yourpoodle",
@@ -100,27 +107,31 @@ const orgSchema = {
 
 export default function YPFooter() {
   return (
-    <footer role="contentinfo" className="yp-site-footer bg-gray-950 mt-0">
+    <footer
+      role="contentinfo"
+      className="yp-site-footer mt-0"
+      style={{ background: "#2D1B11", color: "#fff" }}
+    >
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
       />
 
       {/* ═══════════ SECTION 1 — TRUST BAR ═══════════ */}
-      <div className="border-b border-gray-800">
-        <div className="max-w-6xl mx-auto px-4 py-6">
+      <div style={{ borderBottom: "1px solid rgba(255,255,255,.10)" }}>
+        <div className="mx-auto px-5 md:px-8 py-7" style={{ maxWidth: 1200 }}>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {TRUST.map(({ Icon, title, sub, href }) => (
-              <a key={title} href={href} className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+              <a key={title} href={href} className="flex items-center gap-3 hover:opacity-90 transition-opacity" style={{ color: "inherit" }}>
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: "#3D2612" }}
+                  style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.08)" }}
                 >
-                  <Icon size={18} style={{ color: "#A67C52" }} strokeWidth={2} />
+                  <Icon size={18} style={{ color: "#D7AD80" }} strokeWidth={1.8} />
                 </div>
                 <div>
-                  <p className="text-[12px] font-bold text-white leading-tight">{title}</p>
-                  <p className="text-[11px] text-gray-500 leading-tight mt-0.5">{sub}</p>
+                  <p className="text-[12px] font-bold leading-tight" style={{ color: "#FFF9F2" }}>{title}</p>
+                  <p className="text-[11px] leading-tight mt-0.5" style={{ color: "rgba(255,255,255,.48)" }}>{sub}</p>
                 </div>
               </a>
             ))}
@@ -129,7 +140,7 @@ export default function YPFooter() {
       </div>
 
       {/* ═══════════ SECTION 2 — MAIN CONTENT ═══════════ */}
-      <div className="max-w-6xl mx-auto px-4 py-10">
+      <div className="mx-auto px-5 md:px-8 py-12 md:py-14" style={{ maxWidth: 1200 }}>
         <div className="grid grid-cols-1 md:grid-cols-6 gap-8 lg:gap-10">
 
           {/* ── Brand + Contact column (2/6) ── */}
@@ -140,13 +151,13 @@ export default function YPFooter() {
               <img
                 src="/images/brand/logo.png"
                 alt="YourPoodle"
-                style={{ height: 38, width: "auto", objectFit: "contain", background: "#fff", borderRadius: 12, padding: "5px 14px", boxShadow: "0 2px 12px rgba(0,0,0,0.25)" }}
+                style={{ height: 40, width: "auto", objectFit: "contain", background: "#FFF9F2", borderRadius: 12, padding: "5px 14px" }}
               />
             </a>
 
             {/* Description */}
-            <p className="text-[13px] text-gray-400 leading-relaxed max-w-[260px]">
-              Toy Poodle sahipleri için Türkiye geneline hızlı kargo yapan uzman e-ticaret ve topluluk platformu.
+            <p className="text-[13px] leading-relaxed max-w-[280px]" style={{ color: "rgba(255,255,255,.58)" }}>
+              Toy Poodle sahipleri için seçilmiş ürünler, bakım rehberleri ve kişisel yardımcılar.
             </p>
 
             {/* Social buttons */}
@@ -158,8 +169,8 @@ export default function YPFooter() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-                  style={{ background: "rgb(31,19,51)" }}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center hover:text-white transition-colors"
+                  style={{ background: "rgba(255,255,255,.07)", color: "rgba(255,255,255,.52)", border: "1px solid rgba(255,255,255,.07)" }}
                 >
                   <Icon size={16} strokeWidth={2} />
                 </a>
@@ -174,17 +185,20 @@ export default function YPFooter() {
                     size={14}
                     strokeWidth={2}
                     className="mt-0.5 flex-shrink-0"
-                    style={{ color: "#A67C52" }}
+                    style={{ color: "#D7AD80" }}
                   />
                   {href ? (
                     <a
                       href={href}
-                      className="text-[12px] text-gray-400 hover:text-white transition-colors leading-snug"
+                      target={href.startsWith("http") ? "_blank" : undefined}
+                      rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
+                      className="text-[12px] hover:text-white transition-colors leading-snug"
+                      style={{ color: "rgba(255,255,255,.58)" }}
                     >
                       {content}
                     </a>
                   ) : (
-                    <span className="text-[12px] text-gray-400 leading-snug whitespace-pre-line">
+                    <span className="text-[12px] leading-snug whitespace-pre-line" style={{ color: "rgba(255,255,255,.58)" }}>
                       {content}
                     </span>
                   )}
@@ -197,7 +211,7 @@ export default function YPFooter() {
           <div className="md:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-6">
             {COLUMNS.map(({ title, links }) => (
               <div key={title}>
-                <h4 className="text-[13px] font-bold text-white mb-4 uppercase tracking-wide">
+                <h4 className="text-[12px] font-bold mb-4 uppercase tracking-[0.08em]" style={{ color: "#FFF9F2" }}>
                   {title}
                 </h4>
                 <ul className="space-y-2">
@@ -205,7 +219,8 @@ export default function YPFooter() {
                     <li key={label}>
                       <a
                         href={href}
-                        className="text-[13px] text-gray-400 hover:text-white transition-colors"
+                        className="text-[13px] hover:text-white transition-colors"
+                        style={{ color: "rgba(255,255,255,.55)" }}
                       >
                         {label}
                       </a>
@@ -219,13 +234,13 @@ export default function YPFooter() {
       </div>
 
       {/* ═══════════ SECTION 3 — COPYRIGHT BAR ═══════════ */}
-      <div className="border-t border-gray-800">
-        <div className="max-w-6xl mx-auto px-4 py-5 flex flex-col md:flex-row items-center justify-between gap-3">
+      <div style={{ borderTop: "1px solid rgba(255,255,255,.10)" }}>
+        <div className="mx-auto px-5 md:px-8 py-5 flex flex-col md:flex-row items-center justify-between gap-3" style={{ maxWidth: 1200 }}>
 
           {/* Copyright */}
-          <p className="text-[11px] text-gray-500 text-center md:text-left">
+          <p className="text-[11px] text-center md:text-left" style={{ color: "rgba(255,255,255,.42)" }}>
             © 2026 YourPoodle — Toy Poodle sahipleri için.{" "}
-            <span className="text-gray-600">Tüm hakları saklıdır.</span>
+            <span>Tüm hakları saklıdır.</span>
           </p>
 
           {/* Official iyzico payment marks band */}

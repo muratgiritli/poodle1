@@ -35,8 +35,6 @@ const FAQ = [
     a:"Sepet ve ödeme adımında uygun kartlarla otomatik olarak uygulanır. Ekstra ücret alınmaz." },
   { id:"faq-4", q:"Yanlış ürün geldi, ne yapmalıyım?",
     a:"Yardım Merkezi > Mesaj Gönder üzerinden sipariş numaranızla bildirim oluşturun. Ekibimiz 24 saat içinde dönüş yapar." },
-  { id:"faq-5", q:"Club paylaşımımı nasıl silebilirim?",
-    a:"Paylaşımınızın sağ üst menüsünden Düzenle veya Sil seçeneklerine ulaşabilirsiniz." },
   { id:"faq-6", q:"Telefon numaramı nasıl değiştiririm?",
     a:"Hesabım > Hesap Ayarları > Cep Telefonu bölümünden güncelleyebilirsiniz." },
 ];
@@ -47,7 +45,6 @@ const CATS = [
   { id:"returns",    title:"İade ve Değişim", sub:"Kolay iade işlemleri",     Icon:RefreshCw,  bg:"#F0FDF4", ic:"#16A34A" },
   { id:"payment",    title:"Ödeme",           sub:"Kart ve taksit sorunları", Icon:CreditCard, bg:"#FFF7ED", ic:"#EA580C" },
   { id:"products",   title:"Ürünler",         sub:"Mama ve ürün bilgileri",   Icon:ShoppingBag,bg:"#EFF6FF", ic:"#3B82F6" },
-  { id:"club",       title:"Club",            sub:"Paylaşım ve hesap desteği",Icon:PawPrint,   bg:"#FDF2F8", ic:"#EC4899" },
   { id:"membership", title:"Üyelik",          sub:"Telefon ve profil işlemleri",Icon:User,     bg:"#FEF2F2", ic:"#EF4444" },
 ];
 

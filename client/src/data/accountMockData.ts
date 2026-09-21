@@ -28,7 +28,6 @@ export const quickActions = [
   { id:"favorites", label:"Favorilerim",         sublabel:"28",      icon:"Heart",    bg:"#FDF2F8", iconColor:"#EC4899", route:"/hesabim/favoriler"  },
   { id:"addresses", label:"Adreslerim",          sublabel:null,      icon:"MapPin",   bg:"#F0FDF4", iconColor:"#22C55E", route:"/hesabim/adresler"   },
   { id:"coupons",   label:"Kuponlarım",           sublabel:"3",       icon:"Ticket",   bg:"#FFF7ED", iconColor:"#F97316", route:"/hesabim/kuponlar"   },
-  { id:"clubposts", label:"Club Paylaşımlarım",  sublabel:"14",      icon:"Camera",   bg:"#F3EEFF", iconColor:"#7C3AED", route:"/club/profil/tarcin.poodle" },
   { id:"saved",     label:"Kaydettiklerim",       sublabel:null,      icon:"Bookmark", bg:"#FEFCE8", iconColor:"#EAB308", route:"/hesabim/kaydedilenler" },
   { id:"notif",     label:"Bildirimler",          sublabel:"3 yeni",  icon:"Bell",     bg:"#FEE2E2", iconColor:"#EF4444", route:"/hesabim/bildirimler" },
   { id:"settings",  label:"Hesap Ayarları",       sublabel:null,      icon:"Settings", bg:"#F3F4F6", iconColor:"#6B7280", route:"/hesabim/ayarlar"    },

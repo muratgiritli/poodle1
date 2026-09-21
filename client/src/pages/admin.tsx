@@ -2609,7 +2609,7 @@ function AdminDashboard({ onLogout, permissions = [], role }: { onLogout: () => 
                     { key: "altkategoriler", label: "Alt Kategori Yönetimi", icon: <ChevronRight className="w-6 h-6" />, color: "text-indigo-600" },
                     { key: "stokbildirimleri", label: "Stok Bildirimleri", icon: <Bell className="w-6 h-6" />, color: "text-red-600" },
                     { key: "urunler", label: "Ürünler", icon: <Package className="w-6 h-6" />, color: "text-cyan-600" },
-                    { key: "crosssell", label: "Sıklıkla Birlikte Alınan", icon: <ShoppingBag className="w-6 h-6" />, color: "text-pink-600" },
+                    { key: "crosssell", label: "Birlikte Alınan", icon: <ShoppingBag className="w-6 h-6" />, color: "text-pink-600" },
                     { key: "kediturustats", label: "Kedi Türü İstatistikleri", icon: <BarChart3 className="w-6 h-6" />, color: "text-amber-800" },
                     { key: "kopekturustats", label: "Köpek Türü İstatistikleri", icon: <BarChart3 className="w-6 h-6" />, color: "text-blue-600" },
                     { key: "hatirlatmalar", label: "Tekrar Sipariş Hatırlatmaları", icon: <Clock className="w-6 h-6" />, color: "text-teal-600" },
@@ -5591,7 +5591,7 @@ function AdminDashboard({ onLogout, permissions = [], role }: { onLogout: () => 
 
         {yonetimSub === "crosssell" && <section>
           <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-            <h2 className="text-lg font-bold" data-testid="text-section-cross-sell">Sıklıkla Birlikte Alınan Ürünler</h2>
+            <h2 className="text-lg font-bold" data-testid="text-section-cross-sell">Bu ürünü alanlar bu ürünleri de alıyor</h2>
             <div className="flex items-center gap-2 flex-wrap">
             <Button
               variant="outline"
@@ -7729,16 +7729,18 @@ function YPMamaBulAdminCard() {
     queryKey: ["/api/admin/mama-bul/stats"],
     queryFn: () => fetch("/api/admin/mama-bul/stats", { credentials: "include" }).then((r) => r.json()),
   });
-  const { data: sessions = [] } = useQuery<any[]>({
+  const { data: sessionsRaw } = useQuery<any>({
     queryKey: ["/api/admin/mama-bul/sessions"],
     queryFn: () => fetch("/api/admin/mama-bul/sessions?limit=30", { credentials: "include" }).then((r) => r.json()),
   });
-  const { data: rules = [] } = useQuery<any[]>({
+  const sessions = Array.isArray(sessionsRaw) ? sessionsRaw : [];
+  const { data: rulesRaw } = useQuery<any>({
     queryKey: ["/api/admin/mama-bul/rules"],
     queryFn: () => fetch("/api/admin/mama-bul/rules", { credentials: "include" }).then((r) => r.json()),
   });
+  const rules = Array.isArray(rulesRaw) ? rulesRaw : [];
   const [draft, setDraft] = useState<any[]>([]);
-  useEffect(() => { setDraft(Array.isArray(rules) ? rules : []); }, [rules]);
+  useEffect(() => { setDraft(rules); }, [rules]);
 
   const saveRules = useMutation({
     mutationFn: async () => {
@@ -7844,10 +7846,11 @@ function YPAiAdminCard() {
     queryKey: ["/api/admin/yp-chat/stats"],
     queryFn: () => fetch("/api/admin/yp-chat/stats", { credentials: "include" }).then((r) => r.json()),
   });
-  const { data: events = [] } = useQuery<any[]>({
+  const { data: eventsRaw } = useQuery<any>({
     queryKey: ["/api/admin/yp-chat/events"],
     queryFn: () => fetch("/api/admin/yp-chat/events?limit=40", { credentials: "include" }).then((r) => r.json()),
   });
+  const events = Array.isArray(eventsRaw) ? eventsRaw : [];
   const { data: promptData } = useQuery<{ prompt: string }>({
     queryKey: ["/api/admin/yp-chat/prompt"],
     queryFn: () => fetch("/api/admin/yp-chat/prompt", { credentials: "include" }).then((r) => r.json()),
@@ -8110,11 +8113,12 @@ function slugifyTr(text: string): string {
 function YPArticlesCard() {
   const { toast } = useToast();
   const qc = useQueryClient();
-  const { data: articles = [] } = useQuery<any[]>({
+  const { data: articlesRaw } = useQuery<any>({
     queryKey: ["/api/admin/yp-articles"],
     queryFn: () => fetch("/api/admin/yp-articles", { credentials:"include" }).then(r => r.json()),
     staleTime: 30000,
   });
+  const articles = Array.isArray(articlesRaw) ? articlesRaw : [];
   const [editing, setEditing] = useState<any|null>(null);
   const [form, setForm] = useState<any>({});
   const [slugManual, setSlugManual] = useState(false);
@@ -8308,17 +8312,19 @@ function YPGuideProductsCard() {
   const [productSearch, setProductSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-  const { data: allMappings = [] } = useQuery<any[]>({
+  const { data: allMappingsRaw } = useQuery<any>({
     queryKey: ["/api/admin/yp-guide-products"],
     queryFn: () => fetch("/api/admin/yp-guide-products", { credentials: "include" }).then(r => r.json()),
     staleTime: 15000,
   });
+  const allMappings = Array.isArray(allMappingsRaw) ? allMappingsRaw : [];
 
-  const { data: dbArticles = [] } = useQuery<any[]>({
+  const { data: dbArticlesRaw } = useQuery<any>({
     queryKey: ["/api/admin/yp-articles"],
     queryFn: () => fetch("/api/admin/yp-articles", { credentials: "include" }).then(r => r.json()),
     staleTime: 30000,
   });
+  const dbArticles = Array.isArray(dbArticlesRaw) ? dbArticlesRaw : [];
 
   const guideOptions = useMemo(() => {
     const seen = new Set<string>();

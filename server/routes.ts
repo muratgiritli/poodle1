@@ -1121,29 +1121,55 @@ export async function registerRoutes(
     res.setHeader("X-Frame-Options", "SAMEORIGIN");
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     res.setHeader("Permissions-Policy", "camera=(self), microphone=(), geolocation=(self)");
-    // Task 10: Single correct HSTS header (2 years + preload)
-    res.setHeader("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+    // HSTS + upgrade-insecure-requests only on real HTTPS (breaks plain http://IP:5000 otherwise)
+    const xfProto = String(req.headers["x-forwarded-proto"] || "").split(",")[0].trim().toLowerCase();
+    const isHttps = req.secure === true || xfProto === "https";
+    if (isHttps) {
+      res.setHeader("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+    }
     res.setHeader("X-Download-Options", "noopen");
     res.setHeader("X-Permitted-Cross-Domain-Policies", "none");
-    // Task 4: Harden CSP — remove unsafe-eval; restrict img-src to known domains; add object-src none + upgrade-insecure-requests
-    res.setHeader("Content-Security-Policy", [
+    const csp = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://connect.facebook.net https://analytics.tiktok.com https://www.clarity.ms https://scripts.clarity.ms https://mc.yandex.ru https://static.hotjar.com https://*.hotjar.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://www.yourpoodle.com https://www.enuygunpet.com https://www.google-analytics.com https://www.googletagmanager.com https://googleads.g.doubleclick.net https://images.unsplash.com https://picsum.photos https://fastly.picsum.photos https://www.facebook.com https://*.facebook.com https://mc.yandex.ru https://*.tiktok.com",
+      // Product catalog hotlinks many supplier CDNs (mamatoptancisi, rosepet, etc.)
+      "img-src 'self' data: blob: https:",
       "connect-src 'self' https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://www.facebook.com https://connect.facebook.net https://graph.facebook.com https://analytics.tiktok.com https://*.tiktokw.us https://*.clarity.ms https://mc.yandex.ru https://*.hotjar.com https://*.hotjar.io wss://*.hotjar.com",
       "frame-src 'self' https://www.google.com https://maps.google.com https://www.google.com.tr https://www.facebook.com https://*.hotjar.com",
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self'",
       "object-src 'none'",
-      "upgrade-insecure-requests",
-    ].join("; "));
+    ];
+    if (isHttps) csp.push("upgrade-insecure-requests");
+    res.setHeader("Content-Security-Policy", csp.join("; "));
 
-    // Task 14: Global API rate limiting — 100 req / 15 min / IP for all /api/*
-    // Skip in development / localhost: HMR + admin polling otherwise trip 429 and crash the UI.
-    if (req.path.startsWith("/api/")) {
+    // Global API rate limiting for public/customer traffic.
+    // Skip admin APIs: the SPA fires many parallel queries (especially İçerik hub)
+    // and a 429 JSON error object then crashes .map() in the UI.
+    // Skip track endpoints (they have their own per-route limits).
+    // Skip storefront catalog/image GETs — a single PLP loads dozens of
+    // /api/product-image/* requests and must never blank the category grid.
+    const path = req.path || "";
+    const isStorefrontRead =
+      req.method === "GET" &&
+      (path.startsWith("/api/yp-products") ||
+        path.startsWith("/api/yp-category-counts") ||
+        path.startsWith("/api/product-image") ||
+        path.startsWith("/api/img-proxy") ||
+        path.startsWith("/api/product-detail") ||
+        path.startsWith("/api/products") ||
+        path.startsWith("/api/subcategories") ||
+        path.startsWith("/api/brand-categories") ||
+        path.startsWith("/api/reviews"));
+    if (
+      path.startsWith("/api/") &&
+      !path.startsWith("/api/admin") &&
+      !path.startsWith("/api/track") &&
+      !isStorefrontRead
+    ) {
       const ip = req.ip || "unknown";
       const isLocalDev =
         process.env.NODE_ENV === "development" ||
@@ -1151,7 +1177,7 @@ export async function registerRoutes(
         ip === "::1" ||
         ip === "::ffff:127.0.0.1" ||
         ip === "localhost";
-      if (!isLocalDev && await rateLimitHit(`global:api:${ip}`, 100, 15 * 60 * 1000)) {
+      if (!isLocalDev && await rateLimitHit(`global:api:${ip}`, 600, 15 * 60 * 1000)) {
         return res.status(429).json({ error: "Too many requests", retryAfter: 900 });
       }
     }
@@ -1277,9 +1303,6 @@ export async function registerRoutes(
         { url: "/yourpoodle/bilgi",                  priority: "0.8", changefreq: "weekly" },
         { url: "/yourpoodle/ai-asistan",             priority: "0.8", changefreq: "weekly" },
         { url: "/yourpoodle/magaza",                 priority: "0.7", changefreq: "daily" },
-        { url: "/yourpoodle/club",                   priority: "0.7", changefreq: "weekly" },
-        { url: "/yourpoodle/club/hakkimizda",        priority: "0.6", changefreq: "monthly" },
-        { url: "/yourpoodle/topluluk",               priority: "0.7", changefreq: "weekly" },
         { url: "/yourpoodle/etkinlikler",            priority: "0.6", changefreq: "weekly" },
         { url: "/yourpoodle/hakkinda",               priority: "0.5", changefreq: "monthly" },
         { url: "/yourpoodle/profil",                 priority: "0.4", changefreq: "monthly" },
@@ -1901,6 +1924,65 @@ export async function registerRoutes(
     res.send(buffer);
   });
 
+  // Proxy supplier CDNs so storefront images are same-origin (CSP + hotlink safe).
+  // Optional ?id= productId will persist a local copy into product_images when missing.
+  app.get("/api/img-proxy", async (req, res) => {
+    try {
+      const raw = typeof req.query.url === "string" ? req.query.url : "";
+      const productId = parseInt(String(req.query.id || ""), 10);
+      if (!raw || (!raw.startsWith("https://") && !raw.startsWith("http://"))) {
+        return res.status(400).end();
+      }
+      let url: URL;
+      try { url = new URL(raw); } catch { return res.status(400).end(); }
+      if (url.protocol !== "https:" && url.protocol !== "http:") return res.status(400).end();
+
+      if (!isNaN(productId)) {
+        const existing = await getProductImage(productId);
+        if (existing) {
+          res.setHeader("Content-Type", "image/webp");
+          res.setHeader("Cache-Control", "public, max-age=604800, immutable");
+          return res.send(existing);
+        }
+      }
+
+      const upstream = await fetch(url.toString(), {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+          Referer: "https://www.yourpoodle.com/",
+        },
+        signal: AbortSignal.timeout(20000),
+      });
+      if (!upstream.ok) return res.status(upstream.status === 404 ? 404 : 502).end();
+      const buf = Buffer.from(await upstream.arrayBuffer());
+      if (buf.length < 100) return res.status(502).end();
+
+      if (!isNaN(productId)) {
+        try {
+          const localPath = await saveProductImage(buf, productId);
+          await sharedPool.query(`UPDATE products SET img = $2 WHERE id = $1 AND (img IS NULL OR img LIKE 'http%')`, [productId, localPath]);
+          const webp = await getProductImage(productId);
+          if (webp) {
+            res.setHeader("Content-Type", "image/webp");
+            res.setHeader("Cache-Control", "public, max-age=604800, immutable");
+            return res.send(webp);
+          }
+        } catch (e: any) {
+          console.warn("[img-proxy] persist failed", productId, e?.message);
+        }
+      }
+
+      const ct = upstream.headers.get("content-type") || "image/jpeg";
+      res.setHeader("Content-Type", ct.startsWith("image/") ? ct : "image/jpeg");
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      res.send(buf);
+    } catch (e: any) {
+      console.warn("[img-proxy]", e?.message);
+      res.status(502).end();
+    }
+  });
+
   app.get("/product-images/:filename", async (req, res) => {
     const match = req.params.filename.match(/product-(\d+)\.webp/);
     if (!match) return res.status(404).end();
@@ -2441,8 +2523,6 @@ export async function registerRoutes(
 - Eğitim Rehberi: https://www.yourpoodle.com/yourpoodle/egitim
 - Sağlık Rehberi: https://www.yourpoodle.com/yourpoodle/saglik
 - Bakım Rehberi: https://www.yourpoodle.com/yourpoodle/bakim
-- Poodle Club: https://www.yourpoodle.com/yourpoodle/club
-- Topluluk: https://www.yourpoodle.com/yourpoodle/topluluk
 - Etkinlikler: https://www.yourpoodle.com/yourpoodle/etkinlikler
 - Mağaza: https://www.yourpoodle.com/yourpoodle/magaza
 - Hakkımızda: https://www.yourpoodle.com/yourpoodle/hakkinda
@@ -2545,6 +2625,9 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
                 p.barcode, p.skt,
                 p.preorder_enabled AS "preorderEnabled",
                 p.long_description AS "longDescription",
+                p.meta_title AS "metaTitle",
+                p.meta_description AS "metaDescription",
+                p.meta_keywords AS "metaKeywords",
                 p.mama_metadata AS "mamaMetadata",
                 bc.animal, bc.subcategory, bc.brand_name AS "brandName", bc.brand_slug AS "brandSlug"
          FROM products p
@@ -2555,12 +2638,22 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
          ORDER BY p.is_active DESC, p.id DESC`,
         subcategory ? [subcategory] : []
       );
+      const rows = result.rows.map((r: any) => {
+        const img = r.img ? String(r.img) : "";
+        if (img.startsWith("http://") || img.startsWith("https://")) {
+          return {
+            ...r,
+            img: `/api/img-proxy?id=${r.id}&url=${encodeURIComponent(img)}`,
+          };
+        }
+        return r;
+      });
       if (showAll) {
         res.setHeader("Cache-Control", "private, no-store");
       } else {
         res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
       }
-      res.json(result.rows);
+      res.json(rows);
     } catch (e: any) {
       console.error("[/api/yp-products]", e?.message);
       res.status(500).json({ error: "Internal server error" });
@@ -2574,11 +2667,12 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
   // all their products lack photos.
   app.get("/api/yp-category-counts", async (_req, res) => {
     try {
+      // Count active products that have images (include out-of-stock — PLPs still show them).
       const result = await sharedPool.query(
         `SELECT bc.subcategory, COUNT(*) AS count
          FROM products p
          LEFT JOIN brand_categories bc ON p.brand_category_id = bc.id
-         WHERE p.is_active = true AND p.stock > 0 AND bc.animal = 'kopek'
+         WHERE p.is_active = true AND bc.animal = 'kopek'
            AND p.img IS NOT NULL AND p.img != ''
          GROUP BY bc.subcategory`
       );
@@ -2586,6 +2680,9 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       for (const row of result.rows) {
         if (row.subcategory) counts[row.subcategory] = Number(row.count);
       }
+      // Convenience aggregate for /magaza "Kuru Mama" row (matches /kuru-mama PLP buckets).
+      counts["kuru-mama"] =
+        (counts["kopek-kuru-mama"] || 0) + (counts["mama-markalari"] || 0);
       res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
       res.json(counts);
     } catch (e: any) {
@@ -4196,47 +4293,8 @@ YourPoodle içerikleri, AI arama motorları (ChatGPT, Perplexity, Claude, Gemini
       orderData.grandTotal = Math.max(0, orderData.subtotal - orderData.discount + orderData.shipping);
     }
 
-    // Non-cash payment methods (POS / Havale-EFT / QR / Online card) add a 5% surcharge
-    // on the product subtotal only (not shipping). Cash (Kapıda Nakit) is the base price.
-    // Campaign orders are cash-only, so they never get a surcharge.
-    const pmForSurcharge = String(orderData.paymentMethod || "").toLowerCase();
-    const surchargeStoreId = reqStore(req).id;
-    const surchargeSettings = await resolveSettings(["card_surcharge_percent", "product_surcharge_overrides"], surchargeStoreId);
-    const surchargePctRaw = Number(surchargeSettings.card_surcharge_percent);
-    const surchargeRate = (Number.isFinite(surchargePctRaw) && surchargePctRaw >= 0)
-      ? Math.min(surchargePctRaw, 100) / 100
-      : 0.05;
-    // jetgomarket-only: per-product surcharge overrides (JSON map productId->percent).
-    // Any other store, or jetgo with no overrides, falls through to the store-wide
-    // single-rate branch below untouched (byte-identical to the previous behavior).
-    const surchargeOverrides: Record<number, number> = {};
-    if (surchargeStoreId === "jetgo" && surchargeSettings.product_surcharge_overrides) {
-      try {
-        const obj = JSON.parse(surchargeSettings.product_surcharge_overrides);
-        if (obj && typeof obj === "object") {
-          for (const [k, v] of Object.entries(obj)) {
-            const id = Number(k);
-            const pct = Number(v);
-            if (Number.isFinite(id) && Number.isFinite(pct) && pct >= 0 && pct <= 100) surchargeOverrides[id] = pct / 100;
-          }
-        }
-      } catch { /* malformed map -> ignore, keep single-rate */ }
-    }
-    let paymentSurcharge = 0;
-    if (!isCampaignOrder && !/nakit/.test(pmForSurcharge)) {
-      if (Object.keys(surchargeOverrides).length > 0) {
-        // Per-line: sum(item.price * qty * effectiveRate), rounded once.
-        let s = 0;
-        for (const item of orderData.items) {
-          const pid = parseInt(String(item.productId));
-          const rate = (Number.isFinite(pid) && surchargeOverrides[pid] !== undefined) ? surchargeOverrides[pid] : surchargeRate;
-          s += (Number(item.price) || 0) * (Number(item.quantity) || 0) * rate;
-        }
-        paymentSurcharge = Math.round(s * 100) / 100;
-      } else {
-        paymentSurcharge = Math.round(orderData.subtotal * surchargeRate * 100) / 100;
-      }
-    }
+    // YourPoodle: listed prices are final — no non-cash card/havale surcharge.
+    const paymentSurcharge = 0;
     if (paymentSurcharge > 0) {
       orderData.grandTotal = Math.round((orderData.grandTotal + paymentSurcharge) * 100) / 100;
     }

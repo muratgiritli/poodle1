@@ -65,7 +65,6 @@ const TOPIC_LABELS: Record<string, string> = {
   order: "Sipariş ve Teslimat",
   payment: "Ödeme ve Taksit",
   product: "Ürün Bilgisi",
-  club: "Club ve Hesap",
   membership: "Üyelik",
   other: "Diğer",
 };
@@ -451,7 +450,6 @@ export default function YPYeniTalepPage() {
                 { v:"order",      l:"Sipariş ve Teslimat" },
                 { v:"payment",    l:"Ödeme ve Taksit" },
                 { v:"product",    l:"Ürün Bilgisi" },
-                { v:"club",       l:"Club ve Hesap" },
                 { v:"membership", l:"Üyelik" },
                 { v:"other",      l:"Diğer" },
               ].map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
