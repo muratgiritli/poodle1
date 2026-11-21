@@ -1,0 +1,1 @@
+self.__SSG_MANIFEST=new Set(["\u002Fapproved\u002F[productId]","\u002Fevents\u002F[eventId]","\u002Fmessages\u002F[chatId]","\u002Fp\u002F[handle]"]);self.__SSG_MANIFEST_CB&&self.__SSG_MANIFEST_CB()

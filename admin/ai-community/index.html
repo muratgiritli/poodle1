@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YourPoodle — AI Community Activity & Governance Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            poodle: {
+              50: '#fffbf5',
+              100: '#fef3e2',
+              200: '#fce4c4',
+              300: '#facf9b',
+              400: '#f7b165',
+              500: '#f59e0b',
+              600: '#d97706',
+              700: '#b45309',
+              800: '#92400e',
+              900: '#78350f',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-[#f8f9fc] dark:bg-[#0f1117] text-gray-900 dark:text-gray-100 min-h-screen flex flex-col antialiased">
+
+  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <header class="sticky top-0 z-40 bg-white/90 dark:bg-[#161822]/90 backdrop-blur-md border-b border-gray-200/80 dark:border-gray-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <a href="/" class="flex items-center gap-2 group" title="YourPoodle Ana Sayfasına Dön">
+        <div class="size-10 rounded-xl bg-gradient-to-tr from-amber-500 via-orange-500 to-indigo-600 text-white flex items-center justify-center text-xl shadow-md group-hover:scale-105 transition">
+          🐩
+        </div>
+        <div>
+          <span class="font-extrabold text-base tracking-tight block">YourPoodle <span class="text-amber-500">AI</span></span>
+          <span class="text-[10px] text-gray-500 dark:text-gray-400 block font-mono">Community Activity Desk</span>
+        </div>
+      </a>
+      <span class="hidden sm:inline-block h-5 w-px bg-gray-200 dark:bg-gray-800"></span>
+      <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+        <span class="size-2 rounded-full bg-amber-500 animate-pulse"></span>
+        <span>Yönetim Masası</span>
+      </span>
+    </div>
+
+    <!-- Right Controls -->
+    <div class="flex items-center gap-2.5">
+      <button onclick="openGenerateModal()" class="px-4 py-2 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5 active:scale-95">
+        <span>✨</span>
+        <span class="hidden sm:inline">Yeni AI Gönderisi Üret</span>
+        <span class="sm:hidden">Üret</span>
+      </button>
+      <button onclick="toggleEngineMaster()" id="btn-master-engine" class="px-3 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold text-xs rounded-xl transition flex items-center gap-1.5 active:scale-95">
+        <span id="master-engine-dot" class="size-2 rounded-full bg-emerald-500"></span>
+        <span id="master-engine-label">Motor: Aktif</span>
+      </button>
+      <a href="/" class="p-2 text-gray-500 hover:text-black dark:hover:text-white rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition" title="Siteye Git">
+        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTAINER ================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+    <!-- ================= METRICS OVERVIEW CARDS ================= -->
+    <div class="grid grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
+      
+      <!-- Total Generated -->
+      <div class="p-4 rounded-2xl bg-white dark:bg-[#161822] border border-gray-200/80 dark:border-gray-800 shadow-xs flex flex-col justify-between">
+        <div class="flex items-center justify-between text-gray-500 dark:text-gray-400">
+          <span class="text-xs font-bold">Toplam Üretilen</span>
+          <span class="text-lg">🤖</span>
+        </div>
+        <div class="mt-2">
+          <span id="metric-total-generated" class="text-2xl font-extrabold tracking-tight">0</span>
+          <span class="text-[10px] text-gray-400 block mt-0.5">Topluluk içeriği</span>
+        </div>
+      </div>
+
+      <!-- Published -->
+      <div class="p-4 rounded-2xl bg-white dark:bg-[#161822] border border-gray-200/80 dark:border-gray-800 shadow-xs flex flex-col justify-between">
+        <div class="flex items-center justify-between text-gray-500 dark:text-gray-400">
+          <span class="text-xs font-bold">Yayındaki Akış</span>
+          <span class="text-lg">🚀</span>
+        </div>
+        <div class="mt-2">
+          <span id="metric-published-posts" class="text-2xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">0</span>
+          <span class="text-[10px] text-gray-400 block mt-0.5">Aktif gönderi</span>
+        </div>
+      </div>
+
+      <!-- Pending Approval -->
+      <div class="p-4 rounded-2xl bg-white dark:bg-[#161822] border border-amber-500/30 bg-amber-50/20 dark:bg-amber-950/10 shadow-xs flex flex-col justify-between">
+        <div class="flex items-center justify-between text-amber-600 dark:text-amber-400">
+          <span class="text-xs font-bold">Onay Bekleyen</span>
+          <span class="text-lg animate-bounce">⏳</span>
+        </div>
+        <div class="mt-2">
+          <span id="metric-pending-approval" class="text-2xl font-extrabold tracking-tight text-amber-600 dark:text-amber-400">0</span>
+          <span class="text-[10px] text-amber-600/80 dark:text-amber-400/80 block mt-0.5">Yönetici onayı bekliyor</span>
+        </div>
+      </div>
+
+      <!-- Scheduled -->
+      <div class="p-4 rounded-2xl bg-white dark:bg-[#161822] border border-gray-200/80 dark:border-gray-800 shadow-xs flex flex-col justify-between">
+        <div class="flex items-center justify-between text-gray-500 dark:text-gray-400">
+          <span class="text-xs font-bold">Zamanlanan</span>
+          <span class="text-lg">🗓️</span>
+        </div>
+        <div class="mt-2">
+          <span id="metric-scheduled-posts" class="text-2xl font-extrabold tracking-tight text-blue-600 dark:text-blue-400">0</span>
+          <span class="text-[10px] text-gray-400 block mt-0.5">Sırada bekleyen</span>
+        </div>
+      </div>
+
+      <!-- Real Human Likes (Separate Audit Metric) -->
+      <div class="p-4 rounded-2xl bg-white dark:bg-[#161822] border border-gray-200/80 dark:border-gray-800 shadow-xs flex flex-col justify-between">
+        <div class="flex items-center justify-between text-rose-500">
+          <span class="text-xs font-bold">Gerçek İnsan Beğenisi</span>
+          <span class="text-lg">❤️</span>
+        </div>
+        <div class="mt-2">
+          <span id="metric-human-likes" class="text-2xl font-extrabold tracking-tight text-rose-600 dark:text-rose-400">0</span>
+          <span class="text-[10px] text-gray-400 block mt-0.5">100% Organik beğeni</span>
+        </div>
+      </div>
+
+      <!-- Real Human Comments (Separate Audit Metric) -->
+      <div class="p-4 rounded-2xl bg-white dark:bg-[#161822] border border-gray-200/80 dark:border-gray-800 shadow-xs flex flex-col justify-between">
+        <div class="flex items-center justify-between text-indigo-500">
+          <span class="text-xs font-bold">Gerçek İnsan Yorumu</span>
+          <span class="text-lg">💬</span>
+        </div>
+        <div class="mt-2">
+          <span id="metric-human-comments" class="text-2xl font-extrabold tracking-tight text-indigo-600 dark:text-indigo-400">0</span>
+          <span class="text-[10px] text-gray-400 block mt-0.5">Organik topluluk yanıtı</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================= SAFEGUARD NOTICE BANNER ================= -->
+    <div class="rounded-2xl p-4 bg-gradient-to-r from-blue-500/10 via-indigo-500/5 to-purple-500/10 border border-blue-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+      <div class="flex items-center gap-3">
+        <div class="size-9 rounded-xl bg-blue-500/20 text-[#0095f6] flex items-center justify-center text-lg shrink-0">
+          🛡️
+        </div>
+        <div>
+          <strong class="font-extrabold text-gray-900 dark:text-gray-100 block">Etik Güvenlik & Doğruluk Protokolü Aktif</strong>
+          <span class="text-gray-600 dark:text-gray-400">Tüm AI profilleri <code class="px-1.5 py-0.5 bg-white dark:bg-gray-800 rounded font-mono font-bold text-[#0095f6]">[AI Topluluk Rehberi]</code> şeffaflık etiketiyle sunulur. Sahte beğeni veya takipçi üretimi kesinlikle engellenmiştir.</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <span id="autonomous-badge" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+          🔒 Manuel Onay Modu
+        </span>
+      </div>
+    </div>
+
+    <!-- ================= WORKSPACE TABS ================= -->
+    <div class="border-b border-gray-200 dark:border-gray-800 flex items-center gap-4 sm:gap-6 overflow-x-auto no-scrollbar">
+      <button onclick="switchTab('queue')" id="tab-btn-queue" class="py-3 px-1 text-sm font-bold border-b-2 border-amber-500 text-amber-600 dark:text-amber-400 flex items-center gap-2 shrink-0 transition">
+        <span>📋</span>
+        <span>İçerik Kuyruğu & Onay Masası</span>
+        <span id="badge-queue-count" class="px-2 py-0.5 rounded-full text-[10px] bg-amber-500/20 text-amber-600 dark:text-amber-400">0</span>
+      </button>
+
+      <button onclick="switchTab('personas')" id="tab-btn-personas" class="py-3 px-1 text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-black dark:hover:text-white flex items-center gap-2 shrink-0 transition">
+        <span>🐩</span>
+        <span>AI Seed Profilleri</span>
+        <span id="badge-personas-count" class="px-2 py-0.5 rounded-full text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">7</span>
+      </button>
+
+      <button onclick="switchTab('replies')" id="tab-btn-replies" class="py-3 px-1 text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-black dark:hover:text-white flex items-center gap-2 shrink-0 transition">
+        <span>💬</span>
+        <span>Soru-Cevap & Yanıt Masası</span>
+        <span id="badge-replies-count" class="px-2 py-0.5 rounded-full text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">0</span>
+      </button>
+
+      <button onclick="switchTab('config')" id="tab-btn-config" class="py-3 px-1 text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-black dark:hover:text-white flex items-center gap-2 shrink-0 transition">
+        <span>⚙️</span>
+        <span>Motor Ayarları & Denetim Logları</span>
+      </button>
+      <button onclick="switchTab('verifications')" id="tab-btn-verifications" class="py-3 px-1 text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-black dark:hover:text-white flex items-center gap-2 shrink-0 transition">
+        <span>💎</span> Mavi Pati Başvuruları (<span id="badge-verifications-count">0</span>)
+      </button>
+    </div>
+
+    <!-- ================= TAB 1: CONTENT QUEUE & WORKFLOW ================= -->
+    <div id="tab-content-queue" class="space-y-4">
+      
+      <!-- Filter Bar -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-[#161822] p-3.5 rounded-2xl border border-gray-200/80 dark:border-gray-800 text-xs">
+        <!-- Status Filter Pills -->
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+          <button onclick="filterQueue('all')" class="q-filter-btn px-3 py-1.5 rounded-xl font-bold bg-amber-500 text-white transition active:scale-95" data-filter="all">Tümü</button>
+          <button onclick="filterQueue('pending_approval')" class="q-filter-btn px-3 py-1.5 rounded-xl font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition active:scale-95" data-filter="pending_approval">Onay Bekleyenler ⏳</button>
+          <button onclick="filterQueue('scheduled')" class="q-filter-btn px-3 py-1.5 rounded-xl font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition active:scale-95" data-filter="scheduled">Planlananlar 🗓️</button>
+          <button onclick="filterQueue('published')" class="q-filter-btn px-3 py-1.5 rounded-xl font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition active:scale-95" data-filter="published">Yayındakiler ✅</button>
+          <button onclick="filterQueue('rejected')" class="q-filter-btn px-3 py-1.5 rounded-xl font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition active:scale-95" data-filter="rejected">Reddedilenler ❌</button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Topic Selector -->
+          <select id="queue-topic-filter" onchange="loadQueue()" class="px-3 py-1.5 bg-gray-50 dark:bg-[#1a1d28] border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-semibold focus:outline-none">
+            <option value="">Tüm Konular</option>
+            <option value="grooming">✂️ Kürk & Traş (Grooming)</option>
+            <option value="health">🩺 Sağlık & Veteriner</option>
+            <option value="training">🧠 Zeka & Eğitim</option>
+            <option value="nutrition">🥣 Beslenme & Diyet</option>
+            <option value="behavior">🚪 Davranış & Kaygı</option>
+            <option value="travel">✈️ Seyahat</option>
+            <option value="daily_life">🐾 Günlük Yaşam</option>
+          </select>
+
+          <button onclick="loadQueue()" class="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition" title="Yenile">
+            <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Queue Cards Container -->
+      <div id="queue-container" class="space-y-3.5">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- ================= TAB 2: AI SEED PERSONAS ================= -->
+    <div id="tab-content-personas" class="hidden space-y-4">
+      <div class="flex items-center justify-between">
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+          Bu profiller şeffaf bir şekilde <strong>[AI Topluluk Rehberi]</strong> etiketi taşır. Gerçek kişileri taklit etmezler; uzmanlık alanlarına göre Poodle sahiplerine eğitici ve destekleyici içerik sağlarlar.
+        </p>
+      </div>
+      <div id="personas-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- ================= TAB 3: SUGGESTED REPLIES ================= -->
+    <div id="tab-content-replies" class="hidden space-y-4">
+      <div class="flex items-center justify-between bg-white dark:bg-[#161822] p-4 rounded-2xl border border-gray-200/80 dark:border-gray-800">
+        <div>
+          <h3 class="font-bold text-sm">Topluluk Soru & Cevap Destek Masası</h3>
+          <p class="text-xs text-gray-500">Kullanıcıların akışta sorduğu sorulara AI uzman profiller tarafından önerilen yanıtlar.</p>
+        </div>
+        <button onclick="openSuggestReplyModal()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5 active:scale-95 shadow-xs">
+          <span>💡</span>
+          <span>Bir Gönderiye Yanıt Öner</span>
+        </button>
+      </div>
+
+      <div id="replies-container" class="space-y-3.5">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- ================= TAB 4: ENGINE CONFIG & AUDIT ================= -->
+    <div <!-- ================= TAB 5: MAVI PATI VERIFICATIONS ================= -->
+    <div id="tab-content-verifications" class="tab-content hidden space-y-6">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-black text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <span>💎</span> Mavi Pati (Verified Blue Paw) Onay Havuzu
+          </h2>
+          <p class="text-xs text-gray-500">Kullanıcıların çip ve ırk tescil belgelerini inceleyin, Mavi Pati rozetlerini onaylayın veya gerekçe ile reddedin.</p>
+        </div>
+        <button onclick="loadVerifications()" class="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-xs font-bold rounded-xl transition flex items-center gap-2">
+          <span>🔄 Listeyi Yenile</span>
+        </button>
+      </div>
+
+      <!-- Verifications List / Cards -->
+      <div id="verifications-list" class="space-y-4">
+        <div class="py-12 text-center text-gray-400 text-xs">Mavi Pati başvuruları yükleniyor...</div>
+      </div>
+    </div>
+
+    id="tab-content-config" class="hidden space-y-6">
+      
+      <!-- Settings Form -->
+      <div class="bg-white dark:bg-[#161822] p-5 sm:p-6 rounded-3xl border border-gray-200/80 dark:border-gray-800 shadow-xs space-y-5">
+        <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
+          <div>
+            <h3 class="font-black text-sm">AI Motoru Yapılandırması & Güvenlik Kriterleri</h3>
+            <p class="text-xs text-gray-500">Yayın sıklığı, dil dağılımı, konu tercihleri ve otonom yayın izinleri.</p>
+          </div>
+          <button onclick="saveEngineConfig()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-sm transition active:scale-95">
+            Ayarları Kaydet 💾
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
+          
+          <!-- Master Switch -->
+          <div class="p-4 rounded-2xl bg-gray-50 dark:bg-[#1a1d28] border border-gray-200 dark:border-gray-800 flex items-center justify-between">
+            <div>
+              <strong class="block text-sm text-gray-900 dark:text-gray-100">AI Motorunu Aktif Tut</strong>
+              <span class="text-gray-500">Tüm arka plan üretim ve zamanlama döngüsünü durdurur / başlatır.</span>
+            </div>
+            <input type="checkbox" id="cfg-engine-active" class="size-5 accent-amber-500 cursor-pointer">
+          </div>
+
+          <!-- Autonomous Mode Switch -->
+          <div class="p-4 rounded-2xl bg-gray-50 dark:bg-[#1a1d28] border border-gray-200 dark:border-gray-800 flex items-center justify-between">
+            <div>
+              <strong class="block text-sm text-gray-900 dark:text-gray-100">Otonom Yayınlama Modu</strong>
+              <span class="text-gray-500">Kapalı olduğunda tüm içerikler yönetici onayına (pending_approval) düşer.</span>
+            </div>
+            <input type="checkbox" id="cfg-autonomous" class="size-5 accent-amber-500 cursor-pointer">
+          </div>
+
+          <!-- Daily Post Frequency -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-gray-700 dark:text-gray-300 block">Günlük Yayın Sıklığı</label>
+            <input type="number" id="cfg-daily-freq" min="1" max="12" value="3" class="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-[#1a1d28] border border-gray-200 dark:border-gray-700 rounded-xl font-bold focus:outline-none">
+            <span class="text-[10px] text-gray-400">Günde ortalama kaç içerik sıraya alınsın (Önerilen: 2 - 4)</span>
+          </div>
+
+          <!-- Rate Limit -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-gray-700 dark:text-gray-300 block">Saatlik Maksimum Üretim Limiti</label>
+            <input type="number" id="cfg-rate-limit" min="1" max="20" value="5" class="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-[#1a1d28] border border-gray-200 dark:border-gray-700 rounded-xl font-bold focus:outline-none">
+            <span class="text-[10px] text-gray-400">Ani yük ve token maliyetini kontrol altında tutar.</span>
+          </div>
+
+          <!-- Provider Selection -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-gray-700 dark:text-gray-300 block">AI İçerik Üretim Sağlayıcısı</label>
+            <select id="cfg-provider" class="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-[#1a1d28] border border-gray-200 dark:border-gray-700 rounded-xl font-bold focus:outline-none">
+              <option value="hybrid">🌟 Hibrit (Gemini / OpenAI + Yerel Poodle Bilgi Motoru)</option>
+              <option value="gemini">Google Gemini 1.5 API</option>
+              <option value="openai">OpenAI GPT-4o-mini API</option>
+              <option value="knowledge_engine">Yerel Uzman Poodle Motoru (API Anahtarsız Çevrim Dışı)</option>
+            </select>
+          </div>
+
+          <!-- Active Languages -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-gray-700 dark:text-gray-300 block">Aktif Diller</label>
+            <div class="flex items-center gap-3 pt-2">
+              <label class="flex items-center gap-1.5 cursor-pointer font-bold">
+                <input type="checkbox" id="lang-tr" checked class="accent-amber-500"> 🇹🇷 Türkçe
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer font-bold">
+                <input type="checkbox" id="lang-en" checked class="accent-amber-500"> 🇬🇧 İngilizce
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer font-bold">
+                <input type="checkbox" id="lang-de" checked class="accent-amber-500"> 🇩🇪 Almanca
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer font-bold">
+                <input type="checkbox" id="lang-fr" checked class="accent-amber-500"> 🇫🇷 Fransızca
+              </label>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Audit Logs Stream -->
+      <div class="bg-white dark:bg-[#161822] p-5 sm:p-6 rounded-3xl border border-gray-200/80 dark:border-gray-800 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
+          <h4 class="font-black text-sm">Canlı Denetim ve Güvenlik Kayıtları (Audit Logs)</h4>
+          <span class="text-[11px] font-mono text-gray-400">Son 50 İşlem</span>
+        </div>
+        <div id="audit-logs-container" class="divide-y divide-gray-100 dark:divide-gray-800/60 font-mono text-xs max-h-96 overflow-y-auto">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ================= MODAL: INSTANT GENERATE POST ================= -->
+  <div id="modal-generate" class="fixed inset-0 z-50 bg-black/80 hidden flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm">
+    <div class="bg-white dark:bg-[#161822] text-gray-900 dark:text-gray-100 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl border border-amber-500/30 flex flex-col max-h-[92vh]">
+      <div class="p-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-indigo-500/10">
+        <h3 class="font-black text-sm flex items-center gap-2">
+          <span>✨</span>
+          <span>Yeni AI Topluluk Gönderisi Üret</span>
+        </h3>
+        <button onclick="closeGenerateModal()" class="p-1.5 rounded-lg text-gray-400 hover:text-black dark:hover:text-white transition">
+          <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 overflow-y-auto text-xs">
+        <div class="space-y-1">
+          <label class="font-bold text-gray-700 dark:text-gray-300">Persona Seçimi</label>
+          <select id="gen-persona-select" class="w-full px-3 py-2 bg-gray-50 dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-700 rounded-xl font-bold">
+            <option value="">Rastgele Persona</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="font-bold text-gray-700 dark:text-gray-300">Konu</label>
+            <select id="gen-topic-select" class="w-full px-3 py-2 bg-gray-50 dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-700 rounded-xl font-bold">
+              <option value="grooming">✂️ Kürk & Traş</option>
+              <option value="health">🩺 Sağlık & Veteriner</option>
+              <option value="training">🧠 Zeka & Eğitim</option>
+              <option value="nutrition">🥣 Beslenme</option>
+              <option value="behavior">🚪 Davranış</option>
+              <option value="travel">✈️ Seyahat</option>
+              <option value="daily_life">🐾 Günlük Yaşam</option>
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="font-bold text-gray-700 dark:text-gray-300">Dil</label>
+            <select id="gen-lang-select" class="w-full px-3 py-2 bg-gray-50 dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-700 rounded-xl font-bold">
+              <option value="tr">🇹🇷 Türkçe</option>
+              <option value="en">🇬🇧 İngilizce</option>
+              <option value="de">🇩🇪 Almanca</option>
+              <option value="fr">🇫🇷 Fransızca</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label class="font-bold text-gray-700 dark:text-gray-300">Yayın Durumu</label>
+          <select id="gen-status-select" class="w-full px-3 py-2 bg-gray-50 dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-700 rounded-xl font-bold">
+            <option value="pending_approval">⏳ Onay Beklesin (Güvenli)</option>
+            <option value="published">🚀 Hemen Akışta Yayınla</option>
+          </select>
+        </div>
+
+        <button onclick="executeGeneratePost()" id="btn-do-generate" class="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-extrabold rounded-xl shadow-md transition active:scale-98 flex items-center justify-center gap-2">
+          <span>✨</span>
+          <span>Gönderiyi Sentezle ve Oluştur</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: EDIT QUEUE ITEM ================= -->
+  <div id="modal-edit" class="fixed inset-0 z-50 bg-black/80 hidden flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm">
+    <div class="bg-white dark:bg-[#161822] text-gray-900 dark:text-gray-100 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-800 flex flex-col max-h-[92vh]">
+      <div class="p-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+        <h3 class="font-black text-sm">İçeriği Düzenle</h3>
+        <button onclick="closeEditModal()" class="p-1 rounded-lg text-gray-400 hover:text-black dark:hover:text-white">✕</button>
+      </div>
+      <div class="p-5 space-y-3.5 text-xs">
+        <input type="hidden" id="edit-queue-id">
+        <div class="space-y-1">
+          <label class="font-bold">Başlık</label>
+          <input type="text" id="edit-title" class="w-full px-3 py-2 bg-gray-50 dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-700 rounded-xl font-bold">
+        </div>
+        <div class="space-y-1">
+          <label class="font-bold">Açıklama / Metin</label>
+          <textarea id="edit-caption" rows="5" class="w-full px-3 py-2 bg-gray-50 dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-700 rounded-xl"></textarea>
+        </div>
+        <div class="space-y-1">
+          <label class="font-bold">Görsel URL</label>
+          <input type="text" id="edit-media" class="w-full px-3 py-2 bg-gray-50 dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-700 rounded-xl font-mono">
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button onclick="closeEditModal()" class="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-xl font-bold">İptal</button>
+          <button onclick="saveEditQueueItem()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold">Kaydet</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-[#161822] text-white px-4 py-3 rounded-2xl shadow-2xl border border-gray-700 text-xs font-bold transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-2">
+    <span id="toast-icon">✅</span>
+    <span id="toast-msg">İşlem başarıyla tamamlandı.</span>
+  </div>
+
+  <!-- ================= JAVASCRIPT CONTROLLER ================= -->
+  <script>
+    let currentTab = 'queue';
+    let currentFilter = 'all';
+    let personasCache = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadStats();
+      loadQueue();
+      loadPersonas();
+      loadReplies();
+      loadConfig();
+      loadAuditLogs();
+      loadVerifications();
+      setInterval(loadStats, 15000);
+    });
+
+    function showToast(msg, icon = '✅') {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      const toastIcon = document.getElementById('toast-icon');
+      if (!toast) return;
+      toastMsg.innerText = msg;
+      toastIcon.innerText = icon;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3000);
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      const tabs = ['queue', 'personas', 'replies', 'config', 'verifications'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab-btn-${t}`);
+        const content = document.getElementById(`tab-content-${t}`);
+        const isActive = (t === tab);
+        if (content) content.classList.toggle('hidden', !isActive);
+        if (btn) {
+          if (isActive) {
+            btn.className = 'py-3 px-1 text-sm font-bold border-b-2 border-amber-500 text-amber-600 dark:text-amber-400 flex items-center gap-2 shrink-0 transition';
+          } else {
+            btn.className = 'py-3 px-1 text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-black dark:hover:text-white flex items-center gap-2 shrink-0 transition';
+          }
+        }
+      });
+      if (tab === 'queue') loadQueue();
+      if (tab === 'personas') loadPersonas();
+      if (tab === 'replies') loadReplies();
+      if (tab === 'config') { loadConfig(); loadAuditLogs(); }
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/live/ai/community/stats');
+        const data = await res.json();
+        if (data.ok && data.stats) {
+          const s = data.stats;
+          document.getElementById('metric-total-generated').innerText = s.total_generated;
+          document.getElementById('metric-published-posts').innerText = s.published_posts;
+          document.getElementById('metric-pending-approval').innerText = s.pending_approval;
+          document.getElementById('metric-scheduled-posts').innerText = s.scheduled_posts;
+          document.getElementById('metric-human-likes').innerText = s.real_human_likes;
+          document.getElementById('metric-human-comments').innerText = s.real_human_comments;
+          document.getElementById('badge-queue-count').innerText = s.pending_approval;
+          document.getElementById('badge-personas-count').innerText = s.active_personas;
+          document.getElementById('badge-replies-count').innerText = s.pending_replies;
+
+          // Master Engine Indicator
+          const masterDot = document.getElementById('master-engine-dot');
+          const masterLabel = document.getElementById('master-engine-label');
+          const masterBtn = document.getElementById('btn-master-engine');
+          if (s.engine_active) {
+            masterDot.className = 'size-2 rounded-full bg-emerald-500';
+            masterLabel.innerText = 'Motor: Aktif';
+            masterBtn.className = 'px-3 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold text-xs rounded-xl transition flex items-center gap-1.5 active:scale-95';
+          } else {
+            masterDot.className = 'size-2 rounded-full bg-rose-500';
+            masterLabel.innerText = 'Motor: Duraklatıldı';
+            masterBtn.className = 'px-3 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-bold text-xs rounded-xl transition flex items-center gap-1.5 active:scale-95';
+          }
+
+          // Autonomous Indicator
+          const autoBadge = document.getElementById('autonomous-badge');
+          if (autoBadge) {
+            if (s.autonomous_mode) {
+              autoBadge.innerText = '⚡ Otonom Zamanlama Aktif';
+              autoBadge.className = 'px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30';
+            } else {
+              autoBadge.innerText = '🔒 Manuel Onay Modu';
+              autoBadge.className = 'px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30';
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching stats:', err);
+      }
+    }
+
+    async function loadQueue() {
+      const container = document.getElementById('queue-container');
+      const topic = document.getElementById('queue-topic-filter').value;
+      let url = '/api/live/ai/community/queue?limit=40';
+      if (currentFilter !== 'all') url += `&status=${currentFilter}`;
+      if (topic) url += `&topic=${topic}`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.ok && data.queue) {
+          if (data.queue.length === 0) {
+            container.innerHTML = `
+              <div class="p-8 text-center bg-white dark:bg-[#161822] rounded-2xl border border-gray-200 dark:border-gray-800 text-gray-500">
+                <span class="text-4xl block mb-2">🐾</span>
+                <span class="font-bold text-sm">Bu filtreye uygun içerik bulunamadı.</span>
+                <p class="text-xs text-gray-400 mt-1">Yukarıdaki "Yeni AI Gönderisi Üret" butonuyla hemen içerik sentezleyebilirsiniz.</p>
+              </div>`;
+            return;
+          }
+
+          container.innerHTML = data.queue.map(item => {
+            const p = item.persona || {};
+            const langFlags = { tr: '🇹🇷 TR', en: '🇬🇧 EN', de: '🇩🇪 DE', fr: '🇫🇷 FR' };
+            const flag = langFlags[item.language] || item.language;
+
+            let statusBadge = '';
+            if (item.status === 'pending_approval') {
+              statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">⏳ Onay Bekliyor</span>';
+            } else if (item.status === 'scheduled') {
+              statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30">🗓️ Planlandı</span>';
+            } else if (item.status === 'published') {
+              statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">✅ Yayında</span>';
+            } else if (item.status === 'rejected') {
+              statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30">❌ Reddedildi</span>';
+            }
+
+            return `
+              <article class="p-4 bg-white dark:bg-[#161822] rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-xs flex flex-col md:flex-row gap-4 items-start justify-between transition hover:border-amber-500/40">
+                
+                <!-- Left: Media & Author -->
+                <div class="flex items-start gap-3 w-full md:w-3/5">
+                  <img src="${item.mediaUrl}" alt="Media" class="size-20 sm:size-24 rounded-xl object-cover shrink-0 border border-gray-100 dark:border-gray-800 bg-gray-100">
+                  <div class="flex-1 min-w-0 space-y-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <div class="flex items-center gap-1.5">
+                        <img src="${p.avatar || '/images/poodle_mochi.jpg'}" class="size-5 rounded-full object-cover">
+                        <strong class="font-bold text-xs truncate max-w-[130px]">${p.displayName || p.username}</strong>
+                      </div>
+                      <span class="px-2 py-0.2 bg-indigo-500/10 text-indigo-500 font-extrabold text-[9px] rounded-full border border-indigo-500/20">${p.badgeLabel || 'AI Topluluk Rehberi'}</span>
+                      <span class="text-[10px] text-gray-400 font-mono">${flag}</span>
+                      ${statusBadge}
+                    </div>
+
+                    <h4 class="font-black text-xs sm:text-sm text-gray-900 dark:text-gray-100 leading-snug line-clamp-1">${item.title || item.topic}</h4>
+                    <p class="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">${item.caption}</p>
+                    <p class="text-[11px] text-blue-500 font-mono truncate">${item.hashtags || ''}</p>
+                  </div>
+                </div>
+
+                <!-- Right: Stats & Action Buttons -->
+                <div class="w-full md:w-auto flex flex-col md:items-end justify-between self-stretch gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-gray-100 dark:border-gray-800">
+                  <div class="flex items-center gap-3 text-xs text-gray-500">
+                    <span title="Gerçek İnsan Beğenisi">❤️ <strong class="text-rose-500">${item.humanLikes}</strong></span>
+                    <span title="Gerçek İnsan Yorumu">💬 <strong class="text-indigo-500">${item.humanComments}</strong></span>
+                    <span class="text-[10px] text-gray-400 font-mono">${item.location || 'Türkiye'}</span>
+                  </div>
+
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    ${item.status === 'pending_approval' ? `
+                      <button onclick="approveQueueItem('${item.id}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] rounded-lg transition active:scale-95 shadow-xs">
+                        ✓ Onayla & Yayınla
+                      </button>
+                    ` : ''}
+                    
+                    ${item.status === 'published' ? `
+                      <a href="/" target="_blank" class="px-2.5 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 text-gray-700 dark:text-gray-300 font-bold text-[11px] rounded-lg transition flex items-center gap-1">
+                        👁️ Akışta Gör
+                      </a>
+                    ` : ''}
+
+                    <button onclick="openEditModal('${item.id}', \`${encodeURIComponent(item.title || '')}\`, \`${encodeURIComponent(item.caption || '')}\`, '${item.mediaUrl}')" class="px-2.5 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 text-gray-700 dark:text-gray-300 font-bold text-[11px] rounded-lg transition" title="Düzenle">
+                      ✏️
+                    </button>
+
+                    ${item.status === 'pending_approval' ? `
+                      <button onclick="rejectQueueItem('${item.id}')" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 font-bold text-[11px] rounded-lg transition" title="Reddet">
+                        ✕ Reddet
+                      </button>
+                    ` : ''}
+
+                    <button onclick="deleteQueueItem('${item.id}')" class="p-1.5 text-gray-400 hover:text-rose-500 transition" title="Sil">
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+
+              </article>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        console.error('Error loading queue:', err);
+      }
+    }
+
+    function filterQueue(status) {
+      currentFilter = status;
+      document.querySelectorAll('.q-filter-btn').forEach(btn => {
+        if (btn.dataset.filter === status) {
+          btn.className = 'q-filter-btn px-3 py-1.5 rounded-xl font-bold bg-amber-500 text-white transition active:scale-95';
+        } else {
+          btn.className = 'q-filter-btn px-3 py-1.5 rounded-xl font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition active:scale-95';
+        }
+      });
+      loadQueue();
+    }
+
+    async function approveQueueItem(id) {
+      try {
+        const res = await fetch(`/api/live/ai/community/posts/${id}/approve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast('Gönderi onaylandı ve akışa yayınlandı! 🐾');
+          loadStats();
+          loadQueue();
+        } else {
+          alert('Hata: ' + data.error);
+        }
+      } catch (err) {
+        alert('Sunucu hatası: ' + err.message);
+      }
+    }
+
+    async function rejectQueueItem(id) {
+      const reason = prompt('Reddetme gerekçesi:', 'Kalite veya konu kısıtlaması');
+      if (reason === null) return;
+      try {
+        const res = await fetch(`/api/live/ai/community/posts/${id}/reject`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast('Gönderi reddedildi ❌');
+          loadStats();
+          loadQueue();
+        }
+      } catch (err) {
+        alert('Hata: ' + err.message);
+      }
+    }
+
+    async function deleteQueueItem(id) {
+      if (!confirm('Bu içeriği kuyruktan silmek istediğinize emin misiniz?')) return;
+      try {
+        const res = await fetch(`/api/live/ai/community/posts/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.ok) {
+          showToast('İçerik silindi');
+          loadStats();
+          loadQueue();
+        }
+      } catch (err) {
+        alert('Hata: ' + err.message);
+      }
+    }
+
+    // Personas
+    async function loadPersonas() {
+      try {
+        const res = await fetch('/api/live/ai/community/personas');
+        const data = await res.json();
+        if (data.ok && data.personas) {
+          personasCache = data.personas;
+          const select = document.getElementById('gen-persona-select');
+          if (select) {
+            select.innerHTML = '<option value="">Rastgele Persona</option>' +
+              data.personas.map(p => `<option value="${p.id}">${p.displayName} (${p.variety})</option>`).join('');
+          }
+
+          const container = document.getElementById('personas-container');
+          if (!container) return;
+          container.innerHTML = data.personas.map(p => `
+            <div class="p-4 bg-white dark:bg-[#161822] rounded-2xl border ${p.isActive ? 'border-gray-200/80 dark:border-gray-800' : 'border-rose-500/30 opacity-60'} shadow-xs space-y-3">
+              <div class="flex items-center gap-3">
+                <img src="${p.avatar}" class="size-14 rounded-2xl object-cover border-2 border-amber-500/40 shrink-0">
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-1.5">
+                    <strong class="font-extrabold text-sm truncate block">${p.displayName}</strong>
+                  </div>
+                  <span class="text-xs text-gray-500 font-mono block">@${p.username}</span>
+                  <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 inline-block mt-0.5">
+                    ${p.badgeLabel || 'AI Topluluk Rehberi'}
+                  </span>
+                </div>
+              </div>
+
+              <div class="text-xs space-y-1">
+                <div class="flex items-center justify-between text-gray-500">
+                  <span>Irk / Renk:</span>
+                  <strong class="text-gray-800 dark:text-gray-200">${p.variety} · ${p.color}</strong>
+                </div>
+                <div class="flex items-center justify-between text-gray-500">
+                  <span>Konum / Dil:</span>
+                  <strong class="text-gray-800 dark:text-gray-200">${p.location} (${p.language.toUpperCase()})</strong>
+                </div>
+              </div>
+
+              <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed bg-gray-50 dark:bg-gray-800/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                ${p.bio}
+              </p>
+
+              <div class="flex items-center justify-between pt-1">
+                <button onclick="generateWithPersona('${p.id}')" class="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-xs rounded-xl transition flex items-center gap-1 active:scale-95">
+                  <span>✨</span>
+                  <span>İçerik Üret</span>
+                </button>
+                <button onclick="togglePersonaActive('${p.id}')" class="px-3 py-1.5 ${p.isActive ? 'bg-emerald-500/10 text-emerald-600' : 'bg-gray-200 text-gray-600'} font-bold text-xs rounded-xl transition active:scale-95">
+                  ${p.isActive ? '● Aktif' : '○ Duraklatıldı'}
+                </button>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (err) {
+        console.error('Error loading personas:', err);
+      }
+    }
+
+    async function togglePersonaActive(id) {
+      try {
+        const res = await fetch(`/api/live/ai/community/personas/${id}/toggle`, { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          showToast(data.isActive ? 'Persona aktifleştirildi' : 'Persona duraklatıldı');
+          loadPersonas();
+          loadStats();
+        }
+      } catch (err) {
+        alert('Hata: ' + err.message);
+      }
+    }
+
+    function generateWithPersona(personaId) {
+      openGenerateModal();
+      const select = document.getElementById('gen-persona-select');
+      if (select) select.value = personaId;
+    }
+
+    // Modal Generate Post
+    function openGenerateModal() {
+      const m = document.getElementById('modal-generate');
+      if (m) m.classList.remove('hidden');
+    }
+    function closeGenerateModal() {
+      const m = document.getElementById('modal-generate');
+      if (m) m.classList.add('hidden');
+    }
+
+    async function executeGeneratePost() {
+      const personaId = document.getElementById('gen-persona-select').value;
+      const topic = document.getElementById('gen-topic-select').value;
+      const language = document.getElementById('gen-lang-select').value;
+      const forceStatus = document.getElementById('gen-status-select').value;
+      const btn = document.getElementById('btn-do-generate');
+
+      btn.disabled = true;
+      btn.innerText = 'Sentezleniyor... ⏳';
+
+      try {
+        const res = await fetch('/api/live/ai/community/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ personaId, topic, language, forceStatus })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast('Yeni AI gönderisi başarıyla oluşturuldu! ✨');
+          closeGenerateModal();
+          loadStats();
+          loadQueue();
+        } else {
+          alert('Üretim hatası: ' + data.error);
+        }
+      } catch (err) {
+        alert('Hata: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Gönderiyi Sentezle ve Oluştur';
+      }
+    }
+
+    // Replies
+    async function loadReplies() {
+      const container = document.getElementById('replies-container');
+      try {
+        const res = await fetch('/api/live/ai/community/replies');
+        const data = await res.json();
+        if (data.ok && data.replies) {
+          if (data.replies.length === 0) {
+            container.innerHTML = `
+              <div class="p-8 text-center bg-white dark:bg-[#161822] rounded-2xl border border-gray-200 dark:border-gray-800 text-gray-500">
+                <span class="text-3xl block mb-2">💬</span>
+                <span class="font-bold text-sm">Henüz bekleyen AI yanıt önerisi yok.</span>
+                <p class="text-xs text-gray-400 mt-1">Kullanıcıların akışta sorduğu sorulara sağ üstteki butonla anında uzman yanıtı önerebilirsiniz.</p>
+              </div>`;
+            return;
+          }
+
+          container.innerHTML = data.replies.map(r => {
+            const p = r.persona || {};
+            return `
+              <div class="p-4 bg-white dark:bg-[#161822] rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-xs flex flex-col md:flex-row gap-4 items-start justify-between">
+                <div class="space-y-2 flex-1">
+                  <div class="flex items-center gap-2">
+                    <img src="${p.avatar}" class="size-6 rounded-full object-cover">
+                    <strong class="font-bold text-xs">${p.displayName}</strong>
+                    <span class="px-2 py-0.2 rounded-full text-[9px] font-extrabold bg-indigo-500/10 text-indigo-500">${p.badgeLabel}</span>
+                    <span class="text-[10px] text-gray-400 font-mono">Hedef Gönderi: #${r.targetPostId.slice(-6)}</span>
+                  </div>
+                  <p class="text-xs bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl border border-gray-100 dark:border-gray-800 leading-relaxed">
+                    ${r.replyText}
+                  </p>
+                </div>
+                <div class="flex items-center gap-2 self-end md:self-center shrink-0">
+                  ${r.status === 'pending_approval' ? `
+                    <button onclick="approveReply('${r.id}')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition active:scale-95 shadow-xs">
+                      ✓ Onayla & Yanıtla
+                    </button>
+                    <button onclick="rejectReply('${r.id}')" class="px-3 py-1.5 bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 font-bold text-xs rounded-xl transition">
+                      ✕ Reddet
+                    </button>
+                  ` : `
+                    <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-500 font-bold text-[10px] rounded-lg">Yayında</span>
+                  `}
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        console.error('Error loading replies:', err);
+      }
+    }
+
+    async function approveReply(id) {
+      try {
+        const res = await fetch(`/api/live/ai/community/replies/${id}/approve`, { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          showToast('Yanıt onaylandı ve akış yorumlarına eklendi! 💬');
+          loadReplies();
+          loadStats();
+        }
+      } catch (err) {
+        alert('Hata: ' + err.message);
+      }
+    }
+
+    async function rejectReply(id) {
+      try {
+        const res = await fetch(`/api/live/ai/community/replies/${id}/reject`, { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          showToast('Yanıt reddedildi');
+          loadReplies();
+          loadStats();
+        }
+      } catch (err) {
+        alert('Hata: ' + err.message);
+      }
+    }
+
+    async function openSuggestReplyModal() {
+      const postId = prompt('Yanıt önerilecek gönderi ID’sini girin (örn: post_17922...):');
+      if (!postId) return;
+      try {
+        showToast('Uzman yanıtı sentezleniyor... ⏳');
+        const res = await fetch('/api/live/ai/community/replies/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postId })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast('Yanıt önerisi oluşturuldu!');
+          loadReplies();
+          loadStats();
+        } else {
+          alert('Hata: ' + data.error);
+        }
+      } catch (err) {
+        alert('Hata: ' + err.message);
+      }
+    }
+
+    // Configuration
+    async function loadConfig() {
+      try {
+        const res = await fetch('/api/live/ai/community/config');
+        const data = await res.json();
+        if (data.ok && data.config) {
+          const c = data.config;
+          document.getElementById('cfg-engine-active').checked = !!c.is_engine_active;
+          document.getElementById('cfg-autonomous').checked = !!c.autonomous_scheduling;
+          document.getElementById('cfg-daily-freq').value = c.daily_post_frequency || 3;
+          document.getElementById('cfg-rate-limit').value = c.rate_limit_posts_per_hour || 5;
+          document.getElementById('cfg-provider').value = c.ai_provider || 'hybrid';
+
+          const langs = c.active_languages || ['tr', 'en', 'de', 'fr'];
+          ['tr', 'en', 'de', 'fr'].forEach(l => {
+            const chk = document.getElementById(`lang-${l}`);
+            if (chk) chk.checked = langs.includes(l);
+          });
+        }
+      } catch (err) {
+        console.error('Error loading config:', err);
+      }
+    }
+
+    async function saveEngineConfig() {
+      const is_engine_active = document.getElementById('cfg-engine-active').checked;
+      const autonomous_scheduling = document.getElementById('cfg-autonomous').checked;
+      const daily_post_frequency = parseInt(document.getElementById('cfg-daily-freq').value) || 3;
+      const rate_limit_posts_per_hour = parseInt(document.getElementById('cfg-rate-limit').value) || 5;
+      const ai_provider = document.getElementById('cfg-provider').value;
+
+      const active_languages = [];
+      ['tr', 'en', 'de', 'fr'].forEach(l => {
+        if (document.getElementById(`lang-${l}`)?.checked) active_languages.push(l);
+      });
+
+      try {
+        const res = await fetch('/api/live/ai/community/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            is_engine_active,
+            autonomous_scheduling,
+            daily_post_frequency,
+            rate_limit_posts_per_hour,
+            ai_provider,
+            active_languages
+          })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast('Motor ayarları başarıyla güncellendi! ⚙️');
+          loadStats();
+          loadAuditLogs();
+        } else {
+          alert('Hata oluştu');
+        }
+      } catch (err) {
+        alert('Hata: ' + err.message);
+      }
+    }
+
+    async function toggleEngineMaster() {
+      const chk = document.getElementById('cfg-engine-active');
+      const newState = !chk.checked;
+      chk.checked = newState;
+      await saveEngineConfig();
+    }
+
+    async function loadAuditLogs() {
+      const container = document.getElementById('audit-logs-container');
+      try {
+        const res = await fetch('/api/live/ai/community/audit-logs');
+        const data = await res.json();
+        if (data.ok && data.logs) {
+          if (data.logs.length === 0) {
+            container.innerHTML = '<p class="py-3 text-gray-400">Henüz denetim kaydı bulunmuyor.</p>';
+            return;
+          }
+          container.innerHTML = data.logs.map(log => `
+            <div class="py-2.5 flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded font-bold text-[10px] ${log.action.includes('REJECT') ? 'bg-rose-500/20 text-rose-500' : (log.action.includes('PUBLISH') ? 'bg-emerald-500/20 text-emerald-500' : 'bg-blue-500/20 text-blue-500')}">${log.action}</span>
+                <span class="text-gray-700 dark:text-gray-300">${log.entityType}:${log.entityId || ''}</span>
+              </div>
+              <div class="flex items-center gap-2 text-gray-400 text-[10px]">
+                <span>by ${log.actor}</span>
+                <span>·</span>
+                <span>${new Date(log.createdAt).toLocaleTimeString('tr-TR')}</span>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (err) {
+        console.error('Error loading audit logs:', err);
+      }
+    }
+
+    // Modal Edit
+    function openEditModal(id, titleEncoded, captionEncoded, mediaUrl) {
+      document.getElementById('edit-queue-id').value = id;
+      document.getElementById('edit-title').value = decodeURIComponent(titleEncoded);
+      document.getElementById('edit-caption').value = decodeURIComponent(captionEncoded);
+      document.getElementById('edit-media').value = mediaUrl;
+      document.getElementById('modal-edit').classList.remove('hidden');
+    }
+    function closeEditModal() {
+      document.getElementById('modal-edit').classList.add('hidden');
+    }
+    async function saveEditQueueItem() {
+      const id = document.getElementById('edit-queue-id').value;
+      const title = document.getElementById('edit-title').value;
+      const caption = document.getElementById('edit-caption').value;
+      const mediaUrl = document.getElementById('edit-media').value;
+      try {
+        const res = await fetch(`/api/live/ai/community/posts/${id}/edit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, caption, mediaUrl })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast('İçerik başarıyla güncellendi ✏️');
+          closeEditModal();
+          loadQueue();
+        }
+      } catch (err) {
+        alert('Hata: ' + err.message);
+      }
+    }
+  
+    // ================= MAVI PATI VERIFICATION MANAGEMENT =================
+    async function loadVerifications() {
+      const container = document.getElementById('verifications-list');
+      const badge = document.getElementById('badge-verifications-count');
+      try {
+        const res = await fetch('/api/live/admin/verifications');
+        const data = await res.json();
+        if (data.ok && data.verifications) {
+          const pending = data.verifications.filter(v => v.status === 'pending');
+          if (badge) badge.innerText = pending.length;
+
+          if (data.verifications.length === 0) {
+            container.innerHTML = '<div class="py-12 text-center text-gray-400 text-xs bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800">Henüz bir Mavi Pati başvurusu bulunmuyor.</div>';
+            return;
+          }
+
+          container.innerHTML = data.verifications.map(v => {
+            const isPending = v.status === 'pending';
+            const isApproved = v.status === 'approved';
+            return `
+              <div class="bg-white dark:bg-gray-900 rounded-2xl p-5 border ${isPending ? 'border-amber-500/40 bg-amber-500/5' : 'border-gray-200 dark:border-gray-800'} shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100 dark:border-gray-800">
+                  <div class="flex items-center gap-3">
+                    <div class="size-10 rounded-full bg-sky-500/10 text-[#0095f6] flex items-center justify-center font-bold text-lg">
+                      🐾
+                    </div>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <h4 class="font-bold text-sm text-gray-900 dark:text-gray-100">@${v.username}</h4>
+                        <span class="text-xs text-gray-500">(${v.poodleName || 'Poodle'})</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isPending ? 'bg-amber-500/20 text-amber-600' : (isApproved ? 'bg-emerald-500/20 text-emerald-600' : 'bg-rose-500/20 text-rose-600')}">
+                          ${isPending ? '⏳ İnceleme Bekliyor' : (isApproved ? '✅ Onaylandı' : '❌ Reddedildi')}
+                        </span>
+                      </div>
+                      <p class="text-xs text-gray-400">Kategori: <strong>${v.category}</strong> · Başvuru: ${new Date(v.createdAt).toLocaleDateString('tr-TR')}</p>
+                    </div>
+                  </div>
+
+                  ${isPending ? `
+                    <div class="flex items-center gap-2">
+                      <button onclick="approveVerification(${v.id}, '${v.username}')" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow transition">
+                        💎 Mavi Patiyi Onayla
+                      </button>
+                      <button onclick="rejectVerification(${v.id}, '${v.username}')" class="px-3.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 font-bold text-xs rounded-xl transition">
+                        Reddet
+                      </button>
+                    </div>
+                  ` : `
+                    <div class="text-right text-xs">
+                      <span class="text-gray-400">Sertifika ID:</span>
+                      <strong class="font-mono text-sky-500">${v.certificateId || '-'}</strong>
+                    </div>
+                  `}
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl">
+                  <div>
+                    <span class="text-gray-400 block text-[10px] uppercase font-bold">Mikroçip Numarası</span>
+                    <span class="font-mono font-bold text-gray-800 dark:text-gray-200">${v.microchip || 'Kayıtsız'}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-400 block text-[10px] uppercase font-bold">Yüklenen Belge</span>
+                    ${v.documentUrl ? `
+                      <a href="${v.documentUrl}" target="_blank" class="text-[#0095f6] hover:underline font-bold flex items-center gap-1">
+                        📄 Belgeyi / Aşı Karnesini İncele ↗
+                      </a>
+                    ` : '<span class="text-gray-400">Belge yüklenmedi</span>'}
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      } catch(err) {
+        console.error('Error loading verifications:', err);
+      }
+    }
+
+    async function approveVerification(id, username) {
+      if (!confirm(`@${username} kullanıcısının Mavi Pati rozetini onaylamak istiyor musunuz?`)) return;
+      try {
+        const res = await fetch(`/api/live/admin/verifications/${id}/approve`, { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          showToast(`@${username} için Mavi Pati rozeti onaylandı! 💎🐾`);
+          loadVerifications();
+          loadStats();
+        } else {
+          alert('Hata: ' + data.error);
+        }
+      } catch(e) {
+        alert('Hata: ' + e.message);
+      }
+    }
+
+    async function rejectVerification(id, username) {
+      const reason = prompt(`@${username} başvurusunu reddetme gerekçesi:`, 'Yüklenen çip veya veteriner belgesi okunaklı değil');
+      if (reason === null) return;
+      try {
+        const res = await fetch(`/api/live/admin/verifications/${id}/reject`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notes: reason })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast(`Başvuru reddedildi.`);
+          loadVerifications();
+        }
+      } catch(e) {
+        alert('Hata: ' + e.message);
+      }
+    }
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,2466 @@
+/**
+ * YourPoodle.com — Universal 8-Language Internationalization (i18n) Engine + Turkish
+ * Supported Languages:
+ *   en: English (Default)
+ *   ja: 日本語 (Japanese)
+ *   es: Español (Spanish)
+ *   fr: Français (French)
+ *   de: Deutsch (German)
+ *   pt: Português (Portuguese)
+ *   ko: 한국어 (Korean)
+ *   zh-CN: 简体中文 (Simplified Chinese)
+ *   tr: Türkçe (Turkish)
+ */
+
+(function () {
+  'use strict';
+
+  const SUPPORTED_LANGS = [
+    { code: 'en', name: 'English', flag: '🇺🇸', dir: 'ltr' },
+    { code: 'ja', name: '日本語', flag: '🇯🇵', dir: 'ltr' },
+    { code: 'es', name: 'Español', flag: '🇪🇸', dir: 'ltr' },
+    { code: 'fr', name: 'Français', flag: '🇫🇷', dir: 'ltr' },
+    { code: 'de', name: 'Deutsch', flag: '🇩🇪', dir: 'ltr' },
+    { code: 'pt', name: 'Português', flag: '🇧🇷', dir: 'ltr' },
+    { code: 'ko', name: '한국어', flag: '🇰🇷', dir: 'ltr' },
+    { code: 'zh-CN', name: '简体中文', flag: '🇨🇳', dir: 'ltr' },
+    { code: 'tr', name: 'Türkçe', flag: '🇹🇷', dir: 'ltr' }
+  ];
+
+  const DEFAULT_LANG = 'en';
+
+  const SEO_TITLES = {
+    'en': 'YourPoodle — The Global Community for Poodle Lovers',
+    'ja': 'YourPoodle — トイプードル愛好家のためのグローバルコミュニティ',
+    'es': 'YourPoodle — La comunidad global para amantes de los Caniches',
+    'fr': 'YourPoodle — La communauté mondiale des passionnés de Caniches',
+    'de': 'YourPoodle — Die weltweite Community für Pudelliebhaber',
+    'pt': 'YourPoodle — A comunidade global para apaixonados por Poodles',
+    'ko': 'YourPoodle — 푸들 애호가를 위한 글로벌 소셜 커뮤니티',
+    'zh-CN': 'YourPoodle — 贵宾犬爱好者的全球专属社交社区',
+    'tr': 'YourPoodle — Poodle Severlerin Akıllı Sosyal Topluluğu'
+  };
+
+  const SEO_DESCRIPTIONS = {
+    'en': 'Join thousands of Toy, Miniature, and Standard Poodle parents worldwide. Share photos, ask health questions, track vaccines, and connect locally.',
+    'ja': '世界中のトイプードル、ミニチュア、スタンダードプードルのオーナーとつながるSNS。健康相談、写真共有、ワクチン管理まで。',
+    'es': 'Únete a miles de familias de Caniches Toy, Miniatura y Gigante en todo el mundo. Comparte fotos, consulta sobre salud y vacunas.',
+    'fr': 'Rejoignez des milliers de passionnés de Caniches Toy, Nain et Royal dans le monde entier. Partagez, posez vos questions de santé et suivez les vaccins.',
+    'de': 'Verbinde dich weltweit mit Tausenden Pudel-Eltern. Fotos teilen, Gesundheitsfragen stellen, Impfpass verwalten und treffen.',
+    'pt': 'Conecte-se com milhares de tutores de Poodle Toy, Miniatura e Gigante no mundo inteiro. Compartilhe fotos, tire dúvidas de saúde e vacinas.',
+    'ko': '전 세계 수천 명의 토이, 미니어처, 스탠다드 푸들 가족과 함께하세요. 일상 공유, 질병·사료 Q&A, 접종 수첩 관리까지.',
+    'zh-CN': '加入全球数以万计的贵宾犬（泰迪、迷你、巨型）家长社群。分享萌照、健康疾病专业问答、疫苗护照与同城聚会。',
+    'tr': 'Dünya çapında binlerce Toy, Miniature ve Standart Poodle ailesine katılın. Fotoğraf paylaşın, sağlık soruları sorun, aşıları takip edin.'
+  };
+
+  const TRANSLATIONS = {
+    // ================= EN (DEFAULT) =================
+    'en': {
+      // --- Sidebar Translations (en) ---
+      'sidebar.poodleLover': 'Toy Poodle Lover 🐾',
+      'sidebar.weeklyLeaders': 'Weekly Paw Leaders',
+      'sidebar.liveBadge': 'Live',
+      'sidebar.suggestions': 'Suggestions For You',
+      'sidebar.seeAll': 'See All',
+      // --- Country Selection Keys (en) ---
+      'auth.countryLabel': 'Country Selection',
+      'create.countryTag': 'Country Tag',
+      // --- Footer Translations (en) ---
+      'footer.about': 'About',
+      'footer.help': 'Help',
+      'footer.press': 'Press',
+      'footer.api': 'API',
+      'footer.privacy': 'Privacy',
+      'footer.terms': 'Terms',
+      'footer.locations': 'Locations',
+      'footer.language': 'Language',
+      // --- Dynamic & Social Injections (en) ---
+      'feed.forYou': 'For You',
+      'feed.following': 'Following',
+      'reels.gift': 'Gift',
+      'reels.live': 'LIVE',
+      'auth.oauthTitle': '⚡ One-Click Quick Login',
+      'auth.googleContinue': 'Continue with Google',
+      'auth.appleContinue': 'Sign in with Apple',
+      'auth.oneClickBadge': '1 Click ⚡',
+      'auth.fastAppleBadge': 'Fast 🍎',
+      'auth.orPhone': 'or with phone / sms',
+      'auth.tabSignup': '🐾 Sign Up (+100 Paws)',
+      'auth.tabLogin': '📲 Log In',
+      'auth.symbolQuickBtn': 'Quick Login with Security Pattern',
+      'auth.netgsmNotice': '4-digit verification code will be sent via SMS.',
+      'auth.poodleInfo': 'Poodle Information',
+      'auth.poodleNamePlaceholder': 'Poodle\'s Name (e.g. Mochi)',
+      'auth.usernamePlaceholder': 'Username (e.g. mochi_toypoodle)',
+      'auth.sendCodeBtn': 'Send SMS Verification Code 📲',
+      'auth.secureFooter': 'Secure connection via OAuth 2.0 & SMS',
+      'auth.hasAccount': 'Already have an account?',
+      'auth.noAccount': 'Don\'t have a Poodle account?',
+      'auth.createAccount': 'Create Poodle Account',
+      // Navigation
+      'nav.home': 'Home',
+      'nav.search': 'Search',
+      'nav.explore': 'Explore',
+      'nav.reels': 'Reels',
+      'nav.messages': 'Messages',
+      'nav.notifications': 'Notifications',
+      'nav.create': 'Create',
+      'nav.pawPoints': 'Paw Points',
+      'nav.poodleHub': 'Poodle Hub & Passport',
+      'nav.profile': 'Profile',
+      'nav.toggleTheme': 'Switch Appearance',
+      'nav.language': 'Language',
+      'nav.login': 'Log In / Sign Up',
+      'nav.guestUser': 'Guest User',
+      'nav.logout': 'Log Out',
+      'nav.community': 'Q&A Community',
+
+      // Home Feed Ribbon & Actions
+      'feed.welcomeGuest': 'Welcome to YourPoodle! Join the global Toy Poodle community.',
+      'feed.goodMorning': 'Good morning',
+      'feed.goodAfternoon': 'Good afternoon',
+      'feed.goodEvening': 'Good evening',
+      'feed.streakDays': 'Day Streak',
+      'feed.streakBonus': '+10 Paw Bonus',
+      'feed.actionShare': 'Share',
+      'feed.actionReels': 'Reels',
+      'feed.actionStory': '+ Story',
+      'feed.actionPixar': '3D Pixar',
+      'feed.actionPark': 'At Park',
+      'feed.actionParkDefault': 'Park',
+      'feed.chipParasite': 'Parasite: 4 days',
+      'feed.chipWeight': '2.85 kg · Ideal',
+      'feed.chipPassport': 'Passport',
+      'feed.userStory': 'Your Story',
+      'feed.allCaughtUp': 'You\'re all caught up!',
+      'feed.allCaughtUpSub': 'You\'ve seen all new posts from the last 3 days.',
+
+      // Color/Variety filter chips
+      'filter.all': '🐾 All',
+      'filter.red': '🔴 Red Apricot',
+      'filter.toy': '🧸 Toy Poodle',
+      'filter.white': '⚪ White & Cream',
+      'filter.silver': '⚫ Silver & Black',
+      'filter.choco': '🍫 Chocolate',
+      'filter.standard': '🐩 Standard',
+
+      // Community Q&A
+      'comm.title': 'Poodle Q&A & Support Community',
+      'comm.badge': 'Live Support',
+      'comm.desc': 'Ask any question about health, vaccines, diet, grooming, and training; experienced Poodle families and veterinarians will help you.',
+      'comm.statAnswered': '💬 1,400+ Answered Questions',
+      'comm.statExperts': '🩺 Vet & Groomer Supported',
+      'comm.statPoints': '🐾 +25 Paw Points for Asking',
+      'comm.askBtn': 'Ask a Question (+25 Paw 🐾)',
+      'comm.searchPlaceholder': 'Search questions (e.g., vaccines, tear stains, patella, grooming, potty training)...',
+      'comm.refresh': 'Refresh',
+      'comm.catAll': 'All Questions',
+      'comm.catHealth': '🩺 Health & Vaccines',
+      'comm.catDiet': '🥩 Diet & Food',
+      'comm.catGrooming': '✂️ Grooming & Coat',
+      'comm.catTraining': '🎾 Training & Potty',
+      'comm.catMeetup': '👋 Meetups & Stories',
+      'comm.catCity': '📍 City Gatherings',
+      'comm.breedLabel': 'Poodle Variety:',
+      'comm.varAll': 'All',
+      'comm.varToy': '🐩 Toy',
+      'comm.varMini': '🐕 Miniature',
+      'comm.varStd': '👑 Standard',
+      'comm.replies': 'replies',
+      'comm.views': 'views',
+      'comm.helpful': 'helpful',
+      'comm.readAndReply': 'View Answers & Reply 💬',
+      'comm.answeredBadge': 'Answered ✅',
+      'comm.photoBadge': '📸 With Photo',
+      'comm.emptyTitle': 'No questions found in this category yet.',
+      'comm.emptyDesc': 'Be the first to ask! Experienced Poodle families and veterinarians will answer you.',
+      'comm.firstQuestionBtn': 'Ask the First Question (+25 Paw 🐾)',
+      'comm.loading': 'Loading questions and community answers... 🐾',
+      'comm.helpfulAnswer': '🐾 Helpful Answer',
+      'comm.replyInputPlaceholder': 'Share your experience or advice (+10 Paw 🐾)...',
+      'comm.replyBtn': 'Reply',
+      'comm.solutionBadge': 'Solution ⭐',
+      'comm.expertVet': '🩺 Vet',
+      'comm.expertGroomer': '✂️ Groomer',
+      'comm.expertTrainer': '🎾 Trainer',
+      'comm.member': 'Member',
+
+      // Ask Question Modal
+      'modal.askTitle': 'Ask the Poodle Community 🐾',
+      'modal.titleLabel': 'Question Title *',
+      'modal.titlePlaceholder': 'e.g. Is 24h fatigue normal after 2nd puppy vaccine?',
+      'modal.catLabel': 'Category *',
+      'modal.varietyLabel': 'Poodle Variety',
+      'modal.cityLabel': 'City',
+      'modal.cityPlaceholder': 'e.g. New York, London, Tokyo, Paris...',
+      'modal.detailsLabel': 'Question Details & Description *',
+      'modal.detailsPlaceholder': 'Describe the symptoms, your Poodle\'s age, and what you have observed...',
+      'modal.addPhotoLabel': '📸 Add Photo (Optional)',
+      'modal.addPhotoHint': 'Skin rash, vaccine card, coat cut, or food package',
+      'modal.photoBoxText': 'Choose Photo or Take with Camera',
+      'modal.photoBoxSub': 'JPG, PNG (Max 10MB)',
+      'modal.postBtn': 'Post Question to Community 🐾',
+      'modal.postBtnSub': '+25 Paw',
+
+      // Question Detail Modal
+      'modal.questionDetail': 'Community Question',
+      'modal.upvoteQuestion': '🐾 Helpful Question',
+      'modal.repliesHeader': 'Replies & Experiences',
+      'modal.noRepliesYet': 'No replies yet for this question. Be the first to share your experience! 🐾',
+
+      // Post Actions
+      'post.like': 'Like',
+      'post.comment': 'Comment',
+      'post.share': 'Share',
+      'post.save': 'Save',
+      'post.likes': 'likes',
+      'post.viewAllComments': 'View all comments',
+      'post.addComment': 'Add a comment...',
+      'post.postBtn': 'Post',
+
+      // Auth / Pattern Login
+      'auth.title': 'Welcome to YourPoodle',
+      'auth.phoneLabel': 'Mobile Phone Number',
+      'auth.sendOtp': 'Send Verification Code',
+      'auth.otpLabel': 'SMS Verification Code',
+      'auth.verifyBtn': 'Verify & Continue',
+      'auth.patternTitle': 'Draw your Secret Pattern',
+      'auth.patternSub': 'Draw your saved pattern to unlock',
+      'auth.forgotPattern': 'Forgot your pattern? Verify with SMS',
+      'auth.loginBtn': 'Log In',
+
+      // Passport & Hub
+      'hub.title': 'Digital Poodle Passport & Health Card',
+      'hub.vaccineTab': '💉 Vaccines',
+      'hub.weightTab': '⚖️ Weight',
+      'hub.infoTab': '🪪 Identity & Chip',
+      'hub.emergencyTag': '🚨 Lost Dog QR Tag',
+
+      // Notifications
+      'notif.title': 'Notifications',
+      'notif.all': 'All',
+      'notif.likes': 'Likes',
+      'notif.comments': 'Comments',
+      'notif.community': 'Q&A Community',
+      'notif.markAllRead': 'Mark all as read',
+      'notif.empty': 'No notifications yet.',
+
+      // Toasts
+      'toast.langChanged': 'Language changed to English 🇺🇸',
+      'toast.loginRequired': 'Please log in to continue 🐾',
+      'toast.questionPosted': 'Question posted successfully! +25 Paw Points awarded 🐾🎉',
+      'toast.replyPosted': 'Answer posted! +10 Paw Points awarded 🐾',
+      'toast.helpfulVoted': 'Marked as helpful! 🐾❤️',
+      'toast.linkCopied': 'Link copied to clipboard! 📋',
+      'guest.welcomeTitle': "Create an account for your Poodle, get +100 Paw Points!",
+      'guest.welcomeSub': "Share photos, collect points, get featured in the spotlight ✨",
+      'guest.exploreBtn': "🪪 Explore",
+      'guest.joinBtn': "Join Now",
+      'auth.loginOrRegister': "Sign In / Register",
+      'nav.switchTheme': "Switch Appearance",
+      'badge.vet': "🩺 Vet",
+      'badge.groomer': "✂️ Groomer",
+      'badge.trainer': "🎾 Trainer",
+      'comm.solved': "Answered ✅",
+      'comm.withPhoto': "📸 With Photo",
+      'dash.streakDays': "Day Streak",
+      'dash.claimStreak': "+10 Paw Daily Bonus",
+      'dash.claimedStreak': "✓ Bonus Claimed",
+      'dash.inPark': "In the Park",
+      'dash.atPark': "At the Park",
+      'dash.parasiteDays': "Parasite: 4 days",
+      'dash.weightIdeal': "kg · Ideal"
+    },
+
+    // ================= JA (日本語) =================
+    'ja': {
+      // --- Sidebar Translations (ja) ---
+      'sidebar.poodleLover': 'トイプードル愛好家 🐾',
+      'sidebar.weeklyLeaders': '今週の肉球リーダー',
+      'sidebar.liveBadge': 'リアルタイム',
+      'sidebar.suggestions': 'おすすめの仲間',
+      'sidebar.seeAll': 'すべて見る',
+      // --- Country Selection Keys (ja) ---
+      'auth.countryLabel': '国の選択',
+      'create.countryTag': '国タグ',
+      // --- Footer Translations (ja) ---
+      'footer.about': 'YourPoodleについて',
+      'footer.help': 'ヘルプ',
+      'footer.press': 'プレスリリース',
+      'footer.api': 'API',
+      'footer.privacy': 'プライバシーポリシー',
+      'footer.terms': '利用規約',
+      'footer.locations': '地域・拠点',
+      'footer.language': '言語',
+      // --- Dynamic & Social Injections (ja) ---
+      'feed.forYou': 'おすすめ',
+      'feed.following': 'フォロー中',
+      'reels.gift': 'ギフト',
+      'reels.live': 'ライブ',
+      'auth.oauthTitle': '⚡ ワンクリック簡単ログイン',
+      'auth.googleContinue': 'Googleで続行',
+      'auth.appleContinue': 'Appleでサインイン',
+      'auth.oneClickBadge': '1クリック ⚡',
+      'auth.fastAppleBadge': '高速 🍎',
+      'auth.orPhone': 'または電話番号・SMSで',
+      'auth.tabSignup': '🐾 新規登録 (+100 肉球)',
+      'auth.tabLogin': '📲 ログイン',
+      'auth.symbolQuickBtn': 'セキュリティパターンで簡単ログイン',
+      'auth.netgsmNotice': '4桁の認証コードがSMSで届きます。',
+      'auth.poodleInfo': 'プードル情報',
+      'auth.poodleNamePlaceholder': '愛犬プードルの名前（例: Mochi）',
+      'auth.usernamePlaceholder': 'ユーザー名（例: mochi_toypoodle）',
+      'auth.sendCodeBtn': 'SMS認証コードを送信 📲',
+      'auth.secureFooter': 'OAuth 2.0 & SMSによる安全な接続',
+      'auth.hasAccount': 'すでにアカウントをお持ちですか？',
+      'auth.noAccount': 'アカウントをお持ちではありませんか？',
+      'auth.createAccount': '新規登録する',
+      'nav.home': 'ホーム',
+      'nav.search': '検索',
+      'nav.explore': '見つける',
+      'nav.reels': 'リール',
+      'nav.messages': 'メッセージ',
+      'nav.notifications': 'お知らせ',
+      'nav.create': '投稿作成',
+      'nav.pawPoints': '肉球ポイント',
+      'nav.poodleHub': 'プードル手帳＆パスポート',
+      'nav.profile': 'マイページ',
+      'nav.toggleTheme': 'ダーク/ライト切替',
+      'nav.language': '言語 (Language)',
+      'nav.login': 'ログイン / 新規登録',
+      'nav.guestUser': 'ゲスト様',
+      'nav.logout': 'ログアウト',
+      'nav.community': 'プードル相談室',
+
+      'feed.welcomeGuest': 'YourPoodleへようこそ！世界のトイプードル愛好家とつながりましょう。',
+      'feed.goodMorning': 'おはようございます',
+      'feed.goodAfternoon': 'こんにちは',
+      'feed.goodEvening': 'こんばんは',
+      'feed.streakDays': '日連続ログイン',
+      'feed.streakBonus': '+10pt ボーナス',
+      'feed.actionShare': '写真投稿',
+      'feed.actionReels': 'リール',
+      'feed.actionStory': '+ ストーリー',
+      'feed.actionPixar': '3D Pixar',
+      'feed.actionPark': '公園なう',
+      'feed.actionParkDefault': '公園',
+      'feed.chipParasite': '駆虫薬: あと4日',
+      'feed.chipWeight': '2.85 kg · 理想的',
+      'feed.chipPassport': '手帳',
+      'feed.userStory': 'あなたのストーリー',
+      'feed.allCaughtUp': 'すべてチェックしました！',
+      'feed.allCaughtUpSub': '過去3日間の最新投稿をすべて閲覧しました。',
+
+      'filter.all': '🐾 すべて',
+      'filter.red': '🔴 レッド・アプリコット',
+      'filter.toy': '🧸 トイプードル',
+      'filter.white': '⚪ ホワイト＆クリーム',
+      'filter.silver': '⚫ シルバー＆ブラック',
+      'filter.choco': '🍫 チョコレート',
+      'filter.standard': '🐩 スタンダード',
+
+      'comm.title': 'プードル専門 Q&A 相談室＆助け合い',
+      'comm.badge': 'リアルタイム相談',
+      'comm.desc': '健康、ワクチン、食事、トリミング、しつけについての疑問を投稿すると、経験豊富なオーナーや獣医師が優しく回答します。',
+      'comm.statAnswered': '💬 1,400件以上の解決済みQ&A',
+      'comm.statExperts': '🩺 獣医師・トリマー公認サポート',
+      'comm.statPoints': '🐾 質問で+25pt、回答で+10pt',
+      'comm.askBtn': '質問を投稿する (+25pt 🐾)',
+      'comm.searchPlaceholder': '質問を検索 (例: ワクチン、涙やけ、パテラ、トリミング、トイレ)...',
+      'comm.refresh': '更新',
+      'comm.catAll': 'すべての質問',
+      'comm.catHealth': '🩺 健康・ワクチン',
+      'comm.catDiet': '🥩 フード・食事',
+      'comm.catGrooming': '✂️ トリミング・お手入れ',
+      'comm.catTraining': '🎾 しつけ・トイレ',
+      'comm.catMeetup': '👋 交流・体験談',
+      'comm.catCity': '📍 地域・お散歩オフ会',
+      'comm.breedLabel': 'サイズ:',
+      'comm.varAll': 'すべて',
+      'comm.varToy': '🐩 トイ',
+      'comm.varMini': '🐕 ミニチュア',
+      'comm.varStd': '👑 スタンダード',
+      'comm.replies': '件の回答',
+      'comm.views': '回閲覧',
+      'comm.helpful': '人が参考になった',
+      'comm.readAndReply': '回答を見る・返信する 💬',
+      'comm.answeredBadge': '解決済み ✅',
+      'comm.photoBadge': '📸 写真付き',
+      'comm.emptyTitle': 'このカテゴリーにはまだ質問がありません。',
+      'comm.emptyDesc': '最初の質問を投稿してみませんか？全国の愛好家や専門家が答えてくれます。',
+      'comm.firstQuestionBtn': '最初の質問を投稿する (+25pt 🐾)',
+      'comm.loading': '相談と体験談を読み込み中... 🐾',
+      'comm.helpfulAnswer': '🐾 参考になった',
+      'comm.replyInputPlaceholder': 'あなたの経験やアドバイスを共有 (+10pt 🐾)...',
+      'comm.replyBtn': '返信する',
+      'comm.solutionBadge': 'ベストアンサー ⭐',
+      'comm.expertVet': '🩺 獣医師',
+      'comm.expertGroomer': '✂️ トリマー',
+      'comm.expertTrainer': '🎾 ドッグトレーナー',
+      'comm.member': '会員',
+
+      'modal.askTitle': 'プードルコミュニティに質問する 🐾',
+      'modal.titleLabel': '質問のタイトル *',
+      'modal.titlePlaceholder': '例：生後3ヶ月の2回目ワクチン後、一日中寝ていますが普通ですか？',
+      'modal.catLabel': 'カテゴリー *',
+      'modal.varietyLabel': 'プードルの種類',
+      'modal.cityLabel': 'お住まいの地域',
+      'modal.cityPlaceholder': '例：東京都、大阪府、横浜市...',
+      'modal.detailsLabel': '詳しい状況・ご相談内容 *',
+      'modal.detailsPlaceholder': '症状、愛犬の月齢、食欲の有無などを詳しく書いてください...',
+      'modal.addPhotoLabel': '📸 写真を添付 (任意)',
+      'modal.addPhotoHint': '皮膚の赤み、ワクチン手帳、毛並み、フードのパッケージなど',
+      'modal.photoBoxText': '写真を選択またはカメラで撮影',
+      'modal.photoBoxSub': 'JPG, PNG (最大 10MB)',
+      'modal.postBtn': 'コミュニティに質問を投稿する 🐾',
+      'modal.postBtnSub': '+25pt',
+
+      'modal.questionDetail': '相談内容',
+      'modal.upvoteQuestion': '🐾 参考になった質問',
+      'modal.repliesHeader': '回答とみんなの体験談',
+      'modal.noRepliesYet': 'まだ回答がありません。最初の体験談を共有してください！ 🐾',
+
+      'post.like': 'いいね',
+      'post.comment': 'コメント',
+      'post.share': 'シェア',
+      'post.save': '保存',
+      'post.likes': '件のいいね',
+      'post.viewAllComments': 'コメントをすべて見る',
+      'post.addComment': 'コメントを追加...',
+      'post.postBtn': '投稿',
+
+      'auth.title': 'YourPoodleへログイン',
+      'auth.phoneLabel': '携帯電話番号',
+      'auth.sendOtp': '認証番号を送信',
+      'auth.otpLabel': 'SMS認証コード',
+      'auth.verifyBtn': '認証して進む',
+      'auth.patternTitle': '秘密のパターン認証',
+      'auth.patternSub': '登録したパターンを描いてロック解除',
+      'auth.forgotPattern': 'パターンをお忘れですか？SMS認証で再設定',
+      'auth.loginBtn': 'ログイン',
+
+      'hub.title': '愛犬デジタルパスポート＆健康手帳',
+      'hub.vaccineTab': '💉 ワクチン',
+      'hub.weightTab': '⚖️ 体重グラフ',
+      'hub.infoTab': '🪪 個体識別・チップ',
+      'hub.emergencyTag': '🚨 迷子防止QRタグ',
+
+      'notif.title': 'お知らせ',
+      'notif.all': 'すべて',
+      'notif.likes': 'いいね',
+      'notif.comments': 'コメント',
+      'notif.community': '相談室Q&A',
+      'notif.markAllRead': 'すべて既読にする',
+      'notif.empty': '新しいお知らせはありません。',
+
+      'toast.langChanged': '言語を日本語に切り替えました 🇯🇵',
+      'toast.loginRequired': 'この機能を利用するにはログインしてください 🐾',
+      'toast.questionPosted': '質問が投稿されました！+25pt 獲得 🐾🎉',
+      'toast.replyPosted': '回答を送信しました！+10pt 獲得 🐾',
+      'toast.helpfulVoted': '参考になった！と投票しました 🐾❤️',
+      'toast.linkCopied': 'リンクをクリップボードにコピーしました！ 📋',
+      'guest.welcomeTitle': "プードルのアカウントを作成して、+100肉球ポイントを獲得しよう！",
+      'guest.welcomeSub': "写真をシェアしてポイントを貯め、注目スポットに掲載されよう ✨",
+      'guest.exploreBtn': "🪪 詳しく見る",
+      'guest.joinBtn': "今すぐ参加",
+      'auth.loginOrRegister': "ログイン / 新規登録",
+      'nav.switchTheme': "テーマ切替",
+      'badge.vet': "🩺 獣医師",
+      'badge.groomer': "✂️ トリマー",
+      'badge.trainer': "🎾 ドッグトレーナー",
+      'comm.solved': "解決済み ✅",
+      'comm.withPhoto': "📸 写真付き",
+      'dash.streakDays': "日連続",
+      'dash.claimStreak': "+10 肉球ボーナス獲得",
+      'dash.claimedStreak': "✓ ボーナス獲得済み",
+      'dash.inPark': "ドッグラン中",
+      'dash.atPark': "ドッグランへ",
+      'dash.parasiteDays': "駆虫薬: 残り4日",
+      'dash.weightIdeal': "kg · 理想体重"
+    },
+
+    // ================= ES (ESPAÑOL) =================
+    'es': {
+      // --- Sidebar Translations (es) ---
+      'sidebar.poodleLover': 'Amante de Caniches 🐾',
+      'sidebar.weeklyLeaders': 'Líderes de Patas Semanales',
+      'sidebar.liveBadge': 'En vivo',
+      'sidebar.suggestions': 'Sugerencias para ti',
+      'sidebar.seeAll': 'Ver todo',
+      // --- Country Selection Keys (es) ---
+      'auth.countryLabel': 'Selección de país',
+      'create.countryTag': 'Etiqueta de país',
+      // --- Footer Translations (es) ---
+      'footer.about': 'Acerca de',
+      'footer.help': 'Ayuda',
+      'footer.press': 'Prensa',
+      'footer.api': 'API',
+      'footer.privacy': 'Privacidad',
+      'footer.terms': 'Condiciones',
+      'footer.locations': 'Ubicaciones',
+      'footer.language': 'Idioma',
+      // --- Dynamic & Social Injections (es) ---
+      'feed.forYou': 'Para ti',
+      'feed.following': 'Siguiendo',
+      'reels.gift': 'Regalo',
+      'reels.live': 'EN VIVO',
+      'auth.oauthTitle': '⚡ Inicio rápido con 1 clic',
+      'auth.googleContinue': 'Continuar con Google',
+      'auth.appleContinue': 'Iniciar sesión con Apple',
+      'auth.oneClickBadge': '1 Clic ⚡',
+      'auth.fastAppleBadge': 'Rápido 🍎',
+      'auth.orPhone': 'o con teléfono / sms',
+      'auth.tabSignup': '🐾 Regístrate (+100 Patas)',
+      'auth.tabLogin': '📲 Iniciar Sesión',
+      'auth.symbolQuickBtn': 'Iniciar sesión con patrón de seguridad',
+      'auth.netgsmNotice': 'Se enviará un código de verificación de 4 dígitos por SMS.',
+      'auth.poodleInfo': 'Información del Caniche',
+      'auth.poodleNamePlaceholder': 'Nombre de tu Caniche (Ej: Mochi)',
+      'auth.usernamePlaceholder': 'Nombre de usuario (Ej: mochi_toypoodle)',
+      'auth.sendCodeBtn': 'Enviar código por SMS 📲',
+      'auth.secureFooter': 'Conexión segura con OAuth 2.0 y SMS',
+      'auth.hasAccount': '¿Ya tienes una cuenta?',
+      'auth.noAccount': '¿No tienes cuenta de Poodle?',
+      'auth.createAccount': 'Crear cuenta Poodle',
+      'nav.home': 'Inicio',
+      'nav.search': 'Buscar',
+      'nav.explore': 'Explorar',
+      'nav.reels': 'Reels',
+      'nav.messages': 'Mensajes',
+      'nav.notifications': 'Notificaciones',
+      'nav.create': 'Crear',
+      'nav.pawPoints': 'Puntos Paw',
+      'nav.poodleHub': 'Panel y Pasaporte',
+      'nav.profile': 'Perfil',
+      'nav.toggleTheme': 'Cambiar tema',
+      'nav.language': 'Idioma',
+      'nav.login': 'Iniciar sesión / Registro',
+      'nav.guestUser': 'Invitado',
+      'nav.logout': 'Cerrar sesión',
+      'nav.community': 'Comunidad Q&A',
+
+      'feed.welcomeGuest': '¡Bienvenido a YourPoodle! Únete a la comunidad global de Caniches.',
+      'feed.goodMorning': 'Buenos días',
+      'feed.goodAfternoon': 'Buenas tardes',
+      'feed.goodEvening': 'Buenas noches',
+      'feed.streakDays': 'Días seguidos',
+      'feed.streakBonus': '+10 Bonus',
+      'feed.actionShare': 'Publicar',
+      'feed.actionReels': 'Reels',
+      'feed.actionStory': '+ Historia',
+      'feed.actionPixar': '3D Pixar',
+      'feed.actionPark': 'En el parque',
+      'feed.actionParkDefault': 'Parque',
+      'feed.chipParasite': 'Parásitos: 4 días',
+      'feed.chipWeight': '2.85 kg · Ideal',
+      'feed.chipPassport': 'Pasaporte',
+      'feed.userStory': 'Tu historia',
+      'feed.allCaughtUp': '¡Estás al día!',
+      'feed.allCaughtUpSub': 'Has visto todas las publicaciones de los últimos 3 días.',
+
+      'filter.all': '🐾 Todos',
+      'filter.red': '🔴 Red Apricot',
+      'filter.toy': '🧸 Caniche Toy',
+      'filter.white': '⚪ Blanco y Crema',
+      'filter.silver': '⚫ Plata y Negro',
+      'filter.choco': '🍫 Chocolate',
+      'filter.standard': '🐩 Estándar / Gigante',
+
+      'comm.title': 'Comunidad de Ayuda y Preguntas Caniche',
+      'comm.badge': 'Apoyo en Vivo',
+      'comm.desc': 'Haz cualquier pregunta sobre salud, vacunas, alimentación, peluquería y adiestramiento; familias y veterinarios experimentados te responderán.',
+      'comm.statAnswered': '💬 1.400+ Preguntas resueltas',
+      'comm.statExperts': '🩺 Con apoyo veterinario y peluqueros',
+      'comm.statPoints': '🐾 +25 Puntos por preguntar',
+      'comm.askBtn': 'Hacer una pregunta (+25 Paw 🐾)',
+      'comm.searchPlaceholder': 'Buscar dudas (ej: vacunas, manchas lagrimales, patela, peluquería, pipí)...',
+      'comm.refresh': 'Actualizar',
+      'comm.catAll': 'Todas las preguntas',
+      'comm.catHealth': '🩺 Salud y Vacunas',
+      'comm.catDiet': '🥩 Alimentación y Dieta',
+      'comm.catGrooming': '✂️ Peluquería y Manto',
+      'comm.catTraining': '🎾 Educación y Pipí',
+      'comm.catMeetup': '👋 Encuentros y Consejos',
+      'comm.catCity': '📍 Quedadas por Ciudad',
+      'comm.breedLabel': 'Tamaño:',
+      'comm.varAll': 'Todos',
+      'comm.varToy': '🐩 Toy',
+      'comm.varMini': '🐕 Miniatura',
+      'comm.varStd': '👑 Estándar',
+      'comm.replies': 'respuestas',
+      'comm.views': 'vistas',
+      'comm.helpful': 'útiles',
+      'comm.readAndReply': 'Ver respuestas y responder 💬',
+      'comm.answeredBadge': 'Resuelta ✅',
+      'comm.photoBadge': '📸 Con foto',
+      'comm.emptyTitle': 'No hay preguntas en esta categoría todavía.',
+      'comm.emptyDesc': '¡Sé el primero en preguntar! Familias experimentadas y veterinarios te ayudarán.',
+      'comm.firstQuestionBtn': 'Hacer la primera pregunta (+25 Paw 🐾)',
+      'comm.loading': 'Cargando preguntas y experiencias... 🐾',
+      'comm.helpfulAnswer': '🐾 Respuesta útil',
+      'comm.replyInputPlaceholder': 'Comparte tu experiencia o consejo (+10 Paw 🐾)...',
+      'comm.replyBtn': 'Responder',
+      'comm.solutionBadge': 'Solución destacada ⭐',
+      'comm.expertVet': '🩺 Veterinario',
+      'comm.expertGroomer': '✂️ Peluquero canino',
+      'comm.expertTrainer': '🎾 Adiestrador',
+      'comm.member': 'Miembro',
+
+      'modal.askTitle': 'Preguntar a la comunidad Caniche 🐾',
+      'modal.titleLabel': 'Título de la pregunta *',
+      'modal.titlePlaceholder': 'Ej: ¿Es normal 24h de cansancio tras la 2ª vacuna de cachorro?',
+      'modal.catLabel': 'Categoría *',
+      'modal.varietyLabel': 'Variedad de Caniche',
+      'modal.cityLabel': 'Ciudad',
+      'modal.cityPlaceholder': 'Ej: Madrid, Barcelona, Buenos Aires, Ciudad de México...',
+      'modal.detailsLabel': 'Detalles y descripción de la consulta *',
+      'modal.detailsPlaceholder': 'Describe los síntomas, la edad de tu Caniche y lo que has observado...',
+      'modal.addPhotoLabel': '📸 Añadir foto (Opcional)',
+      'modal.addPhotoHint': 'Alergia, cartilla de vacunación, corte o saco de pienso',
+      'modal.photoBoxText': 'Seleccionar foto o tomar con cámara',
+      'modal.photoBoxSub': 'JPG, PNG (Máx 10MB)',
+      'modal.postBtn': 'Publicar pregunta en la comunidad 🐾',
+      'modal.postBtnSub': '+25 Paw',
+
+      'modal.questionDetail': 'Consulta de la comunidad',
+      'modal.upvoteQuestion': '🐾 Pregunta útil',
+      'modal.repliesHeader': 'Respuestas y experiencias',
+      'modal.noRepliesYet': 'Aún no hay respuestas. ¡Sé el primero en compartir tu experiencia! 🐾',
+
+      'post.like': 'Me gusta',
+      'post.comment': 'Comentar',
+      'post.share': 'Compartir',
+      'post.save': 'Guardar',
+      'post.likes': 'me gusta',
+      'post.viewAllComments': 'Ver todos los comentarios',
+      'post.addComment': 'Añadir un comentario...',
+      'post.postBtn': 'Publicar',
+
+      'auth.title': 'Bienvenido a YourPoodle',
+      'auth.phoneLabel': 'Número de teléfono',
+      'auth.sendOtp': 'Enviar código SMS',
+      'auth.otpLabel': 'Código de verificación',
+      'auth.verifyBtn': 'Verificar y continuar',
+      'auth.patternTitle': 'Patrón secreto de acceso',
+      'auth.patternSub': 'Dibuja tu patrón para desbloquear',
+      'auth.forgotPattern': '¿Olvidaste tu patrón? Recuperar por SMS',
+      'auth.loginBtn': 'Iniciar sesión',
+
+      'hub.title': 'Pasaporte Digital y Salud del Caniche',
+      'hub.vaccineTab': '💉 Vacunas',
+      'hub.weightTab': '⚖️ Peso',
+      'hub.infoTab': '🪪 Microchip e ID',
+      'hub.emergencyTag': '🚨 Chapa QR de rescate',
+
+      'notif.title': 'Notificaciones',
+      'notif.all': 'Todas',
+      'notif.likes': 'Me gusta',
+      'notif.comments': 'Comentarios',
+      'notif.community': 'Comunidad Q&A',
+      'notif.markAllRead': 'Marcar todo como leído',
+      'notif.empty': 'No tienes notificaciones pendientes.',
+
+      'toast.langChanged': 'Idioma cambiado a Español 🇪🇸',
+      'toast.loginRequired': 'Por favor inicia sesión para continuar 🐾',
+      'toast.questionPosted': '¡Pregunta publicada con éxito! +25 Puntos Paw ganados 🐾🎉',
+      'toast.replyPosted': '¡Respuesta publicada! +10 Puntos Paw 🐾',
+      'toast.helpfulVoted': '¡Marcado como útil! 🐾❤️',
+      'toast.linkCopied': '¡Enlace copiado al portapapeles! 📋',
+      'guest.welcomeTitle': "¡Crea una cuenta para tu Caniche y gana +100 Puntos Huella!",
+      'guest.welcomeSub': "Comparte fotos, acumula puntos y destaca en la portada ✨",
+      'guest.exploreBtn': "🪪 Explorar",
+      'guest.joinBtn': "Únete Ahora",
+      'auth.loginOrRegister': "Iniciar sesión / Registrarse",
+      'nav.switchTheme': "Cambiar apariencia",
+      'badge.vet': "🩺 Veterinario",
+      'badge.groomer': "✂️ Peluquero canino",
+      'badge.trainer': "🎾 Adiestrador",
+      'comm.solved': "Respondido ✅",
+      'comm.withPhoto': "📸 Con foto",
+      'dash.streakDays': "Días seguidos",
+      'dash.claimStreak': "+10 Bono Huella",
+      'dash.claimedStreak': "✓ Bono recibido",
+      'dash.inPark': "En el parque",
+      'dash.atPark': "Al parque",
+      'dash.parasiteDays': "Antiparasitario: 4 días",
+      'dash.weightIdeal': "kg · Ideal"
+    },
+
+    // ================= FR (FRANÇAIS) =================
+    'fr': {
+      // --- Sidebar Translations (fr) ---
+      'sidebar.poodleLover': 'Passionné de Caniches 🐾',
+      'sidebar.weeklyLeaders': 'Membres Étoiles de la Semaine',
+      'sidebar.liveBadge': 'En direct',
+      'sidebar.suggestions': 'Suggestions pour vous',
+      'sidebar.seeAll': 'Tout afficher',
+      // --- Country Selection Keys (fr) ---
+      'auth.countryLabel': 'Sélection du pays',
+      'create.countryTag': 'Tag de pays',
+      // --- Footer Translations (fr) ---
+      'footer.about': 'À propos',
+      'footer.help': 'Aide',
+      'footer.press': 'Presse',
+      'footer.api': 'API',
+      'footer.privacy': 'Confidentialité',
+      'footer.terms': 'Conditions',
+      'footer.locations': 'Lieux',
+      'footer.language': 'Langue',
+      // --- Dynamic & Social Injections (fr) ---
+      'feed.forYou': 'Pour vous',
+      'feed.following': 'Abonnements',
+      'reels.gift': 'Cadeau',
+      'reels.live': 'EN DIRECT',
+      'auth.oauthTitle': '⚡ Connexion en 1 clic',
+      'auth.googleContinue': 'Continuer avec Google',
+      'auth.appleContinue': 'Se connecter avec Apple',
+      'auth.oneClickBadge': '1 Clic ⚡',
+      'auth.fastAppleBadge': 'Rapide 🍎',
+      'auth.orPhone': 'ou par téléphone / sms',
+      'auth.tabSignup': '🐾 Inscription (+100 Pattes)',
+      'auth.tabLogin': '📲 Connexion',
+      'auth.symbolQuickBtn': 'Connexion rapide par schéma de sécurité',
+      'auth.netgsmNotice': 'Un code de vérification à 4 chiffres sera envoyé par SMS.',
+      'auth.poodleInfo': 'Informations Caniche',
+      'auth.poodleNamePlaceholder': 'Nom de votre Caniche (Ex: Mochi)',
+      'auth.usernamePlaceholder': 'Nom d\'utilisateur (Ex: mochi_toypoodle)',
+      'auth.sendCodeBtn': 'Envoyer le code par SMS 📲',
+      'auth.secureFooter': 'Connexion sécurisée via OAuth 2.0 et SMS',
+      'auth.hasAccount': 'Vous avez déjà un compte ?',
+      'auth.noAccount': 'Vous n\'avez pas de compte Poodle ?',
+      'auth.createAccount': 'Créer un compte Poodle',
+      'nav.home': 'Accueil',
+      'nav.search': 'Recherche',
+      'nav.explore': 'Explorer',
+      'nav.reels': 'Reels',
+      'nav.messages': 'Messages',
+      'nav.notifications': 'Notifications',
+      'nav.create': 'Créer',
+      'nav.pawPoints': 'Points Patte',
+      'nav.poodleHub': 'Hub & Passeport Caniche',
+      'nav.profile': 'Profil',
+      'nav.toggleTheme': 'Changer de thème',
+      'nav.language': 'Langue',
+      'nav.login': 'Connexion / Inscription',
+      'nav.guestUser': 'Visiteur',
+      'nav.logout': 'Déconnexion',
+      'nav.community': 'Entraide & Questions',
+
+      'feed.welcomeGuest': 'Bienvenue sur YourPoodle ! Rejoignez la communauté mondiale du Caniche.',
+      'feed.goodMorning': 'Bonjour',
+      'feed.goodAfternoon': 'Bon après-midi',
+      'feed.goodEvening': 'Bonsoir',
+      'feed.streakDays': 'Jours d\'affilée',
+      'feed.streakBonus': '+10 Bonus',
+      'feed.actionShare': 'Publier',
+      'feed.actionReels': 'Reels',
+      'feed.actionStory': '+ Story',
+      'feed.actionPixar': '3D Pixar',
+      'feed.actionPark': 'Au parc',
+      'feed.actionParkDefault': 'Parc',
+      'feed.chipParasite': 'Parasite : 4 j',
+      'feed.chipWeight': '2,85 kg · Idéal',
+      'feed.chipPassport': 'Passeport',
+      'feed.userStory': 'Votre story',
+      'feed.allCaughtUp': 'Vous êtes à jour !',
+      'feed.allCaughtUpSub': 'Vous avez vu toutes les publications des 3 derniers jours.',
+
+      'filter.all': '🐾 Tous',
+      'filter.red': '🔴 Fauve Rouge',
+      'filter.toy': '🧸 Caniche Toy',
+      'filter.white': '⚪ Blanc & Crème',
+      'filter.silver': '⚫ Argenté & Noir',
+      'filter.choco': '🍫 Marron Chocolat',
+      'filter.standard': '🐩 Caniche Royal',
+
+      'comm.title': 'Entraide & Questions-Réponses Caniche',
+      'comm.badge': 'Entraide en Direct',
+      'comm.desc': 'Posez vos questions sur la santé, les vaccins, l\'alimentation, le toilettage et l\'éducation ; familles et vétérinaires vous répondent.',
+      'comm.statAnswered': '💬 +1 400 questions résolues',
+      'comm.statExperts': '🩺 Vétérinaires & Toiletteurs certifiés',
+      'comm.statPoints': '🐾 +25 Points par question',
+      'comm.askBtn': 'Poser une question (+25 Patte 🐾)',
+      'comm.searchPlaceholder': 'Rechercher (vaccin, traces de larmes, rotule, toilettage, propreté)...',
+      'comm.refresh': 'Actualiser',
+      'comm.catAll': 'Toutes les questions',
+      'comm.catHealth': '🩺 Santé & Vaccins',
+      'comm.catDiet': '🥩 Alimentation & Croquettes',
+      'comm.catGrooming': '✂️ Toilettage & Pelage',
+      'comm.catTraining': '🎾 Éducation & Propreté',
+      'comm.catMeetup': '👋 Rencontres & Conseils',
+      'comm.catCity': '📍 Sorties par Ville',
+      'comm.breedLabel': 'Taille :',
+      'comm.varAll': 'Tous',
+      'comm.varToy': '🐩 Toy',
+      'comm.varMini': '🐕 Nain / Moyen',
+      'comm.varStd': '👑 Royal',
+      'comm.replies': 'réponses',
+      'comm.views': 'vues',
+      'comm.helpful': 'utiles',
+      'comm.readAndReply': 'Voir les réponses 💬',
+      'comm.answeredBadge': 'Résolu ✅',
+      'comm.photoBadge': '📸 Avec photo',
+      'comm.emptyTitle': 'Aucune question dans cette catégorie.',
+      'comm.emptyDesc': 'Soyez le premier à poser une question !',
+      'comm.firstQuestionBtn': 'Poser la première question (+25 Patte 🐾)',
+      'comm.loading': 'Chargement des questions et témoignages... 🐾',
+      'comm.helpfulAnswer': '🐾 Réponse utile',
+      'comm.replyInputPlaceholder': 'Partagez votre expérience ou conseil (+10 Patte 🐾)...',
+      'comm.replyBtn': 'Répondre',
+      'comm.solutionBadge': 'Solution retenue ⭐',
+      'comm.expertVet': '🩺 Vétérinaire',
+      'comm.expertGroomer': '✂️ Toiletteur',
+      'comm.expertTrainer': '🎾 Éducateur canin',
+      'comm.member': 'Membre',
+
+      'modal.askTitle': 'Poser une question à la communauté 🐾',
+      'modal.titleLabel': 'Titre de la question *',
+      'modal.titlePlaceholder': 'Ex. : Fatigue de 24h après le 2e vaccin chiot, est-ce normal ?',
+      'modal.catLabel': 'Catégorie *',
+      'modal.varietyLabel': 'Variété de Caniche',
+      'modal.cityLabel': 'Ville',
+      'modal.cityPlaceholder': 'Ex. : Paris, Lyon, Marseille, Bruxelles, Montréal...',
+      'modal.detailsLabel': 'Détails et description *',
+      'modal.detailsPlaceholder': 'Décrivez les symptômes, l\'âge de votre chiot et ce que vous observez...',
+      'modal.addPhotoLabel': '📸 Ajouter une photo (Facultatif)',
+      'modal.addPhotoHint': 'Irritation, carnet de santé, coupe de poils ou paquet de croquettes',
+      'modal.photoBoxText': 'Choisir une photo ou prendre avec l\'appareil',
+      'modal.photoBoxSub': 'JPG, PNG (Max 10 Mo)',
+      'modal.postBtn': 'Publier la question sur la communauté 🐾',
+      'modal.postBtnSub': '+25 Patte',
+
+      'modal.questionDetail': 'Question de la communauté',
+      'modal.upvoteQuestion': '🐾 Question utile',
+      'modal.repliesHeader': 'Réponses & Témoignages',
+      'modal.noRepliesYet': 'Aucune réponse pour le moment. Partagez votre expérience ! 🐾',
+
+      'post.like': 'J\'aime',
+      'post.comment': 'Commenter',
+      'post.share': 'Partager',
+      'post.save': 'Enregistrer',
+      'post.likes': 'j\'aime',
+      'post.viewAllComments': 'Voir tous les commentaires',
+      'post.addComment': 'Ajouter un commentaire...',
+      'post.postBtn': 'Publier',
+
+      'auth.title': 'Bienvenue sur YourPoodle',
+      'auth.phoneLabel': 'Numéro de portable',
+      'auth.sendOtp': 'Envoyer le code SMS',
+      'auth.otpLabel': 'Code de confirmation',
+      'auth.verifyBtn': 'Vérifier & Continuer',
+      'auth.patternTitle': 'Schéma secret de connexion',
+      'auth.patternSub': 'Dessinez votre schéma pour vous connecter',
+      'auth.forgotPattern': 'Schéma oublié ? Récupérer par SMS',
+      'auth.loginBtn': 'Connexion',
+
+      'hub.title': 'Passeport Numérique & Santé Caniche',
+      'hub.vaccineTab': '💉 Vaccins',
+      'hub.weightTab': '⚖️ Courbe de Poids',
+      'hub.infoTab': '🪪 Puce & Identité',
+      'hub.emergencyTag': '🚨 Médaille QR d\'urgence',
+
+      'notif.title': 'Notifications',
+      'notif.all': 'Toutes',
+      'notif.likes': 'J\'aime',
+      'notif.comments': 'Commentaires',
+      'notif.community': 'Entraide Q&A',
+      'notif.markAllRead': 'Tout marquer comme lu',
+      'notif.empty': 'Aucune notification pour l\'instant.',
+
+      'toast.langChanged': 'Langue changée en Français 🇫🇷',
+      'toast.loginRequired': 'Veuillez vous connecter pour continuer 🐾',
+      'toast.questionPosted': 'Question publiée avec succès ! +25 Points Patte 🐾🎉',
+      'toast.replyPosted': 'Réponse publiée ! +10 Points Patte 🐾',
+      'toast.helpfulVoted': 'Réponse marquée comme utile ! 🐾❤️',
+      'toast.linkCopied': 'Lien copié dans le presse-papiers ! 📋',
+      'guest.welcomeTitle': "Créez un compte pour votre Caniche et gagnez +100 Points Patte !",
+      'guest.welcomeSub': "Partagez des photos, cumulez des points et brillez à la une ✨",
+      'guest.exploreBtn': "🪪 Explorer",
+      'guest.joinBtn': "Rejoindre",
+      'auth.loginOrRegister': "Connexion / Inscription",
+      'nav.switchTheme': "Changer le thème",
+      'badge.vet': "🩺 Vétérinaire",
+      'badge.groomer': "✂️ Toiletteur",
+      'badge.trainer': "🎾 Éducateur",
+      'comm.solved': "Résolu ✅",
+      'comm.withPhoto': "📸 Avec photo",
+      'dash.streakDays': "Jours consécutifs",
+      'dash.claimStreak': "+10 Bonus Patte",
+      'dash.claimedStreak': "✓ Bonus réclamé",
+      'dash.inPark': "Au parc",
+      'dash.atPark': "Aller au parc",
+      'dash.parasiteDays': "Antiparasitaire : 4 j",
+      'dash.weightIdeal': "kg · Idéal"
+    },
+
+    // ================= DE (DEUTSCH) =================
+    'de': {
+      // --- Sidebar Translations (de) ---
+      'sidebar.poodleLover': 'Pudel-Liebhaber 🐾',
+      'sidebar.weeklyLeaders': 'Pfoten-Spitzenreiter der Woche',
+      'sidebar.liveBadge': 'Live',
+      'sidebar.suggestions': 'Vorschläge für dich',
+      'sidebar.seeAll': 'Alle ansehen',
+      // --- Country Selection Keys (de) ---
+      'auth.countryLabel': 'Länderauswahl',
+      'create.countryTag': 'Länder-Tag',
+      // --- Footer Translations (de) ---
+      'footer.about': 'Über uns',
+      'footer.help': 'Hilfe',
+      'footer.press': 'Presse',
+      'footer.api': 'API',
+      'footer.privacy': 'Datenschutz',
+      'footer.terms': 'Nutzungsbedingungen',
+      'footer.locations': 'Standorte',
+      'footer.language': 'Sprache',
+      // --- Dynamic & Social Injections (de) ---
+      'feed.forYou': 'Für dich',
+      'feed.following': 'Gefolgt',
+      'reels.gift': 'Geschenk',
+      'reels.live': 'LIVE',
+      'auth.oauthTitle': '⚡ 1-Klick-Schnellanmeldung',
+      'auth.googleContinue': 'Mit Google fortfahren',
+      'auth.appleContinue': 'Mit Apple anmelden',
+      'auth.oneClickBadge': '1 Klick ⚡',
+      'auth.fastAppleBadge': 'Schnell 🍎',
+      'auth.orPhone': 'oder per Telefon / SMS',
+      'auth.tabSignup': '🐾 Registrieren (+100 Pfoten)',
+      'auth.tabLogin': '📲 Anmelden',
+      'auth.symbolQuickBtn': 'Schnellanmeldung mit Sicherheitsmuster',
+      'auth.netgsmNotice': 'Ein 4-stelliger Verifizierungscode wird per SMS gesendet.',
+      'auth.poodleInfo': 'Pudel-Informationen',
+      'auth.poodleNamePlaceholder': 'Name deines Pudels (z.B. Mochi)',
+      'auth.usernamePlaceholder': 'Benutzername (z.B. mochi_toypoodle)',
+      'auth.sendCodeBtn': 'SMS-Bestätigungscode senden 📲',
+      'auth.secureFooter': 'Sichere Verbindung über OAuth 2.0 & SMS',
+      'auth.hasAccount': 'Hast du bereits ein Konto?',
+      'auth.noAccount': 'Noch kein Poodle-Konto?',
+      'auth.createAccount': 'Poodle-Konto erstellen',
+      'nav.home': 'Startseite',
+      'nav.search': 'Suche',
+      'nav.explore': 'Entdecken',
+      'nav.reels': 'Reels',
+      'nav.messages': 'Nachrichten',
+      'nav.notifications': 'Mitteilungen',
+      'nav.create': 'Erstellen',
+      'nav.pawPoints': 'Pfoten-Punkte',
+      'nav.poodleHub': 'Pudel-Hub & Pass',
+      'nav.profile': 'Profil',
+      'nav.toggleTheme': 'Design wechseln',
+      'nav.language': 'Sprache',
+      'nav.login': 'Anmelden / Registrieren',
+      'nav.guestUser': 'Gast',
+      'nav.logout': 'Abmelden',
+      'nav.community': 'Fragen & Antworten',
+
+      'feed.welcomeGuest': 'Willkommen bei YourPoodle! Tritt der weltweiten Pudel-Gemeinschaft bei.',
+      'feed.goodMorning': 'Guten Morgen',
+      'feed.goodAfternoon': 'Guten Tag',
+      'feed.goodEvening': 'Guten Abend',
+      'feed.streakDays': 'Tage Serie',
+      'feed.streakBonus': '+10 Bonus',
+      'feed.actionShare': 'Beitrag',
+      'feed.actionReels': 'Reels',
+      'feed.actionStory': '+ Story',
+      'feed.actionPixar': '3D Pixar',
+      'feed.actionPark': 'Im Park',
+      'feed.actionParkDefault': 'Park',
+      'feed.chipParasite': 'Parasiten: 4 Tage',
+      'feed.chipWeight': '2,85 kg · Ideal',
+      'feed.chipPassport': 'Pass',
+      'feed.userStory': 'Deine Story',
+      'feed.allCaughtUp': 'Alles gesehen!',
+      'feed.allCaughtUpSub': 'Du hast alle neuen Beiträge der letzten 3 Tage gesehen.',
+
+      'filter.all': '🐾 Alle',
+      'filter.red': '🔴 Red Apricot',
+      'filter.toy': '🧸 Toy-Pudel',
+      'filter.white': '⚪ Weiß & Creme',
+      'filter.silver': '⚫ Silber & Schwarz',
+      'filter.choco': '🍫 Schoko',
+      'filter.standard': '🐩 Großpudel',
+
+      'comm.title': 'Pudel Fragen & Antworten Community',
+      'comm.badge': 'Live-Hilfe',
+      'comm.desc': 'Stelle jede Frage zu Gesundheit, Impfungen, Futter, Schur und Erziehung; erfahrene Pudelbesitzer und Tierärzte helfen dir weiter.',
+      'comm.statAnswered': '💬 1.400+ beantwortete Fragen',
+      'comm.statExperts': '🩺 Tierarzt & Groomer verifiziert',
+      'comm.statPoints': '🐾 +25 Punkte pro Frage',
+      'comm.askBtn': 'Frage stellen (+25 Pkt. 🐾)',
+      'comm.searchPlaceholder': 'Fragen suchen (z. B. Impfungen, Tränenstein, Patella, Schur, Stubenreinheit)...',
+      'comm.refresh': 'Aktualisieren',
+      'comm.catAll': 'Alle Fragen',
+      'comm.catHealth': '🩺 Gesundheit & Impfung',
+      'comm.catDiet': '🥩 Ernährung & Futter',
+      'comm.catGrooming': '✂️ Fellpflege & Schur',
+      'comm.catTraining': '🎾 Training & Stubenreinheit',
+      'comm.catMeetup': '👋 Austausch & Tipps',
+      'comm.catCity': '📍 Pudeltreffen vor Ort',
+      'comm.breedLabel': 'Größe:',
+      'comm.varAll': 'Alle',
+      'comm.varToy': '🐩 Toy',
+      'comm.varMini': '🐕 Zwerg/Klein',
+      'comm.varStd': '👑 Großpudel',
+      'comm.replies': 'Antworten',
+      'comm.views': 'Aufrufe',
+      'comm.helpful': 'hilfreich',
+      'comm.readAndReply': 'Antworten ansehen 💬',
+      'comm.answeredBadge': 'Beantwortet ✅',
+      'comm.photoBadge': '📸 Mit Foto',
+      'comm.emptyTitle': 'Noch keine Fragen in dieser Kategorie.',
+      'comm.emptyDesc': 'Sei der Erste, der eine Frage stellt!',
+      'comm.firstQuestionBtn': 'Erste Frage stellen (+25 Pkt. 🐾)',
+      'comm.loading': 'Fragen und Erfahrungen werden geladen... 🐾',
+      'comm.helpfulAnswer': '🐾 Hilfreiche Antwort',
+      'comm.replyInputPlaceholder': 'Teile deine Erfahrung oder deinen Rat (+10 Pkt. 🐾)...',
+      'comm.replyBtn': 'Antworten',
+      'comm.solutionBadge': 'Lösung ⭐',
+      'comm.expertVet': '🩺 Tierarzt',
+      'comm.expertGroomer': '✂️ Hundefriseur',
+      'comm.expertTrainer': '🎾 Hundetrainer',
+      'comm.member': 'Mitglied',
+
+      'modal.askTitle': 'Frage an die Pudel-Community 🐾',
+      'modal.titleLabel': 'Fragetitel *',
+      'modal.titlePlaceholder': 'Z. B.: 24h Schlappheit nach der 2. Welpenimpfung – normal?',
+      'modal.catLabel': 'Kategorie *',
+      'modal.varietyLabel': 'Pudel-Größe',
+      'modal.cityLabel': 'Stadt',
+      'modal.cityPlaceholder': 'Z. B.: Berlin, München, Wien, Zürich...',
+      'modal.detailsLabel': 'Details & Beschreibung *',
+      'modal.detailsPlaceholder': 'Beschreibe Symptome, Alter deines Pudels und deine Beobachtungen...',
+      'modal.addPhotoLabel': '📸 Foto hinzufügen (Optional)',
+      'modal.addPhotoHint': 'Hautausschlag, Impfpass, Schur oder Futterpackung',
+      'modal.photoBoxText': 'Foto auswählen oder mit Kamera aufnehmen',
+      'modal.photoBoxSub': 'JPG, PNG (Max. 10MB)',
+      'modal.postBtn': 'Frage in der Community veröffentlichen 🐾',
+      'modal.postBtnSub': '+25 Pkt.',
+
+      'modal.questionDetail': 'Community-Frage',
+      'modal.upvoteQuestion': '🐾 Hilfreiche Frage',
+      'modal.repliesHeader': 'Antworten & Erfahrungen',
+      'modal.noRepliesYet': 'Noch keine Antworten. Teile als Erster deine Erfahrung! 🐾',
+
+      'post.like': 'Gefällt mir',
+      'post.comment': 'Kommentieren',
+      'post.share': 'Teilen',
+      'post.save': 'Speichern',
+      'post.likes': 'Gefällt-mir-Angaben',
+      'post.viewAllComments': 'Alle Kommentare anzeigen',
+      'post.addComment': 'Kommentar hinzufügen...',
+      'post.postBtn': 'Posten',
+
+      'auth.title': 'Willkommen bei YourPoodle',
+      'auth.phoneLabel': 'Mobiltelefonnummer',
+      'auth.sendOtp': 'Code anfordern',
+      'auth.otpLabel': 'SMS-Bestätigungscode',
+      'auth.verifyBtn': 'Bestätigen & Weiter',
+      'auth.patternTitle': 'Geheimes Entsperrmuster',
+      'auth.patternSub': 'Muster zeichnen zum Entsperren',
+      'auth.forgotPattern': 'Muster vergessen? Per SMS zurücksetzen',
+      'auth.loginBtn': 'Anmelden',
+
+      'hub.title': 'Digitaler Pudel-Pass & Gesundheitsheft',
+      'hub.vaccineTab': '💉 Impfungen',
+      'hub.weightTab': '⚖️ Gewichtskurve',
+      'hub.infoTab': '🪪 Chip & Daten',
+      'hub.emergencyTag': '🚨 QR-Notfallmarke',
+
+      'notif.title': 'Mitteilungen',
+      'notif.all': 'Alle',
+      'notif.likes': 'Likes',
+      'notif.comments': 'Kommentare',
+      'notif.community': 'Fragen Q&A',
+      'notif.markAllRead': 'Alle als gelesen markieren',
+      'notif.empty': 'Keine neuen Mitteilungen.',
+
+      'toast.langChanged': 'Sprache auf Deutsch geändert 🇩🇪',
+      'toast.loginRequired': 'Bitte melde dich an, um fortzufahren 🐾',
+      'toast.questionPosted': 'Frage erfolgreich gepostet! +25 Pfoten-Punkte erhalten 🐾🎉',
+      'toast.replyPosted': 'Antwort gesendet! +10 Pfoten-Punkte 🐾',
+      'toast.helpfulVoted': 'Als hilfreich markiert! 🐾❤️',
+      'toast.linkCopied': 'Link in die Zwischenablage kopiert! 📋',
+      'guest.welcomeTitle': "Erstelle ein Profil für deinen Pudel und erhalte +100 Pfoten-Punkte!",
+      'guest.welcomeSub': "Fotos teilen, Punkte sammeln und im Rampenlicht stehen ✨",
+      'guest.exploreBtn': "🪪 Entdecken",
+      'guest.joinBtn': "Jetzt beitreten",
+      'auth.loginOrRegister': "Anmelden / Registrieren",
+      'nav.switchTheme': "Design wechseln",
+      'badge.vet': "🩺 Tierarzt",
+      'badge.groomer': "✂️ Hundefriseur",
+      'badge.trainer': "🎾 Hundetrainer",
+      'comm.solved': "Beantwortet ✅",
+      'comm.withPhoto': "📸 Mit Foto",
+      'dash.streakDays': "Tage Serie",
+      'dash.claimStreak': "+10 Pfoten Bonus",
+      'dash.claimedStreak': "✓ Bonus erhalten",
+      'dash.inPark': "Im Park",
+      'dash.atPark': "Zum Park",
+      'dash.parasiteDays': "Parasitenschutz: 4 Tage",
+      'dash.weightIdeal': "kg · Ideal"
+    },
+
+    // ================= PT (PORTUGUÊS) =================
+    'pt': {
+      // --- Sidebar Translations (pt) ---
+      'sidebar.poodleLover': 'Amante de Poodles 🐾',
+      'sidebar.weeklyLeaders': 'Líderes de Patas da Semana',
+      'sidebar.liveBadge': 'Ao vivo',
+      'sidebar.suggestions': 'Sugestões para você',
+      'sidebar.seeAll': 'Ver tudo',
+      // --- Country Selection Keys (pt) ---
+      'auth.countryLabel': 'Seleção de país',
+      'create.countryTag': 'Tag do país',
+      // --- Footer Translations (pt) ---
+      'footer.about': 'Sobre nós',
+      'footer.help': 'Ajuda',
+      'footer.press': 'Imprensa',
+      'footer.api': 'API',
+      'footer.privacy': 'Privacidade',
+      'footer.terms': 'Termos',
+      'footer.locations': 'Localizações',
+      'footer.language': 'Idioma',
+      // --- Dynamic & Social Injections (pt) ---
+      'feed.forYou': 'Para você',
+      'feed.following': 'Seguindo',
+      'reels.gift': 'Presente',
+      'reels.live': 'AO VIVO',
+      'auth.oauthTitle': '⚡ Login rápido em 1 clique',
+      'auth.googleContinue': 'Continuar com o Google',
+      'auth.appleContinue': 'Iniciar sessão com a Apple',
+      'auth.oneClickBadge': '1 Clique ⚡',
+      'auth.fastAppleBadge': 'Rápido 🍎',
+      'auth.orPhone': 'ou com telefone / sms',
+      'auth.tabSignup': '🐾 Cadastre-se (+100 Patas)',
+      'auth.tabLogin': '📲 Entrar',
+      'auth.symbolQuickBtn': 'Entrar com padrão de segurança',
+      'auth.netgsmNotice': 'Um código de verificação de 4 dígitos será enviado por SMS.',
+      'auth.poodleInfo': 'Informações do Poodle',
+      'auth.poodleNamePlaceholder': 'Nome do seu Poodle (Ex: Mochi)',
+      'auth.usernamePlaceholder': 'Nome de usuário (Ex: mochi_toypoodle)',
+      'auth.sendCodeBtn': 'Enviar código por SMS 📲',
+      'auth.secureFooter': 'Conexão segura via OAuth 2.0 e SMS',
+      'auth.hasAccount': 'Já tem uma conta?',
+      'auth.noAccount': 'Não tem uma conta do Poodle?',
+      'auth.createAccount': 'Criar conta do Poodle',
+      'nav.home': 'Início',
+      'nav.search': 'Pesquisar',
+      'nav.explore': 'Explorar',
+      'nav.reels': 'Reels',
+      'nav.messages': 'Mensagens',
+      'nav.notifications': 'Notificações',
+      'nav.create': 'Criar',
+      'nav.pawPoints': 'Pontos Patinha',
+      'nav.poodleHub': 'Painel e Passaporte',
+      'nav.profile': 'Perfil',
+      'nav.toggleTheme': 'Mudar aparência',
+      'nav.language': 'Idioma',
+      'nav.login': 'Entrar / Cadastrar',
+      'nav.guestUser': 'Visitante',
+      'nav.logout': 'Sair',
+      'nav.community': 'Comunidade Q&A',
+
+      'feed.welcomeGuest': 'Bem-vindo ao YourPoodle! Junte-se à comunidade mundial de Poodles.',
+      'feed.goodMorning': 'Bom dia',
+      'feed.goodAfternoon': 'Boa tarde',
+      'feed.goodEvening': 'Boa noite',
+      'feed.streakDays': 'Dias seguidos',
+      'feed.streakBonus': '+10 Bônus',
+      'feed.actionShare': 'Postar',
+      'feed.actionReels': 'Reels',
+      'feed.actionStory': '+ Story',
+      'feed.actionPixar': '3D Pixar',
+      'feed.actionPark': 'No parque',
+      'feed.actionParkDefault': 'Parque',
+      'feed.chipParasite': 'Parasitas: 4 dias',
+      'feed.chipWeight': '2,85 kg · Ideal',
+      'feed.chipPassport': 'Passaporte',
+      'feed.userStory': 'Seu Story',
+      'feed.allCaughtUp': 'Você está em dia!',
+      'feed.allCaughtUpSub': 'Você viu todas as postagens dos últimos 3 dias.',
+
+      'filter.all': '🐾 Todos',
+      'filter.red': '🔴 Red Apricot',
+      'filter.toy': '🧸 Poodle Toy',
+      'filter.white': '⚪ Branco e Creme',
+      'filter.silver': '⚫ Prata e Preto',
+      'filter.choco': '🍫 Chocolate',
+      'filter.standard': '🐩 Poodle Gigante',
+
+      'comm.title': 'Comunidade de Ajuda e Dúvidas Poodle',
+      'comm.badge': 'Ajuda ao Vivo',
+      'comm.desc': 'Tire dúvidas sobre saúde, vacinas, alimentação, tosa e adestramento; tutores experientes e veterinários respondem a você.',
+      'comm.statAnswered': '💬 +1.400 Dúvidas respondidas',
+      'comm.statExperts': '🩺 Apoio de veterinários e tosadores',
+      'comm.statPoints': '🐾 +25 Pontos por pergunta',
+      'comm.askBtn': 'Fazer Pergunta (+25 Patinha 🐾)',
+      'comm.searchPlaceholder': 'Pesquisar dúvidas (ex: vacinas, lágrima ácida, patela, tosa, xixi)...',
+      'comm.refresh': 'Atualizar',
+      'comm.catAll': 'Todas as perguntas',
+      'comm.catHealth': '🩺 Saúde e Vacinas',
+      'comm.catDiet': '🥩 Dieta e Ração',
+      'comm.catGrooming': '✂️ Tosa e Pelagem',
+      'comm.catTraining': '🎾 Adestramento e Xixi',
+      'comm.catMeetup': '👋 Encontros e Dicas',
+      'comm.catCity': '📍 Passeios por Cidade',
+      'comm.breedLabel': 'Porte:',
+      'comm.varAll': 'Todos',
+      'comm.varToy': '🐩 Toy',
+      'comm.varMini': '🐕 Miniatura',
+      'comm.varStd': '👑 Gigante',
+      'comm.replies': 'respostas',
+      'comm.views': 'visualizações',
+      'comm.helpful': 'acharam útil',
+      'comm.readAndReply': 'Ver respostas e responder 💬',
+      'comm.answeredBadge': 'Respondida ✅',
+      'comm.photoBadge': '📸 Com foto',
+      'comm.emptyTitle': 'Nenhuma pergunta nesta categoria ainda.',
+      'comm.emptyDesc': 'Seja o primeiro a perguntar! Nossa comunidade vai ajudar você.',
+      'comm.firstQuestionBtn': 'Fazer a primeira pergunta (+25 Patinha 🐾)',
+      'comm.loading': 'Carregando dúvidas e experiências... 🐾',
+      'comm.helpfulAnswer': '🐾 Resposta útil',
+      'comm.replyInputPlaceholder': 'Compartilhe sua experiência ou conselho (+10 Patinha 🐾)...',
+      'comm.replyBtn': 'Responder',
+      'comm.solutionBadge': 'Melhor resposta ⭐',
+      'comm.expertVet': '🩺 Veterinário',
+      'comm.expertGroomer': '✂️ Tosador',
+      'comm.expertTrainer': '🎾 Adestrador',
+      'comm.member': 'Membro',
+
+      'modal.askTitle': 'Perguntar à Comunidade Poodle 🐾',
+      'modal.titleLabel': 'Título da pergunta *',
+      'modal.titlePlaceholder': 'Ex: É normal filhote ficar 24h sonolento após 2ª dose de vacina?',
+      'modal.catLabel': 'Categoria *',
+      'modal.varietyLabel': 'Porte do Poodle',
+      'modal.cityLabel': 'Cidade',
+      'modal.cityPlaceholder': 'Ex: São Paulo, Rio de Janeiro, Lisboa, Curitiba...',
+      'modal.detailsLabel': 'Detalhes da consulta *',
+      'modal.detailsPlaceholder': 'Descreva os sintomas, a idade do seu cãozinho e o que você notou...',
+      'modal.addPhotoLabel': '📸 Adicionar foto (Opcional)',
+      'modal.addPhotoHint': 'Alergia, carteira de vacinação, tosa ou pacote de ração',
+      'modal.photoBoxText': 'Escolher foto ou tirar com a câmera',
+      'modal.photoBoxSub': 'JPG, PNG (Máx 10MB)',
+      'modal.postBtn': 'Publicar pergunta na comunidade 🐾',
+      'modal.postBtnSub': '+25 Patinha',
+
+      'modal.questionDetail': 'Dúvida da comunidade',
+      'modal.upvoteQuestion': '🐾 Pergunta útil',
+      'modal.repliesHeader': 'Respostas e Experiências',
+      'modal.noRepliesYet': 'Ainda sem respostas. Seja o primeiro a compartilhar sua dica! 🐾',
+
+      'post.like': 'Curtir',
+      'post.comment': 'Comentar',
+      'post.share': 'Compartilhar',
+      'post.save': 'Salvar',
+      'post.likes': 'curtidas',
+      'post.viewAllComments': 'Ver todos os comentários',
+      'post.addComment': 'Adicione um comentário...',
+      'post.postBtn': 'Publicar',
+
+      'auth.title': 'Bem-vindo ao YourPoodle',
+      'auth.phoneLabel': 'Número de telefone celular',
+      'auth.sendOtp': 'Enviar código SMS',
+      'auth.otpLabel': 'Código de verificação',
+      'auth.verifyBtn': 'Verificar e continuar',
+      'auth.patternTitle': 'Padrão secreto de desbloqueio',
+      'auth.patternSub': 'Desenhe seu padrão para entrar',
+      'auth.forgotPattern': 'Esqueceu o padrão? Recuperar por SMS',
+      'auth.loginBtn': 'Entrar',
+
+      'hub.title': 'Passaporte Digital e Saúde do Poodle',
+      'hub.vaccineTab': '💉 Vacinas',
+      'hub.weightTab': '⚖️ Gráfico de Peso',
+      'hub.infoTab': '🪪 Chip e Cadastro',
+      'hub.emergencyTag': '🚨 Placa QR anti-perda',
+
+      'notif.title': 'Notificações',
+      'notif.all': 'Todas',
+      'notif.likes': 'Curtidas',
+      'notif.comments': 'Comentários',
+      'notif.community': 'Comunidade Q&A',
+      'notif.markAllRead': 'Marcar tudo como lido',
+      'notif.empty': 'Nenhuma notificação no momento.',
+
+      'toast.langChanged': 'Idioma alterado para Português 🇧🇷',
+      'toast.loginRequired': 'Por favor, faça login para continuar 🐾',
+      'toast.questionPosted': 'Pergunta publicada com sucesso! +25 Pontos Patinha 🐾🎉',
+      'toast.replyPosted': 'Resposta enviada! +10 Pontos Patinha 🐾',
+      'toast.helpfulVoted': 'Marcado como útil! 🐾❤️',
+      'toast.linkCopied': 'Link copiado para a área de transferência! 📋',
+      'guest.welcomeTitle': "Crie uma conta para o seu Poodle e ganhe +100 Pontos Patinha!",
+      'guest.welcomeSub': "Compartilhe fotos, acumule pontos e ganhe destaque ✨",
+      'guest.exploreBtn': "🪪 Explorar",
+      'guest.joinBtn': "Entrar Agora",
+      'auth.loginOrRegister': "Entrar / Cadastrar",
+      'nav.switchTheme': "Alternar tema",
+      'badge.vet': "🩺 Veterinário",
+      'badge.groomer': "✂️ Tosador",
+      'badge.trainer': "🎾 Adestrador",
+      'comm.solved': "Respondido ✅",
+      'comm.withPhoto': "📸 Com foto",
+      'dash.streakDays': "Dias seguidos",
+      'dash.claimStreak': "+10 Bônus Patinha",
+      'dash.claimedStreak': "✓ Bônus resgatado",
+      'dash.inPark': "No parque",
+      'dash.atPark': "Indo ao parque",
+      'dash.parasiteDays': "Vermífugo: 4 dias",
+      'dash.weightIdeal': "kg · Ideal"
+    },
+
+    // ================= KO (한국어) =================
+    'ko': {
+      // --- Sidebar Translations (ko) ---
+      'sidebar.poodleLover': '토이 푸들 애호가 🐾',
+      'sidebar.weeklyLeaders': '이번 주 발자국 리더',
+      'sidebar.liveBadge': '실시간',
+      'sidebar.suggestions': '회원님을 위한 추천',
+      'sidebar.seeAll': '모두 보기',
+      // --- Country Selection Keys (ko) ---
+      'auth.countryLabel': '국가 선택',
+      'create.countryTag': '국가 태그',
+      // --- Footer Translations (ko) ---
+      'footer.about': '회사 소개',
+      'footer.help': '도움말',
+      'footer.press': '보도자료',
+      'footer.api': 'API',
+      'footer.privacy': '개인정보처리방침',
+      'footer.terms': '이용약관',
+      'footer.locations': '지역',
+      'footer.language': '언어',
+      // --- Dynamic & Social Injections (ko) ---
+      'feed.forYou': '추천',
+      'feed.following': '팔로잉',
+      'reels.gift': '선물',
+      'reels.live': '라이브',
+      'auth.oauthTitle': '⚡ 원클릭 간편 로그인',
+      'auth.googleContinue': 'Google로 계속하기',
+      'auth.appleContinue': 'Apple로 로그인',
+      'auth.oneClickBadge': '1클릭 ⚡',
+      'auth.fastAppleBadge': '빠름 🍎',
+      'auth.orPhone': '또는 휴대폰 번호 / SMS',
+      'auth.tabSignup': '🐾 회원가입 (+100 발자국)',
+      'auth.tabLogin': '📲 로그인',
+      'auth.symbolQuickBtn': '보안 패턴으로 빠른 로그인',
+      'auth.netgsmNotice': '4자리 인증번호가 SMS로 발송됩니다.',
+      'auth.poodleInfo': '푸들 정보',
+      'auth.poodleNamePlaceholder': '푸들 이름 (예: 모찌)',
+      'auth.usernamePlaceholder': '사용자 아이디 (예: mochi_toypoodle)',
+      'auth.sendCodeBtn': 'SMS 인증번호 전송 📲',
+      'auth.secureFooter': 'OAuth 2.0 및 SMS 보안 연결',
+      'auth.hasAccount': '이미 계정이 있으신가요?',
+      'auth.noAccount': '푸들 계정이 없으신가요?',
+      'auth.createAccount': '푸들 계정 만들기',
+      'nav.home': '홈',
+      'nav.search': '검색',
+      'nav.explore': '탐색',
+      'nav.reels': '릴스',
+      'nav.messages': '메시지',
+      'nav.notifications': '알림',
+      'nav.create': '만들기',
+      'nav.pawPoints': '발바닥 포인트',
+      'nav.poodleHub': '푸들 허브 & 여권',
+      'nav.profile': '프로필',
+      'nav.toggleTheme': '화면 모드 변경',
+      'nav.language': '언어 (Language)',
+      'nav.login': '로그인 / 회원가입',
+      'nav.guestUser': '게스트',
+      'nav.logout': '로그아웃',
+      'nav.community': '푸들 지식인 Q&A',
+
+      'feed.welcomeGuest': 'YourPoodle에 오신 것을 환영합니다! 전 세계 푸들 가족과 소통하세요.',
+      'feed.goodMorning': '좋은 아침입니다',
+      'feed.goodAfternoon': '즐거운 오후입니다',
+      'feed.goodEvening': '편안한 저녁입니다',
+      'feed.streakDays': '일 연속 출석',
+      'feed.streakBonus': '+10P 보너스',
+      'feed.actionShare': '사진 공유',
+      'feed.actionReels': '릴스',
+      'feed.actionStory': '+ 스토리',
+      'feed.actionPixar': '3D 픽사',
+      'feed.actionPark': '산책 중',
+      'feed.actionParkDefault': '공원',
+      'feed.chipParasite': '구충: 4일 남음',
+      'feed.chipWeight': '2.85 kg · 적정',
+      'feed.chipPassport': '여권',
+      'feed.userStory': '나의 스토리',
+      'feed.allCaughtUp': '모두 확인했습니다!',
+      'feed.allCaughtUpSub': '최근 3일간의 새 게시물을 모두 확인하셨습니다.',
+
+      'filter.all': '🐾 전체',
+      'filter.red': '🔴 레드/애프리콧',
+      'filter.toy': '🧸 토이 푸들',
+      'filter.white': '⚪ 화이트 & 크림',
+      'filter.silver': '⚫ 실버 & 블랙',
+      'filter.choco': '🍫 초콜릿',
+      'filter.standard': '🐩 스탠다드 푸들',
+
+      'comm.title': '푸들 전문 Q&A & 나눔 커뮤니티',
+      'comm.badge': '실시간 지식인',
+      'comm.desc': '건강, 예방접종, 사료, 미용, 배변훈련에 관한 모든 질문을 남겨보세요. 경험 많은 보호자들과 전문 수의사가 친절히 답변해 드립니다.',
+      'comm.statAnswered': '💬 1,400+ 해결된 질문',
+      'comm.statExperts': '🩺 수의사 & 미용사 공인 인증',
+      'comm.statPoints': '🐾 질문 시 +25P, 답변 시 +10P',
+      'comm.askBtn': '질문하기 (+25P 🐾)',
+      'comm.searchPlaceholder': '질문 검색 (예: 백신 후 열감, 눈물자국, 슬개골 탈구, 배변훈련, 미용)...',
+      'comm.refresh': '새로고침',
+      'comm.catAll': '전체 질문',
+      'comm.catHealth': '🩺 건강 & 예방접종',
+      'comm.catDiet': '🥩 사료 & 자연식',
+      'comm.catGrooming': '✂️ 미용 & 털 관리',
+      'comm.catTraining': '🎾 배변 & 분리불안 훈련',
+      'comm.catMeetup': '👋 반려 생활 노하우',
+      'comm.catCity': '📍 지역별 정모/산책',
+      'comm.breedLabel': '푸들 종류:',
+      'comm.varAll': '전체',
+      'comm.varToy': '🐩 토이',
+      'comm.varMini': '🐕 미니어처',
+      'comm.varStd': '👑 스탠다드',
+      'comm.replies': '개의 답변',
+      'comm.views': '회 조회',
+      'comm.helpful': '명이 도움됨',
+      'comm.readAndReply': '답변 보기 & 작성 💬',
+      'comm.answeredBadge': '해결됨 ✅',
+      'comm.photoBadge': '📸 사진 첨부',
+      'comm.emptyTitle': '이 카테고리에는 아직 질문이 없습니다.',
+      'comm.emptyDesc': '첫 번째 질문을 남겨보세요! 전국의 푸들 가족이 함께 고민해 드립니다.',
+      'comm.firstQuestionBtn': '첫 질문 작성하기 (+25P 🐾)',
+      'comm.loading': '질문과 답변을 불러오는 중... 🐾',
+      'comm.helpfulAnswer': '🐾 유용한 답변',
+      'comm.replyInputPlaceholder': '소중한 경험이나 조언을 공유해주세요 (+10P 🐾)...',
+      'comm.replyBtn': '답변 등록',
+      'comm.solutionBadge': '채택된 답변 ⭐',
+      'comm.expertVet': '🩺 수의사',
+      'comm.expertGroomer': '✂️ 애견 미용사',
+      'comm.expertTrainer': '🎾 반려견 훈련사',
+      'comm.member': '회원',
+
+      'modal.askTitle': '푸들 커뮤니티에 질문하기 🐾',
+      'modal.titleLabel': '질문 제목 *',
+      'modal.titlePlaceholder': '예: 3개월 토이푸들 2차 접종 후 하루 종일 자는데 괜찮을까요?',
+      'modal.catLabel': '카테고리 *',
+      'modal.varietyLabel': '푸들 체급',
+      'modal.cityLabel': '거주 지역',
+      'modal.cityPlaceholder': '예: 서울 강남구, 경기 분당, 부산 해운대...',
+      'modal.detailsLabel': '질문 내용 및 증상 설명 *',
+      'modal.detailsPlaceholder': '아이의 나이, 증상, 식욕 상태 등을 자세히 적어주세요...',
+      'modal.addPhotoLabel': '📸 사진 추가 (선택)',
+      'modal.addPhotoHint': '피부 발진, 접종 수첩, 털 상태, 사료 봉지 등',
+      'modal.photoBoxText': '사진 선택 또는 카메라로 촬영',
+      'modal.photoBoxSub': 'JPG, PNG (최대 10MB)',
+      'modal.postBtn': '커뮤니티에 질문 등록하기 🐾',
+      'modal.postBtnSub': '+25P',
+
+      'modal.questionDetail': '커뮤니티 질문',
+      'modal.upvoteQuestion': '🐾 도움된 질문',
+      'modal.repliesHeader': '답변 및 경험담',
+      'modal.noRepliesYet': '아직 답변이 없습니다. 첫 조언을 남겨주세요! 🐾',
+
+      'post.like': '좋아요',
+      'post.comment': '댓글',
+      'post.share': '공유',
+      'post.save': '저장',
+      'post.likes': '개 좋아요',
+      'post.viewAllComments': '댓글 모두 보기',
+      'post.addComment': '댓글 달기...',
+      'post.postBtn': '게시',
+
+      'auth.title': 'YourPoodle 로그인',
+      'auth.phoneLabel': '휴대전화 번호',
+      'auth.sendOtp': '인증번호 발송',
+      'auth.otpLabel': 'SMS 인증번호',
+      'auth.verifyBtn': '인증하고 시작하기',
+      'auth.patternTitle': '비밀 패턴 잠금',
+      'auth.patternSub': '등록된 패턴을 그려 로그인하세요',
+      'auth.forgotPattern': '패턴을 잊으셨나요? 휴대폰 인증으로 재설정',
+      'auth.loginBtn': '로그인',
+
+      'hub.title': '푸들 디지털 여권 & 건강수첩',
+      'hub.vaccineTab': '💉 예방접종',
+      'hub.weightTab': '⚖️ 체중 변화',
+      'hub.infoTab': '🪪 마이크로칩 등록',
+      'hub.emergencyTag': '🚨 실종 방지 스마트 QR',
+
+      'notif.title': '알림',
+      'notif.all': '전체',
+      'notif.likes': '좋아요',
+      'notif.comments': '댓글',
+      'notif.community': '지식인 Q&A',
+      'notif.markAllRead': '모두 읽음 표시',
+      'notif.empty': '새로운 알림이 없습니다.',
+
+      'toast.langChanged': '언어가 한국어로 변경되었습니다 🇰🇷',
+      'toast.loginRequired': '로그인이 필요한 서비스입니다 🐾',
+      'toast.questionPosted': '질문이 등록되었습니다! +25 포인트 적립 🐾🎉',
+      'toast.replyPosted': '답변이 등록되었습니다! +10 포인트 적립 🐾',
+      'toast.helpfulVoted': '유용한 답변으로 추천했습니다! 🐾❤️',
+      'toast.linkCopied': '링크가 복사되었습니다! 📋',
+      'guest.welcomeTitle': "푸들 전용 계정을 만들고 +100 발바닥 포인트를 받으세요!",
+      'guest.welcomeSub': "사진을 공유하고 포인트를 모아 메인 피드에 소개되어 보세요 ✨",
+      'guest.exploreBtn': "🪪 둘러보기",
+      'guest.joinBtn': "지금 가입하기",
+      'auth.loginOrRegister': "로그인 / 회원가입",
+      'nav.switchTheme': "화면 테마 변경",
+      'badge.vet': "🩺 수의사",
+      'badge.groomer': "✂️ 미용사",
+      'badge.trainer': "🎾 훈련사",
+      'comm.solved': "해결됨 ✅",
+      'comm.withPhoto': "📸 사진 포함",
+      'dash.streakDays': "일 연속 출석",
+      'dash.claimStreak': "+10 발바닥 보너스 받기",
+      'dash.claimedStreak': "✓ 보너스 수령 완료",
+      'dash.inPark': "공원 산책 중",
+      'dash.atPark': "공원 가기",
+      'dash.parasiteDays': "구충제: 4일 남음",
+      'dash.weightIdeal': "kg · 이상적 체중"
+    },
+
+    // ================= ZH-CN (简体中文) =================
+    'zh-CN': {
+      // --- Sidebar Translations (zh-CN) ---
+      'sidebar.poodleLover': '贵宾犬爱好者 🐾',
+      'sidebar.weeklyLeaders': '本周爪爪榜首',
+      'sidebar.liveBadge': '实时',
+      'sidebar.suggestions': '为你推荐',
+      'sidebar.seeAll': '查看全部',
+      // --- Country Selection Keys (zh-CN) ---
+      'auth.countryLabel': '国家/地区选择',
+      'create.countryTag': '国家标签',
+      // --- Footer Translations (zh-CN) ---
+      'footer.about': '关于我们',
+      'footer.help': '帮助中心',
+      'footer.press': '新闻资讯',
+      'footer.api': '开发者 API',
+      'footer.privacy': '隐私政策',
+      'footer.terms': '服务条款',
+      'footer.locations': '位置与地点',
+      'footer.language': '语言',
+      // --- Dynamic & Social Injections (zh-CN) ---
+      'feed.forYou': '为你推荐',
+      'feed.following': '正在关注',
+      'reels.gift': '礼物',
+      'reels.live': '直播',
+      'auth.oauthTitle': '⚡ 一键快捷登录',
+      'auth.googleContinue': '通过 Google 继续',
+      'auth.appleContinue': '通过 Apple 登录',
+      'auth.oneClickBadge': '一键 ⚡',
+      'auth.fastAppleBadge': '极速 🍎',
+      'auth.orPhone': '或使用手机号 / 短信验证',
+      'auth.tabSignup': '🐾 注册 (+100 肉爪)',
+      'auth.tabLogin': '📲 登录',
+      'auth.symbolQuickBtn': '通过安全手势快速登录',
+      'auth.netgsmNotice': '4位验证码将通过短信发送。',
+      'auth.poodleInfo': '贵宾犬信息',
+      'auth.poodleNamePlaceholder': '狗狗名字（例如：Mochi）',
+      'auth.usernamePlaceholder': '用户名（例如：mochi_toypoodle）',
+      'auth.sendCodeBtn': '发送短信验证码 📲',
+      'auth.secureFooter': '通过 OAuth 2.0 及短信安全连接',
+      'auth.hasAccount': '已有账号？',
+      'auth.noAccount': '还没有 YourPoodle 账号？',
+      'auth.createAccount': '注册账号',
+      'nav.home': '首页',
+      'nav.search': '搜索',
+      'nav.explore': '发现',
+      'nav.reels': '短视频',
+      'nav.messages': '私信',
+      'nav.notifications': '通知',
+      'nav.create': '发布',
+      'nav.pawPoints': '爪爪积分',
+      'nav.poodleHub': '贵宾犬档案与护照',
+      'nav.profile': '个人中心',
+      'nav.toggleTheme': '外观模式切换',
+      'nav.language': '语言 (Language)',
+      'nav.login': '登录 / 注册',
+      'nav.guestUser': '游客朋友',
+      'nav.logout': '退出登录',
+      'nav.community': '贵宾互助社区',
+
+      'feed.welcomeGuest': '欢迎来到 YourPoodle！加入全球贵宾犬家长温馨社区。',
+      'feed.goodMorning': '早上好',
+      'feed.goodAfternoon': '下午好',
+      'feed.goodEvening': '晚上好',
+      'feed.streakDays': '天连续打卡',
+      'feed.streakBonus': '+10 奖励',
+      'feed.actionShare': '发动态',
+      'feed.actionReels': '短视频',
+      'feed.actionStory': '+ 快拍',
+      'feed.actionPixar': '3D皮克斯',
+      'feed.actionPark': '在公园',
+      'feed.actionParkDefault': '公园',
+      'feed.chipParasite': '驱虫：还剩4天',
+      'feed.chipWeight': '2.85 kg · 理想',
+      'feed.chipPassport': '护照',
+      'feed.userStory': '你的快拍',
+      'feed.allCaughtUp': '全部看完了！',
+      'feed.allCaughtUpSub': '您已浏览最近3天的全部精彩动态。',
+
+      'filter.all': '🐾 全部',
+      'filter.red': '🔴 红棕色与杏色',
+      'filter.toy': '🧸 玩具贵宾 (泰迪)',
+      'filter.white': '⚪ 白色与奶油色',
+      'filter.silver': '⚫ 灰贵与黑色',
+      'filter.choco': '🍫 巧克力色',
+      'filter.standard': '🐩 巨型贵宾 (巨贵)',
+
+      'comm.title': '贵宾犬专业问答与家长互助社区',
+      'comm.badge': '在线互助',
+      'comm.desc': '提出有关健康、疫苗、狗粮、毛发造型和定点排便的疑问；全球资深犬主和专业兽医将热心为您解答。',
+      'comm.statAnswered': '💬 1,400+ 已解答疑问',
+      'comm.statExperts': '🩺 认证兽医与美容师支持',
+      'comm.statPoints': '🐾 提问得+25分，回答得+10分',
+      'comm.askBtn': '发起提问 (+25 积分 🐾)',
+      'comm.searchPlaceholder': '搜索问题（例如：多联疫苗反应、泪痕、髌骨脱位、泰迪装修剪、定点排便）...',
+      'comm.refresh': '刷新',
+      'comm.catAll': '全部问答',
+      'comm.catHealth': '🩺 健康与疫苗',
+      'comm.catDiet': '🥩 狗粮与自制鲜食',
+      'comm.catGrooming': '✂️ 毛发护理与造型',
+      'comm.catTraining': '🎾 行为训练与定点',
+      'comm.catMeetup': '👋 养犬经验与故事',
+      'comm.catCity': '📍 同城遛狗聚会',
+      'comm.breedLabel': '体型分类:',
+      'comm.varAll': '全部',
+      'comm.varToy': '🐩 玩具',
+      'comm.varMini': '🐕 迷你',
+      'comm.varStd': '👑 巨贵',
+      'comm.replies': '条解答',
+      'comm.views': '次浏览',
+      'comm.helpful': '人觉得有用',
+      'comm.readAndReply': '查看回答与讨论 💬',
+      'comm.answeredBadge': '已解答 ✅',
+      'comm.photoBadge': '📸 带图提问',
+      'comm.emptyTitle': '该分类下暂时还没有问题。',
+      'comm.emptyDesc': '成为第一个提问的家长吧！全球爱犬家庭和兽医会来帮助您。',
+      'comm.firstQuestionBtn': '提交第一个问题 (+25 积分 🐾)',
+      'comm.loading': '正在加载问答与经验分享... 🐾',
+      'comm.helpfulAnswer': '🐾 很有帮助',
+      'comm.replyInputPlaceholder': '分享您的经验或建议 (+10 积分 🐾)...',
+      'comm.replyBtn': '发表回复',
+      'comm.solutionBadge': '最佳采纳 ⭐',
+      'comm.expertVet': '🩺 兽医师',
+      'comm.expertGroomer': '✂️ 宠物美容师',
+      'comm.expertTrainer': '🎾 训犬师',
+      'comm.member': '社区会员',
+
+      'modal.askTitle': '向贵宾犬社区提问 🐾',
+      'modal.titleLabel': '问题标题 *',
+      'modal.titlePlaceholder': '例如：3个月幼犬打完二联疫苗后24小时嗜睡不吃东西正常吗？',
+      'modal.catLabel': '问题分类 *',
+      'modal.varietyLabel': '贵宾犬体型',
+      'modal.cityLabel': '所在城市',
+      'modal.cityPlaceholder': '例如：北京、上海、深圳、广州、香港、温哥华...',
+      'modal.detailsLabel': '问题详情与现状说明 *',
+      'modal.detailsPlaceholder': '请详细描述狗狗的月龄、精神状况、排便情况及用药史...',
+      'modal.addPhotoLabel': '📸 添加照片（可选）',
+      'modal.addPhotoHint': '发红皮疹、疫苗本、毛发打结或狗粮成分表照片',
+      'modal.photoBoxText': '选择相册照片或直接拍照',
+      'modal.photoBoxSub': 'JPG, PNG (最大 10MB)',
+      'modal.postBtn': '发布问题到社区 🐾',
+      'modal.postBtnSub': '+25 积分',
+
+      'modal.questionDetail': '问题详情',
+      'modal.upvoteQuestion': '🐾 点赞问题',
+      'modal.repliesHeader': '全部解答与真实经验',
+      'modal.noRepliesYet': '暂无回答。快来成为第一个分享经验的犬主吧！ 🐾',
+
+      'post.like': '赞',
+      'post.comment': '评论',
+      'post.share': '分享',
+      'post.save': '收藏',
+      'post.likes': '次赞',
+      'post.viewAllComments': '查看全部评论',
+      'post.addComment': '添加评论...',
+      'post.postBtn': '发布',
+
+      'auth.title': '欢迎登录 YourPoodle',
+      'auth.phoneLabel': '手机号码',
+      'auth.sendOtp': '获取验证码',
+      'auth.otpLabel': '短信验证码',
+      'auth.verifyBtn': '验证并继续',
+      'auth.patternTitle': '手势图案锁快捷登录',
+      'auth.patternSub': '绘制您保存的专属手势进行解锁',
+      'auth.forgotPattern': '忘记手势？通过短信验证码重置',
+      'auth.loginBtn': '立即登录',
+
+      'hub.title': '贵宾犬数字护照与健康手账',
+      'hub.vaccineTab': '💉 疫苗驱虫',
+      'hub.weightTab': '⚖️ 体重曲线',
+      'hub.infoTab': '🪪 芯片档案',
+      'hub.emergencyTag': '🚨 防走丢紧急二维码吊牌',
+
+      'notif.title': '消息通知',
+      'notif.all': '全部',
+      'notif.likes': '赞',
+      'notif.comments': '评论',
+      'notif.community': '问答社区',
+      'notif.markAllRead': '全部标为已读',
+      'notif.empty': '暂无新通知。',
+
+      'toast.langChanged': '语言已切换为 简体中文 🇨🇳',
+      'toast.loginRequired': '请登录后继续操作 🐾',
+      'toast.questionPosted': '问题发布成功！已获得 +25 爪爪积分 🐾🎉',
+      'toast.replyPosted': '回答发布成功！已获得 +10 爪爪积分 🐾',
+      'toast.helpfulVoted': '已标记为很有帮助！ 🐾❤️',
+      'toast.linkCopied': '链接已复制到剪贴板！ 📋',
+      'guest.welcomeTitle': "为您的贵宾犬创建专属账号，立享 +100 爪爪积分！",
+      'guest.welcomeSub': "分享萌宠美照，赢取积分上精选推荐 ✨",
+      'guest.exploreBtn': "🪪 探索",
+      'guest.joinBtn': "立即加入",
+      'auth.loginOrRegister': "登录 / 注册",
+      'nav.switchTheme': "切换外观",
+      'badge.vet': "🩺 执业兽医",
+      'badge.groomer': "✂️ 宠物美容师",
+      'badge.trainer': "🎾 训犬师",
+      'comm.solved': "已解答 ✅",
+      'comm.withPhoto': "📸 附带图片",
+      'dash.streakDays': "天连续活跃",
+      'dash.claimStreak': "+10 爪爪签到奖励",
+      'dash.claimedStreak': "✓ 奖励已领取",
+      'dash.inPark': "正在公园",
+      'dash.atPark': "去公园",
+      'dash.parasiteDays': "体内外驱虫: 4天后",
+      'dash.weightIdeal': "kg · 理想体型"
+    },
+
+    // ================= TR (TÜRKÇE - PRESERVED 9TH LANGUAGE) =================
+    'tr': {
+      // --- Sidebar Translations (tr) ---
+      'sidebar.poodleLover': 'Toy Poodle Sever 🐾',
+      'sidebar.weeklyLeaders': 'Haftanın Pati Liderleri',
+      'sidebar.liveBadge': 'Canlı',
+      'sidebar.suggestions': 'Senin İçin Öneriler',
+      'sidebar.seeAll': 'Tümünü Gör',
+      // --- Country Selection Keys (tr) ---
+      'auth.countryLabel': 'Ülke Seçimi',
+      'create.countryTag': 'Ülke Etiketi',
+      // --- Footer Translations (tr) ---
+      'footer.about': 'Hakkımızda',
+      'footer.help': 'Yardım',
+      'footer.press': 'Basın',
+      'footer.api': 'API',
+      'footer.privacy': 'Gizlilik',
+      'footer.terms': 'Koşullar',
+      'footer.locations': 'Konumlar',
+      'footer.language': 'Dil',
+      // --- Dynamic & Social Injections (tr) ---
+      'feed.forYou': 'Senin İçin',
+      'feed.following': 'Takip Edilenler',
+      'reels.gift': 'Hediye',
+      'reels.live': 'CANLI',
+      'auth.oauthTitle': '⚡ Tek Tıkla Hızlı Giriş',
+      'auth.googleContinue': 'Google ile Devam Et',
+      'auth.appleContinue': 'Apple ile Giriş Yap',
+      'auth.oneClickBadge': '1 Tık ⚡',
+      'auth.fastAppleBadge': 'Hızlı 🍎',
+      'auth.orPhone': 'veya telefon / sms ile',
+      'auth.tabSignup': '🐾 Kayıt Ol (+100 Pati)',
+      'auth.tabLogin': '📲 Giriş Yap',
+      'auth.symbolQuickBtn': 'Güvenlik Sembolüm ile Hızlı Giriş Yap',
+      'auth.netgsmNotice': '4 haneli doğrulama kodu Netgsm SMS ile gönderilecektir.',
+      'auth.poodleInfo': 'Poodle Bilgileri',
+      'auth.poodleNamePlaceholder': 'Poodle\'ının Adı (Örn: Mochi)',
+      'auth.usernamePlaceholder': 'Kullanıcı Adı (Örn: mochi_toypoodle)',
+      'auth.sendCodeBtn': 'SMS Doğrulama Kodu Gönder 📲',
+      'auth.secureFooter': 'OAuth 2.0 & Netgsm SMS ile güvenli bağlantı',
+      'auth.hasAccount': 'Zaten bir hesabın var mı?',
+      'auth.noAccount': 'Poodle hesabın yok mu?',
+      'auth.createAccount': 'Poodle Hesabı Aç',
+      'nav.home': 'Ana Sayfa',
+      'nav.search': 'Ara',
+      'nav.explore': 'Keşfet',
+      'nav.reels': 'Reels',
+      'nav.messages': 'Mesajlar',
+      'nav.notifications': 'Bildirimler',
+      'nav.create': 'Oluştur',
+      'nav.pawPoints': 'Pati Puanı',
+      'nav.poodleHub': 'Pati Paneli & Pasaport',
+      'nav.profile': 'Profil',
+      'nav.toggleTheme': 'Görünüm Değiştir',
+      'nav.language': 'Dil Seçimi',
+      'nav.login': 'Giriş Yap / Kaydol',
+      'nav.guestUser': 'Misafir Kullanıcı',
+      'nav.logout': 'Çıkış Yap',
+      'nav.community': 'Topluluk & Soru-Cevap',
+
+      'feed.welcomeGuest': 'YourPoodle\'a Hoş Geldiniz! Poodle severlerin akıllı sosyal kulübü.',
+      'feed.goodMorning': 'Günaydın',
+      'feed.goodAfternoon': 'İyi günler',
+      'feed.goodEvening': 'İyi akşamlar',
+      'feed.streakDays': 'Günlük Seri',
+      'feed.streakBonus': '+10 Pati Bonusu',
+      'feed.actionShare': 'Paylaş',
+      'feed.actionReels': 'Reels',
+      'feed.actionStory': '+ Hikaye',
+      'feed.actionPixar': '3D Pixar',
+      'feed.actionPark': 'Parktayım',
+      'feed.actionParkDefault': 'Park',
+      'feed.chipParasite': 'Parazit: 4 gün',
+      'feed.chipWeight': '2.85 kg · İdeal',
+      'feed.chipPassport': 'Pasaport',
+      'feed.userStory': 'Hikayen',
+      'feed.allCaughtUp': 'Hepsini gördün!',
+      'feed.allCaughtUpSub': 'Son 3 gündeki tüm yeni YourPoodle gönderilerini inceledin.',
+
+      'filter.all': '🐾 Tümü',
+      'filter.red': '🔴 Red Apricot',
+      'filter.toy': '🧸 Toy Poodle',
+      'filter.white': '⚪ Beyaz & Krem',
+      'filter.silver': '⚫ Gümüş & Siyah',
+      'filter.choco': '🍫 Çikolata',
+      'filter.standard': '🐩 Standart',
+
+      'comm.title': 'Poodle Soru-Cevap & Yardımlaşma Alanı',
+      'comm.badge': 'Canlı Dayanışma',
+      'comm.desc': 'Poodle\'ınızın sağlığı, aşıları, beslenmesi, tıraşı ve eğitimiyle ilgili sorularınızı sorun; deneyimli Poodle aileleri ve veterinerler yanıtlasın.',
+      'comm.statAnswered': '💬 1.400+ Yanıtlanmış Soru',
+      'comm.statExperts': '🩺 Uzman & Vet Destekli',
+      'comm.statPoints': '🐾 Soruya +25, Cevaba +10 Pati',
+      'comm.askBtn': 'Soru Sor (+25 Pati 🐾)',
+      'comm.searchPlaceholder': 'Kafana takılan soruyu ara (örn: karma aşı, göz lekesi, patella, tıraş, tuvalet eğitimi)...',
+      'comm.refresh': 'Yenile',
+      'comm.catAll': 'Tüm Sorular',
+      'comm.catHealth': '🩺 Sağlık & Aşı',
+      'comm.catDiet': '🥩 Beslenme & Mama',
+      'comm.catGrooming': '✂️ Bakım & Tıraş',
+      'comm.catTraining': '🎾 Eğitim & Tuvalet',
+      'comm.catMeetup': '👋 Tanışma & Deneyim',
+      'comm.catCity': '📍 Şehir Buluşmaları',
+      'comm.breedLabel': 'Poodle Cinsi:',
+      'comm.varAll': 'Tümü',
+      'comm.varToy': '🐩 Toy',
+      'comm.varMini': '🐕 Miniature',
+      'comm.varStd': '👑 Standard',
+      'comm.replies': 'yanıt',
+      'comm.views': 'görüntülenme',
+      'comm.helpful': 'faydalı bulan',
+      'comm.readAndReply': 'Yanıtları Oku & Cevapla 💬',
+      'comm.answeredBadge': 'Yanıtlandı ✅',
+      'comm.photoBadge': '📸 Fotoğraflı',
+      'comm.emptyTitle': 'Bu kategoride henüz soru bulunamadı.',
+      'comm.emptyDesc': 'Aklına takılan soruyu ilk soran sen ol, deneyimli Poodle aileleri ve veterinerler yanıtlasın!',
+      'comm.firstQuestionBtn': 'İlk Soruyu Sen Sor (+25 Pati 🐾)',
+      'comm.loading': 'Sorular ve deneyimler yükleniyor... 🐾',
+      'comm.helpfulAnswer': '🐾 Faydalı Yanıt',
+      'comm.replyInputPlaceholder': 'Deneyimini veya cevabını paylaş (+10 Pati 🐾)...',
+      'comm.replyBtn': 'Yanıtla',
+      'comm.solutionBadge': 'Çözüm ⭐',
+      'comm.expertVet': '🩺 Vet. Hekim',
+      'comm.expertGroomer': '✂️ Pet Kuaför',
+      'comm.expertTrainer': '🎾 Eğitmen',
+      'comm.member': 'Üye',
+
+      'modal.askTitle': 'Poodle Topluluğuna Soru Sor 🐾',
+      'modal.titleLabel': 'Soru Başlığı *',
+      'modal.titlePlaceholder': 'Örn: Toy Poodle için ilk tıraş ne zaman yapılmalı?',
+      'modal.catLabel': 'Kategori *',
+      'modal.varietyLabel': 'Poodle Boyu / Varyetesi',
+      'modal.cityLabel': 'Şehir',
+      'modal.cityPlaceholder': 'Örn: İstanbul, Ankara, İzmir...',
+      'modal.detailsLabel': 'Soru / Açıklama Detayları *',
+      'modal.detailsPlaceholder': 'Yaşadığınız durumu veya sormak istediğiniz ayrıntıları yazın...',
+      'modal.addPhotoLabel': '📸 Fotoğraf Ekle (İsteğe Bağlı)',
+      'modal.addPhotoHint': 'Alerji, aşı karnesi, kürk veya mama fotoğrafı',
+      'modal.photoBoxText': 'Fotoğraf Seç veya Kamerayla Çek',
+      'modal.photoBoxSub': 'JPG, PNG (Maks 10MB)',
+      'modal.postBtn': 'Soruyu Toplulukla Paylaş 🐾',
+      'modal.postBtnSub': '+25 Pati',
+
+      'modal.questionDetail': 'Topluluk Sorusu',
+      'modal.upvoteQuestion': '🐾 Faydalı Soru',
+      'modal.repliesHeader': 'Yanıtlar & Deneyimler',
+      'modal.noRepliesYet': 'Bu soruya henüz yanıt verilmemiş. İlk deneyimini paylaşan sen ol! 🐾',
+
+      'post.like': 'Beğen',
+      'post.comment': 'Yorum Yap',
+      'post.share': 'Paylaş',
+      'post.save': 'Kaydet',
+      'post.likes': 'beğenme',
+      'post.viewAllComments': 'Tüm yorumları gör',
+      'post.addComment': 'Yorum ekle...',
+      'post.postBtn': 'Paylaş',
+
+      'auth.title': 'YourPoodle\'a Giriş Yap',
+      'auth.phoneLabel': 'Cep Telefonu Numarası',
+      'auth.sendOtp': 'Doğrulama Kodu Gönder',
+      'auth.otpLabel': 'SMS Onay Kodu',
+      'auth.verifyBtn': 'Doğrula ve Devam Et',
+      'auth.patternTitle': 'Gizli Sembol Girişi',
+      'auth.patternSub': 'Giriş yapmak için sembolünüzü çizin',
+      'auth.forgotPattern': 'Sembolünüzü mü unuttunuz? SMS ile sıfırla',
+      'auth.loginBtn': 'Giriş Yap',
+
+      'hub.title': 'Dijital Poodle Pasaportu & Sağlık Kartı',
+      'hub.vaccineTab': '💉 Aşılar',
+      'hub.weightTab': '⚖️ Kilo Grafiği',
+      'hub.infoTab': '🪪 Çip & Kimlik',
+      'hub.emergencyTag': '🚨 Kayıp Tasması QR',
+
+      'notif.title': 'Bildirimler',
+      'notif.all': 'Tümü',
+      'notif.likes': 'Beğeniler',
+      'notif.comments': 'Yorumlar',
+      'notif.community': 'Topluluk Q&A',
+      'notif.markAllRead': 'Tümünü okundu işaretle',
+      'notif.empty': 'Henüz bildiriminiz yok.',
+
+      'toast.langChanged': 'Dil Türkçe olarak ayarlandı 🇹🇷',
+      'toast.loginRequired': 'Bu işlem için lütfen giriş yapın 🐾',
+      'toast.questionPosted': 'Sorunuz başarıyla yayınlandı! +25 Pati Puanı kazandınız 🐾🎉',
+      'toast.replyPosted': 'Yanıtınız paylaşıldı! +10 Pati Puanı kazandınız 🐾',
+      'toast.helpfulVoted': 'Yanıtı faydalı buldunuz! 🐾❤️',
+      'toast.linkCopied': 'Bağlantı panoya kopyalandı! 📋',
+      'guest.welcomeTitle': "Poodle'ın için hesap aç, +100 Pati Puanı kazan!",
+      'guest.welcomeSub': "Fotoğraflarını paylaş, puan topla, vitrinde öne çık ✨",
+      'guest.exploreBtn': "🪪 İncele",
+      'guest.joinBtn': "Hemen Katıl",
+      'auth.loginOrRegister': "Giriş Yap / Kaydol",
+      'nav.switchTheme': "Görünüm Değiştir",
+      'badge.vet': "🩺 Vet. Hekim",
+      'badge.groomer': "✂️ Pet Kuaför",
+      'badge.trainer': "🎾 Eğitmen",
+      'comm.solved': "Yanıtlandı ✅",
+      'comm.withPhoto': "📸 Fotoğraflı",
+      'dash.streakDays': "Günlük Seri",
+      'dash.claimStreak': "+10 Pati Bonusu Al",
+      'dash.claimedStreak': "✓ Bonus Alındı",
+      'dash.inPark': "Parktasın",
+      'dash.atPark': "Parktayım",
+      'dash.parasiteDays': "Parazit: 4 gün",
+      'dash.weightIdeal': "kg · İdeal"
+    }
+  };
+
+  let currentLang = DEFAULT_LANG;
+
+  function detectLanguage() {
+    // 1. Check URL path prefix (e.g. /en/, /ja/, /es/, /tr/, etc.)
+    const path = window.location.pathname.toLowerCase();
+    for (const lang of SUPPORTED_LANGS) {
+      if (path === `/${lang.code.toLowerCase()}` || path.startsWith(`/${lang.code.toLowerCase()}/`)) {
+        return lang.code;
+      }
+    }
+
+    // 2. Check localStorage
+    const saved = localStorage.getItem('yp_lang');
+    if (saved && SUPPORTED_LANGS.some(l => l.code === saved)) {
+      return saved;
+    }
+
+    // 3. Check browser language
+    const navLangs = navigator.languages || [navigator.language || ''];
+    for (const nl of navLangs) {
+      const code = nl.toLowerCase();
+      if (code.startsWith('ja')) return 'ja';
+      if (code.startsWith('ko')) return 'ko';
+      if (code.startsWith('zh')) return 'zh-CN';
+      if (code.startsWith('es')) return 'es';
+      if (code.startsWith('fr')) return 'fr';
+      if (code.startsWith('de')) return 'de';
+      if (code.startsWith('pt')) return 'pt';
+      if (code.startsWith('tr')) return 'tr';
+      if (code.startsWith('en')) return 'en';
+    }
+
+    // 4. Default to English
+    return DEFAULT_LANG;
+  }
+
+  function t(key, fallback) {
+    if (!key) return '';
+    const dict = TRANSLATIONS[currentLang] || TRANSLATIONS[DEFAULT_LANG];
+    if (dict && dict[key] !== undefined) {
+      return dict[key];
+    }
+    const enDict = TRANSLATIONS[DEFAULT_LANG];
+    if (enDict && enDict[key] !== undefined) {
+      return enDict[key];
+    }
+    return fallback !== undefined ? fallback : null;
+  }
+
+  function setLanguage(langCode, updateUrl = true) {
+    const langObj = SUPPORTED_LANGS.find(l => l.code === langCode);
+    if (!langObj) return;
+
+    currentLang = langCode;
+    localStorage.setItem('yp_lang', langCode);
+
+    // Update document attributes
+    document.documentElement.lang = langCode;
+    document.documentElement.dir = langObj.dir || 'ltr';
+
+    // Update document title & meta description
+    if (SEO_TITLES[langCode]) {
+      document.title = SEO_TITLES[langCode];
+    }
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc && SEO_DESCRIPTIONS[langCode]) {
+      metaDesc.setAttribute('content', SEO_DESCRIPTIONS[langCode]);
+    }
+
+    // Update URL if requested
+    if (updateUrl) {
+      let path = window.location.pathname;
+      // Strip any existing language prefix
+      for (const l of SUPPORTED_LANGS) {
+        if (path === `/${l.code.toLowerCase()}` || path.startsWith(`/${l.code.toLowerCase()}/`)) {
+          path = path.slice(l.code.length + 1) || '/';
+          break;
+        }
+      }
+      if (!path.startsWith('/')) path = '/' + path;
+      const newPath = `/${langCode}${path === '/' ? '' : path}`;
+      if (window.location.pathname !== newPath) {
+        window.history.replaceState({ lang: langCode }, '', newPath + window.location.search + window.location.hash);
+      }
+    }
+
+    // Apply translations across DOM
+    applyDomTranslations();
+
+    // Update language selector triggers
+    updateLanguageSelectorsUI();
+
+    // Trigger re-renders in app if functions are available
+    if (typeof window.onLanguageChange === 'function') {
+      window.onLanguageChange(langCode);
+    }
+  }
+
+
+  // ================= MASTER PHRASE MAP (470+ INTERFACE PHRASES IN 9 LANGUAGES) =================
+  const PHRASE_MAP = {"Gizlilik":{"tr":"Gizlilik","en":"Privacy","ja":"プライバシー","es":"Privacidad","fr":"Confidentialité","de":"Datenschutz","pt":"Privacidade","ko":"개인정보처리방침","zh-CN":"隐私政策"},"Konumlar":{"tr":"Konumlar","en":"Locations","ja":"地域・拠点","es":"Ubicaciones","fr":"Lieux","de":"Standorte","pt":"Localizações","ko":"지역","zh-CN":"位置与地点"},"Dil":{"tr":"Dil","en":"Language","ja":"言語","es":"Idioma","fr":"Langue","de":"Sprache","pt":"Idioma","ko":"언어","zh-CN":"语言"},"Haftanın Pati Liderleri":{"tr":"Haftanın Pati Liderleri","en":"Weekly Paw Leaders","ja":"今週の肉球リーダー","es":"Líderes de Patas Semanales","fr":"Membres Étoiles de la Semaine","de":"Pfoten-Spitzenreiter der Woche","pt":"Líderes de Patas da Semana","ko":"이번 주 발자국 리더","zh-CN":"本周爪爪榜首"},"Toy Poodle Sever 🐾":{"tr":"Toy Poodle Sever 🐾","en":"Toy Poodle Lover 🐾","ja":"トイプードル愛好家 🐾","es":"Amante de Caniches 🐾","fr":"Passionné de Caniches 🐾","de":"Pudel-Liebhaber 🐾","pt":"Amante de Poodles 🐾","ko":"토이 푸들 애호가 🐾","zh-CN":"贵宾犬爱好者 🐾"},"Toy Poodle Sever":{"tr":"Toy Poodle Sever","en":"Toy Poodle Lover","ja":"トイプードル愛好家","es":"Amante de Caniches","fr":"Passionné de Caniches","de":"Pudel-Liebhaber","pt":"Amante de Poodles","ko":"토이 푸들 애호가","zh-CN":"贵宾犬爱好者"},"Aktif edildiğinde QR künyeyi okutan kişiye acil iletişim butonu, 5.000 TL ödül bilgisi ve GPS haritası gösterilir.":{"tr":"Aktif edildiğinde QR künyeyi okutan kişiye acil iletişim butonu, 5.000 TL ödül bilgisi ve GPS haritası gösterilir.","en":"When activated, an emergency contact button, 5,000 TL reward information and a GPS map will be displayed to the person who scans the QR tag.","ja":"有効にすると、QRタグをスキャンした人に緊急連絡ボタン、5,000TL特典情報、GPS地図が表示されます。","es":"Cuando se activa, se mostrará a la persona que escanee la etiqueta QR un botón de contacto de emergencia, información de recompensa de 5000 TL y un mapa GPS.","fr":"Lorsqu'il est activé, un bouton de contact d'urgence, des informations de récompense de 5 000 TL et une carte GPS seront affichés à la personne qui scanne l'étiquette QR.","de":"Bei Aktivierung werden der Person, die den QR-Tag scannt, eine Notfallkontakttaste, 5.000 TL-Prämieninformationen und eine GPS-Karte angezeigt.","pt":"Quando ativado, um botão de contato de emergência, informações de recompensa de 5.000 TL e um mapa GPS serão exibidos para a pessoa que digitalizar a etiqueta QR.","ko":"활성화되면 QR 태그를 스캔한 사람에게 긴급연락 버튼과 5,000TL 보상정보, GPS 지도가 표시됩니다.","zh-CN":"激活后，扫描 QR 标签的人将看到紧急联系按钮、5,000 TL 奖励信息和 GPS 地图。"},"💡 İncelemeler genellikle 24 saat içerisinde sonuçlandırılır. Belgeniz onaylandığında bildirim alacaksınız.":{"tr":"💡 İncelemeler genellikle 24 saat içerisinde sonuçlandırılır. Belgeniz onaylandığında bildirim alacaksınız.","en":"💡 Reviews are usually completed within 24 hours. You will receive notification when your document is approved.","ja":"💡 レビューは通常 24 時間以内に完了します。文書が承認されると通知が届きます。","es":"💡 Las revisiones generalmente se completan dentro de las 24 horas. Recibirá una notificación cuando su documento sea aprobado.","fr":"💡 Les évaluations sont généralement terminées dans les 24 heures. Vous recevrez une notification lorsque votre document sera approuvé.","de":"💡 Bewertungen werden in der Regel innerhalb von 24 Stunden abgeschlossen. Sie erhalten eine Benachrichtigung, wenn Ihr Dokument genehmigt wurde.","pt":"💡 As revisões geralmente são concluídas em 24 horas. Você receberá uma notificação quando seu documento for aprovado.","ko":"💡 리뷰는 일반적으로 24시간 이내에 완료됩니다. 문서가 승인되면 알림을 받게 됩니다.","zh-CN":"💡 审核通常在24小时内完成。当您的文件获得批准后，您将收到通知。"},"\"Merhaba! Ben Mochi. Ailemden uzaklaştım ve kayboldum. Lütfen aileme haber ver, beni çok merak ediyorlar!\"":{"tr":"\"Merhaba! Ben Mochi. Ailemden uzaklaştım ve kayboldum. Lütfen aileme haber ver, beni çok merak ediyorlar!\"","en":"\"Hello! I'm Mochi. I moved away from my family and got lost. Please inform my family, they are very curious about me!\"","ja":"「こんにちは！モチです。家族と離れて引っ越して迷子になってしまいました。家族に知らせてください。とても興味津々です！」","es":"\"¡Hola! Soy Mochi. Me alejé de mi familia y me perdí. ¡Por favor informa a mi familia, tienen mucha curiosidad por mí!\"","fr":"\"Bonjour ! Je m'appelle Mochi. J'ai quitté ma famille et je me suis perdu. S'il vous plaît, informez ma famille, elle est très curieuse à mon sujet !\"","de":"„Hallo! Ich bin Mochi. Ich bin von meiner Familie weggezogen und habe mich verlaufen. Bitte informieren Sie meine Familie, sie ist sehr neugierig auf mich!“","pt":"\"Olá! Meu nome é Mochi. Afastei-me da minha família e me perdi. Por favor, informe minha família, eles estão muito curiosos sobre mim!\"","ko":"\"안녕하세요! 저는 모찌입니다. 가족과 떨어져서 길을 잃었습니다. 가족들에게 알려주세요. 저에 대해 매우 궁금해합니다!\"","zh-CN":"“你好！我是Mochi。我搬离了家人，迷路了。请通知我的家人，他们对我很好奇！”"},"YourPoodle topluluğunda doğrulanmış aktif bir Toy Poodle profili olarak yer almak istiyorum.":{"tr":"YourPoodle topluluğunda doğrulanmış aktif bir Toy Poodle profili olarak yer almak istiyorum.","en":"I would like to join the YourPoodle community as a verified active Toy Poodle profile.","ja":"私は、検証済みのアクティブなトイ プードル プロフィールとして YourPoodle コミュニティに参加したいと考えています。","es":"Me gustaría unirme a la comunidad YourPoodle como un perfil de Toy Poodle activo verificado.","fr":"J'aimerais rejoindre la communauté YourPoodle en tant que profil Toy Poodle actif vérifié.","de":"Ich möchte der YourPoodle-Community als verifiziertes aktives Toypudel-Profil beitreten.","pt":"Gostaria de me juntar à comunidade YourPoodle como um perfil ativo verificado do Toy Poodle.","ko":"검증된 활성 토이 푸들 프로필로 YourPoodle 커뮤니티에 가입하고 싶습니다.","zh-CN":"我想加入 YourPoodle 社区，成为经过验证的活跃玩具贵宾犬个人资料。"},"Parktayım butonuna basıldığında park adı diğer Poodle dostlarına bildirim olarak iletilsin.":{"tr":"Parktayım butonuna basıldığında park adı diğer Poodle dostlarına bildirim olarak iletilsin.","en":"When the \"I'm in the park\" button is pressed, the park name will be sent as a notification to other Poodle friends.","ja":"「パークにいるよ」ボタンを押すと、パーク名が他のプードルのお友達に通知として送信されます。","es":"Cuando se presiona el botón \"Estoy en el parque\", el nombre del parque se enviará como notificación a otros amigos Poodle.","fr":"Lorsque vous appuyez sur le bouton \"Je suis dans le parc\", le nom du parc sera envoyé sous forme de notification aux autres amis caniches.","de":"Wenn die Schaltfläche „Ich bin im Park“ gedrückt wird, wird der Name des Parks als Benachrichtigung an andere Pudelfreunde gesendet.","pt":"Ao pressionar o botão \"Estou no parque\", o nome do parque será enviado como notificação para outros amigos Poodle.","ko":"\"나는 공원에 있습니다\" 버튼을 누르면 공원 이름이 다른 푸들 친구들에게 알림으로 전송됩니다.","zh-CN":"当按下“我在公园里”按钮时，公园名称将作为通知发送给其他贵宾犬朋友。"},"Kafana takılan soruyu ara (örn: karma aşı, göz lekesi, patella, tıraş, tuvalet eğitimi)...":{"tr":"Kafana takılan soruyu ara (örn: karma aşı, göz lekesi, patella, tıraş, tuvalet eğitimi)...","en":"Search for the question you are wondering about (e.g. combination vaccine, eye spot, patella, shaving, toilet training)...","ja":"気になる質問を検索してください (混合ワクチン、アイスポット、膝蓋骨、髭剃り、トイレトレーニングなど)...","es":"Busque la pregunta que le interesa (por ejemplo, vacuna combinada, mancha ocular, rótula, afeitado, entrenamiento para ir al baño)...","fr":"Recherchez la question qui vous pose des questions (par exemple vaccin combiné, taches oculaires, rotule, rasage, apprentissage de la propreté)...","de":"Suchen Sie nach der Frage, die Sie beschäftigt (z. B. Kombinationsimpfstoff, Augenfleckenkrankheit, Patella, Rasur, Toilettentraining) ...","pt":"Pesquise a pergunta sobre a qual você está se perguntando (por exemplo, vacina combinada, manchas no olho, patela, barbear, treinamento para usar o banheiro)...","ko":"궁금하신 점을 검색해 보세요(예: 복합백신, 안대, 슬개골, 면도, 배변훈련)...","zh-CN":"搜索您想知道的问题（例如联合疫苗、眼斑、髌骨、剃须、如厕训练）..."},"Beğendiğin Poodle fotoğraflarını ve videolarını daha sonra kolayca bulmak için kaydet.":{"tr":"Beğendiğin Poodle fotoğraflarını ve videolarını daha sonra kolayca bulmak için kaydet.","en":"Save the Poodle photos and videos you like to easily find them later.","ja":"気に入ったプードルの写真やビデオを保存しておくと、後で簡単に見つけることができます。","es":"Guarde las fotos y videos de Poodle que desee para encontrarlos fácilmente más tarde.","fr":"Enregistrez les photos et vidéos de caniche que vous aimez pour les retrouver facilement plus tard.","de":"Speichern Sie die Pudelfotos und -videos, die Ihnen gefallen, um sie später leicht wiederzufinden.","pt":"Salve as fotos e vídeos do Poodle que você gosta para encontrá-los facilmente mais tarde.","ko":"나중에 쉽게 찾을 수 있도록 좋아하는 푸들 사진과 비디오를 저장하세요.","zh-CN":"保存您喜欢的贵宾犬照片和视频，以便以后轻松找到它们。"},"Bu içeriğin topluluk kurallarını ihlal ettiğini düşünüyorsanız lütfen sebebi seçin:":{"tr":"Bu içeriğin topluluk kurallarını ihlal ettiğini düşünüyorsanız lütfen sebebi seçin:","en":"If you think this content violates the community guidelines, please select the reason:","ja":"このコンテンツがコミュニティ ガイドラインに違反していると思われる場合は、その理由を選択してください:","es":"Si cree que este contenido viola las pautas de la comunidad, seleccione el motivo:","fr":"Si vous pensez que ce contenu enfreint le règlement de la communauté, veuillez en sélectionner la raison :","de":"Wenn Sie der Meinung sind, dass dieser Inhalt gegen die Community-Richtlinien verstößt, wählen Sie bitte den Grund aus:","pt":"Se você acha que este conteúdo viola as diretrizes da comunidade, selecione o motivo:","ko":"이 콘텐츠가 커뮤니티 가이드라인을 위반한다고 생각되면 이유를 선택하세요.","zh-CN":"如果您认为此内容违反了社区准则，请选择原因："},"Yalnızca onayladığınız takipçiler gönderi ve reels videolarınızı izleyebilir.":{"tr":"Yalnızca onayladığınız takipçiler gönderi ve reels videolarınızı izleyebilir.","en":"Only followers you approve can watch your posts and reels.","ja":"あなたが承認したフォロワーのみがあなたの投稿とリールを視聴できます。","es":"Solo los seguidores que apruebes pueden ver tus publicaciones y carretes.","fr":"Seuls les abonnés que vous approuvez peuvent regarder vos publications et vos reels.","de":"Nur von Ihnen genehmigte Follower können Ihre Beiträge und Reels ansehen.","pt":"Somente seguidores que você aprovar podem assistir suas postagens e vídeos.","ko":"귀하가 승인한 팔로워만 귀하의 게시물과 영상을 볼 수 있습니다.","zh-CN":"只有您批准的关注者才能观看您的帖子和视频。"},"Kayıtlı Poodle profili bulunamadı. \"Yeni Poodle Ekle\" ile ekleyebilirsiniz.":{"tr":"Kayıtlı Poodle profili bulunamadı. \"Yeni Poodle Ekle\" ile ekleyebilirsiniz.","en":"No registered Poodle profiles found. You can add it with \"Add New Poodle\".","ja":"登録されたプードル プロファイルが見つかりません。 「新しいプードルを追加」で追加できます。","es":"No se encontraron perfiles de Caniche registrados. Puedes agregarlo con \"Agregar nuevo caniche\".","fr":"Aucun profil de caniche enregistré n'a été trouvé. Vous pouvez l'ajouter avec \"Ajouter un nouveau caniche\".","de":"Keine registrierten Pudelprofile gefunden. Sie können es mit „Neuen Pudel hinzufügen“ hinzufügen.","pt":"Nenhum perfil de Poodle registrado encontrado. Você pode adicioná-lo com \"Adicionar Novo Poodle\".","ko":"등록된 푸들 프로필이 없습니다. \"새 푸들 추가\"로 추가할 수 있습니다.","zh-CN":"未找到已注册的贵宾犬配置文件。您可以通过“添加新贵宾犬”来添加它。"},"YourPoodle AI Topluluk Rehberi — Bilgilendirici ve eğitici içerik asistanı":{"tr":"YourPoodle AI Topluluk Rehberi — Bilgilendirici ve eğitici içerik asistanı","en":"YourPoodle AI Community Guide — Informative and educational content assistant","ja":"YourPoodle AI コミュニティ ガイド — 有益で教育的なコンテンツ アシスタント","es":"Guía comunitaria de YourPoodle AI: asistente de contenido informativo y educativo","fr":"Guide communautaire YourPoodle AI — Assistant de contenu informatif et éducatif","de":"YourPoodle AI Community Guide – informativer und lehrreicher Inhaltsassistent","pt":"Guia da comunidade YourPoodle AI – Assistente de conteúdo informativo e educacional","ko":"YourPoodle AI 커뮤니티 가이드 — 유익하고 교육적인 콘텐츠 도우미","zh-CN":"YourPoodle AI 社区指南 - 信息和教育内容助手"},"Aramak istediğin Poodle dostunu, sahibini veya konuyu yazmaya başla...":{"tr":"Aramak istediğin Poodle dostunu, sahibini veya konuyu yazmaya başla...","en":"Start typing the Poodle friend, owner or subject you want to search for...","ja":"検索したいプードルの友達、飼い主、または件名を入力してください...","es":"Comienza a escribir el amigo, dueño o sujeto del Caniche que deseas buscar...","fr":"Commencez à saisir l'ami, le propriétaire ou le sujet caniche que vous souhaitez rechercher...","de":"Beginnen Sie mit der Eingabe des Pudelfreundes, -besitzers oder -subjekts, nach dem Sie suchen möchten ...","pt":"Comece digitando o amigo, dono ou assunto Poodle que deseja pesquisar...","ko":"검색하려는 푸들 친구, 소유자 또는 주제를 입력하기 시작하세요...","zh-CN":"开始输入您要搜索的贵宾犬朋友、主人或主题..."},"4. Doğrulama Belgesi Yükle (Aşı Karnesi, Çip Belgesi veya Soy Kütüğü)":{"tr":"4. Doğrulama Belgesi Yükle (Aşı Karnesi, Çip Belgesi veya Soy Kütüğü)","en":"4. Upload Verification Document (Vaccination Card, Chip Certificate or Pedigree)","ja":"4. 確認書類（ワクチン接種カード、チップ証明書、または血統書）をアップロードします。","es":"4. Cargar Documento de Verificación (Cédula de Vacunación, Certificado de Chip o Pedigrí)","fr":"4. Téléchargez le document de vérification (carte de vaccination, certificat de puce ou pedigree)","de":"4. Verifizierungsdokument hochladen (Impfausweis, Chipzertifikat oder Stammbaum)","pt":"4. Carregar documento de verificação (cartão de vacinação, certificado de chip ou pedigree)","ko":"4. 확인서류(예방접종카드, 칩인증서, 혈통서) 업로드","zh-CN":"4.上传验证文件（疫苗卡、芯片证书或血统书）"},"Takip ettiğiniz bir Poodle yakındaki bir parka geldiğinde haber ver.":{"tr":"Takip ettiğiniz bir Poodle yakındaki bir parka geldiğinde haber ver.","en":"Notify me when a Poodle you are following comes to a nearby park.","ja":"あなたがフォローしているプードルが近くの公園に来ると通知します。","es":"Avísame cuando un caniche al que estás siguiendo llegue a un parque cercano.","fr":"Prévenez-moi lorsqu'un caniche que vous suivez arrive dans un parc à proximité.","de":"Benachrichtigen Sie mich, wenn ein Pudel, dem Sie folgen, in einen nahegelegenen Park kommt.","pt":"Avise-me quando um Poodle que você está seguindo chegar a um parque próximo.","ko":"당신이 따라다니는 푸들이 근처 공원에 오면 알려주세요.","zh-CN":"当您跟踪的贵宾犬来到附近的公园时通知我。"},"Bu soruya henüz yanıt verilmemiş. İlk deneyimini paylaşan sen ol! 🐾":{"tr":"Bu soruya henüz yanıt verilmemiş. İlk deneyimini paylaşan sen ol! 🐾","en":"This question has not been answered yet. Be the first to share your experience! 🐾","ja":"この質問にはまだ答えられていません。あなたの経験を最初に共有してください! 🐾","es":"Esta pregunta aún no ha sido respondida. ¡Sé el primero en compartir tu experiencia! 🐾","fr":"Cette question n'a pas encore reçu de réponse. Soyez le premier à partager votre expérience ! 🐾","de":"Diese Frage wurde noch nicht beantwortet. Seien Sie der Erste, der Ihre Erfahrungen teilt! 🐾","pt":"Esta pergunta ainda não foi respondida. Seja o primeiro a compartilhar sua experiência! 🐾","ko":"이 질문은 아직 답변되지 않았습니다. 귀하의 경험을 가장 먼저 공유해 주세요! 🐾","zh-CN":"这个问题还没有答案。成为第一个分享您的经验的人！ 🐾"},"Telefon numaranıza SMS ile gelen 4 haneli kod ile anında bağlanın.":{"tr":"Telefon numaranıza SMS ile gelen 4 haneli kod ile anında bağlanın.","en":"Connect instantly with the 4-digit code sent to your phone number via SMS.","ja":"SMS 経由で電話番号に送信された 4 桁のコードですぐに接続できます。","es":"Conéctate instantáneamente con el código de 4 dígitos enviado a tu número de teléfono vía SMS.","fr":"Connectez-vous instantanément avec le code à 4 chiffres envoyé à votre numéro de téléphone par SMS.","de":"Verbinden Sie sich sofort mit dem 4-stelligen Code, der per SMS an Ihre Telefonnummer gesendet wird.","pt":"Conecte-se instantaneamente com o código de 4 dígitos enviado para o seu número de telefone via SMS.","ko":"SMS를 통해 전화번호로 전송된 4자리 코드로 즉시 연결하세요.","zh-CN":"使用通过短信发送到您的电话号码的 4 位数代码立即连接。"},"Aşı ve parazit damlası tarihine 3 gün kala telefona uyarı gönder.":{"tr":"Aşı ve parazit damlası tarihine 3 gün kala telefona uyarı gönder.","en":"Send an alert to your phone 3 days before the vaccination and parasite drop date.","ja":"ワクチン接種と寄生虫駆除日の 3 日前に携帯電話にアラートを送信します。","es":"Envía una alerta a tu teléfono 3 días antes de la fecha de vacunación y desparasitación.","fr":"Envoyez une alerte sur votre téléphone 3 jours avant la date de vaccination et de dépose du parasite.","de":"Senden Sie 3 Tage vor dem Impf- und Parasitenabwurfdatum eine Benachrichtigung auf Ihr Telefon.","pt":"Envie um alerta para o seu telefone 3 dias antes da data de vacinação e queda do parasita.","ko":"예방접종 및 기생충 퇴치일 3일 전에 휴대폰으로 알림을 보냅니다.","zh-CN":"在疫苗接种和寄生虫滴落日期前 3 天向您的手机发送提醒。"},"Poodle'ın hakkında bir açıklama yaz... 🐾 #toypoodle #poodlelove":{"tr":"Poodle'ın hakkında bir açıklama yaz... 🐾 #toypoodle #poodlelove","en":"Write a description about your poodle... 🐾 #toypoodle #poodlelove","ja":"あなたのプードルについて説明を書いてください... 🐾 #トイプードル #プードル愛","es":"Escribe una descripción sobre tu caniche... 🐾 #toypoodle #poodlelove","fr":"Écrivez une description de votre caniche... 🐾 #toypoodle #poodlelove","de":"Schreiben Sie eine Beschreibung über Ihren Pudel... 🐾 #toypoodle #poodlelove","pt":"Escreva uma descrição sobre o seu poodle... 🐾 #toypoodle #poodlelove","ko":"당신의 푸들에 대한 설명을 적어주세요... 🐾 #toypoodle #poodlelove","zh-CN":"写下关于您的贵宾犬的描述...🐾 #toypoodle #poodlelove"},"Farklı bir renk veya boy seçebilir veya tüm akışı görebilirsin.":{"tr":"Farklı bir renk veya boy seçebilir veya tüm akışı görebilirsin.","en":"You can choose a different color or size, or view the entire feed.","ja":"別の色やサイズを選択するか、フィード全体を表示できます。","es":"Puedes elegir un color o tamaño diferente, o ver todo el feed.","fr":"Vous pouvez choisir une autre couleur ou taille, ou afficher tout le flux.","de":"Du kannst eine andere Farbe oder Größe wählen oder den gesamten Feed anzeigen.","pt":"Você pode escolher uma cor ou tamanho diferente ou ver todo o feed.","ko":"다른 색상이나 크기를 선택하거나 전체 피드를 볼 수 있습니다.","zh-CN":"您可以选择其他颜色或体型，或查看全部动态。"},"Hangi durumlarda anında bildirim almak istediğinizi belirleyin:":{"tr":"Hangi durumlarda anında bildirim almak istediğinizi belirleyin:","en":"Determine when you want to receive push notifications:","ja":"プッシュ通知をいつ受信するかを決定します。","es":"Determine cuándo desea recibir notificaciones automáticas:","fr":"Déterminez quand vous souhaitez recevoir des notifications push :","de":"Legen Sie fest, wann Sie Push-Benachrichtigungen erhalten möchten:","pt":"Determine quando deseja receber notificações push:","ko":"푸시 알림을 언제 받을지 결정하세요.","zh-CN":"确定您希望何时接收推送通知："},"Yaşadığınız durumu veya sormak istediğiniz ayrıntıları yazın...":{"tr":"Yaşadığınız durumu veya sormak istediğiniz ayrıntıları yazın...","en":"Write down the situation you are experiencing or the details you want to ask...","ja":"あなたが経験している状況や聞きたいことの詳細を書き留めてください...","es":"Anota la situación que estás viviendo o los detalles que quieres preguntar...","fr":"Notez la situation que vous vivez ou les détails que vous souhaitez demander...","de":"Schreiben Sie die Situation auf, in der Sie sich befinden, oder die Details, nach denen Sie fragen möchten ...","pt":"Anote a situação que você está vivenciando ou os detalhes que deseja perguntar...","ko":"겪고 있는 상황이나 묻고 싶은 내용을 적어주세요...","zh-CN":"写下您正在经历的情况或您想询问的细节......"},"Parmağınızla en az 4 noktayı birleştirerek sembolünüzü çizin.":{"tr":"Parmağınızla en az 4 noktayı birleştirerek sembolünüzü çizin.","en":"Draw your symbol by connecting at least 4 dots with your finger.","ja":"指で少なくとも 4 つの点を結んでシンボルを描きます。","es":"Dibuja tu símbolo conectando al menos 4 puntos con tu dedo.","fr":"Dessinez votre symbole en reliant au moins 4 points avec votre doigt.","de":"Zeichnen Sie Ihr Symbol, indem Sie mindestens 4 Punkte mit Ihrem Finger verbinden.","pt":"Desenhe seu símbolo conectando pelo menos 4 pontos com o dedo.","ko":"손가락으로 최소 4개의 점을 연결하여 기호를 그립니다.","zh-CN":"用手指连接至少 4 个点来绘制符号。"},"Veteriner aşı karnesi ilk sayfası veya çip barkodu (JPG, PNG)":{"tr":"Veteriner aşı karnesi ilk sayfası veya çip barkodu (JPG, PNG)","en":"Veterinary vaccination certificate first page or chip barcode (JPG, PNG)","ja":"獣医師のワクチン接種証明書の最初のページまたはチップのバーコード (JPG、PNG)","es":"Certificado de vacunación veterinaria primera página o chip con código de barras (JPG, PNG)","fr":"Première page du certificat de vaccination vétérinaire ou code-barres de la puce (JPG, PNG)","de":"Veterinär-Impfbescheinigung erste Seite oder Chip-Barcode (JPG, PNG)","pt":"Primeira página do certificado de vacinação veterinária ou código de barras do chip (JPG, PNG)","ko":"수의사 예방접종 증명서 첫 페이지 또는 칩 바코드(JPG, PNG)","zh-CN":"兽医疫苗接种证书首页或芯片条形码（JPG、PNG）"},"Poodle sağlığı için kritik aşı ve parazit yenileme süreleri":{"tr":"Poodle sağlığı için kritik aşı ve parazit yenileme süreleri","en":"Critical vaccination and parasite renewal periods for Poodle health","ja":"プードルの健康にとって重要なワクチン接種と寄生虫の更新期間","es":"Periodos críticos de vacunación y renovación de parásitos para la salud del Caniche","fr":"Périodes critiques de vaccination et de renouvellement des parasites pour la santé du caniche","de":"Wichtige Impf- und Parasitenerneuerungsperioden für die Gesundheit des Pudels","pt":"Períodos críticos de vacinação e renovação de parasitas para a saúde do Poodle","ko":"푸들 건강을 위한 중요한 예방접종 및 기생충 갱신 기간","zh-CN":"贵宾犬健康的关键疫苗接种和寄生虫更新期"},"Son 3 gündeki tüm yeni YourPoodle gönderilerini inceledin.":{"tr":"Son 3 gündeki tüm yeni YourPoodle gönderilerini inceledin.","en":"You've viewed all new YourPoodle posts from the last 3 days.","ja":"過去 3 日間の YourPoodle の新しい投稿をすべて表示しました。","es":"Has visto todas las publicaciones nuevas de YourPoodle de los últimos 3 días.","fr":"Vous avez consulté toutes les nouvelles publications de YourPoodle des 3 derniers jours.","de":"Sie haben alle neuen YourPoodle-Beiträge der letzten 3 Tage angesehen.","pt":"Você viu todas as novas postagens do YourPoodle dos últimos 3 dias.","ko":"지난 3일 동안의 모든 새로운 YourPoodle 게시물을 확인하셨습니다.","zh-CN":"您已查看过去 3 天的所有新 YourPoodle 帖子。"},"Poodle'ınız hakkında belirtmek istediğiniz ek detaylar...":{"tr":"Poodle'ınız hakkında belirtmek istediğiniz ek detaylar...","en":"Additional details you would like to specify about your Poodle...","ja":"あなたのプードルに関して指定したい追加の詳細...","es":"Detalles adicionales que le gustaría especificar sobre su Caniche...","fr":"Détails supplémentaires que vous souhaiteriez préciser sur votre caniche...","de":"Zusätzliche Details, die Sie über Ihren Pudel angeben möchten...","pt":"Detalhes adicionais que você gostaria de especificar sobre o seu Poodle...","ko":"귀하의 푸들에 대해 지정하고 싶은 추가 세부 사항...","zh-CN":"您想要指定的有关您的贵宾犬的其他详细信息..."},"4 haneli doğrulama kodu Netgsm SMS ile gönderilecektir.":{"tr":"4 haneli doğrulama kodu Netgsm SMS ile gönderilecektir.","en":"The 4-digit verification code will be sent via Netgsm SMS.","ja":"4 桁の確認コードは Netgsm SMS 経由で送信されます。","es":"El código de verificación de 4 dígitos se enviará a través de Netgsm SMS.","fr":"Le code de vérification à 4 chiffres sera envoyé par SMS Netgsm.","de":"Der 4-stellige Bestätigungscode wird per Netgsm-SMS gesendet.","pt":"O código de verificação de 4 dígitos será enviado via SMS Netgsm.","ko":"4자리 인증번호가 Netgsm SMS를 통해 전송됩니다.","zh-CN":"4 位验证码将通过 Netgsm 短信发送。"},"Köpeğinizi 3 saniyede 3D Pixar karakterine dönüştürün ✨":{"tr":"Köpeğinizi 3 saniyede 3D Pixar karakterine dönüştürün ✨","en":"Transform your dog into a 3D Pixar character in 3 seconds ✨","ja":"3秒であなたの犬を3Dピクサーキャラクターに変身させましょう✨","es":"Transforma a tu perro en un personaje 3D de Pixar en 3 segundos ✨","fr":"Transformez votre chien en personnage Pixar 3D en 3 secondes ✨","de":"Verwandeln Sie Ihren Hund in 3 Sekunden in eine 3D-Pixar-Figur ✨","pt":"Transforme seu cachorro em um personagem 3D da Pixar em 3 segundos ✨","ko":"당신의 강아지를 3초 만에 3D 픽사 캐릭터로 변신시켜 보세요 ✨","zh-CN":"3 秒内将您的狗变成 3D 皮克斯角色 ✨"},"Fotoğraflarını paylaş, puan topla, vitrinde öne çık ✨":{"tr":"Fotoğraflarını paylaş, puan topla, vitrinde öne çık ✨","en":"Share your photos, collect points, stand out in the showcase ✨","ja":"写真をシェアしてポイントを集めてショーケースで目立ちましょう✨","es":"Comparte tus fotos, acumula puntos, destaca en el escaparate ✨","fr":"Partagez vos photos, cumulez des points, démarquez-vous dans la vitrine ✨","de":"Teile deine Fotos, sammle Punkte, falle in der Vitrine auf ✨","pt":"Compartilhe suas fotos, acumule pontos, destaque-se na vitrine ✨","ko":"사진을 공유하고, 포인트를 모아, 쇼케이스에서 돋보이세요 ✨","zh-CN":"分享您的照片，收集积分，在展示中脱颖而出✨"},"Park delisi, ödül maması aşığı bir minik prens 🦴👑":{"tr":"Park delisi, ödül maması aşığı bir minik prens 🦴👑","en":"A park crazy, treat loving little prince 🦴👑","ja":"公園に夢中、おやつ大好き星の王子様 🦴👑","es":"Un parque loco, trata al principito cariñoso 🦴👑","fr":"Un parc fou, régalez-vous petit prince aimant 🦴👑","de":"Ein parkverrückter, gönnerliebender kleiner Prinz 🦴👑","pt":"Uma loucura de parque, mimo amoroso principezinho 🦴👑","ko":"미친 공원에서 사랑하는 어린 왕자를 대접하세요 🦴💕","zh-CN":"一个公园疯子，对待可爱的小王子🦴👑"},"Ana ekranına ekle, bildirimleri ve DM'leri kaçırma!":{"tr":"Ana ekranına ekle, bildirimleri ve DM'leri kaçırma!","en":"Add it to your home screen, don't miss notifications and DMs!","ja":"ホーム画面に追加して、通知やDMを見逃さないようにしましょう！","es":"Agréguelo a su pantalla de inicio, ¡no se pierda las notificaciones y los mensajes directos!","fr":"Ajoutez-le à votre écran d'accueil, ne manquez pas les notifications et les DM !","de":"Fügen Sie es Ihrem Startbildschirm hinzu und verpassen Sie keine Benachrichtigungen und Direktnachrichten!","pt":"Adicione-o à sua tela inicial, não perca notificações e DMs!","ko":"홈 화면에 추가하고 알림과 DM을 놓치지 마세요!","zh-CN":"将其添加到您的主屏幕，不要错过通知和私信！"},"Instagram tarzı doğrulanmış tescilli Poodle rozeti":{"tr":"Instagram tarzı doğrulanmış tescilli Poodle rozeti","en":"Instagram style verified registered Poodle badge","ja":"Instagram スタイルの認証済み登録済みプードルバッジ","es":"Insignia de caniche registrado verificado al estilo de Instagram","fr":"Badge de caniche enregistré de style Instagram vérifié","de":"Im Instagram-Stil verifiziertes registriertes Pudelabzeichen","pt":"Selo de Poodle registrado verificado estilo Instagram","ko":"Instagram 스타일 인증 등록 푸들 배지","zh-CN":"Instagram 风格验证注册贵宾犬徽章"},"Tescilli Poodle Hesabı ve Mavi Pati Rozeti Tasdiki":{"tr":"Tescilli Poodle Hesabı ve Mavi Pati Rozeti Tasdiki","en":"Registered Poodle Account and Blue Paw Badge Certification","ja":"登録済みプードルアカウントとブルーパウバッジ認定","es":"Cuenta de caniche registrada y certificación de insignia Blue Paw","fr":"Compte caniche enregistré et certification Blue Paw Badge","de":"Registriertes Pudelkonto und Blue Paw Badge-Zertifizierung","pt":"Conta Poodle registrada e certificação Blue Paw Badge","ko":"푸들 계정 등록 및 블루포 뱃지 인증","zh-CN":"注册贵宾犬帐户和蓝爪徽章认证"},"Örn: Toy Poodle için ilk tıraş ne zaman yapılmalı?":{"tr":"Örn: Toy Poodle için ilk tıraş ne zaman yapılmalı?","en":"For example: When should the first shave be done for a Toy Poodle?","ja":"例: トイプードルの最初の毛剃りはいつ行うべきですか?","es":"Por ejemplo: ¿Cuándo se debe realizar el primer afeitado a un Caniche Toy?","fr":"Par exemple : Quand faut-il faire le premier rasage d’un caniche toy ?","de":"Zum Beispiel: Wann sollte die erste Rasur eines Zwergpudels durchgeführt werden?","pt":"Por exemplo: Quando deve ser feito o primeiro barbear de um Poodle Toy?","ko":"예: 토이 푸들의 첫 면도는 언제 해야 합니까?","zh-CN":"例如：玩具贵宾犬第一次剃毛应该什么时候进行？"},"Kilit ekranı ve bildirim çubuğunda anlık uyarılar":{"tr":"Kilit ekranı ve bildirim çubuğunda anlık uyarılar","en":"Push alerts on lock screen and notification bar","ja":"ロック画面と通知バーのプッシュアラート","es":"Alertas push en la pantalla de bloqueo y barra de notificaciones","fr":"Alertes push sur l'écran de verrouillage et la barre de notification","de":"Push-Benachrichtigungen auf dem Sperrbildschirm und in der Benachrichtigungsleiste","pt":"Alertas push na tela de bloqueio e na barra de notificação","ko":"잠금 화면 및 알림 표시줄에 알림 푸시","zh-CN":"在锁定屏幕和通知栏上推送警报"},"YourPoodle • Akıllı Poodle Topluluğu & Sosyal Ağ":{"tr":"YourPoodle • Akıllı Poodle Topluluğu & Sosyal Ağ","en":"YourPoodle • Smart Poodle Community & Social Network","ja":"YourPoodle – スマートプードルコミュニティとソーシャルネットワーク","es":"YourPoodle • Comunidad y red social de Smart Poodle","fr":"YourPoodle • Communauté et réseau social Smart Poodle","de":"YourPoodle • Intelligente Pudel-Community und soziales Netzwerk","pt":"YourPoodle • Comunidade e rede social Smart Poodle","ko":"YourPoodle • 스마트 푸들 커뮤니티 및 소셜 네트워크","zh-CN":"YourPoodle • 智能贵宾犬社区和社交网络"},"Mochi bugün 1 yıl 3 aylık ve harika görünüyor 🐾":{"tr":"Mochi bugün 1 yıl 3 aylık ve harika görünüyor 🐾","en":"Mochi is 1 year and 3 months old today and looks great 🐾","ja":"もちは今日で1歳3ヶ月になり、とても元気です🐾","es":"Mochi hoy cumple 1 año y 3 meses y luce genial 🐾","fr":"Mochi a 1 an et 3 mois aujourd'hui et est superbe 🐾","de":"Mochi ist heute 1 Jahr und 3 Monate alt und sieht großartig aus 🐾","pt":"Mochi faz hoje 1 ano e 3 meses e está ótimo 🐾","ko":"오늘로 모찌가 1년 3개월이 되었는데 정말 멋져 보이네요 🐾","zh-CN":"Mochi今天一岁零三个月了，看起来棒极了🐾"},"Bu ekran tasmadaki QR kodu okutan kişiye görünür":{"tr":"Bu ekran tasmadaki QR kodu okutan kişiye görünür","en":"This screen appears to the person who scans the QR code on the collar","ja":"首輪のQRコードを読み取るとこの画面が表示されます","es":"Esta pantalla le aparece a la persona que escanea el código QR en el collar.","fr":"Cet écran apparaît à la personne qui scanne le QR code présent sur le collier","de":"Dieser Bildschirm erscheint der Person, die den QR-Code am Halsband scannt","pt":"Esta tela aparece para a pessoa que lê o código QR na coleira","ko":"목걸이에 있는 QR코드를 스캔하면 나오는 화면입니다","zh-CN":"扫描衣领上二维码的人会看到此屏幕"},"Deneyimini veya cevabını paylaş (+10 Pati 🐾)...":{"tr":"Deneyimini veya cevabını paylaş (+10 Pati 🐾)...","en":"Share your experience or answer (+10 Paws 🐾)...","ja":"あなたの経験を共有するか、回答してください (+10 肉球 🐾)...","es":"Comparte tu experiencia o responde (+10 Patas 🐾)...","fr":"Partagez votre expérience ou réponse (+10 Pattes 🐾)...","de":"Teilen Sie Ihre Erfahrung oder Antwort (+10 Pfoten 🐾)...","pt":"Compartilhe sua experiência ou responda (+10 Patas 🐾)...","ko":"경험이나 답변을 공유하세요(+10 Paws 🐾)...","zh-CN":"分享您的经验或答案（+10 Paws 🐾）..."},"Poodle'ın için hesap aç, +100 Pati Puanı kazan!":{"tr":"Poodle'ın için hesap aç, +100 Pati Puanı kazan!","en":"Open an account for your Poodle and earn +100 Paw Points!","ja":"プードルのアカウントを開設すると、+100 Paw Points を獲得できます!","es":"¡Abre una cuenta para tu Poodle y gana +100 Paw Points!","fr":"Ouvrez un compte pour votre caniche et gagnez +100 Paw Points !","de":"Eröffnen Sie ein Konto für Ihren Pudel und verdienen Sie +100 Paw Points!","pt":"Abra uma conta para o seu Poodle e ganhe +100 Paw Points!","ko":"푸들 계정을 개설하고 +100 포 포인트를 적립하세요!","zh-CN":"为您的贵宾犬开设账户并赚取 +100 Paw Points！"},"T.C. Uyumlu Pet Kimlik Kartı · YP-TR-2026-84920":{"tr":"T.C. Uyumlu Pet Kimlik Kartı · YP-TR-2026-84920","en":"T.R. Compatible Pet ID Card · YP-TR-2026-84920","ja":"T.R.対応ペットIDカード・YP-TR-2026-84920","es":"T.R. Tarjeta de identificación para mascotas compatible · YP-TR-2026-84920","fr":"T.R. Carte d'identité pour animal de compagnie compatible · YP-TR-2026-84920","de":"T.R. Kompatibler Haustierausweis · YP-TR-2026-84920","pt":"TR. Cartão de identificação de animal de estimação compatível · YP-TR-2026-84920","ko":"T.R. 호환되는 애완동물 ID 카드 · YP-TR-2026-84920","zh-CN":"T.R.兼容宠物身份证·YP-TR-2026-84920"},"Etkileşimde bulun, puan biriktir, seviye atla!":{"tr":"Etkileşimde bulun, puan biriktir, seviye atla!","en":"Interact, accumulate points, level up!","ja":"交流してポイントを貯めてレベルアップ！","es":"¡Interactúa, acumula puntos, sube de nivel!","fr":"Interagissez, accumulez des points, passez au niveau supérieur !","de":"Interagieren Sie, sammeln Sie Punkte, steigen Sie auf!","pt":"Interaja, acumule pontos, suba de nível!","ko":"교류하고, 포인트를 모으고, 레벨업하세요!","zh-CN":"互动，积累积分，升级！"},"Alerji, aşı karnesi, kürk veya mama fotoğrafı":{"tr":"Alerji, aşı karnesi, kürk veya mama fotoğrafı","en":"Allergy, vaccination record, fur or food photo","ja":"アレルギー、ワクチン接種歴、毛皮または食べ物の写真","es":"Alergia, cartilla de vacunación, fotografía de piel o comida.","fr":"Allergie, carnet de vaccination, photo de fourrure ou de nourriture","de":"Allergie-, Impfpass-, Fell- oder Lebensmittelfoto","pt":"Alergia, registro de vacinação, foto de pele ou comida","ko":"알레르기, 예방접종 기록, 모피 또는 음식 사진","zh-CN":"过敏、疫苗接种记录、毛皮或食物照片"},"Poodle, sahip, ırk, mikroçip veya konu ara...":{"tr":"Poodle, sahip, ırk, mikroçip veya konu ara...","en":"Search for Poodle, owner, breed, microchip or subject...","ja":"プードル、飼い主、品種、マイクロチップ、または対象を検索します...","es":"Busca Caniche, propietario, raza, microchip o tema...","fr":"Recherchez un caniche, un propriétaire, une race, une puce électronique ou un sujet...","de":"Suchen Sie nach Pudel, Besitzer, Rasse, Mikrochip oder Thema...","pt":"Procure por Poodle, dono, raça, microchip ou assunto...","ko":"푸들, 소유자, 품종, 마이크로칩 또는 주제를 검색하세요...","zh-CN":"搜索贵宾犬、主人、品种、微芯片或主题..."},"canlı bildirimlerinin düşmesi için izin ver.":{"tr":"canlı bildirimlerinin düşmesi için izin ver.","en":"Allow live notifications to drop.","ja":"ライブ通知のドロップを許可します。","es":"Permitir que caigan notificaciones en vivo.","fr":"Autorisez la suppression des notifications en direct.","de":"Lassen Sie zu, dass Live-Benachrichtigungen gelöscht werden.","pt":"Permitir que notificações ao vivo caiam.","ko":"실시간 알림이 삭제되도록 허용합니다.","zh-CN":"允许删除实时通知。"},"Tasma Künyesinde Numarayı Maskele (Önerilen)":{"tr":"Tasma Künyesinde Numarayı Maskele (Önerilen)","en":"Mask Number on Collar Tag (Recommended)","ja":"襟タグのマスク番号（推奨）","es":"Número de máscara en la etiqueta del collar (recomendado)","fr":"Numéro de masque sur l'étiquette du collier (recommandé)","de":"Maskennummer auf dem Halsbandanhänger (empfohlen)","pt":"Número da máscara na etiqueta do colar (recomendado)","ko":"칼라 태그의 마스크 번호(권장)","zh-CN":"衣领标签上的口罩编号（推荐）"},"Yeni bir mesaj geldiğinde anlık bildirim al.":{"tr":"Yeni bir mesaj geldiğinde anlık bildirim al.","en":"Get instant notification when a new message arrives.","ja":"新しいメッセージが到着するとすぐに通知を受け取ります。","es":"Recibe una notificación instantánea cuando llegue un nuevo mensaje.","fr":"Recevez une notification instantanée lorsqu'un nouveau message arrive.","de":"Erhalten Sie sofort eine Benachrichtigung, wenn eine neue Nachricht eintrifft.","pt":"Receba notificação instantânea quando uma nova mensagem chegar.","ko":"새 메시지가 도착하면 즉시 알림을 받으세요.","zh-CN":"当新消息到达时获得即时通知。"},"Yanıltıcı veya Köpek Sağlığına Zararlı Bilgi":{"tr":"Yanıltıcı veya Köpek Sağlığına Zararlı Bilgi","en":"Information that is Misleading or Harmful to Dog Health","ja":"誤解を招く情報、または犬の健康に有害な情報","es":"Información engañosa o perjudicial para la salud del perro","fr":"Informations trompeuses ou nocives pour la santé du chien","de":"Informationen, die irreführend oder gesundheitsschädlich für Hunde sind","pt":"Informações enganosas ou prejudiciais à saúde dos cães","ko":"반려견 건강에 오해를 불러일으키거나 유해한 정보","zh-CN":"误导或有害狗健康的信息"},"Veya Hazır Toy Poodle Fotoğraflarından Seç:":{"tr":"Veya Hazır Toy Poodle Fotoğraflarından Seç:","en":"Or Choose From Ready Toy Poodle Photos:","ja":"または、レディトイプードルの写真からお選びください:","es":"O elija entre las fotos de Toy Poodle listas:","fr":"Ou choisissez parmi les photos de caniches jouets prêtes :","de":"Oder wählen Sie aus fertigen Zwergpudelfotos:","pt":"Ou escolha uma das fotos prontas do Toy Poodle:","ko":"또는 준비된 토이 푸들 사진 중에서 선택하세요:","zh-CN":"或者从现成的玩具贵宾犬照片中选择："},"Yeni tartım ekle (gramaj takibi kritiktir):":{"tr":"Yeni tartım ekle (gramaj takibi kritiktir):","en":"Add new weight (weight tracking is critical):","ja":"新しい体重を追加します (体重の追跡が重要です):","es":"Agregue nuevo peso (el seguimiento del peso es fundamental):","fr":"Ajoutez un nouveau poids (le suivi du poids est essentiel) :","de":"Neues Gewicht hinzufügen (Gewichtsverfolgung ist entscheidend):","pt":"Adicione novo peso (o monitoramento do peso é fundamental):","ko":"새 체중 추가(체중 추적이 중요):","zh-CN":"添加新的重量（重量跟踪至关重要）："},"🐩 Popüler Poodle & Sosyal İçerik Üreticisi":{"tr":"🐩 Popüler Poodle & Sosyal İçerik Üreticisi","en":"🐩 Popular Poodle & Social Content Creator","ja":"🐩 人気のプードルとソーシャル コンテンツ クリエイター","es":"🐩 Caniche popular y creador de contenido social","fr":"🐩 Créateur de caniche et de contenu social populaire","de":"🐩 Beliebter Pudel- und Social-Content-Ersteller","pt":"🐩 Poodle popular e criador de conteúdo social","ko":"🐩 인기 푸들 및 소셜 콘텐츠 제작자","zh-CN":"🐩 流行的贵宾犬和社交内容创建者"},"Veteriner çip ve ırk tescil kaydı taranıyor":{"tr":"Veteriner çip ve ırk tescil kaydı taranıyor","en":"Veterinary chip and breed registration record are scanned","ja":"獣医用チップと品種登録記録がスキャンされます","es":"Se escanea el chip veterinario y el registro de raza.","fr":"La puce vétérinaire et le dossier d'enregistrement de la race sont numérisés","de":"Der Veterinärchip und das Zuchtbuch werden gescannt","pt":"Chip veterinário e registro de raça são digitalizados","ko":"수의학 칩 및 품종 등록 기록이 스캔됩니다.","zh-CN":"扫描兽医芯片和品种注册记录"},"Arama sırasında bir bağlantı hatası oluştu.":{"tr":"Arama sırasında bir bağlantı hatası oluştu.","en":"A connection error occurred during the call.","ja":"通話中に接続エラーが発生しました。","es":"Se produjo un error de conexión durante la llamada.","fr":"Une erreur de connexion s'est produite lors de l'appel.","de":"Während des Anrufs ist ein Verbindungsfehler aufgetreten.","pt":"Ocorreu um erro de conexão durante a chamada.","ko":"통화 중 연결 오류가 발생했습니다.","zh-CN":"通话期间发生连接错误。"},"Hızlı Giriş Sembolünü Tanımla veya Değiştir":{"tr":"Hızlı Giriş Sembolünü Tanımla veya Değiştir","en":"Define or Change Quick Entry Symbol","ja":"クイック入力シンボルの定義または変更","es":"Definir o cambiar el símbolo de entrada rápida","fr":"Définir ou modifier le symbole de saisie rapide","de":"Schnelleingabesymbol definieren oder ändern","pt":"Definir ou alterar o símbolo de entrada rápida","ko":"빠른 입력 기호 정의 또는 변경","zh-CN":"定义或更改快速输入符号"},"Fotoğraf / Video sunucuya yükleniyor... 🐾":{"tr":"Fotoğraf / Video sunucuya yükleniyor... 🐾","en":"Photo / Video uploading to the server... 🐾","ja":"写真/ビデオをサーバーにアップロードしています... 🐾","es":"Subiendo foto/vídeo al servidor... 🐾","fr":"Mise en ligne de photos/vidéos sur le serveur... 🐾","de":"Foto/Video wird auf den Server hochgeladen... 🐾","pt":"Upload de foto/vídeo para o servidor... 🐾","ko":"사진/동영상 서버에 업로드 중... 🐾","zh-CN":"照片/视频上传到服务器...🐾"},"Mavi Pati Başvurusunu Tamamla ve Rozeti Al":{"tr":"Mavi Pati Başvurusunu Tamamla ve Rozeti Al","en":"Complete the Blue Paw Application and Receive the Badge","ja":"Blue Paw 申請を完了してバッジを受け取ります","es":"Complete la solicitud de Blue Paw y reciba la insignia","fr":"Remplissez la demande Blue Paw et recevez le badge","de":"Füllen Sie den Blue Paw-Antrag aus und erhalten Sie das Abzeichen","pt":"Preencha o formulário Blue Paw e receba o selo","ko":"Blue Paw 신청서를 작성하고 배지를 받으세요","zh-CN":"完成 Blue Paw 申请并获得徽章"},"Henüz kayıtlı başka Poodle profiliniz yok.":{"tr":"Henüz kayıtlı başka Poodle profiliniz yok.","en":"You don't have any other Poodle profiles registered yet.","ja":"他にプードル プロファイルがまだ登録されていません。","es":"Aún no tienes ningún otro perfil de Caniche registrado.","fr":"Vous n'avez pas encore d'autres profils de caniche enregistrés.","de":"Sie haben noch keine anderen Pudelprofile registriert.","pt":"Você ainda não tem nenhum outro perfil de Poodle registrado.","ko":"아직 등록된 다른 푸들 프로필이 없습니다.","zh-CN":"您还没有注册任何其他 Poodle 个人资料。"},"Yeni etkileşimler anında burada belirecek.":{"tr":"Yeni etkileşimler anında burada belirecek.","en":"New interactions will appear here instantly.","ja":"新しいインタラクションがすぐにここに表示されます。","es":"Nuevas interacciones aparecerán aquí al instante.","fr":"De nouvelles interactions apparaîtront ici instantanément.","de":"Neue Interaktionen werden hier sofort angezeigt.","pt":"Novas interações aparecerão aqui instantaneamente.","ko":"새로운 상호작용이 여기에 즉시 나타납니다.","zh-CN":"新的互动将立即出现在这里。"},"İlerleme (Sonraki Seviye: Park Yıldızı ⭐)":{"tr":"İlerleme (Sonraki Seviye: Park Yıldızı ⭐)","en":"Progression (Next Level: Parking Star ⭐)","ja":"進行状況 (次のレベル: パーキング スター ⭐)","es":"Progresión (Siguiente nivel: Parking Star ⭐)","fr":"Progression (Niveau suivant : Parking Star ⭐)","de":"Fortschritt (Nächstes Level: Parking Star ⭐)","pt":"Progressão (próximo nível: Parking Star ⭐)","ko":"진행 상황(다음 레벨: Parking Star ⭐)","zh-CN":"进展（下一级别：停车之星⭐）"},"Teddy Bear tıraş aşığı minik prenses 🐩🎀":{"tr":"Teddy Bear tıraş aşığı minik prenses 🐩🎀","en":"Teddy Bear is a shaving lover little princess 🐩🎀","ja":"テディベアは髭剃りが大好きなリトルプリンセス 🐩🎀","es":"Teddy Bear es una princesita amante del afeitado 🐩🎀","fr":"Teddy Bear est une petite princesse qui adore le rasage 🐩🎀","de":"Teddybär ist eine kleine Prinzessin, die sich gerne rasiert 🐩🎀","pt":"Teddy Bear é uma princesinha amante de barbear 🐩🎀","ko":"테디베어는 면도를 좋아하는 꼬마 공주예요 🐩主","zh-CN":"泰迪熊是一个剃须爱好者小公主🐩🎀"},"Grooming randevusunda (1 sa önce aktifti)":{"tr":"Grooming randevusunda (1 sa önce aktifti)","en":"Grooming appointment (active 1 hour ago)","ja":"グルーミングの予約 (1 時間前に有効)","es":"Cita de aseo (activa hace 1 hora)","fr":"Rendez-vous toilettage (actif il y a 1 heure)","de":"Pflegetermin (aktiv vor 1 Stunde)","pt":"Consulta de higiene (ativa há 1 hora)","ko":"그루밍 약속(1시간 전 활성)","zh-CN":"美容预约（1小时前有效）"},"🏆 Şampiyon & Yarışma Dereceli (Show Dog)":{"tr":"🏆 Şampiyon & Yarışma Dereceli (Show Dog)","en":"🏆 Champion & Competition Ranked (Show Dog)","ja":"🏆 チャンピオン&コンペティションのランク付け (ショードッグ)","es":"🏆 Campeón y competición clasificados (show dog)","fr":"🏆 Champion et Compétition Classé (Show Dog)","de":"🏆 Champion- und Wettbewerbsrangliste (Ausstellungshund)","pt":"🏆 Campeão e competição classificada (Show Dog)","ko":"🏆 챔피언 및 대회 순위(쇼독)","zh-CN":"🏆 冠军及比赛排名（表演狗）"},"Bu kategoride henüz yeni bir bildirim yok":{"tr":"Bu kategoride henüz yeni bir bildirim yok","en":"There are no new notifications in this category yet","ja":"このカテゴリにはまだ新しい通知がありません","es":"Aún no hay notificaciones nuevas en esta categoría.","fr":"Il n'y a pas encore de nouvelles notifications dans cette catégorie","de":"Es gibt noch keine neuen Benachrichtigungen in dieser Kategorie","pt":"Ainda não há novas notificações nesta categoria","ko":"이 카테고리에는 아직 새로운 알림이 없습니다.","zh-CN":"该类别还没有新通知"},"📜 FCI / KIF / AKC Soy Kütüğü (Pedigree)":{"tr":"📜 FCI / KIF / AKC Soy Kütüğü (Pedigree)","en":"📜 FCI / KIF / AKC Stud Book (Pedigree)","ja":"📜 FCI / KIF / AKC スタッドブック (血統)","es":"📜 Libro genealógico FCI / KIF / AKC (pedigrí)","fr":"📜 Stud Book FCI/KIF/AKC (Pedigree)","de":"📜 FCI-/KIF-/AKC-Zuchtbuch (Stammbaum)","pt":"📜 Livro Stud FCI / KIF / AKC (Pedigree)","ko":"📜 FCI / KIF / AKC 스터드 북(혈통)","zh-CN":"📜 FCI / KIF / AKC 种马簿（血统书）"},"SMS Doğrulama Kodu Gönder 📲 (+100 Pati)":{"tr":"SMS Doğrulama Kodu Gönder 📲 (+100 Pati)","en":"Send SMS Verification Code 📲 (+100 Paws)","ja":"SMS認証コードを送信 📲 (+100 肉球)","es":"Enviar código por SMS 📲 (+100 Patas)","fr":"Envoyer le code par SMS 📲 (+100 Pattes)","de":"SMS-Bestätigungscode senden 📲 (+100 Pfoten)","pt":"Enviar código por SMS 📲 (+100 Patas)","ko":"SMS 인증번호 전송 📲 (+100 발자국)","zh-CN":"发送短信验证码 📲 (+100 肉爪)"},"Doğrulanmış Poodle Hesabı (Mavi Pati) 🐾":{"tr":"Doğrulanmış Poodle Hesabı (Mavi Pati) 🐾","en":"Verified Poodle Account (Blue Paw) 🐾","ja":"プードル認証済みアカウント (Blue Paw) 🐾","es":"Cuenta de caniche verificada (Pata Azul) 🐾","fr":"Compte Caniche Vérifié (Blue Paw) 🐾","de":"Verifiziertes Pudelkonto (Blue Paw) 🐾","pt":"Conta Poodle verificada (Blue Paw) 🐾","ko":"인증된 푸들 계정 (Blue Paw) 🐾","zh-CN":"已验证的贵宾犬帐户（蓝爪）🐾"},"Belge fotoğrafını seç veya buraya tıkla":{"tr":"Belge fotoğrafını seç veya buraya tıkla","en":"Select document photo or click here","ja":"書類の写真を選択するか、ここをクリックしてください","es":"Seleccione la foto del documento o haga clic aquí","fr":"Sélectionnez la photo du document ou cliquez ici","de":"Dokumentenfoto auswählen oder hier klicken","pt":"Selecione a foto do documento ou clique aqui","ko":"서류 사진을 선택하거나 여기를 클릭하세요","zh-CN":"选择证件照片或点击此处"},"⏳ Beklemede (Yönetici Onayı Bekleniyor)":{"tr":"⏳ Beklemede (Yönetici Onayı Bekleniyor)","en":"⏳ Pending (Waiting for Admin Approval)","ja":"⏳ 保留中 (管理者の承認を待っています)","es":"⏳ Pendiente (esperando aprobación del administrador)","fr":"⏳ En attente (en attente de l'approbation de l'administrateur)","de":"⏳ Ausstehend (Warten auf Administratorgenehmigung)","pt":"⏳ Pendente (aguardando aprovação do administrador)","ko":"⏳ 보류 중(관리자 승인 대기 중)","zh-CN":"⏳ 待定（等待管理员批准）"},"Konum ekle (Örn: Bebek Parkı, İstanbul)":{"tr":"Konum ekle (Örn: Bebek Parkı, İstanbul)","en":"Add location (Ex: Bebek Park, Istanbul)","ja":"場所を追加 (例: イスタンブールのベベク公園)","es":"Agregar ubicación (Ejemplo: Bebek Park, Estambul)","fr":"Ajouter un emplacement (Ex : Bebek Park, Istanbul)","de":"Standort hinzufügen (Beispiel: Bebek Park, Istanbul)","pt":"Adicionar local (Ex: Bebek Park, Istambul)","ko":"위치 추가(예: Bebek Park, Istanbul)","zh-CN":"添加位置（例如：伊斯坦布尔贝贝克公园）"},"Sorular ve deneyimler yükleniyor... 🐾":{"tr":"Sorular ve deneyimler yükleniyor... 🐾","en":"Loading questions and experiences... 🐾","ja":"質問と体験を読み込んでいます... 🐾","es":"Cargando preguntas y experiencias... 🐾","fr":"Chargement de questions et d'expériences... 🐾","de":"Lade Fragen und Erfahrungen... 🐾","pt":"Carregando perguntas e experiências... 🐾","ko":"질문과 경험을 로드하는 중... 🐾","zh-CN":"正在加载问题和经验...🐾"},"YourPoodle Resmi Doğrulama Sertifikası":{"tr":"YourPoodle Resmi Doğrulama Sertifikası","en":"YourPoodle Official Verification Certificate","ja":"YourPoodle公式認証証明書","es":"Certificado de verificación oficial de YourPoodle","fr":"Certificat de vérification officiel YourPoodle","de":"Offizielles YourPoodle-Verifizierungszertifikat","pt":"Certificado de verificação oficial YourPoodle","ko":"YourPoodle 공식 확인서","zh-CN":"YourPoodle官方验证证书"},"Telif Hakkı / İzinsiz Poodle Fotoğrafı":{"tr":"Telif Hakkı / İzinsiz Poodle Fotoğrafı","en":"Copyright/Unauthorized Poodle Photo","ja":"著作権・無断プードル写真","es":"Copyright/Foto de caniche no autorizada","fr":"Copyright/Photo de caniche non autorisée","de":"Urheberrechtlich/nicht autorisiertes Pudelfoto","pt":"Direitos autorais/foto não autorizada do poodle","ko":"저작권/무단 푸들 사진","zh-CN":"版权所有/未经授权的贵宾犬照片"},"Poodle Soru-Cevap & Yardımlaşma Alanı":{"tr":"Poodle Soru-Cevap & Yardımlaşma Alanı","en":"Poodle Q&A & Collaboration Area","ja":"プードルQ&A&コラボコーナー","es":"Área de colaboración y preguntas y respuestas sobre caniches","fr":"Espace questions-réponses et collaboration sur les caniches","de":"Poodle-Bereich für Fragen und Antworten und Zusammenarbeit","pt":"Área de perguntas e respostas e colaboração sobre Poodle","ko":"푸들 Q&A 및 협업 공간","zh-CN":"贵宾犬问答及协作区"},"Güvenlik Sembolüm ile Hızlı Giriş Yap":{"tr":"Güvenlik Sembolüm ile Hızlı Giriş Yap","en":"Quick Login with Security Pattern","ja":"セキュリティパターンで簡単ログイン","es":"Iniciar sesión con patrón de seguridad","fr":"Connexion rapide par schéma de sécurité","de":"Schnellanmeldung mit Sicherheitsmuster","pt":"Entrar com padrão de segurança","ko":"보안 패턴으로 빠른 로그인","zh-CN":"通过安全手势快速登录"},"Beğeni, yorum ve takip hareketleriniz":{"tr":"Beğeni, yorum ve takip hareketleriniz","en":"Your likes, comments and follows","ja":"あなたの「いいね！」、コメント、フォロー","es":"Tus me gusta, comentarios y seguidores","fr":"Vos likes, commentaires et suivis","de":"Deine Likes, Kommentare und Follower","pt":"Suas curtidas, comentários e seguidores","ko":"귀하의 좋아요, 댓글 및 팔로우","zh-CN":"您的点赞、评论和关注"},"Adının yanında orijinal tescil rozeti":{"tr":"Adının yanında orijinal tescil rozeti","en":"Original registration badge next to name","ja":"名前の横にあるオリジナルの登録バッジ","es":"Insignia de registro original al lado del nombre","fr":"Badge d'immatriculation original à côté du nom","de":"Originaler Zulassungsausweis neben dem Namen","pt":"Crachá de registro original ao lado do nome","ko":"이름 옆에 있는 원래 등록 배지","zh-CN":"姓名旁边的原始注册徽章"},"Tasma Künyesini Yazdır / İndir (PNG)":{"tr":"Tasma Künyesini Yazdır / İndir (PNG)","en":"Print / Download Collar Tag (PNG)","ja":"首輪タグの印刷/ダウンロード (PNG)","es":"Imprimir / Descargar Etiqueta de Collar (PNG)","fr":"Imprimer / Télécharger l'étiquette de collier (PNG)","de":"Halsbandanhänger ausdrucken/herunterladen (PNG)","pt":"Imprimir / baixar etiqueta de colarinho (PNG)","ko":"칼라 태그(PNG) 인쇄/다운로드","zh-CN":"打印/下载衣领标签 (PNG)"},"Belge hazır · Değiştirmek için tıkla":{"tr":"Belge hazır · Değiştirmek için tıkla","en":"Document ready · Click to change","ja":"ドキュメントの準備が完了しました · クリックして変更します","es":"Documento listo · Haga clic para cambiar","fr":"Document prêt · Cliquez pour modifier","de":"Dokument bereit · Klicken Sie zum Ändern","pt":"Documento pronto · Clique para alterar","ko":"문서 준비됨 · 변경하려면 클릭하세요.","zh-CN":"文件已准备好·点击更改"},"Bu filtreye uygun gönderi bulunamadı":{"tr":"Bu filtreye uygun gönderi bulunamadı","en":"No posts found matching this filter","ja":"このフィルターに一致する投稿は見つかりませんでした","es":"No se encontraron publicaciones que coincidan con este filtro","fr":"Aucune publication trouvée pour ce filtre","de":"Keine Beiträge für diesen Filter gefunden","pt":"Nenhuma publicação encontrada para este filtro","ko":"이 필터에 맞는 게시물이 없습니다","zh-CN":"未找到符合此筛选条件的帖子"},"Kullanıcı Adı (Örn: mochi_toypoodle)":{"tr":"Kullanıcı Adı (Örn: mochi_toypoodle)","en":"Username (Ex: mochi_toypoodle)","ja":"ユーザー名 (例: mochi_toypoodle)","es":"Nombre de usuario (Ej: mochi_toypoodle)","fr":"Nom d'utilisateur (Ex : mochi_toypoodle)","de":"Benutzername (Beispiel: mochi_toypoodle)","pt":"Nome de usuário (Ex: mochi_toypoodle)","ko":"사용자 이름(예: mochi_toypoodle)","zh-CN":"用户名（例如：mochi_toypoodle）"},"Poodle & Profil Bilgilerini Düzenle":{"tr":"Poodle & Profil Bilgilerini Düzenle","en":"Edit Poodle & Profile Information","ja":"プードルとプロフィール情報の編集","es":"Editar información de perfil y caniche","fr":"Modifier les informations sur le caniche et son profil","de":"Pudel- und Profilinformationen bearbeiten","pt":"Editar informações do poodle e do perfil","ko":"푸들 및 프로필 정보 편집","zh-CN":"编辑贵宾犬和个人资料信息"},"Bugün profiline göz atan Poodle'lar":{"tr":"Bugün profiline göz atan Poodle'lar","en":"Poodles checking out your profile today","ja":"プードルたちは今日あなたのプロフィールをチェックしています","es":"Caniches revisando tu perfil hoy","fr":"Caniches consultant votre profil aujourd'hui","de":"Pudel schauen sich heute Ihr Profil an","pt":"Poodles conferindo seu perfil hoje","ko":"오늘 프로필을 확인하는 푸들","zh-CN":"贵宾犬今天查看您的个人资料"},"🐾 Doğrulanmış Aktif Topluluk Üyesi":{"tr":"🐾 Doğrulanmış Aktif Topluluk Üyesi","en":"🐾 Verified Active Community Member","ja":"🐾 認証済みのアクティブなコミュニティ メンバー","es":"🐾 Miembro activo verificado de la comunidad","fr":"🐾 Membre actif vérifié de la communauté","de":"🐾 Verifiziertes aktives Community-Mitglied","pt":"🐾 Membro ativo verificado da comunidade","ko":"🐾 검증된 활성 커뮤니티 회원","zh-CN":"🐾 经过验证的活跃社区成员"},"İlgilenmiyorum (Bu Gönderiyi Gizle)":{"tr":"İlgilenmiyorum (Bu Gönderiyi Gizle)","en":"I'm Not Interested (Hide This Post)","ja":"興味がありません (この投稿を非表示にする)","es":"No estoy interesado (ocultar esta publicación)","fr":"Je ne suis pas intéressé (masquer ce message)","de":"Ich bin nicht interessiert (Diesen Beitrag ausblenden)","pt":"Não estou interessado (ocultar esta postagem)","ko":"관심 없음(이 게시물 숨기기)","zh-CN":"我不感兴趣（隐藏此帖子）"},"Uygunsuz Görsel, Taciz veya Hakaret":{"tr":"Uygunsuz Görsel, Taciz veya Hakaret","en":"Inappropriate Images, Harassment or Insults","ja":"不適切な画像、嫌がらせ、侮辱","es":"Imágenes inapropiadas, acoso o insultos","fr":"Images inappropriées, harcèlement ou insultes","de":"Unangemessene Bilder, Belästigungen oder Beleidigungen","pt":"Imagens inapropriadas, assédio ou insultos","ko":"부적절한 이미지, 괴롭힘 또는 모욕","zh-CN":"不当图片、骚扰或侮辱"},"Poodle'ınız hakkında kısa bilgi...":{"tr":"Poodle'ınız hakkında kısa bilgi...","en":"Brief information about your Poodle...","ja":"あなたのプードルに関する簡単な情報...","es":"Breve información sobre tu Caniche...","fr":"Brèves informations sur votre caniche...","de":"Kurze Informationen zu Ihrem Pudel...","pt":"Breves informações sobre o seu Poodle...","ko":"푸들에 대한 간략한 정보...","zh-CN":"关于您的贵宾犬的简要信息..."},"📍 Bebek Parkı'ndaydı (5 dk önce)":{"tr":"📍 Bebek Parkı'ndaydı (5 dk önce)","en":"📍 Was in Bebek Park (5 min ago)","ja":"📍 ベベックパークにありました (5 分前)","es":"📍 Estaba en Bebek Park (hace 5 min)","fr":"📍 Était au parc Bebek (il y a 5 min)","de":"📍 War im Bebek Park (vor 5 Minuten)","pt":"📍 Esteve no Parque Bebek (5 minutos atrás)","ko":"📍 베벡 공원에 있었음(5분 전)","zh-CN":"📍在贝贝克公园（5分钟前）"},"Mavi Pati Rozetinin Ayrıcalıkları":{"tr":"Mavi Pati Rozetinin Ayrıcalıkları","en":"Privileges of the Blue Paw Badge","ja":"ブルーパウバッジの特典","es":"Privilegios de la Insignia Pata Azul","fr":"Privilèges du badge Patte Bleue","de":"Privilegien des Blue Paw Badge","pt":"Privilégios do emblema da pata azul","ko":"Blue Paw Badge의 특권","zh-CN":"蓝爪徽章的特权"},"Popüler Poodle & İçerik Üreticisi":{"tr":"Popüler Poodle & İçerik Üreticisi","en":"Popular Poodle & Content Creator","ja":"人気のプードルとコンテンツクリエイター","es":"Caniche popular y creador de contenido","fr":"Caniche populaire et créateur de contenu","de":"Beliebter Pudel und Content-Ersteller","pt":"Poodle popular e criador de conteúdo","ko":"인기 푸들 및 콘텐츠 제작자","zh-CN":"受欢迎的贵宾犬和内容创作者"},"Dijital Pasaport & Sağlık Karnesi":{"tr":"Dijital Pasaport & Sağlık Karnesi","en":"Digital Passport & Health Card","ja":"デジタルパスポートと健康カード","es":"Pasaporte Digital y Tarjeta Sanitaria","fr":"Passeport numérique et carte de santé","de":"Digitaler Reisepass und Gesundheitskarte","pt":"Passaporte digital e cartão de saúde","ko":"디지털 여권 및 건강 카드","zh-CN":"数字护照和健康卡"},"Doğrulanmış Poodle (Mavi Pati) 🐾":{"tr":"Doğrulanmış Poodle (Mavi Pati) 🐾","en":"Verified Poodle (Blue Paw) 🐾","ja":"認証済みプードル (ブルーパウ) 🐾","es":"Caniche Verificado (Pata Azul) 🐾","fr":"Caniche Vérifié (Patte Bleue) 🐾","de":"Verifizierter Pudel (Blaue Pfote) 🐾","pt":"Poodle verificado (pata azul) 🐾","ko":"검증된 푸들 (Blue Paw) 🐾","zh-CN":"已验证的贵宾犬（蓝爪）🐾"},"\"Luna senin fotoğrafını beğendi\"":{"tr":"\"Luna senin fotoğrafını beğendi\"","en":"\"Luna liked your photo\"","ja":"「ルナがあなたの写真を気に入ってくれました」","es":"\"A Luna le gustó tu foto\"","fr":"\"Luna a aimé ta photo\"","de":"„Luna hat dein Foto gefallen“","pt":"\"Luna gostou da sua foto\"","ko":"\"루나가 당신의 사진을 좋아해요\"","zh-CN":"“卢娜喜欢你的照片”"},"Gizlilik & Görünürlük Tercihleri":{"tr":"Gizlilik & Görünürlük Tercihleri","en":"Privacy & Visibility Preferences","ja":"プライバシーと公開設定","es":"Preferencias de privacidad y visibilidad","fr":"Préférences de confidentialité et de visibilité","de":"Datenschutz- und Sichtbarkeitseinstellungen","pt":"Preferências de privacidade e visibilidade","ko":"개인 정보 보호 및 가시성 기본 설정","zh-CN":"隐私和可见性首选项"},"Push & Telefon Bildirim Ayarları":{"tr":"Push & Telefon Bildirim Ayarları","en":"Push & Phone Notification Settings","ja":"プッシュ通知と電話通知の設定","es":"Configuración de notificaciones push y telefónicas","fr":"Paramètres de notification push et téléphonique","de":"Einstellungen für Push- und Telefonbenachrichtigungen","pt":"Configurações de notificação por push e telefone","ko":"푸시 및 전화 알림 설정","zh-CN":"推送和电话通知设置"},"WhatsApp ile Aileye Konum Gönder":{"tr":"WhatsApp ile Aileye Konum Gönder","en":"Send Location to Family via WhatsApp","ja":"WhatsApp 経由で家族に位置情報を送信する","es":"Enviar ubicación a la familia a través de WhatsApp","fr":"Envoyer la position à la famille via WhatsApp","de":"Senden Sie den Standort per WhatsApp an Ihre Familie","pt":"Enviar localização para família via WhatsApp","ko":"WhatsApp을 통해 가족에게 위치 보내기","zh-CN":"通过 WhatsApp 将位置发送给家人"},"4 Haneli Kodu Doğrula ve Başla ✓":{"tr":"4 Haneli Kodu Doğrula ve Başla ✓","en":"Verify 4-Digit Code & Continue ✓","ja":"4桁のコードを認証して始める ✓","es":"Verificar código de 4 dígitos y comenzar ✓","fr":"Vérifier le code à 4 chiffres et commencer ✓","de":"4-stelligen Code bestätigen & starten ✓","pt":"Verificar código de 4 dígitos e começar ✓","ko":"4자리 코드 인증하고 시작하기 ✓","zh-CN":"验证4位验证码并开始 ✓"},"Poodle profilleri yükleniyor...":{"tr":"Poodle profilleri yükleniyor...","en":"Poodle profiles are loading...","ja":"プードルのプロフィールを読み込んでいます...","es":"Los perfiles de caniche se están cargando...","fr":"Les profils de caniche sont en cours de chargement...","de":"Pudelprofile werden geladen...","pt":"Os perfis do Poodle estão carregando...","ko":"푸들 프로필을 로드하는 중입니다...","zh-CN":"贵宾犬资料正在加载..."},"Galeriden Fotoğraf Seç veya Çek":{"tr":"Galeriden Fotoğraf Seç veya Çek","en":"Select or Take Photo from Gallery","ja":"ギャラリーから写真を選択または撮影します","es":"Seleccionar o tomar una foto de la galería","fr":"Sélectionner ou prendre une photo dans la galerie","de":"Wählen Sie „Foto aus der Galerie“ aus oder nehmen Sie es auf","pt":"Selecione ou tire uma foto da galeria","ko":"갤러리에서 사진 선택 또는 촬영","zh-CN":"从图库中选择或拍照"},"Acil Kayıp Modu (Lost Dog Mode)":{"tr":"Acil Kayıp Modu (Lost Dog Mode)","en":"Emergency Lost Mode (Lost Dog Mode)","ja":"緊急迷子モード（迷子犬モード）","es":"Modo de pérdida de emergencia (modo de perro perdido)","fr":"Mode d'urgence perdu (mode chien perdu)","de":"Notfall-Verloren-Modus (Lost-Dog-Modus)","pt":"Modo Perdido de Emergência (Modo Cachorro Perdido)","ko":"긴급 분실 모드(분실견 모드)","zh-CN":"紧急丢失模式（丢失狗模式）"},"İdeal Toy Poodle Güvenlik Bandı":{"tr":"İdeal Toy Poodle Güvenlik Bandı","en":"Ideal Toy Poodle Safety Tape","ja":"トイプードルに最適な安全テープ","es":"Cinta de seguridad ideal para caniche toy","fr":"Ruban de sécurité idéal pour caniche jouet","de":"Ideales Spielzeugpudel-Sicherheitsband","pt":"Fita de segurança ideal para poodle toy","ko":"이상적인 토이 푸들 안전 테이프","zh-CN":"理想的玩具贵宾犬安全胶带"},"🩺 Resmi Terapi & Hizmet Köpeği":{"tr":"🩺 Resmi Terapi & Hizmet Köpeği","en":"🩺 Official Therapy & Service Dog","ja":"🩺 正式なセラピー犬および介助犬","es":"🩺 Perro oficial de terapia y servicio","fr":"🩺 Chien officiel de thérapie et d'assistance","de":"🩺 Offizieller Therapie- und Diensthund","pt":"🩺 Cão Oficial de Terapia e Serviço","ko":"🩺 공식 치료견 및 서비스견","zh-CN":"🩺 官方治疗和服务犬"},"Mavi Pati Başvurunuz İncelemede":{"tr":"Mavi Pati Başvurunuz İncelemede","en":"Your Blue Paw Application is Under Review","ja":"Blue Paw の申請は審査中です","es":"Su solicitud de Blue Paw está bajo revisión","fr":"Votre candidature Blue Paw est en cours d'examen","de":"Ihr Blue Paw-Antrag wird derzeit geprüft","pt":"Sua inscrição Blue Paw está em análise","ko":"귀하의 Blue Paw 신청서가 검토 중입니다","zh-CN":"您的 Blue Paw 申请正在审核中"},"✅ Oyunuz alındı! Teşekkürler 🐾":{"tr":"✅ Oyunuz alındı! Teşekkürler 🐾","en":"✅ Your vote has been received! Thank you 🐾","ja":"✅ あなたの投票が届きました！ありがとうございます🐾","es":"✅¡Tu voto ha sido recibido! Gracias 🐾","fr":"✅ Votre vote a été reçu ! Merci 🐾","de":"✅ Deine Stimme ist eingegangen! Danke 🐾","pt":"✅ Seu voto foi recebido! Obrigado 🐾","ko":"✅ 여러분의 투표가 접수되었습니다! 감사합니다🐾","zh-CN":"✅ 您的投票已收到！谢谢你🐾"},"📸 Fotoğraf Ekle (İsteğe Bağlı)":{"tr":"📸 Fotoğraf Ekle (İsteğe Bağlı)","en":"📸 Add Photo (Optional)","ja":"📸 写真を追加 (オプション)","es":"📸 Agregar foto (opcional)","fr":"📸 Ajouter une photo (facultatif)","de":"📸 Foto hinzufügen (optional)","pt":"📸 Adicionar foto (opcional)","ko":"📸 사진 추가(선택사항)","zh-CN":"📸 添加照片（可选）"},"Fotoğraf Seç veya Kamerayla Çek":{"tr":"Fotoğraf Seç veya Kamerayla Çek","en":"Select Photo or Take with Camera","ja":"写真を選択するかカメラで撮影する","es":"Seleccione una foto o tome con la cámara","fr":"Sélectionnez Photo ou Prendre avec l'appareil photo","de":"Wählen Sie „Foto“ oder „Mit Kamera aufnehmen“.","pt":"Selecione Foto ou Tire com Câmera","ko":"사진 선택 또는 카메라로 촬영","zh-CN":"选择照片或用相机拍摄"},"@${post.username} Profilini Gör":{"tr":"@${post.username} Profilini Gör","en":"View @${post.username} Profile","ja":"@${post.username} プロフィールを表示","es":"Ver perfil de @${post.username}","fr":"Voir le profil @${post.username}","de":"@${post.username}-Profil anzeigen","pt":"Ver perfil @${post.username}","ko":"@${post.username} 프로필 보기","zh-CN":"查看@${post.username} 个人资料"},"@${reel.username} Profilini Gör":{"tr":"@${reel.username} Profilini Gör","en":"View @${reel.username} Profile","ja":"@${reel.username} プロフィールを表示","es":"Ver perfil de @${reel.username}","fr":"Voir le profil @${reel.username}","de":"@${reel.username}-Profil anzeigen","pt":"Ver perfil @${reel.username}","ko":"@${reel.username} 프로필 보기","zh-CN":"查看@${reel.username} 个人资料"},"Örn: İstanbul, Ankara, İzmir...":{"tr":"Örn: İstanbul, Ankara, İzmir...","en":"For example: Istanbul, Ankara, Izmir...","ja":"例: イスタンブール、アンカラ、イズミル...","es":"Por ejemplo: Estambul, Ankara, Esmirna...","fr":"Par exemple : Istanbul, Ankara, Izmir...","de":"Zum Beispiel: Istanbul, Ankara, Izmir...","pt":"Por exemplo: Istambul, Ancara, Izmir...","ko":"예: 이스탄불, 앙카라, 이즈미르...","zh-CN":"例如：伊斯坦布尔、安卡拉、伊兹密尔..."},"Pati Seviyeleri & Ayrıcalıklar":{"tr":"Pati Seviyeleri & Ayrıcalıklar","en":"Paw Levels & Privileges","ja":"Paw レベルと権限","es":"Niveles y privilegios de las patas","fr":"Niveaux et privilèges de patte","de":"Pfotenstufen und Privilegien","pt":"Níveis e privilégios de pata","ko":"발 레벨 및 권한","zh-CN":"爪子级别和特权"},"Türkiye Cep Telefonu Numaranız":{"tr":"Türkiye Cep Telefonu Numaranız","en":"Your Türkiye Mobile Phone Number","ja":"トルコの携帯電話番号","es":"Su número de teléfono móvil de Turquía","fr":"Votre numéro de téléphone mobile en Turquie","de":"Ihre Mobiltelefonnummer für die Türkei","pt":"Seu número de celular na Turquia","ko":"귀하의 터키 휴대폰 번호","zh-CN":"您的土耳其手机号码"},"🐾 İndirimle Satın Al / İncele":{"tr":"🐾 İndirimle Satın Al / İncele","en":"🐾 Buy at Discount / Review","ja":"🐾 割引価格で購入/レビュー","es":"🐾 Comprar con descuento / Reseña","fr":"🐾 Acheter à prix réduit / Avis","de":"🐾 Kaufen Sie mit Rabatt / Rezension","pt":"🐾 Compre com desconto / avaliação","ko":"🐾 할인가로 구매/리뷰","zh-CN":"🐾 折扣购买/评论"},"Poodle Profiliyle Paylaşılıyor":{"tr":"Poodle Profiliyle Paylaşılıyor","en":"Shared with Poodle Profile","ja":"プードルのプロフィールと共有","es":"Compartido con perfil de caniche","fr":"Partagé avec le profil de caniche","de":"Geteilt mit Pudelprofil","pt":"Compartilhado com perfil Poodle","ko":"푸들 프로필과 공유됨","zh-CN":"与贵宾犬档案共享"},"\"Parktayım\" Canlı Konum Yayını":{"tr":"\"Parktayım\" Canlı Konum Yayını","en":"\"I'm in the Park\" Live Location Broadcast","ja":"「パークにいるよ」ライブロケ放送","es":"Transmisión en vivo de la ubicación \"Estoy en el parque\"","fr":"Diffusion en direct de \"Je suis dans le parc\"","de":"„I'm in the Park“ Live-Übertragung vor Ort","pt":"Transmissão ao vivo do local \"Estou no parque\"","ko":"'아임 인 더 파크' 라이브 현장 방송","zh-CN":"《我在公园》现场直播"},"Giriş Kodunu SMS ile Gönder 📲":{"tr":"Giriş Kodunu SMS ile Gönder 📲","en":"Send Login Code via SMS 📲","ja":"ログインコードをSMSで送信 📲","es":"Enviar código de acceso por SMS 📲","fr":"Envoyer le code de connexion par SMS 📲","de":"Anmeldecode per SMS senden 📲","pt":"Enviar código de acesso por SMS 📲","ko":"SMS로 로그인 코드 전송 📲","zh-CN":"通过短信发送登录验证码 📲"},"🐾 Poodle\\'ı Ekle ve Aktif Yap":{"tr":"🐾 Poodle\\'ı Ekle ve Aktif Yap","en":"🐾 Add Poodle and Make Active","ja":"🐾 プードルを追加してアクティブにする","es":"🐾 Agregue Poodle y active","fr":"🐾 Ajoutez un caniche et rendez-le actif","de":"🐾 Pudel hinzufügen und aktiv machen","pt":"🐾 Adicionar Poodle e tornar ativo","ko":"🐾 푸들을 추가하고 활성화하세요","zh-CN":"🐾 添加贵宾犬并激活"},"Bildirimleri Aç (İzin Ver) 🐾":{"tr":"Bildirimleri Aç (İzin Ver) 🐾","en":"Turn on Notifications (Allow) 🐾","ja":"通知をオンにする (許可) 🐾","es":"Activar notificaciones (Permitir) 🐾","fr":"Activer les notifications (Autoriser) 🐾","de":"Aktivieren Sie Benachrichtigungen (Zulassen) 🐾","pt":"Ative as notificações (permitir) 🐾","ko":"알림 켜기(허용) 🐾","zh-CN":"打开通知（允许）🐾"},"🐾 Poodle'ı Ekle ve Aktif Yap":{"tr":"🐾 Poodle'ı Ekle ve Aktif Yap","en":"🐾 Add Poodle and Make Active","ja":"🐾 プードルを追加してアクティブにする","es":"🐾 Agregue Poodle y active","fr":"🐾 Ajoutez un caniche et rendez-le actif","de":"🐾 Pudel hinzufügen und aktiv machen","pt":"🐾 Adicionar Poodle e tornar ativo","ko":"🐾 푸들을 추가하고 활성화하세요","zh-CN":"🐾 添加贵宾犬并激活"},"Akıllı Tasma Künyesi & QR Kod":{"tr":"Akıllı Tasma Künyesi & QR Kod","en":"Smart Collar Tag & QR Code","ja":"スマート首輪タグとQRコード","es":"Etiqueta de collar inteligente y código QR","fr":"Étiquette de collier intelligent et code QR","de":"Intelligentes Halsbandetikett und QR-Code","pt":"Etiqueta de colar inteligente e código QR","ko":"스마트 칼라 태그 및 QR 코드","zh-CN":"智能项圈标签和二维码"},"Mochi'nin Aylık Tartım Eğrisi":{"tr":"Mochi'nin Aylık Tartım Eğrisi","en":"Monthly Weighing Curve of Mochi","ja":"餅の月次体重曲線","es":"Curva de pesaje mensual de Mochi","fr":"Courbe de pesée mensuelle du Mochi","de":"Monatliche Wiegekurve von Mochi","pt":"Curva de pesagem mensal de Mochi","ko":"월별 떡 무게 곡선","zh-CN":"麻糬月度称重曲线"},"Bu haftaki keşfet görünürlüğü":{"tr":"Bu haftaki keşfet görünürlüğü","en":"This week's explore visibility","ja":"今週の探索の可視性","es":"Visibilidad de exploración de esta semana","fr":"Visibilité d'exploration de cette semaine","de":"Die Erkundungssichtbarkeit dieser Woche","pt":"Visibilidade de exploração desta semana","ko":"이번 주의 탐색 가시성","zh-CN":"本周的探索可见度"},"YourPoodle Uygulamasını Yükle":{"tr":"YourPoodle Uygulamasını Yükle","en":"Install YourPoodle App","ja":"YourPoodle アプリをインストールする","es":"Instale la aplicación YourPoodle","fr":"Installez l'application YourPoodle","de":"Installieren Sie die YourPoodle-App","pt":"Instale o aplicativo YourPoodle","ko":"YourPoodle 앱 설치","zh-CN":"安装你的贵宾犬应用程序"},"Mavi Pati Doğrulama Başvurusu":{"tr":"Mavi Pati Doğrulama Başvurusu","en":"Blue Paw Verification Application","ja":"Blue Paw 認証アプリケーション","es":"Solicitud de verificación de Blue Paw","fr":"Demande de vérification Blue Paw","de":"Blue Paw-Verifizierungsanwendung","pt":"Aplicativo de verificação Blue Paw","ko":"Blue Paw 검증 신청서","zh-CN":"蓝爪验证应用程序"},"Gönderiler vitrinde öne çıkar":{"tr":"Gönderiler vitrinde öne çıkar","en":"Posts are featured in the showcase","ja":"投稿はショーケースに掲載されます","es":"Las publicaciones aparecen en el escaparate.","fr":"Les articles sont présentés dans la vitrine","de":"Beiträge werden im Showcase vorgestellt","pt":"As postagens são apresentadas na vitrine","ko":"게시물이 쇼케이스에 표시됩니다.","zh-CN":"帖子在展示中展示"},"Taklitçilere karşı tam koruma":{"tr":"Taklitçilere karşı tam koruma","en":"Complete protection against counterfeiters","ja":"偽造者からの完全な保護","es":"Protección completa contra falsificadores","fr":"Protection complète contre les contrefacteurs","de":"Vollständiger Schutz vor Fälschungen","pt":"Proteção completa contra falsificadores","ko":"위조자로부터 완벽한 보호","zh-CN":"全面防范假冒伪劣产品"},"🐾 Topluluk & Forum Yanıtları":{"tr":"🐾 Topluluk & Forum Yanıtları","en":"🐾 Community & Forum Responses","ja":"🐾 コミュニティとフォーラムの反応","es":"🐾 Respuestas de la comunidad y del foro","fr":"🐾 Réponses de la communauté et du forum","de":"🐾 Community- und Forum-Antworten","pt":"🐾 Respostas da comunidade e do fórum","ko":"🐾 커뮤니티 및 포럼 응답","zh-CN":"🐾 社区和论坛回应"},"Dil Seçimi / Select Language":{"tr":"Dil Seçimi / Select Language","en":"Language Selection / Select Language","ja":"言語の選択 / 言語の選択","es":"Selección de idioma / Seleccionar idioma","fr":"Sélection de la langue / Sélectionner la langue","de":"Sprachauswahl / Sprache auswählen","pt":"Seleção de Idioma / Selecionar Idioma","ko":"언어 선택 / 언어 선택","zh-CN":"语言选择 / 选择语言"},"4 haneli SMS kodu gönderildi":{"tr":"4 haneli SMS kodu gönderildi","en":"4 digit SMS code sent","ja":"4桁のSMSコードが送信されました","es":"Código SMS de 4 dígitos enviado","fr":"Code SMS à 4 chiffres envoyé","de":"4-stelliger SMS-Code gesendet","pt":"Código SMS de 4 dígitos enviado","ko":"4자리 SMS 코드가 전송되었습니다.","zh-CN":"已发送 4 位短信代码"},"SMS Doğrulama Kodu Gönder 📲":{"tr":"SMS Doğrulama Kodu Gönder 📲","en":"Send SMS Verification Code 📲","ja":"SMS 認証コードを送信 📲","es":"Enviar código de verificación por SMS 📲","fr":"Envoyer le code de vérification par SMS 📲","de":"Senden Sie einen SMS-Bestätigungscode 📲","pt":"Enviar código de verificação por SMS 📲","ko":"SMS 인증 코드 보내기 📲","zh-CN":"发送短信验证码📲"},"YourPoodle Bildirimlerini Aç":{"tr":"YourPoodle Bildirimlerini Aç","en":"Turn on YourPoodle Notifications","ja":"YourPoodle の通知をオンにする","es":"Activa las notificaciones de YourPoodle","fr":"Activez les notifications YourPoodle","de":"Aktivieren Sie YourPoodle-Benachrichtigungen","pt":"Ative as notificações do YourPoodle","ko":"YourPoodle 알림을 켜세요","zh-CN":"打开 YourPoodle 通知"},"Gönderiyi Paylaş & DM Gönder":{"tr":"Gönderiyi Paylaş & DM Gönder","en":"Share Post & Send DM","ja":"投稿をシェアしてDMを送る","es":"Compartir publicar y enviar DM","fr":"Partager la publication et envoyer un DM","de":"Beitrag teilen und DM senden","pt":"Compartilhar postagem e enviar DM","ko":"게시물 공유 및 DM 보내기","zh-CN":"分享帖子并发送 DM"},"Aşı & Parazit Hatırlatmaları":{"tr":"Aşı & Parazit Hatırlatmaları","en":"Vaccination & Parasite Reminders","ja":"ワクチン接種と寄生虫に関するリマインダー","es":"Recordatorios de vacunación y parásitos","fr":"Rappels sur la vaccination et les parasites","de":"Erinnerungen an Impfungen und Parasiten","pt":"Lembretes de vacinação e parasitas","ko":"예방접종 및 기생충 알림","zh-CN":"疫苗接种和寄生虫提醒"},"3. Kayıtlı Veteriner Kliniği":{"tr":"3. Kayıtlı Veteriner Kliniği","en":"3. Registered Veterinary Clinic","ja":"3. 登録動物病院","es":"3. Clínica Veterinaria Registrada","fr":"3. Clinique vétérinaire enregistrée","de":"3. Registrierte Veterinärklinik","pt":"3. Clínica Veterinária Registrada","ko":"3. 등록된 동물병원","zh-CN":"3. 注册兽医诊所"},"Henüz Kaydedilen Gönderi Yok":{"tr":"Henüz Kaydedilen Gönderi Yok","en":"No Posts Saved Yet","ja":"投稿はまだ保存されていません","es":"Aún no se han guardado publicaciones","fr":"Aucun message enregistré pour l'instant","de":"Noch keine Beiträge gespeichert","pt":"Nenhuma postagem salva ainda","ko":"아직 저장된 게시물이 없습니다.","zh-CN":"尚未保存帖子"},"Gönderi Açıklamasını Düzenle":{"tr":"Gönderi Açıklamasını Düzenle","en":"Edit Post Description","ja":"投稿の説明を編集する","es":"Editar descripción de la publicación","fr":"Modifier la description du message","de":"Beitragsbeschreibung bearbeiten","pt":"Editar descrição da postagem","ko":"게시물 설명 편집","zh-CN":"编辑帖子描述"},"Poodle'ının Adı (Örn: Mochi)":{"tr":"Poodle'ının Adı (Örn: Mochi)","en":"Poodle's Name (Ex: Mochi)","ja":"プードルの名前（例：もち）","es":"Nombre del caniche (Ejemplo: Mochi)","fr":"Nom du caniche (Ex : Mochi)","de":"Name des Pudels (Beispiel: Mochi)","pt":"Nome do Poodle (Ex: Mochi)","ko":"푸들의 이름(예: 모찌)","zh-CN":"贵宾犬的名字（例如：Mochi）"},"Örn: Bella, Charlie, Coco...":{"tr":"Örn: Bella, Charlie, Coco...","en":"Ex: Bella, Charlie, Coco...","ja":"例: ベラ、チャーリー、ココ...","es":"Ej: Bella, Charlie, Coco...","fr":"Ex : Bella, Charlie, Coco...","de":"Bsp.: Bella, Charlie, Coco...","pt":"Ex: Bella, Charlie, Coco...","ko":"예: 벨라, 찰리, 코코...","zh-CN":"例如：贝拉、查理、可可……"},"Örn: Bebek Veteriner Kliniği":{"tr":"Örn: Bebek Veteriner Kliniği","en":"Ex: Baby Veterinary Clinic","ja":"例: 赤ちゃん動物病院","es":"Ej: Clínica Veterinaria para Bebés","fr":"Ex : Clinique Vétérinaire Bébé","de":"Beispiel: Baby-Veterinärklinik","pt":"Ex: Clínica Veterinária de Bebês","ko":"예: 아기 동물병원","zh-CN":"例如：婴儿兽医诊所"},"@${s.username} Profilini Gör":{"tr":"@${s.username} Profilini Gör","en":"View @${s.username} Profile","ja":"@${s.username} プロフィールを表示","es":"Ver perfil de @${s.username}","fr":"Afficher le profil @${s.username}","de":"@${s.username}-Profil anzeigen","pt":"Ver perfil @${s.username}","ko":"@${s.username} 프로필 보기","zh-CN":"查看@${s.username} 个人资料"},"Nasıl Pati Puanı Kazanılır?":{"tr":"Nasıl Pati Puanı Kazanılır?","en":"How to Earn Paw Points?","ja":"パウポイントを獲得するにはどうすればよいですか?","es":"¿Cómo ganar puntos Paw?","fr":"Comment gagner des points Paw ?","de":"Wie verdiene ich Paw Points?","pt":"Como ganhar pontos de pata?","ko":"Paw 포인트를 적립하는 방법은 무엇입니까?","zh-CN":"如何赚取爪子积分？"},"4 Haneli SMS Doğrulama Kodu":{"tr":"4 Haneli SMS Doğrulama Kodu","en":"4 Digit SMS Verification Code","ja":"4桁のSMS認証コード","es":"Código de verificación SMS de 4 dígitos","fr":"Code de vérification SMS à 4 chiffres","de":"4-stelliger SMS-Bestätigungscode","pt":"Código de verificação SMS de 4 dígitos","ko":"4자리 SMS 인증 코드","zh-CN":"4位短信验证码"},"En az 4 noktayı birleştirin":{"tr":"En az 4 noktayı birleştirin","en":"Connect at least 4 dots","ja":"少なくとも 4 つの点を接続してください","es":"Conecte al menos 4 puntos","fr":"Connectez au moins 4 points","de":"Verbinde mindestens 4 Punkte","pt":"Conecte pelo menos 4 pontos","ko":"점을 4개 이상 연결하세요.","zh-CN":"连接至少 4 个点"},"🚀 Akışta Paylaş (+25 Pati)":{"tr":"🚀 Akışta Paylaş (+25 Pati)","en":"🚀 Share on Feed (+25 Paws)","ja":"🚀 フィードで共有 (+25 肉球)","es":"🚀 Compartir en Feed (+25 patas)","fr":"🚀 Partager sur Feed (+25 pattes)","de":"🚀 Im Feed teilen (+25 Pfoten)","pt":"🚀 Compartilhe no Feed (+25 patas)","ko":"🚀 피드에 공유(+25개 발)","zh-CN":"🚀 在 Feed 上分享（+25 爪子）"},"Son paylaşılan park videosu":{"tr":"Son paylaşılan park videosu","en":"Last shared parking video","ja":"前回の共有駐車場のビデオ","es":"Último vídeo de aparcamiento compartido.","fr":"Dernière vidéo de stationnement partagé","de":"Letztes geteiltes Parkvideo","pt":"Último vídeo de estacionamento compartilhado","ko":"마지막 공유주차 영상","zh-CN":"最后分享的停车视频"},"Canlı DM Mesaj Bildirimleri":{"tr":"Canlı DM Mesaj Bildirimleri","en":"Live DM Message Notifications","ja":"ライブDMメッセージ通知","es":"Notificaciones de mensajes DM en vivo","fr":"Notifications de messages DM en direct","de":"Live-DM-Nachrichtenbenachrichtigungen","pt":"Notificações de mensagens DM ao vivo","ko":"실시간 DM 메시지 알림","zh-CN":"实时 DM 消息通知"},"İşlem başarıyla tamamlandı.":{"tr":"İşlem başarıyla tamamlandı.","en":"The operation completed successfully.","ja":"操作は正常に完了しました。","es":"La operación se completó con éxito.","fr":"L'opération s'est terminée avec succès.","de":"Der Vorgang wurde erfolgreich abgeschlossen.","pt":"A operação foi concluída com sucesso.","ko":"작업이 성공적으로 완료되었습니다.","zh-CN":"操作成功完成。"},"Anında cüzdanına tanımlanır":{"tr":"Anında cüzdanına tanımlanır","en":"Instantly identified to your wallet","ja":"あなたのウォレットを即座に識別","es":"Identificado instantáneamente en su billetera","fr":"Identifié instantanément à votre portefeuille","de":"Sofortige Identifizierung in Ihrem Portemonnaie","pt":"Identificado instantaneamente em sua carteira","ko":"지갑에서 즉시 식별됩니다.","zh-CN":"立即识别到您的钱包"},"Soruyu Toplulukla Paylaş 🐾":{"tr":"Soruyu Toplulukla Paylaş 🐾","en":"Share the Question with the Community 🐾","ja":"コミュニティで質問を共有します 🐾","es":"Comparte la pregunta con la comunidad 🐾","fr":"Partagez la question avec la communauté 🐾","de":"Teilen Sie die Frage mit der Community 🐾","pt":"Compartilhe a pergunta com a comunidade 🐾","ko":"커뮤니티에 질문을 공유하세요 🐾","zh-CN":"与社区分享问题🐾"},"Poodle Dostları & Sahipleri":{"tr":"Poodle Dostları & Sahipleri","en":"Poodle Friends & Owners","ja":"プードルの友達と飼い主","es":"Amigos y propietarios de caniches","fr":"Amis et propriétaires de caniches","de":"Pudelfreunde und -besitzer","pt":"Amigos e proprietários de caniches","ko":"푸들 친구 및 주인","zh-CN":"贵宾犬朋友和主人"},"Soru / Açıklama Detayları *":{"tr":"Soru / Açıklama Detayları *","en":"Question / Statement Details *","ja":"質問・発言内容 *","es":"Detalles de la pregunta/declaración *","fr":"Détails de la question/de la déclaration *","de":"Einzelheiten zur Frage/Aussage *","pt":"Detalhes da pergunta/declaração *","ko":"질문/진술 세부정보 *","zh-CN":"问题/陈述详情 *"},"Spam veya İstenmeyen Reklam":{"tr":"Spam veya İstenmeyen Reklam","en":"Spam or Unwanted Advertising","ja":"スパムまたは望ましくない広告","es":"Spam o publicidad no deseada","fr":"Spam ou publicité indésirable","de":"Spam oder unerwünschte Werbung","pt":"Spam ou publicidade indesejada","ko":"스팸 또는 원치 않는 광고","zh-CN":"垃圾邮件或不需要的广告"},"Moderasyon Ekibine İlet 🛡️":{"tr":"Moderasyon Ekibine İlet 🛡️","en":"Forward to Moderation Team 🛡️","ja":"モデレーションチームに転送します 🛡️","es":"Reenviar al equipo de moderación 🛡️","fr":"Transmettre à l'équipe de modération 🛡️","de":"Weiterleiten an das Moderationsteam 🛡️","pt":"Encaminhe para Equipe de Moderação 🛡️","ko":"조정팀으로 전달 🛡️","zh-CN":"转发给审核团队🛡️"},"💬 1.400+ Yanıtlanmış Soru":{"tr":"💬 1.400+ Yanıtlanmış Soru","en":"💬 1,400+ Answered Questions","ja":"💬 1,400 以上の質問に回答済み","es":"💬 Más de 1400 preguntas respondidas","fr":"💬 Plus de 1 400 questions répondues","de":"💬 Über 1.400 beantwortete Fragen","pt":"💬 Mais de 1.400 perguntas respondidas","ko":"💬 1,400개 이상의 답변된 질문","zh-CN":"💬 超过 1,400 个已回答的问题"},"Canlı Telefon Bildirimleri":{"tr":"Canlı Telefon Bildirimleri","en":"Live Phone Notifications","ja":"ライブ電話通知","es":"Notificaciones telefónicas en vivo","fr":"Notifications téléphoniques en direct","de":"Live-Telefonbenachrichtigungen","pt":"Notificações por telefone ao vivo","ko":"실시간 전화 알림","zh-CN":"实时电话通知"},"Minyatür Poodle (28-35 cm)":{"tr":"Minyatür Poodle (28-35 cm)","en":"Miniature Poodle (28-35 cm)","ja":"ミニチュアプードル（28～35cm）","es":"Caniche Miniatura (28-35 cm)","fr":"Caniche nain (28-35 cm)","de":"Zwergpudel (28-35 cm)","pt":"Caniche Miniatura (28-35 cm)","ko":"미니어처 푸들 (28-35cm)","zh-CN":"迷你贵宾犬（28-35 厘米）"},"Diğer Uygulamalarda Paylaş":{"tr":"Diğer Uygulamalarda Paylaş","en":"Share on Other Apps","ja":"他のアプリで共有する","es":"Compartir en otras aplicaciones","fr":"Partager sur d'autres applications","de":"Auf anderen Apps teilen","pt":"Compartilhe em outros aplicativos","ko":"다른 앱에서 공유","zh-CN":"在其他应用程序上分享"},"Çevrim İçi Poodle Dostları":{"tr":"Çevrim İçi Poodle Dostları","en":"Online Poodle Friends","ja":"オンラインプードルフレンズ","es":"Amigos caniche en línea","fr":"Amis caniches en ligne","de":"Online-Pudelfreunde","pt":"Amigos Poodle Online","ko":"온라인 푸들 친구","zh-CN":"在线贵宾犬朋友"},"5.000 TL Ödül Verilecektir":{"tr":"5.000 TL Ödül Verilecektir","en":"5,000 TL Award Will Be Given","ja":"5,000TL賞が贈呈されます","es":"Se otorgará un premio de 5.000 TL","fr":"Une récompense de 5 000 TL sera décernée","de":"Es wird ein Preis in Höhe von 5.000 TL vergeben","pt":"Prêmio de 5.000 TL será concedido","ko":"5,000 TL 상금이 수여됩니다","zh-CN":"将颁发 5,000 TL 奖励"},"Aşı & Parazit Takvimini Aç":{"tr":"Aşı & Parazit Takvimini Aç","en":"Open Vaccine & Parasite Calendar","ja":"ワクチンと寄生虫カレンダーを開く","es":"Calendario abierto de vacunas y parásitos","fr":"Calendrier ouvert des vaccins et des parasites","de":"Öffnen Sie den Impfstoff- und Parasitenkalender","pt":"Abrir calendário de vacinas e parasitas","ko":"백신 및 기생충 달력 열기","zh-CN":"打开疫苗和寄生虫日历"},"Mavi Pati Doğrulama Durumu":{"tr":"Mavi Pati Doğrulama Durumu","en":"Blue Paw Verification Status","ja":"Blue Paw 検証ステータス","es":"Estado de verificación de Blue Paw","fr":"Statut de vérification de Blue Paw","de":"Blue Paw-Verifizierungsstatus","pt":"Status de verificação da pata azul","ko":"블루포 검증 상태","zh-CN":"蓝爪验证状态"},"Dijital Pasaport & Sağlık":{"tr":"Dijital Pasaport & Sağlık","en":"Digital Passport & Health","ja":"デジタルパスポートと健康","es":"Pasaporte Digital y Salud","fr":"Passeport numérique et santé","de":"Digitaler Reisepass und Gesundheit","pt":"Passaporte Digital e Saúde","ko":"디지털 여권 및 건강","zh-CN":"数字护照与健康"},"Zaten bir hesabın var mı?":{"tr":"Zaten bir hesabın var mı?","en":"Already have an account?","ja":"すでにアカウントをお持ちですか?","es":"¿Ya tienes una cuenta?","fr":"Vous avez déjà un compte ?","de":"Sie haben bereits ein Konto?","pt":"Já tem uma conta?","ko":"이미 계정이 있나요?","zh-CN":"已经有帐户？"},"📲 SMS Kodu ile Giriş Yap":{"tr":"📲 SMS Kodu ile Giriş Yap","en":"📲 Login with SMS Code","ja":"📲 SMSコードでログイン","es":"📲 Iniciar sesión con código SMS","fr":"📲 Connectez-vous avec le code SMS","de":"📲 Melden Sie sich mit dem SMS-Code an","pt":"📲 Faça login com código SMS","ko":"📲 SMS 코드로 로그인","zh-CN":"📲 使用短信验证码登录"},"Tarayanın Ekranını Önizle":{"tr":"Tarayanın Ekranını Önizle","en":"Preview Scanner's Screen","ja":"スキャナー画面のプレビュー","es":"Vista previa de la pantalla del escáner","fr":"Aperçu de l'écran du scanner","de":"Vorschau des Scannerbildschirms","pt":"Visualizar tela do scanner","ko":"스캐너 화면 미리보기","zh-CN":"预览扫描仪的屏幕"},"Şu an YourPoodle'da aktif":{"tr":"Şu an YourPoodle'da aktif","en":"Currently active on YourPoodle","ja":"現在YourPoodleで活動中","es":"Actualmente activo en YourPoodle","fr":"Actuellement actif sur YourPoodle","de":"Derzeit aktiv auf YourPoodle","pt":"Atualmente ativo no YourPoodle","ko":"현재 YourPoodle에서 활동 중입니다.","zh-CN":"目前活跃在 YourPoodle 上"},"2. Mikroçip veya Karne No":{"tr":"2. Mikroçip veya Karne No","en":"2. Microchip or Carnet Number","ja":"2. マイクロチップまたはカルネ番号","es":"2. Número de Microchip o Carné","fr":"2. Numéro de puce électronique ou de carnet","de":"2. Mikrochip- oder Carnet-Nummer","pt":"2. Microchip ou Número da Carnet","ko":"2. 마이크로칩 또는 카르네 번호","zh-CN":"2. 微芯片或单证册号码"},"5. Başvuru Notu & Gerekçe":{"tr":"5. Başvuru Notu & Gerekçe","en":"5. Application Note & Justification","ja":"5. アプリケーションノートと根拠","es":"5. Nota de solicitud y justificación","fr":"5. Note d'application et justification","de":"5. Anwendungshinweis und Begründung","pt":"5. Nota de Aplicação e Justificativa","ko":"5. 애플리케이션 노트 및 타당성","zh-CN":"5. 应用说明和理由"},"Poodle Profilini Düzenle":{"tr":"Poodle Profilini Düzenle","en":"Edit Poodle Profile","ja":"プードルのプロフィールを編集する","es":"Editar perfil de caniche","fr":"Modifier le profil du caniche","de":"Pudelprofil bearbeiten","pt":"Editar perfil do poodle","ko":"푸들 프로필 편집","zh-CN":"编辑贵宾犬档案"},"👤 Profil Fotoğrafım Yap":{"tr":"👤 Profil Fotoğrafım Yap","en":"👤 Make My Profile Photo","ja":"👤 プロフィール写真を作成する","es":"👤 Hacer mi foto de perfil","fr":"👤 Créer ma photo de profil","de":"👤 Mein Profilfoto erstellen","pt":"👤 Faça minha foto de perfil","ko":"👤 내 프로필 사진 만들기","zh-CN":"👤 制作我的个人资料照片"},"💾 Değişiklikleri Kaydet":{"tr":"💾 Değişiklikleri Kaydet","en":"💾 Save Changes","ja":"💾 変更を保存","es":"💾 Guardar cambios","fr":"💾 Enregistrer les modifications","de":"💾 Änderungen speichern","pt":"💾 Salvar alterações","ko":"💾 변경 사항 저장","zh-CN":"💾 保存更改"},"Toy Poodle İdeal Aralık:":{"tr":"Toy Poodle İdeal Aralık:","en":"Toy Poodle Ideal Range:","ja":"トイプードルの理想的な範囲:","es":"Rango ideal del caniche toy:","fr":"Gamme idéale de caniche jouet :","de":"Idealer Bereich für Zwergpudel:","pt":"Gama Ideal do Poodle Toy:","ko":"토이 푸들 이상적인 범위:","zh-CN":"玩具贵宾犬理想范围："},"+50 Pati Puanı Kazandın!":{"tr":"+50 Pati Puanı Kazandın!","en":"You Earned +50 Paw Points!","ja":"+50 肉球ポイントを獲得しました!","es":"¡Has ganado +50 puntos Paw!","fr":"Vous avez gagné +50 points Paw !","de":"Du hast +50 Paw Points verdient!","pt":"Você ganhou +50 pontos de pata!","ko":"+50 Paw 포인트를 획득하셨습니다!","zh-CN":"您获得了 +50 肉爪积分！"},"Belgeler Doğrulanıyor...":{"tr":"Belgeler Doğrulanıyor...","en":"Verifying Documents...","ja":"書類を確認中...","es":"Verificando documentos...","fr":"Vérification des documents...","de":"Dokumente prüfen...","pt":"Verificando Documentos...","ko":"문서 확인 중...","zh-CN":"验证文件..."},"Pasaport ve Sağlık Kartı":{"tr":"Pasaport ve Sağlık Kartı","en":"Passport and Health Card","ja":"パスポートと健康カード","es":"Pasaporte y Tarjeta Sanitaria","fr":"Passeport et carte de santé","de":"Reisepass und Gesundheitskarte","pt":"Passaporte e Cartão de Saúde","ko":"여권 및 건강 카드","zh-CN":"护照和健康卡"},"@${c.user} Profilini Gör":{"tr":"@${c.user} Profilini Gör","en":"See @${c.user} Profile","ja":"@${c.user} プロフィールを参照","es":"Ver perfil de @${c.user}","fr":"Voir le profil @${c.user}","de":"Siehe @${c.user}-Profil","pt":"Veja o perfil @${c.user}","ko":"@${c.user} 프로필 보기","zh-CN":"查看@${c.user} 个人资料"},"luna_parisienne yazıyor":{"tr":"luna_parisienne yazıyor","en":"luna_parisienne writes","ja":"luna_parisienne が書きます","es":"luna_parisienne escribe","fr":"luna_parisienne écrit","de":"luna_parisienne schreibt","pt":"luna_parisienne escreve","ko":"luna_parisienne 님이 쓰세요","zh-CN":"luna_parisienne 写道"},"(Çoklu Profil Yönetimi)":{"tr":"(Çoklu Profil Yönetimi)","en":"(Multiple Profile Management)","ja":"(複数プロファイル管理)","es":"(Gestión de perfiles múltiples)","fr":"(Gestion de profils multiples)","de":"(Mehrere Profilverwaltung)","pt":"(Gerenciamento de múltiplos perfis)","ko":"(다중 프로필 관리)","zh-CN":"（多档案管理）"},"🐾 Kayıt Ol (+100 Pati)":{"tr":"🐾 Kayıt Ol (+100 Pati)","en":"🐾 Sign Up (+100 Paws)","ja":"🐾 新規登録 (+100 肉球)","es":"🐾 Regístrate (+100 Patas)","fr":"🐾 Inscription (+100 Pattes)","de":"🐾 Registrieren (+100 Pfoten)","pt":"🐾 Cadastre-se (+100 Patas)","ko":"🐾 회원가입 (+100 발자국)","zh-CN":"🐾 注册 (+100 肉爪)"},"Tekrar Kod Gönder (45s)":{"tr":"Tekrar Kod Gönder (45s)","en":"Send Code Again (45s)","ja":"コードを再送信 (45 秒)","es":"Enviar código nuevamente (45 s)","fr":"Envoyer à nouveau le code (45 s)","de":"Code erneut senden (45 Sek.)","pt":"Enviar código novamente (45s)","ko":"코드 다시 보내기(45초)","zh-CN":"再次发送代码（45 秒）"},"Mikroçip No (Opsiyonel)":{"tr":"Mikroçip No (Opsiyonel)","en":"Microchip No (Optional)","ja":"マイクロチップいいえ (オプション)","es":"Número de microchip (opcional)","fr":"Non de puce électronique (facultatif)","de":"Mikrochip-Nr. (optional)","pt":"Microchip Não (Opcional)","ko":"마이크로칩 번호(선택 사항)","zh-CN":"微芯片编号（可选）"},"Silver Grey (Gümüş Gri)":{"tr":"Silver Grey (Gümüş Gri)","en":"Silver Gray","ja":"シルバーグレー","es":"Gris Plata","fr":"Gris argenté","de":"Silbergrau","pt":"Cinza Prateado","ko":"실버 그레이","zh-CN":"银灰色"},"15.07.2025 (1 yıl 3 ay)":{"tr":"15.07.2025 (1 yıl 3 ay)","en":"15.07.2025 (1 year 3 months)","ja":"2025.07.15 (1年3ヶ月)","es":"15.07.2025 (1 año 3 meses)","fr":"15.07.2025 (1 an 3 mois)","de":"15.07.2025 (1 Jahr 3 Monate)","pt":"15.07.2025 (1 ano 3 meses)","ko":"2025.07.15 (1년 3개월)","zh-CN":"2025年7月15日（1年3个月）"},"(Yeşil Güvenlik Şeridi)":{"tr":"(Yeşil Güvenlik Şeridi)","en":"(Green Security Strip)","ja":"(緑色のセキュリティストリップ)","es":"(Franja de Seguridad Verde)","fr":"(Bande de sécurité verte)","de":"(Grüner Sicherheitsstreifen)","pt":"(Faixa de segurança verde)","ko":"(녹색 보안 스트립)","zh-CN":"（绿色安全带）"},"Canlı Park Bildirimleri":{"tr":"Canlı Park Bildirimleri","en":"Live Parking Notifications","ja":"ライブ駐車通知","es":"Notificaciones de estacionamiento en vivo","fr":"Notifications de stationnement en direct","de":"Live-Parkbenachrichtigungen","pt":"Notificações de estacionamento ao vivo","ko":"실시간 주차 알림","zh-CN":"实时停车通知"},"Kullanıcı bulunamadı 🐾":{"tr":"Kullanıcı bulunamadı 🐾","en":"User not found 🐾","ja":"ユーザーが見つかりません 🐾","es":"Usuario no encontrado 🐾","fr":"Utilisateur introuvable 🐾","de":"Benutzer nicht gefunden 🐾","pt":"Usuário não encontrado 🐾","ko":"사용자를 찾을 수 없습니다 🐾","zh-CN":"找不到用户🐾"},"Bağlantı hatası oluştu.":{"tr":"Bağlantı hatası oluştu.","en":"A connection error occurred.","ja":"接続エラーが発生しました。","es":"Se produjo un error de conexión.","fr":"Une erreur de connexion s'est produite.","de":"Es ist ein Verbindungsfehler aufgetreten.","pt":"Ocorreu um erro de conexão.","ko":"연결 오류가 발생했습니다.","zh-CN":"发生连接错误。"},"Yeni Soru / Konu Başlat":{"tr":"Yeni Soru / Konu Başlat","en":"Start a New Question / Topic","ja":"新しい質問/トピックを開始する","es":"Iniciar una nueva pregunta/tema","fr":"Commencer une nouvelle question/sujet","de":"Starten Sie eine neue Frage/ein neues Thema","pt":"Comece uma nova pergunta/tópico","ko":"새 질문/주제 시작","zh-CN":"开始一个新问题/主题"},"🤝 Sahiplenme & Eşleşme":{"tr":"🤝 Sahiplenme & Eşleşme","en":"🤝 Adoption & Matching","ja":"🤝 採用とマッチング","es":"🤝 Adopción y emparejamiento","fr":"🤝 Adoption et jumelage","de":"🤝 Adoption & Matching","pt":"🤝 Adoção e correspondência","ko":"🤝 채택 및 매칭","zh-CN":"🤝 领养与匹配"},"10 Pati Puanı Hediye Et":{"tr":"10 Pati Puanı Hediye Et","en":"Gift 10 Paw Points","ja":"10 肉球ポイントをプレゼント","es":"Regale 10 puntos Paw","fr":"Offrez 10 points Paw","de":"Verschenken Sie 10 Pfotenpunkte","pt":"Presenteie 10 pontos de pata","ko":"포 포인트 10개 선물하기","zh-CN":"赠送 10 肉爪积分"},"Mavi Pati Onaylı Poodle":{"tr":"Mavi Pati Onaylı Poodle","en":"Blue Paw Approved Poodle","ja":"ブルーパウ承認済みプードル","es":"Caniche aprobado por Blue Paw","fr":"Caniche approuvé par Blue Paw","de":"Blue Paw Approbierter Pudel","pt":"Caniche Aprovado pela Pata Azul","ko":"블루 포 승인 푸들","zh-CN":"蓝爪批准贵宾犬"},"Beğeni Bildirimi Gönder":{"tr":"Beğeni Bildirimi Gönder","en":"Send Like Notification","ja":"いいね通知を送信する","es":"Enviar notificación de Me gusta","fr":"Envoyer une notification J'aime","de":"Like-Benachrichtigung senden","pt":"Enviar notificação semelhante","ko":"좋아요 알림 보내기","zh-CN":"发送点赞通知"},"Örn: TR-982009104829104":{"tr":"Örn: TR-982009104829104","en":"Ex: TR-982009104829104","ja":"例: TR-982009104829104","es":"Ej: TR-982009104829104","fr":"Ex : TR-982009104829104","de":"Beispiel: TR-982009104829104","pt":"Ex: TR-982009104829104","ko":"예: TR-982009104829104","zh-CN":"例如：TR-982009104829104"},"Güvenlik Sembolünü Çiz":{"tr":"Güvenlik Sembolünü Çiz","en":"Draw the Security Symbol","ja":"セキュリティシンボルを描く","es":"Dibuja el símbolo de seguridad","fr":"Dessinez le symbole de sécurité","de":"Zeichnen Sie das Sicherheitssymbol","pt":"Desenhe o símbolo de segurança","ko":"보안 기호 그리기","zh-CN":"绘制安全符号"},"\"Yeni bir mesajın var\"":{"tr":"\"Yeni bir mesajın var\"","en":"\"You have a new message\"","ja":"「新しいメッセージがあります」","es":"\"Tienes un nuevo mensaje\"","fr":"\"Vous avez un nouveau message\"","de":"„Sie haben eine neue Nachricht“","pt":"\"Você tem uma nova mensagem\"","ko":"\"새 메시지가 왔습니다.\"","zh-CN":"“你有一条新消息”"},"📍 Nişantaşı, İstanbul":{"tr":"📍 Nişantaşı, İstanbul","en":"📍Nişantaşı, Istanbul","ja":"📍ニシャンタシュ、イスタンブール","es":"📍Nişantaşı, Estambul","fr":"📍Nişantaşı, Istanbul","de":"📍Nişantaşı, Istanbul","pt":"📍Nişantaşı, Istambul","ko":"📍Nişantaşı, 이스탄불","zh-CN":"📍尼尚塔西, 伊斯坦布尔"},"Açıklama yükleniyor...":{"tr":"Açıklama yükleniyor...","en":"Description loading...","ja":"説明を読み込んでいます...","es":"Descripción cargando...","fr":"Chargement de la description...","de":"Beschreibung wird geladen...","pt":"Descrição carregando...","ko":"설명 로드 중...","zh-CN":"描述加载中..."},"Çip Numarasını Kopyala":{"tr":"Çip Numarasını Kopyala","en":"Copy Chip Number","ja":"チップ番号をコピー","es":"Copiar número de chip","fr":"Copier le numéro de puce","de":"Chipnummer kopieren","pt":"Copiar número do chip","ko":"칩 번호 복사","zh-CN":"复制芯片号码"},"Keşfet & Akış Önceliği":{"tr":"Keşfet & Akış Önceliği","en":"Discover & Stream Priority","ja":"検出とストリーミングの優先順位","es":"Prioridad de descubrimiento y transmisión","fr":"Priorité de découverte et de diffusion","de":"Priorität entdecken und streamen","pt":"Prioridade de descoberta e transmissão","ko":"검색 및 스트리밍 우선순위","zh-CN":"发现和直播优先"},"+100 Pati Puanı Bonusu":{"tr":"+100 Pati Puanı Bonusu","en":"+100 Paw Point Bonus","ja":"+100 肉球ポイントボーナス","es":"Bonificación de +100 puntos de pata","fr":"+100 points de patte bonus","de":"+100 Pfotenpunktbonus","pt":"Bônus de +100 pontos de pata","ko":"+100 포 포인트 보너스","zh-CN":"+100 肉爪积分奖励"},"Tüm Gönderileri Göster":{"tr":"Tüm Gönderileri Göster","en":"Show All Posts","ja":"すべての投稿を表示","es":"Mostrar todas las publicaciones","fr":"Afficher toutes les publications","de":"Alle Beiträge anzeigen","pt":"Mostrar todas as publicações","ko":"모든 게시물 보기","zh-CN":"显示全部帖子"},"💬 Yorumlar & Yanıtlar":{"tr":"💬 Yorumlar & Yanıtlar","en":"💬 Comments & Replies","ja":"💬 コメントと返信","es":"💬 Comentarios y respuestas","fr":"💬 Commentaires et réponses","de":"💬 Kommentare und Antworten","pt":"💬 Comentários e respostas","ko":"💬 댓글 및 답글","zh-CN":"💬 评论和回复"},"Günlük Giriş Bonusu Al":{"tr":"Günlük Giriş Bonusu Al","en":"Get Daily Login Bonus","ja":"毎日のログインボーナスをゲット","es":"Obtenga un bono de inicio de sesión diario","fr":"Obtenez un bonus de connexion quotidien","de":"Erhalten Sie einen täglichen Login-Bonus","pt":"Ganhe bônus de login diário","ko":"일일 로그인 보너스 받기","zh-CN":"获取每日登录奖金"},"Mesaj Bildirimi Gönder":{"tr":"Mesaj Bildirimi Gönder","en":"Send Message Notification","ja":"メッセージ通知の送信","es":"Enviar notificación de mensaje","fr":"Envoyer une notification par message","de":"Nachrichtenbenachrichtigung senden","pt":"Enviar notificação de mensagem","ko":"메시지 알림 보내기","zh-CN":"发送消息通知"},"Red / Apricot (Kızıl)":{"tr":"Red / Apricot (Kızıl)","en":"Red / Apricot","ja":"レッド/アプリコット","es":"Rojo / Albaricoque","fr":"Rouge / Abricot","de":"Rot / Aprikose","pt":"Vermelho / Damasco","ko":"레드 / 살구","zh-CN":"红色/杏色"},"Aşı & Parazit Takvimi":{"tr":"Aşı & Parazit Takvimi","en":"Vaccination & Parasite Calendar","ja":"予防接種と寄生虫カレンダー","es":"Calendario de vacunación y parásitos","fr":"Calendrier de vaccination et de parasites","de":"Impf- und Parasitenkalender","pt":"Calendário de vacinação e parasitas","ko":"예방접종 및 기생충 달력","zh-CN":"疫苗接种和寄生虫日历"},"1. Başvuru Kategorisi":{"tr":"1. Başvuru Kategorisi","en":"1. Application Category","ja":"1. 申請区分","es":"1. Categoría de aplicación","fr":"1. Catégorie de candidature","de":"1. Anwendungskategorie","pt":"1. Categoria de aplicação","ko":"1. 지원분야","zh-CN":"1. 应用类别"},"SMS Gönderiliyor... ⏳":{"tr":"SMS Gönderiliyor... ⏳","en":"Sending SMS... ⏳","ja":"SMS を送信中... ⏳","es":"Enviando SMS... ⏳","fr":"Envoi de SMS... ⏳","de":"SMS senden... ⏳","pt":"Enviando SMS... ⏳","ko":"SMS 보내는 중... ⏳","zh-CN":"正在发送短信... ⏳"},"Kod Doğrulanıyor... ⏳":{"tr":"Kod Doğrulanıyor... ⏳","en":"Verifying Code... ⏳","ja":"コードを確認中... ⏳","es":"Verificando código... ⏳","fr":"Vérification du code... ⏳","de":"Code wird überprüft... ⏳","pt":"Verificando código... ⏳","ko":"코드 확인 중... ⏳","zh-CN":"正在验证代码... ⏳"},"Oylamak için tıkla 👆":{"tr":"Oylamak için tıkla 👆","en":"Click to vote 👆","ja":"クリックして投票 👆","es":"Haga clic para votar 👆","fr":"Cliquez pour voter 👆","de":"Klicken Sie hier, um abzustimmen 👆","pt":"Clique para votar 👆","ko":"투표하려면 클릭하세요 👆","zh-CN":"点击投票👆"},"Yanıtlar & Deneyimler":{"tr":"Yanıtlar & Deneyimler","en":"Answers & Experiences","ja":"回答と体験談","es":"Respuestas y experiencias","fr":"Réponses et expériences","de":"Antworten & Erfahrungen","pt":"Respostas e experiências","ko":"답변 및 경험","zh-CN":"答案和经验"},"Değişiklikleri Kaydet":{"tr":"Değişiklikleri Kaydet","en":"Save Changes","ja":"変更を保存","es":"Guardar cambios","fr":"Enregistrer les modifications","de":"Änderungen speichern","pt":"Salvar alterações","ko":"변경 사항 저장","zh-CN":"保存更改"},"✉️ Özel Mesajlar (DM)":{"tr":"✉️ Özel Mesajlar (DM)","en":"✉️ Private Messages (DM)","ja":"✉️プライベートメッセージ(DM)","es":"✉️ Mensajes Privados (DM)","fr":"✉️ Messages privés (DM)","de":"✉️ Private Nachrichten (DM)","pt":"✉️ Mensagens Privadas (DM)","ko":"✉️ 비공개 메시지(DM)","zh-CN":"✉️ 私人消息 (DM)"},"Mavi Pati Doğrulanmış":{"tr":"Mavi Pati Doğrulanmış","en":"Blue Paw Verified","ja":"ブルーパウ 認証済み","es":"Pata Azul Verificada","fr":"Patte Bleue Vérifiée","de":"Blue Paw bestätigt","pt":"Pata Azul Verificada","ko":"블루포 인증됨","zh-CN":"蓝爪已验证"},"Pati Maması İkram Et":{"tr":"Pati Maması İkram Et","en":"Offer Paw Food","ja":"肉球の食べ物を提供する","es":"Ofrecer comida para patas","fr":"Offrir de la nourriture pour les pattes","de":"Bieten Sie Pfotenfutter an","pt":"Ofereça comida para patas","ko":"포우 푸드 제공","zh-CN":"提供爪子食物"},"👋 Tanışma & Deneyim":{"tr":"👋 Tanışma & Deneyim","en":"👋 Meet & Experience","ja":"👋 出会いと体験","es":"👋 Conoce y experimenta","fr":"👋 Rencontre et expérience","de":"👋 Treffen und erleben","pt":"👋 Conheça e experimente","ko":"👋 만남과 체험","zh-CN":"👋 见面和体验"},"📍 Şehir Buluşmaları":{"tr":"📍 Şehir Buluşmaları","en":"📍 City Meetings","ja":"📍 市の会議","es":"📍 Reuniones de la ciudad","fr":"📍 Réunions de la ville","de":"📍 Stadttreffen","pt":"📍 Reuniões Municipais","ko":"📍 도시 회의","zh-CN":"📍 城市会议"},"64 Beğeni & 12 Yorum":{"tr":"64 Beğeni & 12 Yorum","en":"64 Likes & 12 Comments","ja":"64 件の「いいね！」と 12 件のコメント","es":"64 Me gusta y 12 comentarios","fr":"64 J'aime et 12 commentaires","de":"64 Likes und 12 Kommentare","pt":"64 curtidas e 12 comentários","ko":"좋아요 64개, 댓글 12개","zh-CN":"64 条赞和 12 条评论"},"Doğrulama Kategorisi":{"tr":"Doğrulama Kategorisi","en":"Verification Category","ja":"検証カテゴリー","es":"Categoría de verificación","fr":"Catégorie de vérification","de":"Verifizierungskategorie","pt":"Categoria de verificação","ko":"검증항목","zh-CN":"验证类别"},"Sorular yüklenemedi.":{"tr":"Sorular yüklenemedi.","en":"Questions could not be loaded.","ja":"質問を読み込めませんでした。","es":"No se pudieron cargar las preguntas.","fr":"Les questions n'ont pas pu être chargées.","de":"Fragen konnten nicht geladen werden.","pt":"Não foi possível carregar as perguntas.","ko":"질문을 로드할 수 없습니다.","zh-CN":"无法加载问题。"},"Gönderiyi Şikayet Et":{"tr":"Gönderiyi Şikayet Et","en":"Report Post","ja":"レポート投稿","es":"Reportar publicación","fr":"Signaler le message","de":"Beitrag melden","pt":"Postagem de relatório","ko":"게시물 신고","zh-CN":"举报帖子"},"Pati Panelini İncele":{"tr":"Pati Panelini İncele","en":"Check out the Paw Panel","ja":"肉球パネルをチェックしてください","es":"Echa un vistazo al panel de patas","fr":"Découvrez le panneau Paw","de":"Schauen Sie sich das Paw Panel an","pt":"Confira o painel da pata","ko":"발 패널을 확인하세요","zh-CN":"查看爪子面板"},"Senin İçin Öneriler":{"tr":"Senin İçin Öneriler","en":"Suggestions for You","ja":"あなたへの提案","es":"Sugerencias para ti","fr":"Suggestions pour vous","de":"Vorschläge für Sie","pt":"Sugestões para você","ko":"당신을 위한 제안","zh-CN":"给您的建议"},"Mavi Pati Başvurusu":{"tr":"Mavi Pati Başvurusu","en":"Blue Paw Application","ja":"ブルーパウアプリケーション","es":"Aplicación de pata azul","fr":"Application Patte Bleue","de":"Blue Paw-Anwendung","pt":"Aplicação Pata Azul","ko":"블루 포 응용 프로그램","zh-CN":"蓝爪应用"},"🎾 Eğitim & Tuvalet":{"tr":"🎾 Eğitim & Tuvalet","en":"🎾 Education & Toilet","ja":"🎾教育とトイレ","es":"🎾 Educación y baño","fr":"🎾 Éducation et toilettes","de":"🎾 Bildung & Toilette","pt":"🎾 Educação e banheiro","ko":"🎾 교육 및 화장실","zh-CN":"🎾 教育和厕所"},"Sembolümü Unuttum ❓":{"tr":"Sembolümü Unuttum ❓","en":"I Forgot My Symbol ❓","ja":"シンボルを忘れてしまいました ❓","es":"Olvidé mi símbolo ❓","fr":"J'ai oublié mon symbole ❓","de":"Ich habe mein Symbol vergessen❓","pt":"Esqueci meu símbolo ❓","ko":"내 기호를 잊어버렸어요 ❓","zh-CN":"我忘记了我的符号❓"},"✨ 3D Pixar Dönüşümü":{"tr":"✨ 3D Pixar Dönüşümü","en":"✨ 3D Pixar Transformation","ja":"✨ 3D ピクサー変換","es":"✨ Transformación 3D Pixar","fr":"✨ Transformation Pixar 3D","de":"✨ 3D-Pixar-Transformation","pt":"✨ Transformação 3D Pixar","ko":"✨ 3D 픽사 변환","zh-CN":"✨ 3D 皮克斯变形"},"Yeni Gönderi Paylaş":{"tr":"Yeni Gönderi Paylaş","en":"Share New Post","ja":"新しい投稿をシェアする","es":"Compartir nueva publicación","fr":"Partager un nouveau message","de":"Neuen Beitrag teilen","pt":"Compartilhar nova postagem","ko":"새 게시물 공유","zh-CN":"分享新帖子"},"🔄 Medyayı Değiştir":{"tr":"🔄 Medyayı Değiştir","en":"🔄 Change Media","ja":"🔄 メディアを変更する","es":"🔄 Cambiar medios","fr":"🔄 Changer de média","de":"🔄 Medien wechseln","pt":"🔄 Mudar mídia","ko":"🔄 미디어 변경","zh-CN":"🔄 更改媒体"},"Pasaport & QR Künye":{"tr":"Pasaport & QR Künye","en":"Passport & QR Imprint","ja":"パスポートとQRインプリント","es":"Pasaporte e impresión QR","fr":"Passeport et empreinte QR","de":"Reisepass und QR-Abdruck","pt":"Passaporte e impressão QR","ko":"여권 및 QR 인쇄물","zh-CN":"护照和二维码印记"},"%34 Daha Fazla İlgi":{"tr":"%34 Daha Fazla İlgi","en":"34% More Interest","ja":"利息が 34% 増加","es":"34% más de interés","fr":"34 % d'intérêt en plus","de":"34 % mehr Interesse","pt":"34% mais juros","ko":"34% 더 많은 관심","zh-CN":"兴趣增加 34%"},"Kayıp Köpek Künyesi":{"tr":"Kayıp Köpek Künyesi","en":"Lost Dog Tag","ja":"紛失したドッグタグ","es":"Placa de identificación perdida","fr":"Plaque d'identité perdue","de":"Verlorene Erkennungsmarke","pt":"Etiqueta de cachorro perdida","ko":"분실된 인식표","zh-CN":"丢失狗牌"},"Klon Hesap Koruması":{"tr":"Klon Hesap Koruması","en":"Clone Account Protection","ja":"クローンアカウント保護","es":"Clonar protección de cuenta","fr":"Protection du compte clone","de":"Schutz des Klonkontos","pt":"Clonar proteção de conta","ko":"클론 계정 보호","zh-CN":"克隆帐户保护"},"3.20 kg (Üst Sınır)":{"tr":"3.20 kg (Üst Sınır)","en":"3.20 kg (Upper Limit)","ja":"3.20kg(上限)","es":"3,20 kg (límite superior)","fr":"3,20 kg (limite supérieure)","de":"3,20 kg (Obergrenze)","pt":"3,20 kg (Limite Superior)","ko":"3.20kg(상한)","zh-CN":"3.20公斤（上限）"},"2.50 kg (Alt Sınır)":{"tr":"2.50 kg (Alt Sınır)","en":"2.50 kg (Lower Limit)","ja":"2.50kg(下限)","es":"2,50 kg (límite inferior)","fr":"2,50 kg (limite inférieure)","de":"2,50 kg (Untergrenze)","pt":"2,50 kg (Limite Inferior)","ko":"2.50kg(하한)","zh-CN":"2.50公斤（下限）"},"Örn: İstanbul, Moda":{"tr":"Örn: İstanbul, Moda","en":"Ex: Istanbul, Fashion","ja":"例: イスタンブール、ファッション","es":"Ej: Estambul, Moda","fr":"Ex : Istanbul, Mode","de":"Beispiel: Istanbul, Mode","pt":"Ex: Istambul, Moda","ko":"예: 이스탄불, 패션","zh-CN":"例如：伊斯坦布尔、时尚"},"Giriş Yap / Kaydol":{"tr":"Giriş Yap / Kaydol","en":"Login / Sign Up","ja":"ログイン/サインアップ","es":"Iniciar sesión / Registrarse","fr":"Connexion / Inscription","de":"Anmelden / Registrieren","pt":"Login / Inscreva-se","ko":"로그인 / 회원가입","zh-CN":"登录/注册"},"📍 İstanbul, Bebek":{"tr":"📍 İstanbul, Bebek","en":"📍 Istanbul, Bebek","ja":"📍 イスタンブール、ベベク","es":"📍 Estambul, Bebek","fr":"📍Istanbul, Bebek","de":"📍Istanbul, Bebek","pt":"📍 Istambul, Bebek","ko":"📍 이스탄불, 베벡","zh-CN":"📍 伊斯坦布尔、贝贝克"},"Pati Puanı Cüzdanı":{"tr":"Pati Puanı Cüzdanı","en":"Paw Points Wallet","ja":"パウポイントウォレット","es":"Cartera de puntos de pata","fr":"Portefeuille Paw Points","de":"Paw Points-Geldbörse","pt":"Carteira de pontos Paw","ko":"포 포인트 지갑","zh-CN":"爪子积分钱包"},"Vitrinde Öne Çıkma":{"tr":"Vitrinde Öne Çıkma","en":"Stand Out in the Showcase","ja":"ショーケースで目立つ","es":"Destaca en el escaparate","fr":"Stand Out in the Showcase","de":"Heben Sie sich in der Vitrine ab","pt":"Destaque-se na vitrine","ko":"쇼케이스에서 눈에 띄다","zh-CN":"在展示柜中脱颖而出"},"Hızlı Mesaj Gönder":{"tr":"Hızlı Mesaj Gönder","en":"Send Quick Message","ja":"クイックメッセージを送信する","es":"Enviar mensaje rápido","fr":"Envoyer un message rapide","de":"Senden Sie eine kurze Nachricht","pt":"Enviar mensagem rápida","ko":"빠른 메시지 보내기","zh-CN":"发送快速消息"},"Bağlantıyı Kopyala":{"tr":"Bağlantıyı Kopyala","en":"Copy Link","ja":"リンクをコピー","es":"Copiar enlace","fr":"Copier le lien","de":"Link kopieren","pt":"Copiar Link","ko":"링크 복사","zh-CN":"复制链接"},"Sağlık, Aşı & Kilo":{"tr":"Sağlık, Aşı & Kilo","en":"Health, Vaccination & Weight","ja":"健康、予防接種、体重","es":"Salud, vacunación y peso","fr":"Santé, vaccination et poids","de":"Gesundheit, Impfung und Gewicht","pt":"Saúde, vacinação e peso","ko":"건강, 예방접종 및 체중","zh-CN":"健康、疫苗接种和体重"},"Doğum Tarihi / Yaş":{"tr":"Doğum Tarihi / Yaş","en":"Date of Birth / Age","ja":"生年月日/年齢","es":"Fecha de Nacimiento / Edad","fr":"Date de naissance / Âge","de":"Geburtsdatum / Alter","pt":"Data de Nascimento/Idade","ko":"생년월일 / 나이","zh-CN":"出生日期/年龄"},"4 Dost Şu An Aktif":{"tr":"4 Dost Şu An Aktif","en":"4 Friends Are Active Now","ja":"現在4人の友達がアクティブです","es":"4 amigos están activos ahora","fr":"4 amis sont actifs maintenant","de":"4 Freunde sind jetzt aktiv","pt":"4 amigos estão ativos agora","ko":"4명의 친구가 현재 활동 중입니다.","zh-CN":"4 位好友现在活跃"},"💾 Ayarları Kaydet":{"tr":"💾 Ayarları Kaydet","en":"💾 Save Settings","ja":"💾 設定を保存","es":"💾 Guardar configuración","fr":"💾 Enregistrer les paramètres","de":"💾 Einstellungen speichern","pt":"💾 Salvar configurações","ko":"💾 설정 저장","zh-CN":"💾 保存设置"},"Aileyi Güvenli Ara":{"tr":"Aileyi Güvenli Ara","en":"Search Family Safe","ja":"家族の金庫を検索","es":"Buscar seguro para toda la familia","fr":"Rechercher un coffre-fort familial","de":"Suche familiensicher","pt":"Pesquisar Seguro para Família","ko":"가족용 안전 검색","zh-CN":"搜索内容健康"},"Resmi Güvenilirlik":{"tr":"Resmi Güvenilirlik","en":"Official Reliability","ja":"公式の信頼性","es":"Fiabilidad oficial","fr":"Fiabilité officielle","de":"Offizielle Zuverlässigkeit","pt":"Confiabilidade Oficial","ko":"공식적인 신뢰성","zh-CN":"官方可靠性"},"● AKTİF VE GEÇERLİ":{"tr":"● AKTİF VE GEÇERLİ","en":"● ACTIVE AND VALID","ja":"● アクティブかつ有効","es":"● ACTIVA Y VÁLIDA","fr":"● ACTIF ET VALIDE","de":"● AKTIV UND GÜLTIG","pt":"● ATIVO E VÁLIDO","ko":"● 활성 상태이고 유효함","zh-CN":"● 有效且有效"},"Sertifikayı Paylaş":{"tr":"Sertifikayı Paylaş","en":"Share Certificate","ja":"株券","es":"Certificado de acciones","fr":"Certificat d'actions","de":"Aktienzertifikat","pt":"Certificado de compartilhamento","ko":"인증서 공유","zh-CN":"股份证书"},"Yayınlanıyor... 🐾":{"tr":"Yayınlanıyor... 🐾","en":"Publishing... 🐾","ja":"公開中... 🐾","es":"Publicando... 🐾","fr":"Publication... 🐾","de":"Veröffentlichen... 🐾","pt":"Publicando... 🐾","ko":"출판 중... 🐾","zh-CN":"出版...🐾"},"İlgili Paylaşımlar":{"tr":"İlgili Paylaşımlar","en":"Related Posts","ja":"関連記事","es":"Publicaciones relacionadas","fr":"Articles connexes","de":"Verwandte Beiträge","pt":"Postagens relacionadas","ko":"관련 게시물","zh-CN":"相关帖子"},"Açıklamayı Düzenle":{"tr":"Açıklamayı Düzenle","en":"Edit Description","ja":"説明の編集","es":"Editar descripción","fr":"Modifier la description","de":"Beschreibung bearbeiten","pt":"Editar descrição","ko":"설명 편집","zh-CN":"编辑说明"},"👤 Yeni Takipçiler":{"tr":"👤 Yeni Takipçiler","en":"👤 New Followers","ja":"👤 新しいフォロワー","es":"👤 Nuevos seguidores","fr":"👤 Nouveaux abonnés","de":"👤 Neue Follower","pt":"👤 Novos seguidores","ko":"👤 새로운 팔로어","zh-CN":"👤 新关注者"},"Poodle Değiştir 🐩":{"tr":"Poodle Değiştir 🐩","en":"Change Poodle 🐩","ja":"チェンジプードル🐩","es":"Cambiar Caniche 🐩","fr":"Changer de caniche 🐩","de":"Pudel wechseln 🐩","pt":"Mude Poodle 🐩","ko":"푸들 체인지 🐩","zh-CN":"改变贵宾犬🐩"},"Paylaş / DM Gönder":{"tr":"Paylaş / DM Gönder","en":"Share / Send DM","ja":"シェア/DM送信","es":"Compartir / Enviar DM","fr":"Partager / Envoyer DM","de":"Teilen / DM senden","pt":"Compartilhar/Enviar DM","ko":"공유 / DM 보내기","zh-CN":"分享/发送DM"},"Misafir Kullanıcı":{"tr":"Misafir Kullanıcı","en":"Guest User","ja":"ゲストユーザー","es":"Usuario invitado","fr":"Utilisateur invité","de":"Gastbenutzer","pt":"Usuário convidado","ko":"게스트 사용자","zh-CN":"访客用户"},"Kıvırcık Kaşif 🎾":{"tr":"Kıvırcık Kaşif 🎾","en":"Curly Explorer 🎾","ja":"カーリーエクスプローラー 🎾","es":"Explorador rizado 🎾","fr":"Explorateur bouclé 🎾","de":"Curly Explorer 🎾","pt":"Explorador Encaracolado 🎾","ko":"곱슬 탐험가 🎾","zh-CN":"卷毛探索者🎾"},"Turkish · Türkiye":{"tr":"Turkish · Türkiye","en":"Turkish · Türkiye","ja":"トルコ語 · トルコ語","es":"Turco · Turquía","fr":"Turc · Turquie","de":"Türkisch · Türkei","pt":"Turco · Turquia","ko":"터키 · 터키","zh-CN":"土耳其语 · 土耳其"},"Dönüştürülüyor...":{"tr":"Dönüştürülüyor...","en":"Converting...","ja":"変換中...","es":"Convirtiendo...","fr":"Conversion...","de":"Konvertieren...","pt":"Convertendo...","ko":"변환 중...","zh-CN":"转换..."},"Poodle Yağmurluğu":{"tr":"Poodle Yağmurluğu","en":"Poodle Raincoat","ja":"プードルレインコート","es":"Chubasquero caniche","fr":"Imperméable caniche","de":"Pudel-Regenmantel","pt":"Capa de chuva poodle","ko":"푸들 레인코트","zh-CN":"贵宾犬雨衣"},"✓ Çipli & Kayıtlı":{"tr":"✓ Çipli & Kayıtlı","en":"✓ Chipped & Registered","ja":"✓ チップ化および登録済み","es":"✓ Chipeado y registrado","fr":"✓ Pucé et enregistré","de":"✓ Gechipt und registriert","pt":"✓ Chipado e registrado","ko":"✓ 칩 처리 및 등록됨","zh-CN":"✓ 芯片和注册"},"Mavi Pati: Başvur":{"tr":"Mavi Pati: Başvur","en":"Blue Paw: Apply","ja":"ブルーパウ: 適用する","es":"Pata Azul: Aplicar","fr":"Patte Bleue : Appliquer","de":"Blaue Pfote: Bewerben","pt":"Pata Azul: Aplicar","ko":"블루 포: 적용","zh-CN":"蓝爪：应用"},"Kilo Takip Eğrisi":{"tr":"Kilo Takip Eğrisi","en":"Weight Tracking Curve","ja":"体重追跡曲線","es":"Curva de seguimiento de peso","fr":"Courbe de suivi du poids","de":"Gewichtsverfolgungskurve","pt":"Curva de rastreamento de peso","ko":"체중 추적 곡선","zh-CN":"体重追踪曲线"},"🌟 TEŞEKKÜR ÖDÜLÜ":{"tr":"🌟 TEŞEKKÜR ÖDÜLÜ","en":"🌟 THANK YOU AWARD","ja":"🌟ありがとう賞","es":"🌟 PREMIO GRACIAS","fr":"🌟 PRIX MERCI","de":"🌟 DANKESPREIS","pt":"🌟 PRÊMIO DE OBRIGADO","ko":"🌟 감사합니다.","zh-CN":"🌟感谢奖"},"Tescilli Mikroçip":{"tr":"Tescilli Mikroçip","en":"Registered Microchip","ja":"登録済みマイクロチップ","es":"Microchip registrado","fr":"Micropuce enregistrée","de":"Registrierter Mikrochip","pt":"Microchip registrado","ko":"마이크로칩 등록","zh-CN":"注册微芯片"},"Kod süresi doldu!":{"tr":"Kod süresi doldu!","en":"Code has expired!","ja":"コードの有効期限が切れました!","es":"¡El código ha caducado!","fr":"Le code a expiré !","de":"Code ist abgelaufen!","pt":"O código expirou!","ko":"코드가 만료되었습니다!","zh-CN":"优惠码已过期！"},"🎾 Eğitim & Yavru":{"tr":"🎾 Eğitim & Yavru","en":"🎾 Training & Puppy","ja":"🎾 トレーニングと子犬","es":"🎾 Entrenamiento y cachorro","fr":"🎾 Dressage & Chiot","de":"🎾 Training & Welpe","pt":"🎾 Treinamento e filhote","ko":"🎾 훈련 및 강아지","zh-CN":"🎾 训练和小狗"},"👋 Tanışma Masası":{"tr":"👋 Tanışma Masası","en":"👋 Dating Table","ja":"👋 デートテーブル","es":"👋 Mesa de citas","fr":"👋 Tableau de rencontres","de":"👋 Dating-Tabelle","pt":"👋 Mesa de namoro","ko":"👋 데이트 테이블","zh-CN":"👋 约会表"},"Fark Etmez / Tümü":{"tr":"Fark Etmez / Tümü","en":"Doesn't Matter / All","ja":"関係ない/すべて","es":"No importa / Todo","fr":"Ça n'a pas d'importance / Tout","de":"Spielt keine Rolle / Alles","pt":"Não importa / Tudo","ko":"중요하지 않음 / 모두","zh-CN":"没关系/全部"},"Kilo Grafiğini Aç":{"tr":"Kilo Grafiğini Aç","en":"Open Weight Chart","ja":"オープンウェイトチャート","es":"Tabla de peso abierta","fr":"Ouvrir le tableau des poids","de":"Öffnen Sie die Gewichtstabelle","pt":"Abrir gráfico de peso","ko":"오픈 웨이트 차트","zh-CN":"打开体重表"},"Tümünü Okundu Say":{"tr":"Tümünü Okundu Say","en":"Count All Read","ja":"すべての読み取りをカウントする","es":"Contar todo lo leído","fr":"Compter toutes les lectures","de":"Alle gelesenen Personen zählen","pt":"Contar tudo lido","ko":"모두 읽은 횟수 계산","zh-CN":"统计所有已读内容"},"Bildirim Ayarları":{"tr":"Bildirim Ayarları","en":"Notification Settings","ja":"通知設定","es":"Configuración de notificaciones","fr":"Paramètres de notification","de":"Benachrichtigungseinstellungen","pt":"Configurações de notificação","ko":"알림 설정","zh-CN":"通知设置"},"Fotoğraf Değiştir":{"tr":"Fotoğraf Değiştir","en":"Change Photo","ja":"写真を変更する","es":"Cambiar foto","fr":"Changer de photo","de":"Foto ändern","pt":"Alterar foto","ko":"사진 변경","zh-CN":"更改照片"},"Pati Puanı Gönder":{"tr":"Pati Puanı Gönder","en":"Send Paw Points","ja":"肉球ポイントを贈る","es":"Enviar Puntos Pata","fr":"Envoyer des Points Patte","de":"Pfoten-Punkte senden","pt":"Enviar Pontos Pata","ko":"발자국 포인트 선물하기","zh-CN":"赠送肉爪积分"},"Görünüm Değiştir":{"tr":"Görünüm Değiştir","en":"Change View","ja":"ビューの変更","es":"Cambiar vista","fr":"Changer la vue","de":"Ansicht ändern","pt":"Alterar visualização","ko":"보기 변경","zh-CN":"更改视图"},"← Akışa Geri Dön":{"tr":"← Akışa Geri Dön","en":"← Back to Stream","ja":"← ストリームに戻る","es":"← Volver a la corriente","fr":"← Retour au flux","de":"← Zurück zum Stream","pt":"← Voltar à transmissão","ko":"← 스트림으로 돌아가기","zh-CN":"← 返回直播"},"Mavi Pati Onaylı":{"tr":"Mavi Pati Onaylı","en":"Blue Paw Approved","ja":"ブルーパウが承認されました","es":"Aprobado por la pata azul.","fr":"Approuvé Patte Bleue","de":"Blue Paw-Zulassung","pt":"Pata Azul Aprovada","ko":"블루 포 승인","zh-CN":"蓝爪批准"},"KAYDEDİLENLER 🔖":{"tr":"KAYDEDİLENLER 🔖","en":"SAVED 🔖","ja":"保存しました 🔖","es":"SALVADO 🔖","fr":"SAUVEGARDÉ 🔖","de":"GESPEICHERT 🔖","pt":"SALVO 🔖","ko":"저장됨 🔖","zh-CN":"已保存🔖"},"✂️ Bakım & Tıraş":{"tr":"✂️ Bakım & Tıraş","en":"✂️ Care & Shaving","ja":"✂️ ケアとシェービング","es":"✂️ Cuidado y afeitado","fr":"✂️ Soins & Rasage","de":"✂️ Pflege & Rasur","pt":"✂️ Cuidados e barbear","ko":"✂️ 관리 및 면도","zh-CN":"✂️ 护理和剃须"},"Mesaj içeriği...":{"tr":"Mesaj içeriği...","en":"Message content...","ja":"メッセージの内容...","es":"Contenido del mensaje...","fr":"Contenu du message...","de":"Nachrichteninhalt...","pt":"Conteúdo da mensagem...","ko":"메시지 내용...","zh-CN":"留言内容..."},"Şehir / Lokasyon":{"tr":"Şehir / Lokasyon","en":"City / Location","ja":"都市 / 場所","es":"Ciudad / Ubicación","fr":"Ville / Localisation","de":"Stadt/Standort","pt":"Cidade / Localização","ko":"도시 / 위치","zh-CN":"城市/地点"},"Önizlemeyi Kapat":{"tr":"Önizlemeyi Kapat","en":"Close Preview","ja":"プレビューを閉じる","es":"Cerrar vista previa","fr":"Fermer l'aperçu","de":"Vorschau schließen","pt":"Fechar visualização","ko":"미리보기 닫기","zh-CN":"关闭预览"},"Çift tıkla: 🐾❤️":{"tr":"Çift tıkla: 🐾❤️","en":"Double tap: 🐾❤️","ja":"ダブルタップ: 🐾❤️","es":"Doble toque: 🐾❤️","fr":"Double pression : 🐾❤️","de":"Doppeltippen: 🐾❤️","pt":"Toque duplo: 🐾❤️","ko":"더블 탭: 🐾❤️","zh-CN":"双击: 🐾❤️"},"🐾 Faydalı Yanıt":{"tr":"🐾 Faydalı Yanıt","en":"🐾 Helpful Answer","ja":"🐾 役立つ回答","es":"🐾 Respuesta útil","fr":"🐾 Réponse utile","de":"🐾 Hilfreiche Antwort","pt":"🐾 Resposta útil","ko":"🐾 유용한 답변","zh-CN":"🐾 有用的答案"},"340 görüntülenme":{"tr":"340 görüntülenme","en":"340 views","ja":"340 ビュー","es":"340 vistas","fr":"340 vues","de":"340 Aufrufe","pt":"340 visualizações","ko":"조회수 340회","zh-CN":"340 次观看"},"Örn: Emre Yılmaz":{"tr":"Örn: Emre Yılmaz","en":"Ex: Emre Yılmaz","ja":"例: エムレ・ユルマズ","es":"Ej: Emre Yılmaz","fr":"Ex : Emre Yılmaz","de":"Ex: Emre Yılmaz","pt":"Ex: Emre Yılmaz","ko":"예: Emre Yılmaz","zh-CN":"例如：埃姆雷·耶尔马兹"},"Günaydın, Emre!":{"tr":"Günaydın, Emre!","en":"Good morning, Emre!","ja":"おはようございます、エムレさん！","es":"¡Buenos días, Emre!","fr":"Bonjour Emre !","de":"Guten Morgen, Emre!","pt":"Bom dia, Emre!","ko":"좋은 아침이에요, 엠레!","zh-CN":"早上好，埃姆雷！"},"2.85 kg · İdeal":{"tr":"2.85 kg · İdeal","en":"2.85 kg · Ideal","ja":"2.85kg・理想","es":"2,85 kilos · Ideal","fr":"2,85 kg · Idéal","de":"2,85 kg · Ideal","pt":"2,85 kg · Ideal","ko":"2.85kg · 이상적","zh-CN":"2.85 公斤 · 理想"},"⚫ Gümüş & Siyah":{"tr":"⚫ Gümüş & Siyah","en":"⚫ Silver & Black","ja":"⚫ シルバー＆ブラック","es":"⚫ Plata y Negro","fr":"⚫ Argent & Noir","de":"⚫ Silber & Schwarz","pt":"⚫ Prata & Preto","ko":"⚫ 실버 & 블랙","zh-CN":"⚫ 银灰 & 纯黑"},"Hepsini gördün!":{"tr":"Hepsini gördün!","en":"You've seen it all!","ja":"全部見てきましたね！","es":"¡Lo has visto todo!","fr":"Vous avez tout vu !","de":"Du hast alles gesehen!","pt":"Você já viu tudo!","ko":"당신은 그것을 모두 보았습니다!","zh-CN":"你已经看到了这一切！"},"Canlı Dayanışma":{"tr":"Canlı Dayanışma","en":"Living Solidarity","ja":"生きる連帯","es":"Vivir la solidaridad","fr":"Vivre la solidarité","de":"Gelebte Solidarität","pt":"Viver a Solidariedade","ko":"살아있는 연대","zh-CN":"生活团结"},"🩺 Sağlık & Aşı":{"tr":"🩺 Sağlık & Aşı","en":"🩺 Health & Vaccine","ja":"🩺 健康とワクチン","es":"🩺 Salud y vacunas","fr":"🩺 Santé et vaccins","de":"🩺 Gesundheit & Impfstoff","pt":"🩺 Saúde e Vacina","ko":"🩺 건강 및 백신","zh-CN":"🩺 健康与疫苗"},"Altın VIP Rozet":{"tr":"Altın VIP Rozet","en":"Gold VIP Badge","ja":"ゴールドVIPバッジ","es":"Insignia VIP dorada","fr":"Insigne VIP Or","de":"Goldenes VIP-Abzeichen","pt":"Distintivo VIP Ouro","ko":"골드 VIP 배지","zh-CN":"黄金贵宾徽章"},"Minyatür Poodle":{"tr":"Minyatür Poodle","en":"Miniature Poodle","ja":"ミニチュアプードル","es":"Caniche Miniatura","fr":"Caniche Nain","de":"Kleinpudel","pt":"Poodle Médio","ko":"미니어처 푸들","zh-CN":"迷你贵宾犬"},"2.85 kg (İdeal)":{"tr":"2.85 kg (İdeal)","en":"2.85 kg (Ideal)","ja":"2.85kg (理想)","es":"2,85 kilos (ideal)","fr":"2,85 kg (idéal)","de":"2,85 kg (ideal)","pt":"2,85kg (Ideal)","ko":"2.85kg(이상)","zh-CN":"2.85 公斤（理想）"},"📡 Mikroçip No:":{"tr":"📡 Mikroçip No:","en":"📡 Microchip Number:","ja":"📡 マイクロチップ番号:","es":"📡 Número de microchip:","fr":"📡 Numéro de micropuce :","de":"📡 Mikrochipnummer:","pt":"📡 Número do microchip:","ko":"📡 마이크로칩 번호:","zh-CN":"📡 微芯片编号："},"➕ Tartım Kaydet":{"tr":"➕ Tartım Kaydet","en":"➕ Record Weighing","ja":"➕ 計量記録","es":"➕ Registro de pesaje","fr":"➕ Pesée record","de":"➕ Wiegen aufzeichnen","pt":"➕ Registro de pesagem","ko":"➕ 기록계량","zh-CN":"➕ 记录称重"},"Başvuru Tarihi:":{"tr":"Başvuru Tarihi:","en":"Application Date:","ja":"申請日:","es":"Fecha de solicitud:","fr":"Date de candidature :","de":"Bewerbungsdatum:","pt":"Data da aplicação:","ko":"신청 날짜:","zh-CN":"申请日期："},"Hatırlatıcı Kur":{"tr":"Hatırlatıcı Kur","en":"Set Reminder","ja":"リマインダーを設定する","es":"Establecer recordatorio","fr":"Définir un rappel","de":"Erinnerung festlegen","pt":"Definir lembrete","ko":"알림 설정","zh-CN":"设置提醒"},"✂️ Bakım & Traş":{"tr":"✂️ Bakım & Traş","en":"✂️ Care & Shaving","ja":"✂️ ケアとシェービング","es":"✂️ Cuidado y afeitado","fr":"✂️ Soins & Rasage","de":"✂️ Pflege & Rasur","pt":"✂️ Cuidados e barbear","ko":"✂️ 관리 및 면도","zh-CN":"✂️ 护理和剃须"},"İçerik Şikayeti":{"tr":"İçerik Şikayeti","en":"Content Complaint","ja":"コンテンツに関する苦情","es":"Queja de contenido","fr":"Plainte relative au contenu","de":"Inhaltsbeschwerde","pt":"Reclamação de conteúdo","ko":"콘텐츠 불만사항","zh-CN":"内容投诉"},"Mesaj gönder...":{"tr":"Mesaj gönder...","en":"Send message...","ja":"メッセージを送信...","es":"Enviar mensaje...","fr":"Envoyer un message...","de":"Nachricht senden...","pt":"Enviar mensagem...","ko":"메시지 보내기...","zh-CN":"发送消息..."},"Profili Düzenle":{"tr":"Profili Düzenle","en":"Edit Profile","ja":"プロフィールの編集","es":"Editar perfil","fr":"Modifier le profil","de":"Profil bearbeiten","pt":"Editar perfil","ko":"프로필 편집","zh-CN":"编辑个人资料"},"Yanıt gönder...":{"tr":"Yanıt gönder...","en":"Send reply...","ja":"返信を送信...","es":"Enviar respuesta...","fr":"Envoyer la réponse...","de":"Antwort senden...","pt":"Enviar resposta...","ko":"답장 보내기...","zh-CN":"发送回复..."},"Parazit: 4 gün":{"tr":"Parazit: 4 gün","en":"Parasite: 4 days","ja":"パラサイト: 4 日間","es":"Parásito: 4 días","fr":"Parasite : 4 jours","de":"Parasit: 4 Tage","pt":"Parasita: 4 dias","ko":"기생충 : 4일","zh-CN":"寄生虫：4天"},"Kıvırcık Kaşif":{"tr":"Kıvırcık Kaşif","en":"Curly Explorer","ja":"カーリーエクスプローラー","es":"Explorador rizado","fr":"Explorateur bouclé","de":"Lockiger Entdecker","pt":"Explorador Encaracolado","ko":"곱슬 탐험가","zh-CN":"卷毛探险家"},"Silver (Gümüş)":{"tr":"Silver (Gümüş)","en":"Silver","ja":"シルバー","es":"Plata","fr":"Argent","de":"Silber","pt":"Prata","ko":"실버","zh-CN":"银牌"},"Pati İndirimi:":{"tr":"Pati İndirimi:","en":"Paw Discount:","ja":"肉球割引:","es":"Descuento para patas:","fr":"Remise sur les pattes :","de":"Pfotenrabatt:","pt":"Desconto de pata:","ko":"발자국 할인:","zh-CN":"肉爪折扣："},"Park Yıldızı ⭐":{"tr":"Park Yıldızı ⭐","en":"Park Star ⭐","ja":"パークスター⭐","es":"Parque Estrella ⭐","fr":"Parc Étoile ⭐","de":"Parkstern ⭐","pt":"Parque Estrela ⭐","ko":"파크스타 ⭐","zh-CN":"公园之星⭐"},"Güncel Ağırlık":{"tr":"Güncel Ağırlık","en":"Current Weight","ja":"現在の体重","es":"Peso actual","fr":"Poids actuel","de":"Aktuelles Gewicht","pt":"Peso atual","ko":"현재 체중","zh-CN":"当前体重"},"Konu Başlığı *":{"tr":"Konu Başlığı *","en":"Subject Title *","ja":"件名 *","es":"Título del asunto *","fr":"Titre du sujet *","de":"Betrefftitel *","pt":"Título do Assunto *","ko":"제목 *","zh-CN":"主题标题 *"},"5 Günlük Seri":{"tr":"5 Günlük Seri","en":"5 Day Series","ja":"5日間シリーズ","es":"Serie de 5 días","fr":"Série de 5 jours","de":"5-Tage-Serie","pt":"Série de 5 dias","ko":"5일 시리즈","zh-CN":"5天系列"},"Şu anda aktif":{"tr":"Şu anda aktif","en":"currently active","ja":"現在活動中","es":"actualmente activo","fr":"actuellement actif","de":"derzeit aktiv","pt":"atualmente ativo","ko":"현재 활동 중","zh-CN":"目前活跃"},"Giriş Sembolü":{"tr":"Giriş Sembolü","en":"Entry Symbol","ja":"エントリーシンボル","es":"Símbolo de entrada","fr":"Symbole d'entrée","de":"Eintrittssymbol","pt":"Símbolo de entrada","ko":"참가기호","zh-CN":"条目符号"},"⏳ Kalan Süre:":{"tr":"⏳ Kalan Süre:","en":"⏳ Remaining Time:","ja":"⏳ 残り時間:","es":"⏳ Tiempo restante:","fr":"⏳ Temps restant :","de":"⏳ Verbleibende Zeit:","pt":"⏳ Tempo restante:","ko":"⏳ 남은 시간:","zh-CN":"⏳ 剩余时间："},"Galeriden Seç":{"tr":"Galeriden Seç","en":"Select from Gallery","ja":"ギャラリーから選択","es":"Seleccionar de la galería","fr":"Sélectionner dans la galerie","de":"Aus der Galerie auswählen","pt":"Selecione na Galeria","ko":"갤러리에서 선택","zh-CN":"从图库中选择"},"Kayıtlı Sahip":{"tr":"Kayıtlı Sahip","en":"Registered Owner","ja":"登録所有者","es":"Propietario registrado","fr":"Propriétaire enregistré","de":"Eingetragener Eigentümer","pt":"Proprietário registrado","ko":"등록된 소유자","zh-CN":"注册业主"},"✂️ Pet Kuaför":{"tr":"✂️ Pet Kuaför","en":"✂️ Pet Hairdresser","ja":"✂️ペット美容師","es":"✂️ Peluquería para mascotas","fr":"✂️ Coiffeur pour animaux","de":"✂️ Tierfriseur","pt":"✂️ Cabeleireiro para animais de estimação","ko":"✂️ 애완동물 미용사","zh-CN":"✂️ 宠物美发师"},"Gönderiyi Sil":{"tr":"Gönderiyi Sil","en":"Delete Post","ja":"投稿の削除","es":"Eliminar publicación","fr":"Supprimer le message","de":"Beitrag löschen","pt":"Excluir postagem","ko":"게시물 삭제","zh-CN":"删除帖子"},"Pasaportu Gör":{"tr":"Pasaportu Gör","en":"See Passport","ja":"パスポートを参照","es":"Ver Pasaporte","fr":"Voir Passeport","de":"Siehe Reisepass","pt":"Veja Passaporte","ko":"여권 보기","zh-CN":"查看护照"},"Mesaj Gönder":{"tr":"Mesaj Gönder","en":"Send Message","ja":"メッセージを送信","es":"Enviar mensaje","fr":"Envoyer un message","de":"Nachricht senden","pt":"Enviar mensagem","ko":"메시지 보내기","zh-CN":"发送私信"},"Yeni Gönderi":{"tr":"Yeni Gönderi","en":"New Post","ja":"新しい投稿","es":"Nueva publicación","fr":"Nouveau message","de":"Neuer Beitrag","pt":"Nova postagem","ko":"새 게시물","zh-CN":"新帖子"},"Park Yıldızı":{"tr":"Park Yıldızı","en":"Park Star","ja":"パークスター","es":"estrella del parque","fr":"Étoile du parc","de":"Parkstar","pt":"Parque Estrela","ko":"파크스타","zh-CN":"公园之星"},"📲 Giriş Yap":{"tr":"📲 Giriş Yap","en":"📲 Login","ja":"📲 ログイン","es":"📲 Iniciar sesión","fr":"📲 Connexion","de":"📲 Anmelden","pt":"📲 Entrar","ko":"📲 로그인","zh-CN":"📲 登录"},"50 Paw Puanı":{"tr":"50 Paw Puanı","en":"50 Paw Points","ja":"50 肉球ポイント","es":"50 puntos de pata","fr":"50 points de patte","de":"50 Pfotenpunkte","pt":"50 pontos de pata","ko":"발자국 포인트 50개","zh-CN":"50 肉爪积分"},"Beğeni Testi":{"tr":"Beğeni Testi","en":"Like Test","ja":"いいねテスト","es":"Me gusta la prueba","fr":"J'aime le test","de":"Wie Test","pt":"Gosto de teste","ko":"테스트처럼","zh-CN":"喜欢测试"},"Poodle Adı *":{"tr":"Poodle Adı *","en":"Poodle Name *","ja":"プードルの名前 *","es":"Nombre del caniche *","fr":"Nom du caniche *","de":"Pudelname *","pt":"Nome do Caniche *","ko":"푸들 이름 *","zh-CN":"贵宾犬名称 *"},"Ağırlık (kg)":{"tr":"Ağırlık (kg)","en":"Weight (kg)","ja":"重量(kg)","es":"Peso (kg)","fr":"Poids (kg)","de":"Gewicht (kg)","pt":"Peso (kg)","ko":"체중(kg)","zh-CN":"重量（公斤）"},"Doğum Tarihi":{"tr":"Doğum Tarihi","en":"Date of Birth","ja":"生年月日","es":"Fecha de nacimiento","fr":"Date de naissance","de":"Geburtsdatum","pt":"Data de Nascimento","ko":"생년월일","zh-CN":"出生日期"},"Sosyal Nabız":{"tr":"Sosyal Nabız","en":"Social Pulse","ja":"ソーシャルパルス","es":"Pulso social","fr":"Impulsion sociale","de":"Sozialer Puls","pt":"Pulso social","ko":"소셜 펄스","zh-CN":"社会脉搏"},"Toy Sınıfı ✅":{"tr":"Toy Sınıfı ✅","en":"Toy Class ✅","ja":"おもちゃクラス ✅","es":"Clase de juguete ✅","fr":"Cours de jouets ✅","de":"Spielzeugklasse ✅","pt":"Aula de brinquedos ✅","ko":"장난감 수업 ✅","zh-CN":"玩具类✅"},"💬 DM Gönder":{"tr":"💬 DM Gönder","en":"💬 Send DM","ja":"💬DMを送る","es":"💬Envía DM","fr":"💬Envoyer un DM","de":"💬 Schicken Sie eine DM","pt":"💬 Enviar DM","ko":"💬 DM 보내기","zh-CN":"💬 发送DM"},"Mikroçip No:":{"tr":"Mikroçip No:","en":"Microchip No:","ja":"マイクロチップ番号:","es":"Número de microchip:","fr":"Numéro de puce électronique :","de":"Mikrochip-Nr.:","pt":"Microchip Não:","ko":"마이크로칩 번호:","zh-CN":"微芯片编号："},"✅ Tamamlandı":{"tr":"✅ Tamamlandı","en":"✅ Completed","ja":"✅ 完了","es":"✅ Completado","fr":"✅ Terminé","de":"✅ Abgeschlossen","pt":"✅ Concluído","ko":"✅ 완료됨","zh-CN":"✅ 已完成"},"❤️ Beğeniler":{"tr":"❤️ Beğeniler","en":"❤️ Likes","ja":"❤️ いいね！","es":"❤️ Me gusta","fr":"❤️ J'aime","de":"❤️ Gefällt mir","pt":"❤️ Curtidas","ko":"❤️ 좋아요","zh-CN":"❤️ 喜欢"},"Pati Puanı:":{"tr":"Pati Puanı:","en":"Paw Score:","ja":"肉球ポイント:","es":"Puntuación de la pata:","fr":"Score de patte :","de":"Pfotenbewertung:","pt":"Pontuação da pata:","ko":"발자국 포인트:","zh-CN":"肉爪积分："},"Hemen Katıl":{"tr":"Hemen Katıl","en":"Join Now","ja":"今すぐ参加","es":"Únete ahora","fr":"Inscrivez-vous maintenant","de":"Jetzt beitreten","pt":"Cadastre-se agora","ko":"지금 가입하세요","zh-CN":"立即加入"},"🍫 Çikolata":{"tr":"🍫 Çikolata","en":"🍫 Chocolate","ja":"🍫 チョコレート","es":"🍫 Chocolate","fr":"🍫 Chocolat","de":"🍫 Schokolade","pt":"🍫 Chocolate","ko":"🍫 초콜릿","zh-CN":"🍫 巧克力色"},"Değiştir 📸":{"tr":"Değiştir 📸","en":"Change 📸","ja":"変更📸","es":"Cambiar 📸","fr":"Changez 📸","de":"Veränderung 📸","pt":"Mudança 📸","ko":"변화 📸","zh-CN":"改变📸"},"Değiştir 🐩":{"tr":"Değiştir 🐩","en":"Change 🐩","ja":"変更🐩","es":"Cambiar 🐩","fr":"Changez 🐩","de":"Veränderung 🐩","pt":"Mudança 🐩","ko":"변화 🐩","zh-CN":"改变🐩"},"Tüm Sorular":{"tr":"Tüm Sorular","en":"All Questions","ja":"すべての質問","es":"Todas las preguntas","fr":"Toutes les questions","de":"Alle Fragen","pt":"Todas as perguntas","ko":"모든 질문","zh-CN":"所有问题"},"Beğeni Alma":{"tr":"Beğeni Alma","en":"Getting Likes","ja":"いいねを獲得する","es":"Obtener Me gusta","fr":"Obtenir des likes","de":"Likes bekommen","pt":"Obtendo curtidas","ko":"좋아요 받기","zh-CN":"获得点赞"},"Yeni Üyelik":{"tr":"Yeni Üyelik","en":"New Membership","ja":"新規会員登録","es":"Nueva membresía","fr":"Nouvelle adhésion","de":"Neue Mitgliedschaft","pt":"Nova adesão","ko":"신규회원","zh-CN":"新会员"},"Değiştir ✏️":{"tr":"Değiştir ✏️","en":"Change ✏️","ja":"変化✏️","es":"Cambiar ✏️","fr":"Changer ✏️","de":"Veränderung ✏️","pt":"Mudança ✏️","ko":"변경 ✏️","zh-CN":"改变✏️"},"📷 Fotoğraf":{"tr":"📷 Fotoğraf","en":"📷 Photo","ja":"📷 写真","es":"📷 Foto","fr":"📷Photos","de":"📷 Foto","pt":"📷 Foto","ko":"📷 사진","zh-CN":"📷 照片"},"Bebek Parkı":{"tr":"Bebek Parkı","en":"Baby Park","ja":"ベビーパーク","es":"Parque para bebés","fr":"Parc bébé","de":"Babypark","pt":"Parque do bebê","ko":"베이비 파크","zh-CN":"宝贝公园"},"Şimdi Değil":{"tr":"Şimdi Değil","en":"Not Now","ja":"今ではありません","es":"Ahora no","fr":"Pas maintenant","de":"Nicht jetzt","pt":"Agora não","ko":"지금은 아님","zh-CN":"不是现在"},"Pati Maması":{"tr":"Pati Maması","en":"Paw Food","ja":"ポーフード","es":"Comida para patas","fr":"Nourriture pour pattes","de":"Pfotenfutter","pt":"Comida de pata","ko":"포우 푸드","zh-CN":"萌宠粮"},"Mikroçip No":{"tr":"Mikroçip No","en":"Microchip No.","ja":"マイクロチップNo.","es":"Microchip No.","fr":"Numéro de puce électronique","de":"Mikrochip-Nr.","pt":"Microchip Não.","ko":"마이크로칩 번호","zh-CN":"微芯片编号"},"Aşı & Bakım":{"tr":"Aşı & Bakım","en":"Vaccination & Care","ja":"予防接種とケア","es":"Vacunación y atención","fr":"Vaccination et soins","de":"Impfung & Pflege","pt":"Vacinação e Cuidados","ko":"예방접종 및 관리","zh-CN":"疫苗接种与护理"},"Aranıyor...":{"tr":"Aranıyor...","en":"Wanted...","ja":"求められている...","es":"Se busca...","fr":"Recherché...","de":"Gesucht...","pt":"Procurado...","ko":"구함...","zh-CN":"想要..."},"Tümünü Gör":{"tr":"Tümünü Gör","en":"See All","ja":"すべて見る","es":"Ver todo","fr":"Tout voir","de":"Alle anzeigen","pt":"Ver tudo","ko":"모두 보기","zh-CN":"查看全部"},"GÖNDERİLER":{"tr":"GÖNDERİLER","en":"POSTS","ja":"投稿","es":"PUBLICACIONES","fr":"POSTES","de":"BEITRÄGE","pt":"POSTAGENS","ko":"게시물","zh-CN":"帖子"},"Kamera Çek":{"tr":"Kamera Çek","en":"Take a Camera","ja":"カメラを持って行こう","es":"Toma una cámara","fr":"Prenez un appareil photo","de":"Nehmen Sie eine Kamera","pt":"Pegue uma câmera","ko":"카메라를 가져가세요","zh-CN":"拿起相机"},"Kürk Rengi":{"tr":"Kürk Rengi","en":"Fur Color","ja":"毛皮の色","es":"Color de piel","fr":"Couleur de la fourrure","de":"Fellfarbe","pt":"Cor da pele","ko":"모피 색상","zh-CN":"毛皮颜色"},"Poodle Adı":{"tr":"Poodle Adı","en":"Poodle Name","ja":"プードルの名前","es":"Nombre del caniche","fr":"Nom du caniche","de":"Pudelname","pt":"Nome do Caniche","ko":"푸들 이름","zh-CN":"贵宾犬名称"},"➕ Aşı Ekle":{"tr":"➕ Aşı Ekle","en":"➕ Add Vaccine","ja":"➕ ワクチンを追加","es":"➕ Agregar vacuna","fr":"➕ Ajouter un vaccin","de":"➕ Impfstoff hinzufügen","pt":"➕ Adicionar vacina","ko":"➕ 백신 추가","zh-CN":"➕ 添加疫苗"},"Takipçiler":{"tr":"Takipçiler","en":"followers","ja":"フォロワー","es":"seguidores","fr":"abonnés","de":"Anhänger","pt":"seguidores","ko":"추종자","zh-CN":"追随者"},"✓ Yüklendi":{"tr":"✓ Yüklendi","en":"✓ Installed","ja":"✓ インストール済み","es":"✓ Instalado","fr":"✓ Installé","de":"✓ Installiert","pt":"✓ Instalado","ko":"✓ 설치됨","zh-CN":"✓ 已安装"},"🐾 Popüler":{"tr":"🐾 Popüler","en":"🐾 Popular","ja":"🐾 人気","es":"🐾 Popular","fr":"🐾 Populaire","de":"🐾 Beliebt","pt":"🐾 Popular","ko":"🐾 인기","zh-CN":"🐾 热门"},"Ses Kapalı":{"tr":"Ses Kapalı","en":"Muted","ja":"消音中","es":"Silenciado","fr":"Muet","de":"Stumm","pt":"Mudo","ko":"음소거","zh-CN":"静音"},"Çevrimdışı":{"tr":"Çevrimdışı","en":"offline","ja":"オフライン","es":"fuera de línea","fr":"hors ligne","de":"offline","pt":"off-line","ko":"오프라인","zh-CN":"离线"},"🎾 Eğitmen":{"tr":"🎾 Eğitmen","en":"🎾 Instructor","ja":"🎾インストラクター","es":"🎾Instructor","fr":"🎾 Instructeur","de":"🎾 Instructor","pt":"🎾 Instrutor","ko":"🎾 강사","zh-CN":"🎾 导师"},"Çevrim İçi":{"tr":"Çevrim İçi","en":"Online","ja":"オンライン","es":"En línea","fr":"En ligne","de":"Online","pt":"On-line","ko":"온라인","zh-CN":"在线"},"Seçenekler":{"tr":"Seçenekler","en":"Options","ja":"オプション","es":"Opciones","fr":"Options","de":"Optionen","pt":"Opções","ko":"옵션","zh-CN":"选项"},"🪪 İncele":{"tr":"🪪 İncele","en":"🪪 Review","ja":"🪪 レビュー","es":"🪪 Revisión","fr":"🪪 Revue","de":"🪪 Review","pt":"🪪 Revisão","ko":"🪪 검토","zh-CN":"🪪 评论"},"Çıkış Yap":{"tr":"Çıkış Yap","en":"Sign Out","ja":"サインアウト","es":"Cerrar sesión","fr":"Se déconnecter","de":"Abmelden","pt":"Sair","ko":"로그아웃","zh-CN":"退出"},"Kuaför ✂️":{"tr":"Kuaför ✂️","en":"Hairdresser ✂️","ja":"美容師✂️","es":"Peluquería ✂️","fr":"Coiffeur ✂️","de":"Hairdresser ✂️","pt":"Cabeleireiro ✂️","ko":"미용사 ✂️","zh-CN":"理发师✂️"},"Başlangıç":{"tr":"Başlangıç","en":"Home","ja":"ホーム","es":"Inicio","fr":"Accueil","de":"Zuhause","pt":"Página inicial","ko":"홈","zh-CN":"首页"},"Giriş Yap":{"tr":"Giriş Yap","en":"Login","ja":"ログイン","es":"Iniciar sesión","fr":"Connexion","de":"Anmelden","pt":"Entrar","ko":"로그인","zh-CN":"登录"},"Önerilen:":{"tr":"Önerilen:","en":"Recommended:","ja":"推奨:","es":"Recomendado:","fr":"Recommandé :","de":"Empfohlen:","pt":"Recomendado:","ko":"권장사항:","zh-CN":"推荐："},"Nişantaşı":{"tr":"Nişantaşı","en":"Nişantaşı","ja":"ニシャンタシュ","es":"Nişantaşı","fr":"Nişantaşı","de":"Nişantaşı","pt":"Nişantaşı","ko":"니샨타쉬","zh-CN":"尼桑塔西"},"Sahip Adı":{"tr":"Sahip Adı","en":"Owner Name","ja":"所有者名","es":"Nombre del propietario","fr":"Nom du propriétaire","de":"Besitzername","pt":"Nome do proprietário","ko":"소유자 이름","zh-CN":"业主姓名"},"HLS Akışı":{"tr":"HLS Akışı","en":"HLS Stream","ja":"HLSストリーム","es":"Transmisión HLS","fr":"Flux HLS","de":"HLS Stream","pt":"Transmissão HLS","ko":"HLS 스트림","zh-CN":"HLS流"},"Geçiş Yap":{"tr":"Geçiş Yap","en":"Switch","ja":"スイッチ","es":"Cambiar","fr":"Changer","de":"Wechseln","pt":"Mudar","ko":"스위치","zh-CN":"开关"},"Görüldü ✓":{"tr":"Görüldü ✓","en":"Seen ✓","ja":"見た ✓","es":"Visto ✓","fr":"Vu ✓","de":"Seen ✓","pt":"Visto ✓","ko":"본 ✓","zh-CN":"已看过 ✓"},"Çözüldü ✅":{"tr":"Çözüldü ✅","en":"Solved ✅","ja":"解決済み ✅","es":"Resuelto ✅","fr":"Résolu ✅","de":"Gelöst ✅","pt":"Resolvido ✅","ko":"해결됨 ✅","zh-CN":"已解决 ✅"},"Örn: 2.80":{"tr":"Örn: 2.80","en":"Ex: 2.80","ja":"例: 2.80","es":"Ej: 2,80","fr":"Ex : 2,80","de":"Ex: 2.80","pt":"Ex: 2,80","ko":"예: 2.80","zh-CN":"例如：2.80"},"Français":{"tr":"Français","en":"frençais","ja":"フランス語","es":"francés","fr":"français","de":"frençais","pt":"francês","ko":"프랑스어","zh-CN":"法国人"},"Hakkında":{"tr":"Hakkında","en":"About","ja":"について","es":"Acerca de","fr":"À propos","de":"Über","pt":"Sobre","ko":"소개","zh-CN":"关于"},"Koşullar":{"tr":"Koşullar","en":"Terms","ja":"利用規約","es":"Condiciones","fr":"Conditions","de":"Nutzungsbedingungen","pt":"Termos","ko":"이용약관","zh-CN":"服务条款"},"Sıcak ☀️":{"tr":"Sıcak ☀️","en":"Hot ☀️","ja":"暑い☀️","es":"Caliente ☀️","fr":"Chaud ☀️","de":"Hot ☀️","pt":"Quente ☀️","ko":"덥다☀️","zh-CN":"热☀️"},"Minyatür":{"tr":"Minyatür","en":"miniature","ja":"ミニチュア","es":"miniatura","fr":"miniature","de":"Miniatur","pt":"miniatura","ko":"미니어처","zh-CN":"微型的"},"Oluştur":{"tr":"Oluştur","en":"Create","ja":"作成","es":"crear","fr":"Créer","de":"Erstellen","pt":"Criar","ko":"만들기","zh-CN":"创建"},"🐾 Tümü":{"tr":"🐾 Tümü","en":"🐾 All","ja":"🐾 すべて","es":"🐾 Todos","fr":"🐾 Tous","de":"🐾 Alle","pt":"🐾 Todos","ko":"🐾 전체","zh-CN":"🐾 全部"},"gönderi":{"tr":"gönderi","en":"post","ja":"ポスト","es":"publicar","fr":"poster","de":"Beitrag","pt":"postar","ko":"포스트","zh-CN":"帖子"},"takipçi":{"tr":"takipçi","en":"follower","ja":"フォロワー","es":"seguidor","fr":"suiveur","de":"Anhänger","pt":"seguidor","ko":"추종자","zh-CN":"追随者"},"Yanıtla":{"tr":"Yanıtla","en":"Reply","ja":"返信","es":"Responder","fr":"Répondre","de":"Antworten","pt":"Responder","ko":"답글 달기","zh-CN":"回复"},"Çözüm ⭐":{"tr":"Çözüm ⭐","en":"Solution ⭐","ja":"解決策⭐","es":"Solución ⭐","fr":"Solution ⭐","de":"Solution ⭐","pt":"Solução ⭐","ko":"솔루션 ⭐","zh-CN":"解决方案⭐"},"2 yanıt":{"tr":"2 yanıt","en":"2 replies","ja":"2 件の返信","es":"2 respuestas","fr":"2 réponses","de":"2 Antworten","pt":"2 respostas","ko":"답글 2개","zh-CN":"2 条回复"},"Keşfet":{"tr":"Keşfet","en":"Discover","ja":"発見する","es":"Descubrir","fr":"Découvrez","de":"Entdecken","pt":"Descubra","ko":"발견하다","zh-CN":"发现"},"Türkçe":{"tr":"Türkçe","en":"Turkish","ja":"トルコ語","es":"turco","fr":"Turc","de":"Türkisch","pt":"Turco","ko":"터키어","zh-CN":"土耳其语"},"Paylaş":{"tr":"Paylaş","en":"Share / Post","ja":"シェア / 投稿","es":"Compartir / Publicar","fr":"Partager / Publier","de":"Teilen / Posten","pt":"Compartilhar / Publicar","ko":"게시 / 공유","zh-CN":"分享 / 发布"},"Yardım":{"tr":"Yardım","en":"Help","ja":"ヘルプ","es":"Ayuda","fr":"Aide","de":"Hilfe","pt":"Ajuda","ko":"도움말","zh-CN":"帮助"},"Gönder":{"tr":"Gönder","en":"Send","ja":"送信","es":"enviar","fr":"Envoyer","de":"Senden","pt":"Enviar","ko":"보내기","zh-CN":"发送"},"Beğeni":{"tr":"Beğeni","en":"like","ja":"好き","es":"me gusta","fr":"comme","de":"wie","pt":"gosto","ko":"같은","zh-CN":"喜欢"},"Vazgeç":{"tr":"Vazgeç","en":"Cancel","ja":"キャンセル","es":"Cancelar","fr":"Annuler","de":"Abbrechen","pt":"Cancelar","ko":"취소","zh-CN":"取消"},"Eğitim":{"tr":"Eğitim","en":"Education","ja":"教育","es":"Educación","fr":"Éducation","de":"Bildung","pt":"Educação","ko":"교육","zh-CN":"教育"},"Şu an:":{"tr":"Şu an:","en":"Currently:","ja":"現在:","es":"Actualmente:","fr":"Actuellement :","de":"Derzeit:","pt":"Atualmente:","ko":"현재:","zh-CN":"目前："},"Giriş":{"tr":"Giriş","en":"Login","ja":"ログイン","es":"Iniciar sesión","fr":"Connexion","de":"Anmelden","pt":"Entrar","ko":"로그인","zh-CN":"登录"},"Basın":{"tr":"Basın","en":"Press","ja":"プレス","es":"Prensa","fr":"Presse","de":"Presse","pt":"Imprensa","ko":"보도자료","zh-CN":"新闻资讯"},"Canlı":{"tr":"Canlı","en":"Live","ja":"リアルタイム","es":"En vivo","fr":"En direct","de":"Live","pt":"Ao vivo","ko":"실시간","zh-CN":"实时"},"Yükle":{"tr":"Yükle","en":"Upload","ja":"アップロード","es":"Subir","fr":"Télécharger","de":"Hochladen","pt":"Carregar","ko":"업로드","zh-CN":"上传"},"Bugün":{"tr":"Bugün","en":"today","ja":"今日","es":"hoy","fr":"aujourd'hui","de":"heute","pt":"hoje","ko":"오늘","zh-CN":"今天"},"Şehir":{"tr":"Şehir","en":"city","ja":"市","es":"ciudad","fr":"ville","de":"Stadt","pt":"cidade","ko":"도시","zh-CN":"城市"},"İndir":{"tr":"İndir","en":"Download","ja":"ダウンロード","es":"Descargar","fr":"Télécharger","de":"Herunterladen","pt":"Baixar","ko":"다운로드","zh-CN":"下载"},"Beğen":{"tr":"Beğen","en":"Like","ja":"いいね","es":"Me gusta","fr":"J'aime","de":"Gefällt mir","pt":"Curtir","ko":"좋아요","zh-CN":"点赞"},"Tümü":{"tr":"Tümü","en":"All","ja":"すべて","es":"Todos","fr":"Tout","de":"Alle","pt":"Todos","ko":"모두","zh-CN":"全部"},"Aç ➔":{"tr":"Aç ➔","en":"Open ➔","ja":"開く ➔","es":"Abrir ➔","fr":"Ouvrir ➔","de":"Öffnen ➔","pt":"Abrir ➔","ko":"열기 ➔","zh-CN":"打开➔"},"Gör":{"tr":"Gör","en":"see","ja":"参照してください","es":"ver","fr":"voir","de":"siehe","pt":"veja","ko":"참조","zh-CN":"看到"},"Seç":{"tr":"Seç","en":"Select","ja":"選択","es":"Seleccionar","fr":"Sélectionnez","de":"Auswählen","pt":"Selecione","ko":"선택","zh-CN":"选择"},"beğenme":{"tr":"beğenme","en":"likes","ja":"件のいいね","es":"me gusta","fr":"j'aime","de":"Gefällt mir","pt":"curtidas","ko":"좋아요","zh-CN":"次赞"},"yorumun tümünü gör":{"tr":"yorumun tümünü gör","en":"view all comments","ja":"件のコメントをすべて見る","es":"ver todos los comentarios","fr":"voir tous les commentaires","de":"alle Kommentare ansehen","pt":"ver todos os comentários","ko":"개 댓글 모두 보기","zh-CN":"条评论全部查看"},"ÖNCE":{"tr":"ÖNCE","en":"AGO","ja":"前","es":"HACE","fr":"IL Y A","de":"VOR","pt":"ATRÁS","ko":"전","zh-CN":"前"},"Yorum ekle (+10 Pati 🐾)...":{"tr":"Yorum ekle (+10 Pati 🐾)...","en":"Add a comment (+10 Paw 🐾)...","ja":"コメントを追加 (+10 肉球 🐾)...","es":"Añadir un comentario (+10 Patas 🐾)...","fr":"Ajouter un commentaire (+10 Pattes 🐾)...","de":"Kommentar hinzufügen (+10 Pfoten 🐾)...","pt":"Adicionar comentário (+10 Patas 🐾)...","ko":"댓글 추가 (+10 발바닥 🐾)...","zh-CN":"添加评论 (+10 爪爪 🐾)..."},"Topluluk Konusu":{"tr":"Topluluk Konusu","en":"Community Topic","ja":"コミュニティトピック","es":"Tema de la comunidad","fr":"Sujet communautaire","de":"Community-Thema","pt":"Tópico da comunidade","ko":"커뮤니티 주제","zh-CN":"社区话题"},"Yorum Yap":{"tr":"Yorum Yap","en":"Comment","ja":"コメントする","es":"Comentar","fr":"Commenter","de":"Kommentieren","pt":"Comentar","ko":"댓글 작성","zh-CN":"评论"},"Kaydet":{"tr":"Kaydet","en":"Save","ja":"保存","es":"Guardar","fr":"Enregistrer","de":"Speichern","pt":"Salvar","ko":"저장","zh-CN":"保存"},"Profilini Gör":{"tr":"Profilini Gör","en":"View Profile","ja":"プロフィールを見る","es":"Ver perfil","fr":"Voir le profil","de":"Profil ansehen","pt":"Ver perfil","ko":"프로필 보기","zh-CN":"查看个人主页"},"az önce":{"tr":"az önce","en":"just now","ja":"たった今","es":"hace un momento","fr":"à l'instant","de":"gerade eben","pt":"agora mesmo","ko":"방금 전","zh-CN":"刚刚"},"dakika önce":{"tr":"dakika önce","en":"minutes ago","ja":"分前","es":"minutos antes","fr":"minutes plus tôt","de":"Minuten her","pt":"minutos atrás","ko":"분 전","zh-CN":"分钟前"},"saat önce":{"tr":"saat önce","en":"hours ago","ja":"時間前","es":"horas antes","fr":"heures plus tôt","de":"Stunden her","pt":"horas atrás","ko":"시간 전","zh-CN":"小时前"},"gün önce":{"tr":"gün önce","en":"days ago","ja":"日前","es":"días antes","fr":"jours plus tôt","de":"Tage her","pt":"dias atrás","ko":"일 전","zh-CN":"天前"},"hafta önce":{"tr":"hafta önce","en":"weeks ago","ja":"週間前","es":"semanas antes","fr":"semaines plus tôt","de":"Wochen her","pt":"semanas atrás","ko":"주 전","zh-CN":"周前"},"Takip Et":{"tr":"Takip Et","en":"Follow","ja":"フォローする","es":"Seguir","fr":"Suivre","de":"Folgen","pt":"Seguir","ko":"팔로우","zh-CN":"关注"},"Takip Ediliyor":{"tr":"Takip Ediliyor","en":"Following","ja":"フォロー中","es":"Siguiendo","fr":"Abonné","de":"Gefolgt","pt":"Seguindo","ko":"팔로잉","zh-CN":"已关注"},"Kayıt Ol":{"tr":"Kayıt Ol","en":"Sign Up","ja":"サインアップ","es":"Regístrate","fr":"S'inscrire","de":"Melden Sie sich an","pt":"Inscreva-se","ko":"가입","zh-CN":"注册"},"Kaydol":{"tr":"Kaydol","en":"Sign up","ja":"サインアップ","es":"Regístrate","fr":"Inscrivez-vous","de":"Melden Sie sich an","pt":"Inscreva-se","ko":"가입","zh-CN":"注册"},"Hesap Aç":{"tr":"Hesap Aç","en":"Open Account","ja":"口座開設","es":"Abrir cuenta","fr":"Ouvrir un compte","de":"Konto eröffnen","pt":"Abrir conta","ko":"계좌 개설","zh-CN":"开设账户"},"İptal":{"tr":"İptal","en":"Cancel","ja":"キャンセル","es":"Cancelar","fr":"Annuler","de":"Abbrechen","pt":"Cancelar","ko":"취소","zh-CN":"取消"},"Kapat":{"tr":"Kapat","en":"Close","ja":"閉じる","es":"Cerrar","fr":"Fermer","de":"Schließen","pt":"Fechar","ko":"닫기","zh-CN":"关闭"},"Düzenle":{"tr":"Düzenle","en":"Edit","ja":"編集","es":"Editar","fr":"Modifier","de":"Bearbeiten","pt":"Editar","ko":"편집","zh-CN":"编辑"},"Sil":{"tr":"Sil","en":"Delete","ja":"削除","es":"Eliminar","fr":"Supprimer","de":"Löschen","pt":"Excluir","ko":"삭제","zh-CN":"删除"},"Ara":{"tr":"Ara","en":"Search","ja":"検索","es":"Buscar","fr":"Rechercher","de":"Suchen","pt":"Pesquisar","ko":"검색","zh-CN":"搜索"},"Yenile":{"tr":"Yenile","en":"Refresh","ja":"リフレッシュ","es":"Actualizar","fr":"Actualiser","de":"Aktualisieren","pt":"Atualizar","ko":"새로고침","zh-CN":"刷新"},"Temizle":{"tr":"Temizle","en":"clear","ja":"クリア","es":"claro","fr":"clair","de":"klar","pt":"claro","ko":"명확한","zh-CN":"清晰"},"Filtrele":{"tr":"Filtrele","en":"Filter","ja":"フィルター","es":"Filtrar","fr":"Filtrer","de":"Filtern","pt":"Filtro","ko":"필터","zh-CN":"过滤器"},"Devam Et":{"tr":"Devam Et","en":"Continue","ja":"続ける","es":"Continuar","fr":"Continuer","de":"Weiter","pt":"Continuar","ko":"계속","zh-CN":"继续"},"Onayla":{"tr":"Onayla","en":"Confirm","ja":"確認する","es":"Confirmar","fr":"Confirmer","de":"Bestätigen","pt":"Confirmar","ko":"확인","zh-CN":"确认"},"Geri":{"tr":"Geri","en":"Back","ja":"戻る","es":"Atrás","fr":"Retour","de":"Zurück","pt":"Voltar","ko":"뒤로","zh-CN":"返回"},"İleri":{"tr":"İleri","en":"Next","ja":"次へ","es":"Siguiente","fr":"Suivant","de":"Als nächstes","pt":"Próximo","ko":"다음","zh-CN":"下一步"},"Tamam":{"tr":"Tamam","en":"ok","ja":"わかりました","es":"bien","fr":"ok","de":"ok","pt":"ok","ko":"알았어","zh-CN":"好的"},"Evet":{"tr":"Evet","en":"Yes","ja":"はい","es":"si","fr":"Oui","de":"Ja","pt":"Sim","ko":"예","zh-CN":"是的"},"Hayır":{"tr":"Hayır","en":"no","ja":"いいえ","es":"no","fr":"non","de":"Nein","pt":"não","ko":"아니","zh-CN":"不"},"Beğendin":{"tr":"Beğendin","en":"you liked it","ja":"あなたはそれが好きでした","es":"te gustó","fr":"tu as aimé","de":"es hat dir gefallen","pt":"você gostou","ko":"당신은 그것을 좋아했다","zh-CN":"你喜欢它"},"Yorum":{"tr":"Yorum","en":"Comment","ja":"コメント","es":"Comentario","fr":"Commentaire","de":"Kommentar","pt":"Comentário","ko":"코멘트","zh-CN":"评论"},"Yorumlar":{"tr":"Yorumlar","en":"Comments","ja":"コメント","es":"Comentarios","fr":"Commentaires","de":"Kommentare","pt":"Comentários","ko":"댓글","zh-CN":"评论"},"Paylaşım":{"tr":"Paylaşım","en":"sharing","ja":"共有","es":"compartiendo","fr":"partage","de":"teilen","pt":"compartilhando","ko":"공유","zh-CN":"分享"},"Gönderi":{"tr":"Gönderi","en":"Post","ja":"ポスト","es":"Publicar","fr":"Publier","de":"Beitrag","pt":"Postar","ko":"게시물","zh-CN":"邮政"},"Hikaye":{"tr":"Hikaye","en":"story","ja":"物語","es":"historia","fr":"histoire","de":"Geschichte","pt":"história","ko":"이야기","zh-CN":"故事"},"Reels":{"tr":"Reels","en":"reels","ja":"リール","es":"carretes","fr":"bobines","de":"Rollen","pt":"bobinas","ko":"릴","zh-CN":"卷轴"},"Profil":{"tr":"Profil","en":"Profile","ja":"プロフィール","es":"Perfil","fr":"Profil","de":"Profil","pt":"Perfil","ko":"프로필","zh-CN":"公司简介"},"Ayarlar":{"tr":"Ayarlar","en":"Settings","ja":"設定","es":"Configuración","fr":"Paramètres","de":"Einstellungen","pt":"Configurações","ko":"설정","zh-CN":"设置"},"Bildirimler":{"tr":"Bildirimler","en":"Notifications","ja":"通知","es":"Notificaciones","fr":"Notifications","de":"Benachrichtigungen","pt":"Notificações","ko":"알림","zh-CN":"通知"},"Mesajlar":{"tr":"Mesajlar","en":"Messages","ja":"メッセージ","es":"Mensajes","fr":"Messages","de":"Nachrichten","pt":"Mensagens","ko":"메시지","zh-CN":"留言"},"Akış":{"tr":"Akış","en":"flow","ja":"流れ","es":"fluir","fr":"flux","de":"fließen","pt":"fluxo","ko":"흐름","zh-CN":"流量"},"Ana Sayfa":{"tr":"Ana Sayfa","en":"Home Page","ja":"ホームページ","es":"Página de inicio","fr":"Page d'accueil","de":"Startseite","pt":"Página inicial","ko":"홈 페이지","zh-CN":"主页"},"Soru Sor":{"tr":"Soru Sor","en":"Ask a Question","ja":"質問する","es":"Haz una pregunta","fr":"Poser une question","de":"Stellen Sie eine Frage","pt":"Faça uma pergunta","ko":"질문하기","zh-CN":"问一个问题"},"Cevapla":{"tr":"Cevapla","en":"Reply","ja":"返信","es":"Responder","fr":"Répondre","de":"Antwort","pt":"Responder","ko":"답장하다","zh-CN":"回复"},"Detaylar":{"tr":"Detaylar","en":"Details","ja":"詳細","es":"Detalles","fr":"Détails","de":"Einzelheiten","pt":"Detalhes","ko":"세부정보","zh-CN":"详情"},"Yükleniyor...":{"tr":"Yükleniyor...","en":"Loading...","ja":"読み込み中...","es":"Cargando...","fr":"Chargement...","de":"Laden...","pt":"Carregando...","ko":"로드 중...","zh-CN":"正在加载..."},"Başarılı":{"tr":"Başarılı","en":"successful","ja":"成功した","es":"exitoso","fr":"réussi","de":"erfolgreich","pt":"bem sucedido","ko":"성공하다","zh-CN":"成功的"},"Hata":{"tr":"Hata","en":"Error","ja":"エラー","es":"error","fr":"Erreur","de":"Fehler","pt":"Erro","ko":"오류","zh-CN":"错误"},"Uyarı":{"tr":"Uyarı","en":"Warning","ja":"警告","es":"Advertencia","fr":"Avertissement","de":"Warnung","pt":"Aviso","ko":"경고","zh-CN":"警告"},"Bilgi":{"tr":"Bilgi","en":"Information","ja":"情報","es":"Información","fr":"Informations","de":"Informationen","pt":"Informação","ko":"정보","zh-CN":"信息"},"Pati Puanı":{"tr":"Pati Puanı","en":"Paw Score","ja":"肉球ポイント","es":"Puntuación de la pata","fr":"Score de patte","de":"Pfotenbewertung","pt":"Pontuação da pata","ko":"발자국 포인트","zh-CN":"肉爪积分"},"Poodle Pasaportu":{"tr":"Poodle Pasaportu","en":"Poodle Passport","ja":"プードルパスポート","es":"Pasaporte caniche","fr":"Passeport caniche","de":"Pudelpass","pt":"Passaporte Caniche","ko":"푸들 여권","zh-CN":"贵宾犬护照"},"Aşı Takvimi":{"tr":"Aşı Takvimi","en":"Vaccination Schedule","ja":"予防接種スケジュール","es":"Calendario de vacunación","fr":"Calendrier de vaccination","de":"Impfplan","pt":"Cronograma de vacinação","ko":"예방접종 일정","zh-CN":"疫苗接种时间表"},"Kilo Takibi":{"tr":"Kilo Takibi","en":"Weight Tracking","ja":"体重追跡","es":"Seguimiento de peso","fr":"Suivi du poids","de":"Gewichtsverfolgung","pt":"Rastreamento de peso","ko":"체중 추적","zh-CN":"体重追踪"},"Şimdi Katıl":{"tr":"Şimdi Katıl","en":"Join Now","ja":"今すぐ参加","es":"Únete ahora","fr":"Inscrivez-vous maintenant","de":"Jetzt beitreten","pt":"Cadastre-se agora","ko":"지금 가입하세요","zh-CN":"立即加入"},"Giriş Yap / Kayıt Ol":{"tr":"Giriş Yap / Kayıt Ol","en":"Login / Sign Up","ja":"ログイン/サインアップ","es":"Iniciar sesión / Registrarse","fr":"Connexion / Inscription","de":"Anmelden / Registrieren","pt":"Login / Inscreva-se","ko":"로그인 / 회원가입","zh-CN":"登录/注册"},"Senin İçin":{"tr":"Senin İçin","en":"For You","ja":"おすすめ","es":"Para ti","fr":"Pour vous","de":"Für dich","pt":"Para você","ko":"추천","zh-CN":"为你推荐"},"Takip Edilenler":{"tr":"Takip Edilenler","en":"Following","ja":"フォロー中","es":"Siguiendo","fr":"Abonnements","de":"Gefolgt","pt":"Seguindo","ko":"팔로잉","zh-CN":"正在关注"},"Hikayen":{"tr":"Hikayen","en":"Your story","ja":"あなたのストーリー","es":"Tu historia","fr":"Votre story","de":"Deine Story","pt":"Sua história","ko":"내 스토리","zh-CN":"你的快拍"},"🔴 Red Apricot":{"tr":"🔴 Red Apricot","en":"🔴 Red Apricot","ja":"🔴 レッド＆アプリコット","es":"🔴 Rojo y Albaricoque","fr":"🔴 Rouge & Abricot","de":"🔴 Rot & Apricot","pt":"🔴 Red Apricot","ko":"🔴 레드 & 살구색","zh-CN":"🔴 红棕 & 杏色"},"🧸 Toy Poodle":{"tr":"🧸 Toy Poodle","en":"🧸 Toy Poodle","ja":"🧸 トイプードル","es":"🧸 Caniche Toy","fr":"🧸 Caniche Toy","de":"🧸 Zwergpudel","pt":"🧸 Poodle Toy","ko":"🧸 토이푸들","zh-CN":"🧸 玩具贵宾犬"},"⚪ Beyaz & Krem":{"tr":"⚪ Beyaz & Krem","en":"⚪ White & Cream","ja":"⚪ ホワイト＆クリーム","es":"⚪ Blanco y Crema","fr":"⚪ Blanc & Crème","de":"⚪ Weiß & Creme","pt":"⚪ Branco & Creme","ko":"⚪ 화이트 & 크림","zh-CN":"⚪ 白 & 奶油色"},"🐩 Standart":{"tr":"🐩 Standart","en":"🐩 Standard","ja":"🐩 スタンダード","es":"🐩 Gigante","fr":"🐩 Royal","de":"🐩 Großpudel","pt":"🐩 Poodle Gigante","ko":"🐩 스탠다드","zh-CN":"🐩 巨型贵宾"},"⚡ Tek Tıkla Hızlı Giriş":{"tr":"⚡ Tek Tıkla Hızlı Giriş","en":"⚡ One-Click Quick Login","ja":"⚡ ワンクリック簡単ログイン","es":"⚡ Inicio rápido con 1 clic","fr":"⚡ Connexion en 1 clic","de":"⚡ 1-Klick-Schnellanmeldung","pt":"⚡ Login rápido em 1 clique","ko":"⚡ 원클릭 간편 로그인","zh-CN":"⚡ 一键快捷登录"},"Google ile Devam Et":{"tr":"Google ile Devam Et","en":"Continue with Google","ja":"Googleで続行","es":"Continuar con Google","fr":"Continuer avec Google","de":"Mit Google fortfahren","pt":"Continuar com o Google","ko":"Google로 계속하기","zh-CN":"通过 Google 继续"},"Apple ile Giriş Yap":{"tr":"Apple ile Giriş Yap","en":"Sign in with Apple","ja":"Appleでサインイン","es":"Iniciar sesión con Apple","fr":"Se connecter avec Apple","de":"Mit Apple anmelden","pt":"Iniciar sessão com a Apple","ko":"Apple로 로그인","zh-CN":"通过 Apple 登录"},"1 Tık ⚡":{"tr":"1 Tık ⚡","en":"1 Click ⚡","ja":"1クリック ⚡","es":"1 Clic ⚡","fr":"1 Clic ⚡","de":"1 Klick ⚡","pt":"1 Clique ⚡","ko":"1클릭 ⚡","zh-CN":"一键 ⚡"},"Hızlı 🍎":{"tr":"Hızlı 🍎","en":"Fast 🍎","ja":"高速 🍎","es":"Rápido 🍎","fr":"Rapide 🍎","de":"Schnell 🍎","pt":"Rápido 🍎","ko":"빠름 🍎","zh-CN":"极速 🍎"},"veya telefon / sms ile":{"tr":"veya telefon / sms ile","en":"or with phone / sms","ja":"または電話番号・SMSで","es":"o con teléfono / sms","fr":"ou par téléphone / sms","de":"oder per Telefon / SMS","pt":"ou com telefone / sms","ko":"또는 휴대폰 번호 / SMS","zh-CN":"或使用手机号 / 短信验证"},"OAuth 2.0 & Netgsm SMS ile güvenli bağlantı":{"tr":"OAuth 2.0 & Netgsm SMS ile güvenli bağlantı","en":"Secure connection via OAuth 2.0 & SMS","ja":"OAuth 2.0 & SMSによる安全な接続","es":"Conexión segura con OAuth 2.0 y SMS","fr":"Connexion sécurisée via OAuth 2.0 et SMS","de":"Sichere Verbindung über OAuth 2.0 & SMS","pt":"Conexão segura via OAuth 2.0 e SMS","ko":"OAuth 2.0 및 SMS 보안 연결","zh-CN":"通过 OAuth 2.0 及短信安全连接"},"Poodle hesabın yok mu?":{"tr":"Poodle hesabın yok mu?","en":"Don't have a Poodle account?","ja":"アカウントをお持ちではありませんか？","es":"¿No tienes cuenta de Poodle?","fr":"Vous n'avez pas de compte Poodle ?","de":"Noch kein Poodle-Konto?","pt":"Não tem uma conta do Poodle?","ko":"푸들 계정이 없으신가요?","zh-CN":"还没有 YourPoodle 账号？"},"Poodle Hesabı Aç":{"tr":"Poodle Hesabı Aç","en":"Create Poodle Account","ja":"新規登録する","es":"Crear cuenta Poodle","fr":"Créer un compte Poodle","de":"Poodle-Konto erstellen","pt":"Criar conta do Poodle","ko":"푸들 계정 만들기","zh-CN":"注册账号"},"Poodle Bilgileri":{"tr":"Poodle Bilgileri","en":"Poodle Information","ja":"プードル情報","es":"Información del Caniche","fr":"Informations Caniche","de":"Pudel-Informationen","pt":"Informações do Poodle","ko":"푸들 정보","zh-CN":"贵宾犬信息"},"CANLI":{"tr":"CANLI","en":"LIVE","ja":"ライブ","es":"EN VIVO","fr":"EN DIRECT","de":"LIVE","pt":"AO VIVO","ko":"라이브","zh-CN":"直播"},"Hediye":{"tr":"Hediye","en":"Gift","ja":"ギフト","es":"Regalo","fr":"Cadeau","de":"Geschenk","pt":"Presente","ko":"선물","zh-CN":"礼物"},"Kayıtlı":{"tr":"Kayıtlı","en":"Saved","ja":"保存済み","es":"Guardado","fr":"Enregistré","de":"Gespeichert","pt":"Salvo","ko":"저장됨","zh-CN":"已保存"},"Pati Ver / Beğen":{"tr":"Pati Ver / Beğen","en":"Give Paw / Like","ja":"肉球をあげる / いいね","es":"Dar pata / Me gusta","fr":"Donner la patte / J’aime","de":"Pfote geben / Gefällt mir","pt":"Dar a pata / Curtir","ko":"발자국 주기 / 좋아요","zh-CN":"点赞 / 爪爪"},"Paylaş & DM Gönder":{"tr":"Paylaş & DM Gönder","en":"Share & Send DM","ja":"シェア＆DM送信","es":"Compartir y enviar DM","fr":"Partager & envoyer en DM","de":"Teilen & DM senden","pt":"Compartilhar e enviar DM","ko":"공유 및 DM 보내기","zh-CN":"分享并发送私信"},"Poodle dostuna yorum yaz (+10 Pati 🐾)...":{"tr":"Poodle dostuna yorum yaz (+10 Pati 🐾)...","en":"Write a comment for poodle friend (+10 Paws 🐾)...","ja":"プードル仲間にコメントを書く (+10 肉球 🐾)...","es":"Escribe un comentario a tu amigo caniche (+10 Patas 🐾)...","fr":"Écrire un commentaire à un ami Caniche (+10 Pattes 🐾)...","de":"Schreibe einen Kommentar für deinen Pudel-Freund (+10 Pfoten 🐾)...","pt":"Escreva um comentário para o amigo poodle (+10 Patas 🐾)...","ko":"푸들 친구에게 댓글 남기기 (+10 발자국 🐾)...","zh-CN":"给贵宾犬朋友写评论 (+10 肉爪 🐾)..."},"Ses Açık":{"tr":"Ses Açık","en":"Sound On","ja":"音声オン","es":"Sonido activado","fr":"Son activé","de":"Ton an","pt":"Som ativado","ko":"소리 켬","zh-CN":"开启声音"},"Krem & Beyaz":{"tr":"Krem & Beyaz","en":"Cream & White","ja":"クリーム＆ホワイト","es":"Crema y Blanco","fr":"Crème & Blanc","de":"Creme & Weiß","pt":"Creme & Branco","ko":"크림 & 화이트","zh-CN":"奶油 & 白"},"Gümüş Gri":{"tr":"Gümüş Gri","en":"Silver Gray","ja":"シルバーグレー","es":"Gris Plateado","fr":"Gris Argenté","de":"Silbergrau","pt":"Cinza Prateado","ko":"실버 그레이","zh-CN":"银灰色"},"Standart Poodle":{"tr":"Standart Poodle","en":"Standard Poodle","ja":"スタンダードプードル","es":"Caniche Gigante","fr":"Caniche Royal","de":"Großpudel","pt":"Poodle Gigante","ko":"스탠다드 푸들","zh-CN":"巨型贵宾犬"},"Teacup Poodle":{"tr":"Teacup Poodle","en":"Teacup Poodle","ja":"ティーカッププードル","es":"Caniche Tacita","fr":"Caniche Teacup","de":"Teacup-Pudel","pt":"Poodle Micro Toy","ko":"티컵 푸들","zh-CN":"茶杯贵宾犬"},"Telefon numaranıza SMS ile gelen 4 haneli kod ile anında giriş yapın 📲":{"tr":"Telefon numaranıza SMS ile gelen 4 haneli kod ile anında giriş yapın 📲","en":"Sign in instantly with the 4-digit code sent to your phone via SMS 📲","ja":"携帯電話にSMSで届く4桁のコードですぐにログイン 📲","es":"Inicia sesión al instante con el código de 4 dígitos enviado por SMS 📲","fr":"Connectez-vous instantanément avec le code à 4 chiffres reçu par SMS 📲","de":"Sofort anmelden mit dem 4-stelligen Code, der per SMS gesendet wird 📲","pt":"Entre instantaneamente com o código de 4 dígitos recebido por SMS 📲","ko":"휴대폰으로 전송된 4자리 SMS 코드로 즉시 로그인 📲","zh-CN":"输入发送到手机的4位短信验证码即可直接登录 📲"},"Poodle'ın için telefon numaranla hemen kaydol (+100 Pati Puanı kazan) 🐾":{"tr":"Poodle'ın için telefon numaranla hemen kaydol (+100 Pati Puanı kazan) 🐾","en":"Register your Poodle with your phone number (+100 Paw Points bonus) 🐾","ja":"電話番号で愛犬プードルを登録（+100 肉球ポイント進呈）🐾","es":"Registra a tu Caniche con tu teléfono (+100 Puntos Pata) 🐾","fr":"Inscrivez votre Caniche avec votre mobile (+100 Points Patte) 🐾","de":"Registriere deinen Pudel per Telefonnummer (+100 Pfoten-Punkte) 🐾","pt":"Cadastre seu Poodle com o celular (+100 Pontos Pata) 🐾","ko":"휴대폰 번호로 푸들 등록 (+100 발자국 보너스) 🐾","zh-CN":"使用手机号注册狗狗（立赠 +100 肉爪积分）🐾"},"Ülke Seçimi":{"tr":"Ülke Seçimi","en":"Country Selection","ja":"国の選択","de":"Länderauswahl","fr":"Sélection du pays","es":"Selección de país","pt":"Seleção de país","ko":"국가 선택","zh-CN":"国家/地区选择"},"Ülke Etiketi":{"tr":"Ülke Etiketi","en":"Country Tag","ja":"国タグ","de":"Länder-Tag","fr":"Tag de pays","es":"Etiqueta de país","pt":"Tag do país","ko":"국가 태그","zh-CN":"国家标签"},"Ülke Seçimi / Country":{"tr":"Ülke Seçimi / Country","en":"Country Selection","ja":"国の選択","de":"Länderauswahl","fr":"Sélection du pays","es":"Selección de país","pt":"Seleção de país","ko":"국가 선택","zh-CN":"国家/地区选择"}};
+
+  const PHRASE_MAP_LOWER = {};
+  const REVERSE_PHRASE_MAP = {};
+
+  for (const [trKey, transObj] of Object.entries(PHRASE_MAP)) {
+    PHRASE_MAP_LOWER[trKey.toLowerCase()] = transObj;
+    for (const [lang, val] of Object.entries(transObj)) {
+      if (val && typeof val === 'string') {
+        const vLower = val.toLowerCase().trim();
+        // Skip short 2-letter codes or common language names so they are not hijacked
+        if (['ja', 'de', 'es', 'it', 'no', 'en', 'fr', 'pt', 'ko', 'tr', 'zh', 'cn', 'yes', 'no', 'si', 'oui'].includes(vLower)) {
+          continue;
+        }
+        if (vLower && !REVERSE_PHRASE_MAP[vLower]) {
+          REVERSE_PHRASE_MAP[vLower] = trKey;
+        }
+      }
+    }
+  }
+
+  function getPhraseTranslation(text, targetLang) {
+    if (!text || typeof text !== 'string') return null;
+    const trimmed = text.trim();
+    if (!trimmed || trimmed.length < 2) return null;
+
+    // Direct match
+    if (PHRASE_MAP[trimmed] && PHRASE_MAP[trimmed][targetLang]) {
+      return PHRASE_MAP[trimmed][targetLang];
+    }
+    // Case-insensitive match
+    const lower = trimmed.toLowerCase();
+    if (PHRASE_MAP_LOWER[lower] && PHRASE_MAP_LOWER[lower][targetLang]) {
+      return PHRASE_MAP_LOWER[lower][targetLang];
+    }
+    // Reverse map match
+    const canonical = REVERSE_PHRASE_MAP[lower];
+    if (canonical && PHRASE_MAP[canonical] && PHRASE_MAP[canonical][targetLang]) {
+      return PHRASE_MAP[canonical][targetLang];
+    }
+    return null;
+  }
+
+  function isUsernameOrExcluded(node) {
+    if (!node) return true;
+    const el = node.nodeType === 3 ? node.parentElement : node;
+    if (!el) return false;
+
+    // Skip language selectors, triggers, dropdowns, and notranslate elements
+    if (el.closest && (
+      el.closest('.yp-lang-selector') ||
+      el.closest('.yp-lang-dropdown') ||
+      el.closest('#yp-lang-dropdown-desktop') ||
+      el.closest('#yp-lang-menu-desktop') ||
+      el.closest('#yp-lang-modal') ||
+      el.closest('#mobile-lang-picker') ||
+      el.closest('.notranslate') ||
+      el.closest('[data-no-translate]') ||
+      el.closest('[translate="no"]')
+    )) {
+      return true;
+    }
+
+    if (el.classList && (
+      el.classList.contains('font-logo') ||
+      el.classList.contains('notranslate') ||
+      el.classList.contains('yp-lang-current-code') ||
+      el.classList.contains('yp-lang-current-label') ||
+      el.classList.contains('yp-lang-current-flag') ||
+      el.classList.contains('yp-lang-code') ||
+      el.classList.contains('yp-lang-option')
+    )) {
+      return true;
+    }
+
+    // Skip non-text visual tags
+    const tag = (el.tagName || '').toLowerCase();
+    if (['script', 'style', 'code', 'pre', 'svg', 'canvas', 'video', 'audio'].includes(tag)) {
+      return true;
+    }
+
+    // Skip inputs, textareas, contenteditables (their values shouldn't be altered by text walker)
+    if (tag === 'input' || tag === 'textarea' || el.isContentEditable) {
+      return true;
+    }
+
+    // Check id and class for username / author markers
+    const id = (el.id || '').toLowerCase();
+    const cls = (typeof el.className === 'string' ? el.className : '').toLowerCase();
+    if (
+      id.includes('username') || id.includes('author') || id.includes('user-name') ||
+      cls.includes('username') || cls.includes('author-') || cls.includes('user-handle') ||
+      cls.includes('font-logo')
+    ) {
+      return true;
+    }
+
+    if (el.hasAttribute('data-username') || el.hasAttribute('data-poodle-name') || el.hasAttribute('data-user')) {
+      return true;
+    }
+
+    // Check parent element
+    if (el.parentElement) {
+      const pId = (el.parentElement.id || '').toLowerCase();
+      const pCls = (typeof el.parentElement.className === 'string' ? el.parentElement.className : '').toLowerCase();
+      if (pId.includes('username') || pId.includes('author') || pCls.includes('username') || pCls.includes('author-')) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  let isUniversalTranslating = false;
+
+  function applyUniversalTranslations(root) {
+    if (isUniversalTranslating) return;
+    const targetRoot = root || document.body;
+    if (!targetRoot || typeof document.createTreeWalker !== 'function') return;
+
+    const NF = typeof NodeFilter !== 'undefined' ? NodeFilter : { SHOW_TEXT: 4, FILTER_ACCEPT: 1, FILTER_REJECT: 2 };
+
+    try {
+      isUniversalTranslating = true;
+
+      // 1. Process text nodes with TreeWalker
+      const walker = document.createTreeWalker(
+        targetRoot,
+        NF.SHOW_TEXT,
+        {
+          acceptNode: function(node) {
+            if (!node.nodeValue || !node.nodeValue.trim()) {
+              return NF.FILTER_REJECT;
+            }
+            if (isUsernameOrExcluded(node)) {
+              return NF.FILTER_REJECT;
+            }
+            return NF.FILTER_ACCEPT;
+          }
+        },
+        false
+      );
+
+      let currentNode = walker.nextNode();
+      while (currentNode) {
+        const raw = currentNode.nodeValue;
+        const trimmed = raw.trim();
+
+        // Skip usernames starting with @
+        if (trimmed.startsWith('@')) {
+          currentNode = walker.nextNode();
+          continue;
+        }
+
+        let origKey = currentNode.__ypOrig;
+        if (!origKey) {
+          origKey = trimmed;
+          currentNode.__ypOrig = origKey;
+        }
+
+        let translated = getPhraseTranslation(origKey, currentLang);
+        if (!translated && trimmed !== origKey) {
+          translated = getPhraseTranslation(trimmed, currentLang);
+          if (translated) currentNode.__ypOrig = trimmed;
+        }
+
+        if (translated && translated !== trimmed) {
+          const lead = raw.match(/^\s*/)[0];
+          const trail = raw.match(/\s*$/)[0];
+          currentNode.nodeValue = lead + translated + trail;
+        }
+
+        currentNode = walker.nextNode();
+      }
+
+      // 2. Process placeholders, titles, and aria-labels
+      const attrElements = targetRoot.querySelectorAll ? targetRoot.querySelectorAll('input[placeholder], textarea[placeholder], [title], [aria-label]') : [];
+      attrElements.forEach(el => {
+        // Placeholder
+        if (el.hasAttribute('placeholder')) {
+          const origPh = el.__ypOrigPlaceholder || el.getAttribute('placeholder');
+          if (!el.__ypOrigPlaceholder) el.__ypOrigPlaceholder = origPh;
+          const transPh = getPhraseTranslation(origPh, currentLang);
+          if (transPh) el.setAttribute('placeholder', transPh);
+        }
+
+        // Title
+        if (el.hasAttribute('title')) {
+          const origTitle = el.__ypOrigTitle || el.getAttribute('title');
+          if (!el.__ypOrigTitle) el.__ypOrigTitle = origTitle;
+          const transTitle = getPhraseTranslation(origTitle, currentLang);
+          if (transTitle) el.setAttribute('title', transTitle);
+        }
+
+        // Aria-label
+        if (el.hasAttribute('aria-label')) {
+          const origAria = el.__ypOrigAria || el.getAttribute('aria-label');
+          if (!el.__ypOrigAria) el.__ypOrigAria = origAria;
+          const transAria = getPhraseTranslation(origAria, currentLang);
+          if (transAria) el.setAttribute('aria-label', transAria);
+        }
+      });
+    } finally {
+      isUniversalTranslating = false;
+    }
+  }
+
+  // MutationObserver to auto-translate newly attached DOM components while preserving usernames
+  if (typeof MutationObserver !== 'undefined') {
+    const observer = new MutationObserver((mutations) => {
+      if (isUniversalTranslating) return;
+      for (const m of mutations) {
+        if (m.type === 'childList' && m.addedNodes && m.addedNodes.length > 0) {
+          for (const n of m.addedNodes) {
+            if (n.nodeType === 1 && !isUsernameOrExcluded(n)) {
+              applyUniversalTranslations(n);
+            }
+          }
+        }
+      }
+    });
+
+    if (document.body) {
+      observer.observe(document.body, { childList: true, subtree: true });
+    } else {
+      document.addEventListener('DOMContentLoaded', () => {
+        observer.observe(document.body, { childList: true, subtree: true });
+      });
+    }
+  }
+
+  function applyDomTranslations() {
+    // 1. data-i18n (text content)
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const val = t(key);
+      if (val !== null && val !== undefined) el.innerText = val;
+    });
+
+    // 2. data-i18n-html (inner HTML)
+    document.querySelectorAll('[data-i18n-html]').forEach(el => {
+      const key = el.getAttribute('data-i18n-html');
+      const val = t(key);
+      if (val !== null && val !== undefined) el.innerHTML = val;
+    });
+
+    // 3. data-i18n-placeholder
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const key = el.getAttribute('data-i18n-placeholder');
+      const val = t(key);
+      if (val !== null && val !== undefined) el.setAttribute('placeholder', val);
+    });
+
+    // 4. data-i18n-title
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+      const key = el.getAttribute('data-i18n-title');
+      const val = t(key);
+      if (val !== null && val !== undefined) el.setAttribute('title', val);
+    });
+
+    // 5. data-i18n-aria
+    document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+      const key = el.getAttribute('data-i18n-aria');
+      const val = t(key);
+      if (val !== null && val !== undefined) el.setAttribute('aria-label', val);
+    });
+
+    // 6. Master Deep Universal Phrase Translator across entire visible DOM & Modals
+    applyUniversalTranslations(document.body);
+  }
+
+  function updateLanguageSelectorsUI() {
+    const curObj = SUPPORTED_LANGS.find(l => l.code === currentLang) || SUPPORTED_LANGS[0];
+    const shortCode = curObj.code.toUpperCase().replace('-CN', '');
+    
+    // Desktop & mobile trigger labels & flags
+    document.querySelectorAll('.yp-lang-current-label').forEach(el => {
+      el.innerText = curObj.name;
+    });
+    document.querySelectorAll('.yp-lang-current-flag').forEach(el => {
+      el.innerText = curObj.flag;
+    });
+    document.querySelectorAll('.yp-lang-current-code').forEach(el => {
+      el.innerText = shortCode;
+    });
+
+    // Active state in dropdown menus & modal
+    document.querySelectorAll('.yp-lang-option').forEach(el => {
+      const c = el.getAttribute('data-lang');
+      if (c === currentLang) {
+        el.classList.add('bg-amber-500/15', 'border-amber-500/40', 'dark:border-amber-500/40', 'font-black');
+        el.classList.remove('text-gray-700', 'dark:text-gray-300');
+      } else {
+        el.classList.remove('bg-amber-500/15', 'border-amber-500/40', 'dark:border-amber-500/40', 'font-black');
+        el.classList.add('text-gray-700', 'dark:text-gray-300');
+      }
+    });
+
+    // Active checkmark in modal
+    document.querySelectorAll('.yp-lang-check').forEach(el => {
+      const c = el.getAttribute('data-check-lang');
+      if (c === currentLang) {
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+    });
+  }
+
+  function openLanguageModal() {
+    const modal = document.getElementById('yp-lang-modal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      updateLanguageSelectorsUI();
+    }
+  }
+
+  function closeLanguageModal() {
+    const modal = document.getElementById('yp-lang-modal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function selectLanguageAndClose(code) {
+    setLanguage(code, true);
+    closeLanguageModal();
+    const toastMsg = `${t('toast.langChanged')}`;
+    if (typeof window.showToast === 'function') {
+      window.showToast(toastMsg);
+    }
+  }
+
+  window.openLanguageModal = openLanguageModal;
+  window.closeLanguageModal = closeLanguageModal;
+  window.selectLanguageAndClose = selectLanguageAndClose;
+
+  function createLanguageDropdownHtml(idSuffix = 'desktop') {
+    return `
+      <div class="relative inline-block text-left" id="yp-lang-dropdown-${idSuffix}">
+        <button type="button" onclick="ypI18n.toggleDropdown('${idSuffix}')" class="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-[#1f1f1f] dark:hover:bg-[#282828] text-xs font-bold transition active:scale-95 cursor-pointer border border-transparent dark:border-[#333]" title="${t('nav.language')}">
+          <span class="text-base">🌐</span>
+          <span class="yp-lang-current-flag text-sm">🇺🇸</span>
+          <span class="yp-lang-current-label hidden sm:inline truncate max-w-[80px]">English</span>
+          <svg class="size-3 text-gray-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div id="yp-lang-menu-${idSuffix}" class="hidden absolute right-0 sm:left-0 sm:right-auto bottom-full sm:bottom-auto sm:top-full mb-2 sm:mb-0 sm:mt-2 w-44 rounded-2xl bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#333] shadow-xl z-50 py-1.5 divide-y divide-gray-100 dark:divide-[#252525] animate-scale-up">
+          <div class="px-3 py-1.5 text-[10px] font-black text-gray-400 uppercase tracking-wider">
+            ${t('nav.language')}
+          </div>
+          <div class="py-1 max-h-60 overflow-y-auto no-scrollbar">
+            ${SUPPORTED_LANGS.map(l => `
+              <button type="button" onclick="ypI18n.selectLanguage('${l.code}', '${idSuffix}')" data-lang="${l.code}" class="yp-lang-option w-full px-3 py-2 text-left text-xs flex items-center justify-between hover:bg-gray-50 dark:hover:bg-[#252525] transition cursor-pointer active:scale-98">
+                <span class="flex items-center gap-2">
+                  <span class="text-base">${l.flag}</span>
+                  <span class="font-bold">${l.name}</span>
+                </span>
+                <span class="text-[10px] text-gray-400 uppercase">${l.code}</span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function toggleDropdown(suffix) {
+    const menu = document.getElementById(`yp-lang-menu-${suffix}`);
+    if (!menu) return;
+    const isHidden = menu.classList.contains('hidden');
+    // Close any other open lang menus
+    document.querySelectorAll('[id^="yp-lang-menu-"]').forEach(m => m.classList.add('hidden'));
+    if (isHidden) {
+      menu.classList.remove('hidden');
+    }
+  }
+
+  function selectLanguage(code, suffix) {
+    setLanguage(code, true);
+    const menu = document.getElementById(`yp-lang-menu-${suffix}`);
+    if (menu) menu.classList.add('hidden');
+    const toastMsg = `${t('toast.langChanged')}`;
+    if (typeof window.showToast === 'function') {
+      window.showToast(toastMsg);
+    }
+  }
+
+  // Global click outside to close dropdowns
+  window.addEventListener('click', (e) => {
+    if (!e.target.closest('[id^="yp-lang-dropdown-"]')) {
+      document.querySelectorAll('[id^="yp-lang-menu-"]').forEach(m => m.classList.add('hidden'));
+    }
+  });
+
+  // Initialize
+  function initI18n() {
+    const initialLang = detectLanguage();
+    setLanguage(initialLang, false);
+  }
+
+  // Quick global phrase translator
+  window._yp = function(phrase) {
+    if (!phrase || typeof phrase !== 'string') return phrase;
+    return getPhraseTranslation(phrase, currentLang) || phrase;
+  };
+
+  // Export to global window object
+  window.ypI18n = {
+    SUPPORTED_LANGS,
+    DEFAULT_LANG,
+    getCurrentLanguage: () => currentLang,
+    t,
+    setLanguage,
+    detectLanguage,
+    initI18n,
+    applyDomTranslations,
+    applyUniversalTranslations,
+    getPhraseTranslation,
+    _yp: window._yp,
+    createLanguageDropdownHtml,
+    toggleDropdown,
+    selectLanguage,
+    openLanguageModal,
+    closeLanguageModal,
+    selectLanguageAndClose,
+    updateLanguageSelectorsUI,
+    translations: TRANSLATIONS
+  };
+
+  // Auto-init on script load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initI18n);
+  } else {
+    initI18n();
+  }
+
+})();

@@ -1,0 +1,112 @@
+[
+  {
+    "id": "post_1792439995_f4e751",
+    "author": {
+      "name": "Toy Poodle Ailesi",
+      "username": "tester_dog",
+      "avatar": "/images/poodle_mochi.jpg",
+      "badge": "",
+      "countryCode": "TR"
+    },
+    "mediaUrl": "https://example.com/clean.jpg",
+    "thumbnailUrl": "https://example.com/clean.jpg",
+    "hlsUrl": "",
+    "mediaType": "image",
+    "caption": "Güneşli harika bir park yürüyüşü! 🐾",
+    "location": "Türkiye",
+    "likes": 0,
+    "comments": 0,
+    "timeAgo": "Şimdi",
+    "timestamp": 1792439995,
+    "likedByMe": false,
+    "savedByMe": false,
+    "commentList": [],
+    "countryCode": "TR"
+  },
+  {
+    "id": "p-seed-1",
+    "author": {
+      "name": "Mochi The Red Toy",
+      "username": "mochi_toypoodle",
+      "avatar": "/images/poodle_mochi.jpg",
+      "badge": "verified",
+      "countryCode": "TR"
+    },
+    "mediaUrl": "/images/poodle_mochi.jpg",
+    "mediaType": "image",
+    "caption": "Bugün Bebek Parkı'nda rüzgara karşı koşu günü! 🐩🍂 Pati Puanlarımı topluyorum!",
+    "location": "Bebek Sahili, İstanbul",
+    "likes": 285,
+    "comments": 38,
+    "timeAgo": "2s önce",
+    "timestamp": 1792167251,
+    "likedByMe": true,
+    "savedByMe": false,
+    "commentList": [
+      {
+        "user": "luna_apricot",
+        "text": "Aşırı tatlısın Mochi! Yürüyüşe ne zaman çıkıyoruz? 🐾",
+        "time": "1s önce",
+        "countryCode": "TR"
+      },
+      {
+        "user": "teddy_bear_poodle",
+        "text": "Tüylerin parlıyor resmen 🧸✨",
+        "time": "45d önce",
+        "countryCode": "TR"
+      }
+    ],
+    "countryCode": "TR"
+  },
+  {
+    "id": "p-seed-2",
+    "author": {
+      "name": "Luna & Leo",
+      "username": "luna_apricot",
+      "avatar": "/images/poodle_luna.jpg",
+      "badge": "verified",
+      "countryCode": "TR"
+    },
+    "mediaUrl": "/images/poodle_luna.jpg",
+    "mediaType": "image",
+    "caption": "Kuaför sonrası Teddy Bear traşımız bitti! ✂️🧸 Nasıl olmuşuz? Yorumlarınızı bekliyoruz ❤️",
+    "location": "Nişantaşı, İstanbul",
+    "likes": 512,
+    "comments": 74,
+    "timeAgo": "5s önce",
+    "timestamp": 1792156451,
+    "likedByMe": true,
+    "savedByMe": false,
+    "commentList": [
+      {
+        "user": "mochi_toypoodle",
+        "text": "Harika görünüyor! Traş hangi salonda yapıldı? 🐩",
+        "time": "3s önce",
+        "countryCode": "TR"
+      }
+    ],
+    "countryCode": "TR"
+  },
+  {
+    "id": "p-seed-3",
+    "author": {
+      "name": "Teddy Bear Poodle",
+      "username": "teddy_bear_poodle",
+      "avatar": "/images/poodle_teddy.jpg",
+      "badge": "",
+      "countryCode": "TR"
+    },
+    "mediaUrl": "/images/poodle_teddy.jpg",
+    "mediaType": "image",
+    "caption": "Pazar kahvaltısına eşlik eden küçük kıvırcık 🥐☕️ Herkese mutlu pazarlar!",
+    "location": "Moda, Kadıköy",
+    "likes": 189,
+    "comments": 22,
+    "timeAgo": "1g önce",
+    "timestamp": 1792088051,
+    "likedByMe": false,
+    "savedByMe": true,
+    "commentList": [],
+    "countryCode": "TR"
+  }
+]

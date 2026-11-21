@@ -1,0 +1,27 @@
+{
+  "luna_parisienne::senin_poodlein": [
+    {
+      "type": "message",
+      "id": "msg_1792183756116",
+      "from": "senin_poodlein",
+      "fromName": "Mochi",
+      "fromAvatar": "/images/poodle_mochi.jpg",
+      "to": "luna_parisienne",
+      "text": "Merhaba Luna! Canlı WebSocket mesajlaşması devrede! 🐩🐾",
+      "time": "20:49",
+      "timestamp": 1792183756
+    }
+  ],
+  "luna_thepoodle::teddyberryboy": [
+    {
+      "id": "msg_1792352263_34d50d",
+      "from": "teddyberryboy",
+      "fromName": "Ece Yılmaz",
+      "fromAvatar": "/images/poodle_teddy.jpg",
+      "to": "luna_thepoodle",
+      "text": "Merhaba Luna! Bebek Parkı'nda buluşalım mı? 🐾🎾",
+      "time": "Şimdi",
+      "timestamp": 1792352263
+    }
+  ]
+}

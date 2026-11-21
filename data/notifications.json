@@ -1,0 +1,70 @@
+[
+  {
+    "id": "notif_like_1792184867_de65",
+    "type": "like",
+    "user": "luna_apricot",
+    "userName": "Luna",
+    "userAvatar": "/images/poodle_luna.jpg",
+    "message": "senin fotoğrafını beğendi! ❤️",
+    "target": "post",
+    "targetId": "p-seed-1",
+    "timeAgo": "Şimdi",
+    "read": false
+  },
+  {
+    "id": "notif_like_1792184810_f468",
+    "type": "like",
+    "user": "luna_apricot",
+    "userName": "Luna",
+    "userAvatar": "/images/poodle_luna.jpg",
+    "message": "senin fotoğrafını beğendi! ❤️",
+    "target": "post",
+    "targetId": "p-seed-1",
+    "timeAgo": "Şimdi",
+    "read": false
+  },
+  {
+    "id": "notif-1",
+    "type": "like",
+    "user": "luna_apricot",
+    "userName": "Luna",
+    "userAvatar": "/images/poodle_luna.jpg",
+    "message": "senin fotoğrafını beğendi.",
+    "target": "post",
+    "timeAgo": "2d önce",
+    "read": false
+  },
+  {
+    "id": "notif-2",
+    "type": "comment",
+    "user": "teddy_bear_poodle",
+    "userName": "Teddy",
+    "userAvatar": "/images/poodle_teddy.jpg",
+    "message": "gönderine yorum yaptı: 'Harika bir Toy Poodle! 🐩'",
+    "target": "post",
+    "timeAgo": "15d önce",
+    "read": false
+  },
+  {
+    "id": "notif-3",
+    "type": "paw",
+    "user": "yourpoodle_system",
+    "userName": "YourPoodle",
+    "userAvatar": "/images/poodle_mochi.jpg",
+    "message": "+50 Pati Puanı kazandın! 'Kıvırcık Kaşif' rütbesine yaklaşıyorsun. 🐾",
+    "target": "paw",
+    "timeAgo": "1s önce",
+    "read": true
+  },
+  {
+    "id": "notif-4",
+    "type": "message",
+    "user": "mochi_toypoodle",
+    "userName": "Mochi",
+    "userAvatar": "/images/poodle_mochi.jpg",
+    "message": "sana yeni bir mesaj gönderdi: 'Yarın Bebek parkında buluşalım mı? 🎾'",
+    "target": "message",
+    "timeAgo": "3s önce",
+    "read": true
+  }
+]
